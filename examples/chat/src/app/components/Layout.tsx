@@ -1,5 +1,6 @@
 import { Box, CssBaseline } from '@mui/material';
 import { ReactNode } from 'react';
+
 import { Main } from './Main';
 
 interface LayoutProps {

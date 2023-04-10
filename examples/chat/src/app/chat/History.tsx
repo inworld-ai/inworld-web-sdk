@@ -1,25 +1,26 @@
 import {
+  Actor,
   CHAT_HISTORY_TYPE,
   HistoryItem,
   HistoryItemActor,
-  HistoryItemTriggerEvent,
   HistoryItemNarratedAction,
-  Actor,
+  HistoryItemTriggerEvent,
 } from '@inworld/web-sdk';
 import { Box, Fade, Stack, Typography } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
+
+import { getEmoji } from '../helpers/emoji';
 import { dateWithMilliseconds } from '../helpers/transform';
 import { CHAT_VIEW, EmotionsMap } from '../types';
 import {
+  HistoryAction,
+  HistoryActor,
   HistoryInner,
+  HistoryItemMessageActor,
   HistoryMessageGroup,
   HistoryStyled,
-  HistoryItemMessageActor,
-  HistoryActor,
-  HistoryAction,
 } from './Chat.styled';
 import { Typing } from './Typing';
-import { getEmoji } from '../helpers/emoji';
 
 interface HistoryProps {
   chatView: CHAT_VIEW;

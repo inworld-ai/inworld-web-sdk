@@ -6,6 +6,7 @@ import {
   Grid,
   Typography,
 } from '@mui/material';
+
 import { CharacterName } from './CharacterName';
 import { ChatView } from './ChatView';
 import { PlayerName } from './PlayerName';

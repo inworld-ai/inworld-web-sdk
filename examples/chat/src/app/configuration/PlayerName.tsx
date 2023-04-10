@@ -1,9 +1,9 @@
 import { Box, TextField } from '@mui/material';
+import { useCallback, useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-import { Configuration } from '../types';
 import { save as saveConfiguration } from '../helpers/configuration';
-import { useCallback, useMemo } from 'react';
+import { Configuration } from '../types';
 
 const FIELD_NAME = 'player.name';
 

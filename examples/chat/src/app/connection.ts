@@ -6,6 +6,7 @@ import {
   InworldConnectionService,
   InworldPacket,
 } from '@inworld/web-sdk';
+
 import { config } from '../config';
 
 interface InworldServiceProps {

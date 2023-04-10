@@ -7,8 +7,8 @@ import {
 } from '@mui/material';
 import { Controller, useFormContext } from 'react-hook-form';
 
-import { Configuration, CHAT_VIEW } from '../types';
 import { save as saveConfiguration } from '../helpers/configuration';
+import { CHAT_VIEW, Configuration } from '../types';
 
 export const ChatView = () => {
   const { control, getValues, setValue } = useFormContext<Configuration>();

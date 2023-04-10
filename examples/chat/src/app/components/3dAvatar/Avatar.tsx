@@ -1,5 +1,6 @@
 import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
 import { Box } from '@mui/material';
+
 import InworldChar3D from './InworldChar3D';
 
 export function Avatar({

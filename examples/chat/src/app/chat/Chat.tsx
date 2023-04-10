@@ -1,17 +1,17 @@
-import { CopyAll, Mic, Send } from '@mui/icons-material';
-import { IconButton, InputAdornment, TextField } from '@mui/material';
 import {
   CHAT_HISTORY_TYPE,
   HistoryItem,
   InworldConnectionService,
 } from '@inworld/web-sdk';
-
-import { History } from './History';
-import { useCallback, useState } from 'react';
+import { CopyAll, Mic, Send } from '@mui/icons-material';
+import { IconButton, InputAdornment, TextField } from '@mui/material';
 import { Box } from '@mui/system';
-import { CopyConfirmedDialog } from './CopyConfirmedDialog';
-import { ActionsStyled, RecordIcon } from './Chat.styled';
+import { useCallback, useState } from 'react';
+
 import { CHAT_VIEW, EmotionsMap } from '../types';
+import { ActionsStyled, RecordIcon } from './Chat.styled';
+import { CopyConfirmedDialog } from './CopyConfirmedDialog';
+import { History } from './History';
 
 interface ChatProps {
   chatView: CHAT_VIEW;

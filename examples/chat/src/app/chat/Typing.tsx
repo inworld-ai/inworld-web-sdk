@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
 import { Box } from '@mui/material';
 import { keyframes } from '@mui/system';
+
 import { INWORLD_COLORS } from '../colors';
 
 // TODO: make configurable with storybook introduction

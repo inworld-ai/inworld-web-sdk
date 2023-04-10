@@ -1,3 +1,5 @@
+import './App.css';
+
 import {
   AdditionalPhonemeInfo,
   Character,
@@ -6,30 +8,29 @@ import {
   InworldConnectionService,
   InworldPacket,
 } from '@inworld/web-sdk';
-import { Button, Grid } from '@mui/material';
 import { ArrowBackRounded } from '@mui/icons-material';
+import { Button, Grid } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
-import './App.css';
-import { Layout } from './app/components/Layout';
-import { Configuration, CHAT_VIEW, EmotionsMap } from './app/types';
-import { ConfigView } from './app/configuration/ConfigView';
-import { InworldService } from './app/connection';
 import { Chat } from './app/chat/Chat';
-import * as defaults from './defaults';
-import {
-  get as getConfiguration,
-  save as saveConfiguration,
-} from './app/helpers/configuration';
-import { CircularRpmAvatar } from './app/components/CircularRpmAvatar';
 import { Avatar } from './app/components/3dAvatar/Avatar';
+import { CircularRpmAvatar } from './app/components/CircularRpmAvatar';
+import { Layout } from './app/components/Layout';
 import {
   ChatWrapper,
   MainWrapper,
   SimulatorHeader,
 } from './app/components/Simulator';
+import { ConfigView } from './app/configuration/ConfigView';
+import { InworldService } from './app/connection';
+import {
+  get as getConfiguration,
+  save as saveConfiguration,
+} from './app/helpers/configuration';
+import { CHAT_VIEW, Configuration, EmotionsMap } from './app/types';
 import { config } from './config';
+import * as defaults from './defaults';
 
 interface CurrentContext {
   characters: Character[];
