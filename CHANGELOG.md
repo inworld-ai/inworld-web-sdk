@@ -1,9 +1,11 @@
+* Improve chat example UI: add validation and rename fields
+* Add narracted actions support
+
 ## 2022-03-31 v0.9.6
 
 * Remove deprecated emotions attributes: joy, fear, trust and surprise
 * Add phonemes support
 * Add animation view mode to chat example
-* Improve chat example UI: add validation and rename fields
 
 ## 2022-03-14 v0.9.5
 
