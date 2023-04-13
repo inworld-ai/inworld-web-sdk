@@ -1,8 +1,10 @@
+.github
+.husky
 coverage
 examples
 __tests__
 /src
-/build/proto
+/proto
 */**/node_modules/*
 */**/.eslintcache
 .eslintrc.json
