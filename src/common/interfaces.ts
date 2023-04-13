@@ -70,3 +70,9 @@ export enum ConnectionState {
   LOADING = 'LOADING',
   INACTIVE = 'INACTIVE',
 }
+
+export enum AudioSessionAction {
+  UNKNOWN = 'UNKNOWN',
+  START = 'START',
+  END = 'END',
+}

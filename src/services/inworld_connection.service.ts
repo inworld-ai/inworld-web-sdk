@@ -1,5 +1,5 @@
 import { DataChunkDataType } from '../../proto/packets.pb';
-import { CancelResponsesProps } from '../common/interfaces';
+import { AudioSessionAction, CancelResponsesProps } from '../common/interfaces';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
@@ -98,12 +98,26 @@ export class InworldConnectionService {
   }
 
   async sendAudioSessionStart() {
+    if (this.connection.getAudioSessionAction() === AudioSessionAction.START) {
+      throw Error('Audio session is already started');
+    }
+
+    this.connection.setAudioSessionAction(AudioSessionAction.START);
+
     return this.connection.send(() =>
       this.connection.getEventFactory().audioSessionStart(),
     );
   }
 
   async sendAudioSessionEnd() {
+    if (this.connection.getAudioSessionAction() !== AudioSessionAction.START) {
+      throw Error(
+        'Audio session cannot be ended because it has not been started',
+      );
+    }
+
+    this.connection.setAudioSessionAction(AudioSessionAction.END);
+
     return this.connection.send(() =>
       this.connection.getEventFactory().audioSessionEnd(),
     );
