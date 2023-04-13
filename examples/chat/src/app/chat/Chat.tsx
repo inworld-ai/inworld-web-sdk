@@ -160,7 +160,6 @@ export function Chat(props: ChatProps) {
 
     if (isRecording) {
       stopRecording();
-      connection.sendAudioSessionEnd();
       setIsRecording(false);
       return;
     }
