@@ -1,0 +1,15 @@
+.github
+.husky
+coverage
+examples
+__tests__
+/src
+/proto
+*/**/node_modules/*
+*/**/.eslintcache
+.eslintrc.json
+.prettierrc.json
+jest.config.json
+/tsconfig.json
+*/**/yarn.lock
+*/**/package-lock.json

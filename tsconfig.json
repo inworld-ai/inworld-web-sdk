@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "rootDirs": ["src"],
+    "declaration": true,
+    "esModuleInterop": true,
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "outDir": "build",
+    "skipLibCheck": true,
+    "target": "es5",
+    "types": ["jest", "node"],
+  },
+  "include": [
+    "src/**/*",
+    "proto/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
