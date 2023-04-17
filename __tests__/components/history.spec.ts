@@ -15,7 +15,7 @@ import {
   PacketId,
   Routing,
 } from '../../src/entities/inworld_packet.entity';
-import { createCharacter } from '../helpers';
+import { createCharacter, user } from '../helpers';
 
 const characters = [createCharacter(), createCharacter()];
 const packetId: PacketId = {
@@ -276,6 +276,101 @@ describe('text', () => {
       history.clear();
 
       expect(history.get().length).toEqual(0);
+    });
+  });
+
+  describe('transcript', () => {
+    test('should return empty transcript for empty history', () => {
+      const history = new InworldHistory();
+
+      const transcript = history.getTranscript();
+
+      expect(transcript).toEqual('');
+    });
+
+    describe('text', () => {
+      test('should return transcript for provided user name', () => {
+        const userRequest = {
+          id: user.id,
+          name: user.fullName,
+        };
+        const history = createHistoryWithPacket(textPacket);
+
+        const expected = `${user.fullName}: ${textPacket.text.text}`;
+        const transcript = history.getTranscript(userRequest);
+
+        expect(transcript).toEqual(expected);
+      });
+
+      test('should return transcript for default user name', () => {
+        const history = createHistoryWithPacket(textPacket);
+
+        const expected = `User: ${textPacket.text.text}`;
+        const transcript = history.getTranscript();
+
+        expect(transcript).toEqual(expected);
+      });
+
+      test('should return transcript with new line', () => {
+        const secondPacket = new InworldPacket({
+          packetId: {
+            packetId: v4(),
+            interactionId: v4(),
+            utteranceId: v4(),
+          },
+          routing,
+          date,
+          text: { text: v4(), final: false },
+          type: InworldPacketType.TEXT,
+        });
+        const history = createHistoryWithPacket(textPacket);
+        history.addOrUpdate({
+          characters,
+          grpcAudioPlayer,
+          packet: secondPacket,
+        });
+
+        const expected = `User: ${textPacket.text.text}\nUser: ${secondPacket.text.text}`;
+        const transcript = history.getTranscript();
+
+        expect(transcript).toEqual(expected);
+      });
+    });
+
+    describe('trigger', () => {
+      test('should return transcript', () => {
+        const history = createHistoryWithPacket(triggerPacket);
+
+        const expected = `>>> ${triggerPacket.trigger.name}`;
+        const transcript = history.getTranscript();
+
+        expect(transcript).toEqual(expected);
+      });
+    });
+
+    test('should return transcript with new line', () => {
+      const triggerPacket = new InworldPacket({
+        packetId: {
+          packetId: v4(),
+          interactionId: v4(),
+          utteranceId: v4(),
+        },
+        routing,
+        date,
+        trigger: { name: v4() },
+        type: InworldPacketType.TRIGGER,
+      });
+      const history = createHistoryWithPacket(textPacket);
+      history.addOrUpdate({
+        characters,
+        grpcAudioPlayer,
+        packet: triggerPacket,
+      });
+
+      const expected = `User: ${textPacket.text.text}\n>>> ${triggerPacket.trigger.name}`;
+      const transcript = history.getTranscript();
+
+      expect(transcript).toEqual(expected);
     });
   });
 });

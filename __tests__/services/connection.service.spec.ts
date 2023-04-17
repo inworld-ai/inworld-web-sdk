@@ -118,6 +118,18 @@ describe('history', () => {
 
     expect(clear).toHaveBeenCalledTimes(1);
   });
+
+  test('should return transcript', () => {
+    const result = 'test';
+    const getTranscript = jest
+      .spyOn(InworldHistory.prototype, 'getTranscript')
+      .mockImplementationOnce(() => result);
+
+    const transcript = connection.getTranscript();
+
+    expect(getTranscript).toHaveBeenCalledTimes(1);
+    expect(transcript).toEqual(result);
+  });
 });
 
 describe('open', () => {

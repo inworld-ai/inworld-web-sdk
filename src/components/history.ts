@@ -1,5 +1,7 @@
 import { v4 } from 'uuid';
 
+import { UserRequest } from '../../proto/world-engine.pb';
+import { DEFAULT_USER_NAME } from '../common/constants';
 import { Character } from '../entities/character.entity';
 import {
   Actor,
@@ -226,6 +228,41 @@ export class InworldHistory {
   clear() {
     this.queue = [];
     this.history = [];
+  }
+
+  getTranscript(user?: UserRequest): string {
+    if (!this.history.length) {
+      return '';
+    }
+
+    const userName = user?.name || DEFAULT_USER_NAME;
+
+    let transcript = '';
+    let characterLastSpeaking = false;
+
+    this.history.forEach((item) => {
+      const prefix = transcript.length ? '\n' : '';
+      switch (item.type) {
+        case CHAT_HISTORY_TYPE.ACTOR:
+          const isCharacter = item.source.isCharacter;
+          const givenName = isCharacter
+            ? item.character?.getDisplayName()
+            : userName;
+
+          transcript +=
+            characterLastSpeaking && isCharacter
+              ? item.text
+              : `${prefix}${givenName}: ${item.text}`;
+          characterLastSpeaking = isCharacter;
+          break;
+        case CHAT_HISTORY_TYPE.TRIGGER_EVENT:
+          transcript += `${prefix}>>> ${item.name}`;
+          characterLastSpeaking = false;
+          break;
+      }
+    });
+
+    return transcript;
   }
 
   private combineTextItem(packet: InworldPacket): HistoryItemActor {

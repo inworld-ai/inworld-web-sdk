@@ -128,6 +128,10 @@ export class ConnectionService {
     return this.eventFactory;
   }
 
+  getTranscript() {
+    return this.history.getTranscript(this.connectionProps.user);
+  }
+
   async getCharactersList() {
     await this.loadScene();
 

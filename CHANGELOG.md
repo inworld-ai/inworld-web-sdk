@@ -1,4 +1,5 @@
 * Add mute/unmute events support
+* Allow to build history transcript inside SDK
 
 ## 2022-04-20 v0.9.7
 
