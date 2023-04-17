@@ -444,7 +444,7 @@ describe('interaction end', () => {
     history.display(textPacket, CHAT_HISTORY_TYPE.NARRATED_ACTION);
     history.display(interactionEndPacket, CHAT_HISTORY_TYPE.INTERACTION_END);
 
-    expect(history.get().length).toEqual(2);
+    expect(history.get().length).toEqual(3);
   });
 
   test("should not display packet stored in queue if it's not last one", () => {

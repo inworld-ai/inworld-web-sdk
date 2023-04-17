@@ -201,7 +201,7 @@ export class InworldHistory {
 
         if (foundActions.length) {
           this.history = [...this.history, ...foundActions];
-          this.queue = this.queue.filter(byCondition);
+          this.queue = this.queue.filter((item) => !byCondition(item));
         }
 
         return !!foundActions.length;
