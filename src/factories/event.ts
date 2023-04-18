@@ -86,6 +86,21 @@ export class EventFactory {
     };
   }
 
+  ttsPlaybackMute(isMuted: boolean): ProtoPacket {
+    return {
+      packetId: {
+        packetId: v4(),
+      },
+      timestamp: this.protoTimestampNow(),
+      routing: this.routing(),
+      control: {
+        action: isMuted
+          ? ControlEventAction.TTS_PLAYBACK_MUTE
+          : ControlEventAction.TTS_PLAYBACK_UNMUTE,
+      },
+    };
+  }
+
   text(text: string): ProtoPacket {
     return {
       packetId: {
@@ -253,6 +268,10 @@ export class EventFactory {
         return InworlControlType.TTS_PLAYBACK_START;
       case ControlEventAction.TTS_PLAYBACK_END:
         return InworlControlType.TTS_PLAYBACK_END;
+      case ControlEventAction.TTS_PLAYBACK_MUTE:
+        return InworlControlType.TTS_PLAYBACK_MUTE;
+      case ControlEventAction.TTS_PLAYBACK_UNMUTE:
+        return InworlControlType.TTS_PLAYBACK_UNMUTE;
       default:
         return InworlControlType.UNKNOWN;
     }

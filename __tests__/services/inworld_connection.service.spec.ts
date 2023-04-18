@@ -368,4 +368,30 @@ describe('send', () => {
     expect(packet.isControl()).toEqual(true);
     expect(packet.isTTSPlaybackEnd()).toEqual(true);
   });
+
+  test('should send tts playback mute', async () => {
+    const write = jest
+      .spyOn(WebSocketConnection.prototype, 'write')
+      .mockImplementationOnce(writeMock);
+
+    const packet = await service.sendTTSPlaybackMute(true);
+
+    expect(open).toHaveBeenCalledTimes(0);
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(packet.isControl()).toEqual(true);
+    expect(packet.isTTSPlaybackMute()).toEqual(true);
+  });
+
+  test('should send tts playback unmute', async () => {
+    const write = jest
+      .spyOn(WebSocketConnection.prototype, 'write')
+      .mockImplementationOnce(writeMock);
+
+    const packet = await service.sendTTSPlaybackMute(false);
+
+    expect(open).toHaveBeenCalledTimes(0);
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(packet.isControl()).toEqual(true);
+    expect(packet.isTTSPlaybackUnmute()).toEqual(true);
+  });
 });

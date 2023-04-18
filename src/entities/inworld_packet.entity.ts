@@ -18,6 +18,8 @@ export enum InworlControlType {
   INTERACTION_END = 'INTERACTION_END',
   TTS_PLAYBACK_START = 'TTS_PLAYBACK_START',
   TTS_PLAYBACK_END = 'TTS_PLAYBACK_END',
+  TTS_PLAYBACK_MUTE = 'TTS_PLAYBACK_MUTE',
+  TTS_PLAYBACK_UNMUTE = 'TTS_PLAYBACK_UNMUTE',
 }
 
 export interface InworldPacketProps {
@@ -187,6 +189,20 @@ export class InworldPacket {
     return (
       this.isControl() &&
       this.control.type === InworlControlType.TTS_PLAYBACK_END
+    );
+  }
+
+  isTTSPlaybackMute() {
+    return (
+      this.isControl() &&
+      this.control.type === InworlControlType.TTS_PLAYBACK_MUTE
+    );
+  }
+
+  isTTSPlaybackUnmute() {
+    return (
+      this.isControl() &&
+      this.control.type === InworlControlType.TTS_PLAYBACK_UNMUTE
     );
   }
 
