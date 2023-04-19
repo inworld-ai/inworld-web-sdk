@@ -31,7 +31,11 @@ export class InworldConnectionService {
     });
     this.recorder = new InworldRecorder({
       listener: async (base64AudioChunk: string) => {
-        if (!this.connection.isActive()) {
+        if (
+          !this.connection.isActive() &&
+          this.connection.isAutoReconnected() &&
+          this.connection.getAudioSessionAction() !== AudioSessionAction.START
+        ) {
           await this.sendAudioSessionStart();
         }
 
