@@ -179,6 +179,14 @@ export class ConnectionService {
     return this.audioSessionAction;
   }
 
+  interrupt() {
+    const packet = this.connectionProps.grpcAudioPlayer.getCurrentPacket();
+
+    if (packet) {
+      this.interruptByInteraction(packet.packetId.interactionId);
+    }
+  }
+
   private async loadCharactersList() {
     if (!this.scene) {
       await this.loadScene();
@@ -235,7 +243,7 @@ export class ConnectionService {
         this.scheduleDisconnect();
 
         if (inworldPacket.isText()) {
-          this.interrupt(inworldPacket.packetId.interactionId);
+          this.interruptByInteraction(inworldPacket.packetId.interactionId);
         }
 
         this.addPacketToHistory(inworldPacket);
@@ -373,7 +381,7 @@ export class ConnectionService {
 
       // Send cancel response event in case of player talking.
       if (inworldPacket.isText() && inworldPacket.routing.source.isPlayer) {
-        this.interrupt(inworldPacket.packetId.interactionId);
+        this.interruptByInteraction(inworldPacket.packetId.interactionId);
       }
 
       // Play audio or silence.
@@ -425,7 +433,7 @@ export class ConnectionService {
     this.connection = new WebSocketConnection(props);
   }
 
-  private interrupt(interactionId: string) {
+  private interruptByInteraction(interactionId: string) {
     const { grpcAudioPlayer, config } = this.connectionProps;
 
     if (!config?.capabilities.interruptions) return;

@@ -1,3 +1,5 @@
+* Allow to interrupt character manually
+
 ## 2022-04-26 v1.0.0
 
 * Add mute/unmute events support
