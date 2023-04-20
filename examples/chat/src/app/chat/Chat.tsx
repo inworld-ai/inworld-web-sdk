@@ -118,13 +118,11 @@ export function Chat(props: ChatProps) {
     connection.recorder.stop();
     setIsRecording(false);
     connection.sendAudioSessionEnd();
-    console.log('sendAudioSessionEnd');
   }, [connection]);
 
   const startRecording = useCallback(async () => {
     try {
       connection.sendAudioSessionStart();
-      console.log('sendAudioSessionStart');
       await connection.recorder.start();
       setIsRecording(true);
     } catch (e) {
