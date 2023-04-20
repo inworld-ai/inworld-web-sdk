@@ -6,6 +6,7 @@ import {
   UserRequest,
 } from '../../proto/world-engine.pb';
 import {
+  AudioSessionState,
   Awaitable,
   CancelResponses,
   CancelResponsesProps,
@@ -53,6 +54,7 @@ const player = Player.getInstance();
 
 export class ConnectionService {
   private state: ConnectionState = ConnectionState.INACTIVE;
+  private audioSessionAction = AudioSessionState.UNKNOWN;
 
   private scene: LoadSceneResponse;
   private session: SessionToken;
@@ -155,20 +157,22 @@ export class ConnectionService {
     try {
       this.cancelScheduler();
 
-      if (this.isActive()) {
-        return this.write(getPacket);
+      if (!this.isActive() && !this.isAutoReconnected()) {
+        throw Error('Unable to send data due inactive connection');
       }
 
-      if (this.isAutoReconnected()) {
-        await this.open();
-
-        return this.write(getPacket);
-      }
-
-      throw Error('Unable to send data due inactive connection');
+      return this.write(getPacket);
     } catch (err) {
       this.onError(err);
     }
+  }
+
+  setAudioSessionAction(action: AudioSessionState) {
+    this.audioSessionAction = action;
+  }
+
+  getAudioSessionAction() {
+    return this.audioSessionAction;
   }
 
   private async loadCharactersList() {
@@ -216,6 +220,9 @@ export class ConnectionService {
         this.intervals.push(interval);
       });
 
+    // 1. Send a packet to a connection.
+    // The packet will be sent directly or added to the queue.
+    // If the connection is not active, we need to add the packet to the queue first to guarantee the order of packets.
     this.connection.write({
       getPacket,
       afterWriting: (packet: ProtoPacket) => {
@@ -230,6 +237,11 @@ export class ConnectionService {
         this.addPacketToHistory(inworldPacket);
       },
     });
+
+    // 2. Open the connection if it's inactive.
+    if (!this.isActive()) {
+      this.open();
+    }
 
     return resolvePacket();
   }
@@ -321,6 +333,7 @@ export class ConnectionService {
 
     this.onDisconnect = () => {
       this.state = ConnectionState.INACTIVE;
+      this.audioSessionAction = AudioSessionState.UNKNOWN;
       onDisconnect?.();
     };
 

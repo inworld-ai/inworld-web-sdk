@@ -1,5 +1,6 @@
 * Improve chat example UI: add validation and rename fields
 * Add narracted actions support
+* Prevent starting/ending the audio session two times in a row
 
 ## 2022-03-31 v0.9.6
 
