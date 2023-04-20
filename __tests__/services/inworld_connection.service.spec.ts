@@ -195,6 +195,18 @@ describe('history', () => {
 
     expect(clearHistory).toHaveBeenCalledTimes(1);
   });
+
+  test('should return transcript', () => {
+    const result = 'test';
+    const getTranscript = jest
+      .spyOn(ConnectionService.prototype, 'getTranscript')
+      .mockImplementationOnce(() => result);
+
+    const transcript = service.getTranscript();
+
+    expect(getTranscript).toHaveBeenCalledTimes(1);
+    expect(transcript).toEqual(result);
+  });
 });
 
 describe('send', () => {

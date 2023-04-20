@@ -1,4 +1,5 @@
 import { DataChunkDataType } from '../../proto/packets.pb';
+import { UserRequest } from '../../proto/world-engine.pb';
 import { AudioSessionState, CancelResponsesProps } from '../common/interfaces';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
@@ -18,6 +19,7 @@ interface InworldConnectionServiceProps {
 export class InworldConnectionService {
   private connection: ConnectionService;
   private grpcAudioPlayer: GrpcAudioPlayback;
+  private user: UserRequest;
 
   player: InworldPlayer;
   recorder: InworldRecorder;
@@ -75,6 +77,10 @@ export class InworldConnectionService {
 
   clearHistory() {
     return this.connection.clearHistory();
+  }
+
+  getTranscript() {
+    return this.connection.getTranscript();
   }
 
   setCurrentCharacter(character: Character) {
