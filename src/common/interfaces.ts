@@ -71,7 +71,7 @@ export enum ConnectionState {
   INACTIVE = 'INACTIVE',
 }
 
-export enum AudioSessionAction {
+export enum AudioSessionState {
   UNKNOWN = 'UNKNOWN',
   START = 'START',
   END = 'END',

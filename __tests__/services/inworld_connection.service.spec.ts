@@ -3,7 +3,7 @@ import '../mocks/window.mock';
 import { v4 } from 'uuid';
 
 import { DataChunkDataType } from '../../proto/packets.pb';
-import { AudioSessionAction } from '../../src/common/interfaces';
+import { AudioSessionState } from '../../src/common/interfaces';
 import { InworldHistory } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../../src/components/sound/grpc_audio.recorder';
@@ -269,7 +269,7 @@ describe('send', () => {
   test('should send audio session start', async () => {
     jest
       .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
-      .mockImplementationOnce(() => AudioSessionAction.UNKNOWN);
+      .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
     const write = jest
       .spyOn(WebSocketConnection.prototype, 'write')
       .mockImplementationOnce(writeMock);
@@ -287,7 +287,7 @@ describe('send', () => {
       .mockImplementationOnce(writeMock);
     jest
       .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
-      .mockImplementationOnce(() => AudioSessionAction.UNKNOWN);
+      .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
 
     await service.sendAudioSessionStart();
 
@@ -302,7 +302,7 @@ describe('send', () => {
       .mockImplementationOnce(writeMock);
     jest
       .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
-      .mockImplementationOnce(() => AudioSessionAction.UNKNOWN);
+      .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
 
     await service.sendAudioSessionStart();
     await service.sendAudioSessionEnd();
@@ -321,7 +321,7 @@ describe('send', () => {
       .mockImplementationOnce(writeMock);
     jest
       .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
-      .mockImplementationOnce(() => AudioSessionAction.UNKNOWN);
+      .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
 
     await service.sendAudioSessionStart();
     const packet = await service.sendAudioSessionEnd();

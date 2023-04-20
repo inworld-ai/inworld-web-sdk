@@ -6,7 +6,7 @@ import {
   UserRequest,
 } from '../../proto/world-engine.pb';
 import {
-  AudioSessionAction,
+  AudioSessionState,
   Awaitable,
   CancelResponses,
   CancelResponsesProps,
@@ -54,7 +54,7 @@ const player = Player.getInstance();
 
 export class ConnectionService {
   private state: ConnectionState = ConnectionState.INACTIVE;
-  private audioSessionAction = AudioSessionAction.UNKNOWN;
+  private audioSessionAction = AudioSessionState.UNKNOWN;
 
   private scene: LoadSceneResponse;
   private session: SessionToken;
@@ -167,7 +167,7 @@ export class ConnectionService {
     }
   }
 
-  setAudioSessionAction(action: AudioSessionAction) {
+  setAudioSessionAction(action: AudioSessionState) {
     this.audioSessionAction = action;
   }
 
@@ -333,7 +333,7 @@ export class ConnectionService {
 
     this.onDisconnect = () => {
       this.state = ConnectionState.INACTIVE;
-      this.audioSessionAction = AudioSessionAction.UNKNOWN;
+      this.audioSessionAction = AudioSessionState.UNKNOWN;
       onDisconnect?.();
     };
 

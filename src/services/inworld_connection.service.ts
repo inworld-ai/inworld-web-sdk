@@ -1,5 +1,5 @@
 import { DataChunkDataType } from '../../proto/packets.pb';
-import { AudioSessionAction, CancelResponsesProps } from '../common/interfaces';
+import { AudioSessionState, CancelResponsesProps } from '../common/interfaces';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
@@ -34,7 +34,7 @@ export class InworldConnectionService {
         if (
           !this.connection.isActive() &&
           this.connection.isAutoReconnected() &&
-          this.connection.getAudioSessionAction() !== AudioSessionAction.START
+          this.connection.getAudioSessionAction() !== AudioSessionState.START
         ) {
           await this.sendAudioSessionStart();
         }
@@ -102,11 +102,11 @@ export class InworldConnectionService {
   }
 
   async sendAudioSessionStart() {
-    if (this.connection.getAudioSessionAction() === AudioSessionAction.START) {
+    if (this.connection.getAudioSessionAction() === AudioSessionState.START) {
       throw Error('Audio session is already started');
     }
 
-    this.connection.setAudioSessionAction(AudioSessionAction.START);
+    this.connection.setAudioSessionAction(AudioSessionState.START);
 
     return this.connection.send(() =>
       this.connection.getEventFactory().audioSessionStart(),
@@ -114,13 +114,13 @@ export class InworldConnectionService {
   }
 
   async sendAudioSessionEnd() {
-    if (this.connection.getAudioSessionAction() !== AudioSessionAction.START) {
+    if (this.connection.getAudioSessionAction() !== AudioSessionState.START) {
       throw Error(
         'Audio session cannot be ended because it has not been started',
       );
     }
 
-    this.connection.setAudioSessionAction(AudioSessionAction.END);
+    this.connection.setAudioSessionAction(AudioSessionState.END);
 
     return this.connection.send(() =>
       this.connection.getEventFactory().audioSessionEnd(),
