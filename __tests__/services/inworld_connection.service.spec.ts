@@ -3,6 +3,7 @@ import '../mocks/window.mock';
 import { v4 } from 'uuid';
 
 import { DataChunkDataType } from '../../proto/packets.pb';
+import { AudioSessionState } from '../../src/common/interfaces';
 import { InworldHistory } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../../src/components/sound/grpc_audio.recorder';
@@ -266,6 +267,9 @@ describe('send', () => {
   });
 
   test('should send audio session start', async () => {
+    jest
+      .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+      .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
     const write = jest
       .spyOn(WebSocketConnection.prototype, 'write')
       .mockImplementationOnce(writeMock);
@@ -277,15 +281,53 @@ describe('send', () => {
     expect(packet.isControl()).toEqual(true);
   });
 
+  test('should throw error if audio session was started twice', async () => {
+    jest
+      .spyOn(WebSocketConnection.prototype, 'write')
+      .mockImplementationOnce(writeMock);
+    jest
+      .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+      .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
+
+    await service.sendAudioSessionStart();
+
+    expect(async () => {
+      await service.sendAudioSessionStart();
+    }).rejects.toThrow('Audio session is already started');
+  });
+
+  test('should throw error if audio session was finished twice', async () => {
+    jest
+      .spyOn(WebSocketConnection.prototype, 'write')
+      .mockImplementationOnce(writeMock);
+    jest
+      .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+      .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
+
+    await service.sendAudioSessionStart();
+    await service.sendAudioSessionEnd();
+
+    expect(async () => {
+      await service.sendAudioSessionEnd();
+    }).rejects.toThrow(
+      'Audio session cannot be ended because it has not been started',
+    );
+  });
+
   test('should send audio session end', async () => {
     const write = jest
       .spyOn(WebSocketConnection.prototype, 'write')
+      .mockImplementationOnce(writeMock)
       .mockImplementationOnce(writeMock);
+    jest
+      .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+      .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
 
+    await service.sendAudioSessionStart();
     const packet = await service.sendAudioSessionEnd();
 
     expect(open).toHaveBeenCalledTimes(0);
-    expect(write).toHaveBeenCalledTimes(1);
+    expect(write).toHaveBeenCalledTimes(2);
     expect(packet.isControl()).toEqual(true);
   });
 

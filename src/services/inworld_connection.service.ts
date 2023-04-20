@@ -1,5 +1,5 @@
 import { DataChunkDataType } from '../../proto/packets.pb';
-import { CancelResponsesProps } from '../common/interfaces';
+import { AudioSessionState, CancelResponsesProps } from '../common/interfaces';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
@@ -31,7 +31,11 @@ export class InworldConnectionService {
     });
     this.recorder = new InworldRecorder({
       listener: async (base64AudioChunk: string) => {
-        if (!this.connection.isActive()) {
+        if (
+          !this.connection.isActive() &&
+          this.connection.isAutoReconnected() &&
+          this.connection.getAudioSessionAction() !== AudioSessionState.START
+        ) {
           await this.sendAudioSessionStart();
         }
 
@@ -98,12 +102,26 @@ export class InworldConnectionService {
   }
 
   async sendAudioSessionStart() {
+    if (this.connection.getAudioSessionAction() === AudioSessionState.START) {
+      throw Error('Audio session is already started');
+    }
+
+    this.connection.setAudioSessionAction(AudioSessionState.START);
+
     return this.connection.send(() =>
       this.connection.getEventFactory().audioSessionStart(),
     );
   }
 
   async sendAudioSessionEnd() {
+    if (this.connection.getAudioSessionAction() !== AudioSessionState.START) {
+      throw Error(
+        'Audio session cannot be ended because it has not been started',
+      );
+    }
+
+    this.connection.setAudioSessionAction(AudioSessionState.END);
+
     return this.connection.send(() =>
       this.connection.getEventFactory().audioSessionEnd(),
     );
