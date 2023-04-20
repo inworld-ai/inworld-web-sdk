@@ -139,6 +139,12 @@ export class InworldConnectionService {
     );
   }
 
+  async sendTTSPlaybackMute(isMuted: boolean) {
+    return this.connection.send(() =>
+      this.connection.getEventFactory().ttsPlaybackMute(isMuted),
+    );
+  }
+
   async sendCancelResponse(cancelResponses?: CancelResponsesProps) {
     return this.connection.send(() =>
       this.connection.getEventFactory().cancelResponse(cancelResponses),

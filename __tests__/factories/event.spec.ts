@@ -100,6 +100,30 @@ describe('event types', () => {
     expect(event.routing.target.name).toEqual(character.getId());
   });
 
+  test('should generate tts playback mute', () => {
+    const event = factory.ttsPlaybackMute(true);
+
+    expect(event).toHaveProperty('packetId');
+    expect(event).toHaveProperty('routing');
+    expect(event).toHaveProperty('timestamp');
+    expect(event.control).toEqual({
+      action: ControlEventAction.TTS_PLAYBACK_MUTE,
+    });
+    expect(event.routing.target.name).toEqual(character.getId());
+  });
+
+  test('should generate tts playback unmute', () => {
+    const event = factory.ttsPlaybackMute(false);
+
+    expect(event).toHaveProperty('packetId');
+    expect(event).toHaveProperty('routing');
+    expect(event).toHaveProperty('timestamp');
+    expect(event.control).toEqual({
+      action: ControlEventAction.TTS_PLAYBACK_UNMUTE,
+    });
+    expect(event.routing.target.name).toEqual(character.getId());
+  });
+
   test('should generate text event', () => {
     const text = v4();
     const event = factory.text(text);

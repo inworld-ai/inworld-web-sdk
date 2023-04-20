@@ -12,7 +12,7 @@ interface Props {
   sx?: SxProps;
 }
 
-const AvatarWrapper = styled(Box)<WrapperProps>(({ theme, size }) => ({
+const AvatarWrapper = styled(Box)<WrapperProps>(({ size }) => ({
   width: size,
   height: size,
   objectFit: 'cover',
