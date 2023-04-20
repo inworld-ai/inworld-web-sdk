@@ -67,6 +67,6 @@ describe('should throw error', () => {
   test('on empty scene', async () => {
     const inworldClient = new InworldClient().setScene('');
 
-    await expect(() => inworldClient.build()).toThrow('Scene name is required');
+    expect(() => inworldClient.build()).toThrow('Scene name is required');
   });
 });

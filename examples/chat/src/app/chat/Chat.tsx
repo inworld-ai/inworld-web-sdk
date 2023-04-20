@@ -159,10 +159,7 @@ export function Chat(props: ChatProps) {
     !hasPlayedWorkaroundSound && playWorkaroundSound();
 
     if (isRecording) {
-      stopRecording();
-      connection.sendAudioSessionEnd();
-      setIsRecording(false);
-      return;
+      return stopRecording();
     }
 
     return startRecording();
