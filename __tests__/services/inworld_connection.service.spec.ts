@@ -264,7 +264,7 @@ describe('send', () => {
     expect(packet.text).toHaveProperty('text', text);
   });
 
-  test('should send trigger', async () => {
+  test('should send trigger without parameters', async () => {
     const write = jest
       .spyOn(WebSocketConnection.prototype, 'write')
       .mockImplementationOnce(writeMock);
@@ -276,6 +276,23 @@ describe('send', () => {
     expect(open).toHaveBeenCalledTimes(0);
     expect(write).toHaveBeenCalledTimes(1);
     expect(packet.trigger).toHaveProperty('name', name);
+    expect(packet.trigger).toHaveProperty('parameters', undefined);
+  });
+
+  test('should send trigger with parameters', async () => {
+    const write = jest
+      .spyOn(WebSocketConnection.prototype, 'write')
+      .mockImplementationOnce(writeMock);
+
+    const name = v4();
+    const parameters = [{ name: v4(), value: v4() }];
+
+    const packet = await service.sendTrigger(name, parameters);
+
+    expect(open).toHaveBeenCalledTimes(0);
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(packet.trigger).toHaveProperty('name', name);
+    expect(packet.trigger).toHaveProperty('parameters', parameters);
   });
 
   test('should send audio session start', async () => {

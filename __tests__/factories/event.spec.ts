@@ -135,7 +135,7 @@ describe('event types', () => {
     expect(event.routing.target.name).toEqual(character.getId());
   });
 
-  test('should generate trigger event', () => {
+  test('should generate trigger event without parameters', () => {
     const name = v4();
     const event = factory.trigger(name);
 
@@ -143,6 +143,20 @@ describe('event types', () => {
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.custom.name).toEqual(name);
+    expect(event.custom.parameters).toEqual(undefined);
+    expect(event.routing.target.name).toEqual(character.getId());
+  });
+
+  test('should generate trigger event with parameters', () => {
+    const name = v4();
+    const parameters = [{ name: v4(), value: v4() }];
+    const event = factory.trigger(name, parameters);
+
+    expect(event).toHaveProperty('packetId');
+    expect(event).toHaveProperty('routing');
+    expect(event).toHaveProperty('timestamp');
+    expect(event.custom.name).toEqual(name);
+    expect(event.custom.parameters).toEqual(parameters);
     expect(event.routing.target.name).toEqual(character.getId());
   });
 
@@ -215,8 +229,17 @@ describe('convert packet to external one', () => {
     expect(result.isText()).toEqual(true);
   });
 
-  test('trigger', () => {
+  test('trigger without parameters', () => {
     const result = EventFactory.fromProto(factory.trigger(v4()));
+
+    expect(result).toBeInstanceOf(InworldPacket);
+    expect(result.isTrigger()).toEqual(true);
+  });
+
+  test('trigger with parameters', () => {
+    const result = EventFactory.fromProto(
+      factory.trigger(v4(), [{ name: v4(), value: v4() }]),
+    );
 
     expect(result).toBeInstanceOf(InworldPacket);
     expect(result.isTrigger()).toEqual(true);

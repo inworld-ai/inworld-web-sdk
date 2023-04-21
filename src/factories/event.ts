@@ -18,6 +18,7 @@ import {
   InworlControlType,
   InworldPacket,
   InworldPacketType,
+  TriggerParameter,
 } from '../entities/inworld_packet.entity';
 
 export class EventFactory {
@@ -118,7 +119,7 @@ export class EventFactory {
     };
   }
 
-  trigger(name: string): ProtoPacket {
+  trigger(name: string, parameters: TriggerParameter[] = []): ProtoPacket {
     return {
       packetId: {
         packetId: v4(),
@@ -127,7 +128,10 @@ export class EventFactory {
       },
       timestamp: this.protoTimestampNow(),
       routing: this.routing(),
-      custom: { name },
+      custom: {
+        name,
+        ...(parameters.length && { parameters }),
+      },
     };
   }
 
@@ -173,6 +177,10 @@ export class EventFactory {
       ...(type === InworldPacketType.TRIGGER && {
         trigger: {
           name: proto.custom.name,
+          parameters: proto.custom.parameters?.map((p) => ({
+            name: p.name,
+            value: p.value,
+          })),
         },
       }),
       ...(type === InworldPacketType.TEXT && {

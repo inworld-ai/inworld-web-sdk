@@ -7,6 +7,7 @@ import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_
 import { InworldPlayer } from '../components/sound/inworld_player';
 import { InworldRecorder } from '../components/sound/inworld_recorder';
 import { Character } from '../entities/character.entity';
+import { TriggerParameter } from '../entities/inworld_packet.entity';
 import { ConnectionService } from './connection.service';
 
 interface InworldConnectionServiceProps {
@@ -101,9 +102,9 @@ export class InworldConnectionService {
     );
   }
 
-  async sendTrigger(name: string) {
+  async sendTrigger(name: string, parameters?: TriggerParameter[]) {
     return this.connection.send(() =>
-      this.connection.getEventFactory().trigger(name),
+      this.connection.getEventFactory().trigger(name, parameters),
     );
   }
 
