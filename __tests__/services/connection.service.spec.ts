@@ -448,7 +448,7 @@ describe('send', () => {
     jest
       .spyOn(GrpcAudioPlayback.prototype, 'excludeCurrentInteractionPackets')
       .mockImplementationOnce(() => [
-        eventFactory.convertToInworldPacket({
+        EventFactory.fromProto({
           ...audioEvent,
           packetId: {
             packetId: audioEvent.packetId.packetId,
@@ -527,7 +527,7 @@ describe('onMessage', () => {
     jest
       .spyOn(GrpcAudioPlayback.prototype, 'excludeCurrentInteractionPackets')
       .mockImplementationOnce(() => [
-        eventFactory.convertToInworldPacket({
+        EventFactory.fromProto({
           ...audioEvent,
           packetId: {
             ...textEvent.packetId,
@@ -583,7 +583,7 @@ describe('onMessage', () => {
     jest
       .spyOn(GrpcAudioPlayback.prototype, 'excludeCurrentInteractionPackets')
       .mockImplementationOnce(() => [
-        eventFactory.convertToInworldPacket({
+        EventFactory.fromProto({
           ...audioEvent,
           packetId: {
             ...textEvent.packetId,

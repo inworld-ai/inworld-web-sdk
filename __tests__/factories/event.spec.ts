@@ -202,21 +202,21 @@ describe('convert packet to external one', () => {
       timestamp: protoTimestamp(),
     };
 
-    const result = factory.convertToInworldPacket(packet);
+    const result = EventFactory.fromProto(packet);
 
     expect(result).toBeInstanceOf(InworldPacket);
     expect(result.isAudio()).toEqual(true);
   });
 
   test('text', () => {
-    const result = factory.convertToInworldPacket(factory.text(v4()));
+    const result = EventFactory.fromProto(factory.text(v4()));
 
     expect(result).toBeInstanceOf(InworldPacket);
     expect(result.isText()).toEqual(true);
   });
 
   test('trigger', () => {
-    const result = factory.convertToInworldPacket(factory.trigger(v4()));
+    const result = EventFactory.fromProto(factory.trigger(v4()));
 
     expect(result).toBeInstanceOf(InworldPacket);
     expect(result.isTrigger()).toEqual(true);
@@ -233,7 +233,7 @@ describe('convert packet to external one', () => {
       timestamp: protoTimestamp(),
     };
 
-    const result = factory.convertToInworldPacket(packet);
+    const result = EventFactory.fromProto(packet);
 
     expect(result).toBeInstanceOf(InworldPacket);
     expect(result.isEmotion()).toEqual(true);
@@ -250,7 +250,7 @@ describe('convert packet to external one', () => {
       timestamp: protoTimestamp(),
     };
 
-    const result = factory.convertToInworldPacket(packet);
+    const result = EventFactory.fromProto(packet);
 
     expect(result).toBeInstanceOf(InworldPacket);
     expect(result.isSilence()).toEqual(true);
@@ -267,7 +267,7 @@ describe('convert packet to external one', () => {
       timestamp: protoTimestamp(),
     };
 
-    const result = factory.convertToInworldPacket(packet);
+    const result = EventFactory.fromProto(packet);
 
     expect(result).toBeInstanceOf(InworldPacket);
     expect(result.isCancelResponse()).toEqual(true);
@@ -287,7 +287,7 @@ describe('convert packet to external one', () => {
       },
     };
 
-    const result = factory.convertToInworldPacket(packet);
+    const result = EventFactory.fromProto(packet);
 
     expect(result).toBeInstanceOf(InworldPacket);
     expect(result.isNarratedAction()).toEqual(true);
@@ -303,7 +303,7 @@ describe('convert packet to external one', () => {
       timestamp: protoTimestamp(),
     };
 
-    const result = factory.convertToInworldPacket(packet);
+    const result = EventFactory.fromProto(packet);
 
     expect(result).toBeInstanceOf(InworldPacket);
     expect(result.isEmotion()).toEqual(false);
@@ -328,7 +328,7 @@ describe('convert packet to external one', () => {
         timestamp: protoTimestamp(today),
       };
 
-      const result = factory.convertToInworldPacket(packet);
+      const result = EventFactory.fromProto(packet);
 
       expect(result).toBeInstanceOf(InworldPacket);
       expect(result.isControl()).toEqual(true);
@@ -349,7 +349,7 @@ describe('convert packet to external one', () => {
         timestamp: protoTimestamp(today),
       };
 
-      const result = factory.convertToInworldPacket(packet);
+      const result = EventFactory.fromProto(packet);
 
       expect(result).toBeInstanceOf(InworldPacket);
       expect(result.isControl()).toEqual(true);

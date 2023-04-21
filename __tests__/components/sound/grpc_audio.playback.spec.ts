@@ -6,8 +6,7 @@ import { DataChunkDataType } from '../../../proto/packets.pb';
 import { GrpcAudioPlayback } from '../../../src/components/sound/grpc_audio.playback';
 import { EventFactory } from '../../../src/factories/event';
 
-const eventFactory = new EventFactory();
-const audioEvent = eventFactory.convertToInworldPacket({
+const audioEvent = EventFactory.fromProto({
   dataChunk: {
     chunk: v4() as unknown as Uint8Array,
     type: DataChunkDataType.AUDIO,
