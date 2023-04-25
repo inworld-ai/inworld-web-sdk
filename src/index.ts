@@ -36,6 +36,7 @@ import {
   Routing,
   TextEvent,
   TriggerEvent,
+  TriggerParameter,
 } from './entities/inworld_packet.entity';
 import { InworldConnectionService } from './services/inworld_connection.service';
 
@@ -66,5 +67,6 @@ export {
   SessionToken,
   TextEvent,
   TriggerEvent,
+  TriggerParameter,
   User,
 };

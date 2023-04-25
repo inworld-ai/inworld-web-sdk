@@ -18,6 +18,7 @@ import {
   InworlControlType,
   InworldPacket,
   InworldPacketType,
+  TriggerParameter,
 } from '../entities/inworld_packet.entity';
 
 export class EventFactory {
@@ -118,7 +119,7 @@ export class EventFactory {
     };
   }
 
-  trigger(name: string): ProtoPacket {
+  trigger(name: string, parameters: TriggerParameter[] = []): ProtoPacket {
     return {
       packetId: {
         packetId: v4(),
@@ -127,7 +128,10 @@ export class EventFactory {
       },
       timestamp: this.protoTimestampNow(),
       routing: this.routing(),
-      custom: { name },
+      custom: {
+        name,
+        ...(parameters.length && { parameters }),
+      },
     };
   }
 
@@ -142,17 +146,17 @@ export class EventFactory {
     };
   }
 
-  convertToInworldPacket(packet: ProtoPacket): InworldPacket {
-    const packetId = packet.packetId;
-    const routing = packet.routing;
+  static fromProto(proto: ProtoPacket): InworldPacket {
+    const packetId = proto.packetId;
+    const routing = proto.routing;
     const source = routing.source;
     const target = routing.target;
-    const type = this.getType(packet);
-    const additionalPhonemeInfo = packet.dataChunk?.additionalPhonemeInfo ?? [];
+    const type = this.getType(proto);
+    const additionalPhonemeInfo = proto.dataChunk?.additionalPhonemeInfo ?? [];
 
     return new InworldPacket({
       type,
-      date: packet.timestamp,
+      date: proto.timestamp,
       packetId: {
         packetId: packetId.packetId,
         utteranceId: packetId.utteranceId,
@@ -172,18 +176,22 @@ export class EventFactory {
       },
       ...(type === InworldPacketType.TRIGGER && {
         trigger: {
-          name: packet.custom.name,
+          name: proto.custom.name,
+          parameters: proto.custom.parameters?.map((p) => ({
+            name: p.name,
+            value: p.value,
+          })),
         },
       }),
       ...(type === InworldPacketType.TEXT && {
         text: {
-          text: packet.text.text,
-          final: packet.text.final,
+          text: proto.text.text,
+          final: proto.text.final,
         },
       }),
       ...(type === InworldPacketType.AUDIO && {
         audio: {
-          chunk: packet.dataChunk.chunk as unknown as string,
+          chunk: proto.dataChunk.chunk as unknown as string,
           additionalPhonemeInfo: additionalPhonemeInfo.map(
             (info: ProtoAdditionalPhonemeInfo) =>
               ({
@@ -195,29 +203,29 @@ export class EventFactory {
       }),
       ...(type === InworldPacketType.CONTROL && {
         control: {
-          type: this.getControlType(packet),
+          type: this.getControlType(proto),
         },
       }),
       ...(type === InworldPacketType.SILENCE && {
         silence: {
-          durationMs: parseInt(packet.dataChunk.durationMs, 10),
+          durationMs: parseInt(proto.dataChunk.durationMs, 10),
         },
       }),
       ...(type === InworldPacketType.EMOTION && {
         emotions: {
-          behavior: new EmotionBehavior(packet.emotion.behavior),
-          strength: new EmotionStrength(packet.emotion.strength),
+          behavior: new EmotionBehavior(proto.emotion.behavior),
+          strength: new EmotionStrength(proto.emotion.strength),
         },
       }),
       ...(type === InworldPacketType.CANCEL_RESPONSE && {
         cancelResponses: {
-          interactionId: packet.cancelResponses.interactionId,
-          utteranceId: packet.cancelResponses.utteranceId,
+          interactionId: proto.cancelResponses.interactionId,
+          utteranceId: proto.cancelResponses.utteranceId,
         },
       }),
       ...(type === InworldPacketType.NARRATED_ACTION && {
         narratedAction: {
-          text: packet.action.narratedAction.content,
+          text: proto.action.narratedAction.content,
         },
       }),
     });
@@ -232,7 +240,7 @@ export class EventFactory {
 
   private protoTimestampNow = () => new Date().toISOString();
 
-  private getType(packet: ProtoPacket) {
+  private static getType(packet: ProtoPacket) {
     if (packet.text) {
       return InworldPacketType.TEXT;
     } else if (
@@ -260,7 +268,7 @@ export class EventFactory {
     }
   }
 
-  private getControlType(packet: ProtoPacket) {
+  private static getControlType(packet: ProtoPacket) {
     switch (packet.control.action) {
       case ControlEventAction.INTERACTION_END:
         return InworlControlType.INTERACTION_END;
