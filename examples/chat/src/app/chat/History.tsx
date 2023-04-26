@@ -200,7 +200,7 @@ export const History = (props: HistoryProps) => {
                         </Box>
                       )}
                       <Typography>
-                        {messages.map((m, i) => (
+                        {messages.map((m) => (
                           <React.Fragment key={m.id}>
                             {getContent(m)}{' '}
                           </React.Fragment>

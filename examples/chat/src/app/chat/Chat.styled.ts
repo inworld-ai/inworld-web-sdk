@@ -67,7 +67,7 @@ export const HistoryMessageGroup = styled('ul')(({ theme }) => ({
   },
 }));
 
-export const HistoryAction = styled('span')(({ theme }) => ({
+export const HistoryAction = styled('span')(() => ({
   fontStyle: 'italic',
   fontWeight: 600,
 }));

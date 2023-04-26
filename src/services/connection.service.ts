@@ -128,6 +128,10 @@ export class ConnectionService {
     return this.eventFactory;
   }
 
+  getTranscript() {
+    return this.history.getTranscript(this.connectionProps.user);
+  }
+
   async getCharactersList() {
     await this.loadScene();
 
@@ -226,7 +230,7 @@ export class ConnectionService {
     this.connection.write({
       getPacket,
       afterWriting: (packet: ProtoPacket) => {
-        inworldPacket = this.getEventFactory().convertToInworldPacket(packet);
+        inworldPacket = EventFactory.fromProto(packet);
 
         this.scheduleDisconnect();
 
@@ -342,7 +346,7 @@ export class ConnectionService {
     this.onMessage = async (packet: ProtoPacket) => {
       const { onMessage, grpcAudioPlayer } = this.connectionProps;
 
-      const inworldPacket = this.eventFactory.convertToInworldPacket(packet);
+      const inworldPacket = EventFactory.fromProto(packet);
       const interactionId = inworldPacket.packetId.interactionId;
 
       // Don't pass text packet outside for interrupred interaction.

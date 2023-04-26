@@ -195,6 +195,18 @@ describe('history', () => {
 
     expect(clearHistory).toHaveBeenCalledTimes(1);
   });
+
+  test('should return transcript', () => {
+    const result = 'test';
+    const getTranscript = jest
+      .spyOn(ConnectionService.prototype, 'getTranscript')
+      .mockImplementationOnce(() => result);
+
+    const transcript = service.getTranscript();
+
+    expect(getTranscript).toHaveBeenCalledTimes(1);
+    expect(transcript).toEqual(result);
+  });
 });
 
 describe('send', () => {
@@ -252,7 +264,7 @@ describe('send', () => {
     expect(packet.text).toHaveProperty('text', text);
   });
 
-  test('should send trigger', async () => {
+  test('should send trigger without parameters', async () => {
     const write = jest
       .spyOn(WebSocketConnection.prototype, 'write')
       .mockImplementationOnce(writeMock);
@@ -264,6 +276,23 @@ describe('send', () => {
     expect(open).toHaveBeenCalledTimes(0);
     expect(write).toHaveBeenCalledTimes(1);
     expect(packet.trigger).toHaveProperty('name', name);
+    expect(packet.trigger).toHaveProperty('parameters', undefined);
+  });
+
+  test('should send trigger with parameters', async () => {
+    const write = jest
+      .spyOn(WebSocketConnection.prototype, 'write')
+      .mockImplementationOnce(writeMock);
+
+    const name = v4();
+    const parameters = [{ name: v4(), value: v4() }];
+
+    const packet = await service.sendTrigger(name, parameters);
+
+    expect(open).toHaveBeenCalledTimes(0);
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(packet.trigger).toHaveProperty('name', name);
+    expect(packet.trigger).toHaveProperty('parameters', parameters);
   });
 
   test('should send audio session start', async () => {
@@ -367,5 +396,31 @@ describe('send', () => {
     expect(write).toHaveBeenCalledTimes(1);
     expect(packet.isControl()).toEqual(true);
     expect(packet.isTTSPlaybackEnd()).toEqual(true);
+  });
+
+  test('should send tts playback mute', async () => {
+    const write = jest
+      .spyOn(WebSocketConnection.prototype, 'write')
+      .mockImplementationOnce(writeMock);
+
+    const packet = await service.sendTTSPlaybackMute(true);
+
+    expect(open).toHaveBeenCalledTimes(0);
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(packet.isControl()).toEqual(true);
+    expect(packet.isTTSPlaybackMute()).toEqual(true);
+  });
+
+  test('should send tts playback unmute', async () => {
+    const write = jest
+      .spyOn(WebSocketConnection.prototype, 'write')
+      .mockImplementationOnce(writeMock);
+
+    const packet = await service.sendTTSPlaybackMute(false);
+
+    expect(open).toHaveBeenCalledTimes(0);
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(packet.isControl()).toEqual(true);
+    expect(packet.isTTSPlaybackUnmute()).toEqual(true);
   });
 });

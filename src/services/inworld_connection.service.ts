@@ -1,4 +1,5 @@
 import { DataChunkDataType } from '../../proto/packets.pb';
+import { UserRequest } from '../../proto/world-engine.pb';
 import { AudioSessionState, CancelResponsesProps } from '../common/interfaces';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
@@ -6,6 +7,7 @@ import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_
 import { InworldPlayer } from '../components/sound/inworld_player';
 import { InworldRecorder } from '../components/sound/inworld_recorder';
 import { Character } from '../entities/character.entity';
+import { TriggerParameter } from '../entities/inworld_packet.entity';
 import { ConnectionService } from './connection.service';
 
 interface InworldConnectionServiceProps {
@@ -18,6 +20,7 @@ interface InworldConnectionServiceProps {
 export class InworldConnectionService {
   private connection: ConnectionService;
   private grpcAudioPlayer: GrpcAudioPlayback;
+  private user: UserRequest;
 
   player: InworldPlayer;
   recorder: InworldRecorder;
@@ -77,6 +80,10 @@ export class InworldConnectionService {
     return this.connection.clearHistory();
   }
 
+  getTranscript() {
+    return this.connection.getTranscript();
+  }
+
   setCurrentCharacter(character: Character) {
     return this.connection.getEventFactory().setCurrentCharacter(character);
   }
@@ -95,9 +102,9 @@ export class InworldConnectionService {
     );
   }
 
-  async sendTrigger(name: string) {
+  async sendTrigger(name: string, parameters?: TriggerParameter[]) {
     return this.connection.send(() =>
-      this.connection.getEventFactory().trigger(name),
+      this.connection.getEventFactory().trigger(name, parameters),
     );
   }
 
@@ -136,6 +143,12 @@ export class InworldConnectionService {
   async sendTTSPlaybackEnd() {
     return this.connection.send(() =>
       this.connection.getEventFactory().ttsPlaybackEnd(),
+    );
+  }
+
+  async sendTTSPlaybackMute(isMuted: boolean) {
+    return this.connection.send(() =>
+      this.connection.getEventFactory().ttsPlaybackMute(isMuted),
     );
   }
 

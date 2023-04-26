@@ -1,3 +1,10 @@
+## 2022-04-26 v1.0.0
+
+* Add mute/unmute events support
+* Allow to build history transcript inside SDK
+* Add parameters to triggers
+* Replace checking emotions behavior and strength by direct property access
+
 ## 2022-04-20 v0.9.7
 
 * Improve chat example UI: add validation and rename fields

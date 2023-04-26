@@ -18,6 +18,8 @@ export enum InworlControlType {
   INTERACTION_END = 'INTERACTION_END',
   TTS_PLAYBACK_START = 'TTS_PLAYBACK_START',
   TTS_PLAYBACK_END = 'TTS_PLAYBACK_END',
+  TTS_PLAYBACK_MUTE = 'TTS_PLAYBACK_MUTE',
+  TTS_PLAYBACK_UNMUTE = 'TTS_PLAYBACK_UNMUTE',
 }
 
 export interface InworldPacketProps {
@@ -57,6 +59,11 @@ export interface Actor {
   isCharacter: boolean;
 }
 
+export interface TriggerParameter {
+  name: string;
+  value: string;
+}
+
 export interface TextEvent {
   text: string;
   final: boolean;
@@ -64,6 +71,7 @@ export interface TextEvent {
 
 export interface TriggerEvent {
   name: string;
+  parameters?: TriggerParameter[];
 }
 
 export interface AdditionalPhonemeInfo {
@@ -94,7 +102,7 @@ export interface NarratedAction {
 }
 
 export class InworldPacket {
-  private type: InworldPacketType;
+  private type: InworldPacketType = InworldPacketType.UNKNOWN;
 
   date: string;
   packetId: PacketId;
@@ -187,6 +195,20 @@ export class InworldPacket {
     return (
       this.isControl() &&
       this.control.type === InworlControlType.TTS_PLAYBACK_END
+    );
+  }
+
+  isTTSPlaybackMute() {
+    return (
+      this.isControl() &&
+      this.control.type === InworlControlType.TTS_PLAYBACK_MUTE
+    );
+  }
+
+  isTTSPlaybackUnmute() {
+    return (
+      this.isControl() &&
+      this.control.type === InworlControlType.TTS_PLAYBACK_UNMUTE
     );
   }
 

@@ -1,6 +1,6 @@
 {
   "name": "@inworld/web-sdk",
-  "version": "0.9.7",
+  "version": "1.0.0",
   "license": "SEE LICENSE IN LICENSE.md",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
@@ -39,6 +39,7 @@
     "@types/defer-promise": "^1.0.0",
     "@types/jest": "^29.2.0",
     "@types/js-cookie": "^3.0.2",
+    "@types/util-deprecate": "^1.0.0",
     "@types/uuid": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^5.30.5",
     "@typescript-eslint/parser": "^5.30.5",
@@ -60,6 +61,7 @@
   "dependencies": {
     "base64-arraybuffer": "^1.0.2",
     "defer-promise": "^3.0.0",
+    "util-deprecate": "^1.0.2",
     "uuid": "^9.0.0"
   }
 }

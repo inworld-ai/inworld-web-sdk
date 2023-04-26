@@ -19,6 +19,7 @@ describe('should finish with success', () => {
   const onAfterPlaying = jest.fn();
   const onBeforePlaying = jest.fn();
   const onHistoryChange = jest.fn();
+  const onPhoneme = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -35,7 +36,8 @@ describe('should finish with success', () => {
       .setOnMessage(onMessage)
       .setOnError(onError)
       .setOnReady(onReady)
-      .setOnHistoryChange(onHistoryChange);
+      .setOnHistoryChange(onHistoryChange)
+      .setOnPhoneme(onPhoneme);
   });
 
   test('should open connection', async () => {
