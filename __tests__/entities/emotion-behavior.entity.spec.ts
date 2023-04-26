@@ -4,6 +4,85 @@ import {
   EmotionBehaviorCode,
 } from '../../src/entities/emotion-behavior.entity';
 
+const mappingTestTable = [
+  {
+    input: EmotionEventSpaffCode.NEUTRAL,
+    expected: EmotionBehaviorCode.NEUTRAL,
+  },
+  {
+    input: EmotionEventSpaffCode.DISGUST,
+    expected: EmotionBehaviorCode.DISGUST,
+  },
+  {
+    input: EmotionEventSpaffCode.CONTEMPT,
+    expected: EmotionBehaviorCode.CONTEMPT,
+  },
+  {
+    input: EmotionEventSpaffCode.BELLIGERENCE,
+    expected: EmotionBehaviorCode.BELLIGERENCE,
+  },
+  {
+    input: EmotionEventSpaffCode.DOMINEERING,
+    expected: EmotionBehaviorCode.DOMINEERING,
+  },
+  {
+    input: EmotionEventSpaffCode.CRITICISM,
+    expected: EmotionBehaviorCode.CRITICISM,
+  },
+  {
+    input: EmotionEventSpaffCode.ANGER,
+    expected: EmotionBehaviorCode.ANGER,
+  },
+  {
+    input: EmotionEventSpaffCode.TENSION,
+    expected: EmotionBehaviorCode.TENSION,
+  },
+  {
+    input: EmotionEventSpaffCode.TENSE_HUMOR,
+    expected: EmotionBehaviorCode.TENSE_HUMOR,
+  },
+  {
+    input: EmotionEventSpaffCode.DEFENSIVENESS,
+    expected: EmotionBehaviorCode.DEFENSIVENESS,
+  },
+  {
+    input: EmotionEventSpaffCode.WHINING,
+    expected: EmotionBehaviorCode.WHINING,
+  },
+  {
+    input: EmotionEventSpaffCode.SADNESS,
+    expected: EmotionBehaviorCode.SADNESS,
+  },
+  {
+    input: EmotionEventSpaffCode.STONEWALLING,
+    expected: EmotionBehaviorCode.STONEWALLING,
+  },
+  {
+    input: EmotionEventSpaffCode.INTEREST,
+    expected: EmotionBehaviorCode.INTEREST,
+  },
+  {
+    input: EmotionEventSpaffCode.VALIDATION,
+    expected: EmotionBehaviorCode.VALIDATION,
+  },
+  {
+    input: EmotionEventSpaffCode.AFFECTION,
+    expected: EmotionBehaviorCode.AFFECTION,
+  },
+  {
+    input: EmotionEventSpaffCode.HUMOR,
+    expected: EmotionBehaviorCode.HUMOR,
+  },
+  {
+    input: EmotionEventSpaffCode.SURPRISE,
+    expected: EmotionBehaviorCode.SURPRISE,
+  },
+  {
+    input: EmotionEventSpaffCode.JOY,
+    expected: EmotionBehaviorCode.JOY,
+  },
+];
+
 test('should be neutral', () => {
   const behavior = new EmotionBehavior(EmotionBehaviorCode.NEUTRAL);
 
@@ -137,118 +216,9 @@ test('should be joy', () => {
   expect(behavior.isJoy()).toEqual(true);
 });
 
-describe('from proto', () => {
-  test('should convert neutral', () => {
-    expect(EmotionBehavior.fromProto(EmotionEventSpaffCode.NEUTRAL)).toEqual(
-      EmotionBehaviorCode.NEUTRAL,
-    );
-  });
-
-  test('should convert disgust', () => {
-    expect(EmotionBehavior.fromProto(EmotionEventSpaffCode.DISGUST)).toEqual(
-      EmotionBehaviorCode.DISGUST,
-    );
-  });
-
-  test('should convert contempt', () => {
-    expect(EmotionBehavior.fromProto(EmotionEventSpaffCode.CONTEMPT)).toEqual(
-      EmotionBehaviorCode.CONTEMPT,
-    );
-  });
-
-  test('should convert belligerence', () => {
-    expect(
-      EmotionBehavior.fromProto(EmotionEventSpaffCode.BELLIGERENCE),
-    ).toEqual(EmotionBehaviorCode.BELLIGERENCE);
-  });
-
-  test('should convert domineering', () => {
-    expect(
-      EmotionBehavior.fromProto(EmotionEventSpaffCode.DOMINEERING),
-    ).toEqual(EmotionBehaviorCode.DOMINEERING);
-  });
-
-  test('should convert criticism', () => {
-    expect(EmotionBehavior.fromProto(EmotionEventSpaffCode.CRITICISM)).toEqual(
-      EmotionBehaviorCode.CRITICISM,
-    );
-  });
-
-  test('should convert anger', () => {
-    expect(EmotionBehavior.fromProto(EmotionEventSpaffCode.ANGER)).toEqual(
-      EmotionBehaviorCode.ANGER,
-    );
-  });
-
-  test('should convert tension', () => {
-    expect(EmotionBehavior.fromProto(EmotionEventSpaffCode.TENSION)).toEqual(
-      EmotionBehaviorCode.TENSION,
-    );
-  });
-
-  test('should convert tense humor', () => {
-    expect(
-      EmotionBehavior.fromProto(EmotionEventSpaffCode.TENSE_HUMOR),
-    ).toEqual(EmotionBehaviorCode.TENSE_HUMOR);
-  });
-
-  test('should convert defensiveness', () => {
-    expect(
-      EmotionBehavior.fromProto(EmotionEventSpaffCode.DEFENSIVENESS),
-    ).toEqual(EmotionBehaviorCode.DEFENSIVENESS);
-  });
-
-  test('should convert whining', () => {
-    expect(EmotionBehavior.fromProto(EmotionEventSpaffCode.WHINING)).toEqual(
-      EmotionBehaviorCode.WHINING,
-    );
-  });
-
-  test('should convert sadness', () => {
-    expect(EmotionBehavior.fromProto(EmotionEventSpaffCode.SADNESS)).toEqual(
-      EmotionBehaviorCode.SADNESS,
-    );
-  });
-
-  test('should convert stonewalling', () => {
-    expect(
-      EmotionBehavior.fromProto(EmotionEventSpaffCode.STONEWALLING),
-    ).toEqual(EmotionBehaviorCode.STONEWALLING);
-  });
-
-  test('should convert interest', () => {
-    expect(EmotionBehavior.fromProto(EmotionEventSpaffCode.INTEREST)).toEqual(
-      EmotionBehaviorCode.INTEREST,
-    );
-  });
-
-  test('should convert validation', () => {
-    expect(EmotionBehavior.fromProto(EmotionEventSpaffCode.VALIDATION)).toEqual(
-      EmotionBehaviorCode.VALIDATION,
-    );
-  });
-
-  test('should convert affection', () => {
-    expect(EmotionBehavior.fromProto(EmotionEventSpaffCode.AFFECTION)).toEqual(
-      EmotionBehaviorCode.AFFECTION,
-    );
-  });
-
-  test('should convert humor', () => {
-    expect(EmotionBehavior.fromProto(EmotionEventSpaffCode.HUMOR)).toEqual(
-      EmotionBehaviorCode.HUMOR,
-    );
-  });
-
-  test('should convert surprise', () => {
-    expect(EmotionBehavior.fromProto(EmotionEventSpaffCode.SURPRISE)).toEqual(
-      EmotionBehaviorCode.SURPRISE,
-    );
-  });
-
-  test('should convert joy', () => {
-    expect(EmotionBehavior.fromProto(EmotionEventSpaffCode.JOY)).toEqual(
-      EmotionBehaviorCode.JOY,
-    );
-  });
-});
+test.each(mappingTestTable)(
+  'should correctly convert $input',
+  ({ input, expected }) => {
+    expect(EmotionBehavior.fromProto(input)).toEqual(expected);
+  },
+);

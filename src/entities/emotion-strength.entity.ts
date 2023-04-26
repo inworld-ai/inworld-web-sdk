@@ -10,7 +10,7 @@ export enum EmotionStrengthCode {
 }
 
 export class EmotionStrength {
-  code: EmotionStrengthCode;
+  readonly code: EmotionStrengthCode;
 
   constructor(strength: EmotionStrengthCode) {
     this.code = strength;

@@ -25,7 +25,7 @@ export enum EmotionBehaviorCode {
 }
 
 export class EmotionBehavior {
-  code: EmotionBehaviorCode;
+  readonly code: EmotionBehaviorCode;
 
   constructor(behavior: EmotionBehaviorCode) {
     this.code = behavior;

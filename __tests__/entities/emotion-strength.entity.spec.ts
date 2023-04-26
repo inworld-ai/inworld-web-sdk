@@ -4,6 +4,25 @@ import {
   EmotionStrengthCode,
 } from '../../src/entities/emotion-strength.entity';
 
+const mappingTestTable = [
+  {
+    input: EmotionEventStrength.WEAK,
+    expected: EmotionStrengthCode.WEAK,
+  },
+  {
+    input: EmotionEventStrength.STRONG,
+    expected: EmotionStrengthCode.STRONG,
+  },
+  {
+    input: EmotionEventStrength.NORMAL,
+    expected: EmotionStrengthCode.NORMAL,
+  },
+  {
+    input: EmotionEventStrength.UNSPECIFIED,
+    expected: EmotionStrengthCode.UNSPECIFIED,
+  },
+];
+
 test('should be weak', () => {
   const strength = new EmotionStrength(EmotionStrengthCode.WEAK);
 
@@ -30,28 +49,9 @@ test('should be unspecified', () => {
   expect(strength.code).toEqual(EmotionStrengthCode.UNSPECIFIED);
 });
 
-describe('from proto', () => {
-  test('should convert weak', () => {
-    expect(EmotionStrength.fromProto(EmotionEventStrength.WEAK)).toEqual(
-      EmotionStrengthCode.WEAK,
-    );
-  });
-
-  test('should convert strong', () => {
-    expect(EmotionStrength.fromProto(EmotionEventStrength.STRONG)).toEqual(
-      EmotionStrengthCode.STRONG,
-    );
-  });
-
-  test('should convert normal', () => {
-    expect(EmotionStrength.fromProto(EmotionEventStrength.NORMAL)).toEqual(
-      EmotionStrengthCode.NORMAL,
-    );
-  });
-
-  test('should convert unspecified', () => {
-    expect(EmotionStrength.fromProto(EmotionEventStrength.UNSPECIFIED)).toEqual(
-      EmotionStrengthCode.UNSPECIFIED,
-    );
-  });
-});
+test.each(mappingTestTable)(
+  'should correctly convert $input',
+  ({ input, expected }) => {
+    expect(EmotionStrength.fromProto(input)).toEqual(expected);
+  },
+);
