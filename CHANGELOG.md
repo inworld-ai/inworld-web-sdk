@@ -1,3 +1,5 @@
+## 2022-04-26 v1.0.0
+
 * Add mute/unmute events support
 * Allow to build history transcript inside SDK
 * Add parameters to triggers
