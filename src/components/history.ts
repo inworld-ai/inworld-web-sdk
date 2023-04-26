@@ -62,9 +62,14 @@ export type HistoryItem =
   | HistoryInteractionEnd
   | HistoryItemNarratedAction;
 
+interface EmotionsMap {
+  [key: string]: EmotionEvent;
+}
+
 export class InworldHistory {
   private history: HistoryItem[] = [];
   private queue: HistoryItem[] = [];
+  private emotions: EmotionsMap = {};
 
   addOrUpdate({
     characters,
@@ -82,7 +87,9 @@ export class InworldHistory {
       : packet.routing?.target?.name;
     const character = characters.find((x) => x.getId() === id);
 
-    if (packet.isText()) {
+    if (packet.isEmotion()) {
+      this.emotions[interactionId] = packet.emotions;
+    } else if (packet.isText()) {
       const actorItem: HistoryItem = {
         ...this.combineTextItem(packet),
         character,
@@ -252,11 +259,13 @@ export class InworldHistory {
           const givenName = isCharacter
             ? item.character?.getDisplayName()
             : userName;
+          const emotion = this.emotions[item.interactionId];
+          const emotionCode = emotion ? `(${emotion.behavior.code}) ` : '';
 
           transcript +=
             characterLastSpeaking && isCharacter
               ? item.text
-              : `${prefix}${givenName}: ${item.text}`;
+              : `${prefix}${givenName}: ${emotionCode}${item.text}`;
           characterLastSpeaking = isCharacter;
           break;
         case CHAT_HISTORY_TYPE.TRIGGER_EVENT:
