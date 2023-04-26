@@ -348,6 +348,17 @@ describe('text', () => {
       });
     });
 
+    describe('narrated action', () => {
+      test('should return transcript', () => {
+        const history = createHistoryWithPacket(narracterActionPacket);
+
+        const expected = `User: ${narracterActionPacket.narratedAction.text}`;
+        const transcript = history.getTranscript();
+
+        expect(transcript).toEqual(expected);
+      });
+    });
+
     test('should return transcript with new line', () => {
       const triggerPacket = new InworldPacket({
         packetId: {

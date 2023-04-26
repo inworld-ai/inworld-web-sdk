@@ -44,7 +44,6 @@ export interface HistoryItemTriggerEvent extends HistoryItemBase {
   type: CHAT_HISTORY_TYPE.TRIGGER_EVENT;
   name: string;
   outgoing?: boolean;
-  source: Actor;
 }
 
 export interface HistoryInteractionEnd extends HistoryItemBase {
@@ -54,6 +53,7 @@ export interface HistoryInteractionEnd extends HistoryItemBase {
 export interface HistoryItemNarratedAction extends HistoryItemBase {
   type: CHAT_HISTORY_TYPE.NARRATED_ACTION;
   text?: string;
+  character?: Character;
 }
 
 export type HistoryItem =
@@ -62,9 +62,14 @@ export type HistoryItem =
   | HistoryInteractionEnd
   | HistoryItemNarratedAction;
 
+interface EmotionsMap {
+  [key: string]: EmotionEvent;
+}
+
 export class InworldHistory {
   private history: HistoryItem[] = [];
   private queue: HistoryItem[] = [];
+  private emotions: EmotionsMap = {};
 
   addOrUpdate({
     characters,
@@ -77,12 +82,14 @@ export class InworldHistory {
     const utteranceId = packet.packetId?.utteranceId;
     const interactionId = packet.packetId?.interactionId;
 
-    if (packet.isText()) {
-      const id = packet.routing?.source?.isCharacter
-        ? packet.routing?.source?.name
-        : packet.routing?.target?.name;
-      const character = characters.find((x) => x.getId() === id);
+    const id = packet.routing?.source?.isCharacter
+      ? packet.routing?.source?.name
+      : packet.routing?.target?.name;
+    const character = characters.find((x) => x.getId() === id);
 
+    if (packet.isEmotion()) {
+      this.emotions[interactionId] = packet.emotions;
+    } else if (packet.isText()) {
       const actorItem: HistoryItem = {
         ...this.combineTextItem(packet),
         character,
@@ -94,7 +101,10 @@ export class InworldHistory {
         chatItem = actorItem;
       }
     } else if (packet.isNarratedAction()) {
-      const actionItem = this.combineNarratedActionItem(packet);
+      const actionItem = {
+        ...this.combineNarratedActionItem(packet),
+        character,
+      };
 
       if (
         grpcAudioPlayer.isCurrentPacket({ interactionId }) ||
@@ -244,15 +254,19 @@ export class InworldHistory {
       const prefix = transcript.length ? '\n' : '';
       switch (item.type) {
         case CHAT_HISTORY_TYPE.ACTOR:
+        case CHAT_HISTORY_TYPE.NARRATED_ACTION:
           const isCharacter = item.source.isCharacter;
           const givenName = isCharacter
             ? item.character?.getDisplayName()
             : userName;
+          const emotionCode =
+            this.emotions[item.interactionId]?.behavior?.code || '';
+          const emotion = emotionCode ? `(${emotionCode}) ` : '';
 
           transcript +=
             characterLastSpeaking && isCharacter
               ? item.text
-              : `${prefix}${givenName}: ${item.text}`;
+              : `${prefix}${givenName}: ${emotion}${item.text}`;
           characterLastSpeaking = isCharacter;
           break;
         case CHAT_HISTORY_TYPE.TRIGGER_EVENT:

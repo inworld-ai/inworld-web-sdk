@@ -213,8 +213,12 @@ export class EventFactory {
       }),
       ...(type === InworldPacketType.EMOTION && {
         emotions: {
-          behavior: new EmotionBehavior(proto.emotion.behavior),
-          strength: new EmotionStrength(proto.emotion.strength),
+          behavior: new EmotionBehavior(
+            EmotionBehavior.fromProto(proto.emotion.behavior),
+          ),
+          strength: new EmotionStrength(
+            EmotionStrength.fromProto(proto.emotion.strength),
+          ),
         },
       }),
       ...(type === InworldPacketType.CANCEL_RESPONSE && {
