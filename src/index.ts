@@ -23,8 +23,14 @@ import {
   HistoryItemTriggerEvent,
 } from './components/history';
 import { Character } from './entities/character.entity';
-import { EmotionBehavior } from './entities/emotion-behavior.entity';
-import { EmotionStrength } from './entities/emotion-strength.entity';
+import {
+  EmotionBehavior,
+  EmotionBehaviorCode,
+} from './entities/emotion-behavior.entity';
+import {
+  EmotionStrength,
+  EmotionStrengthCode,
+} from './entities/emotion-strength.entity';
 import {
   Actor,
   AdditionalPhonemeInfo,
@@ -51,8 +57,10 @@ export {
   ClientConfiguration,
   ConnectionConfig,
   EmotionBehavior,
+  EmotionBehaviorCode,
   EmotionEvent,
   EmotionStrength,
+  EmotionStrengthCode,
   HistoryInteractionEnd,
   HistoryItem,
   HistoryItemActor,
