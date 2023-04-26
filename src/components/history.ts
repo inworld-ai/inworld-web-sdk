@@ -259,13 +259,14 @@ export class InworldHistory {
           const givenName = isCharacter
             ? item.character?.getDisplayName()
             : userName;
-          const emotion = this.emotions[item.interactionId];
-          const emotionCode = emotion ? `(${emotion.behavior.code}) ` : '';
+          const emotionCode =
+            this.emotions[item.interactionId]?.behavior?.code || '';
+          const emotion = emotionCode ? `(${emotionCode}) ` : '';
 
           transcript +=
             characterLastSpeaking && isCharacter
               ? item.text
-              : `${prefix}${givenName}: ${emotionCode}${item.text}`;
+              : `${prefix}${givenName}: ${emotion}${item.text}`;
           characterLastSpeaking = isCharacter;
           break;
         case CHAT_HISTORY_TYPE.TRIGGER_EVENT:
