@@ -3,7 +3,7 @@ import {
   HistoryItem,
   InworldConnectionService,
 } from '@inworld/web-sdk';
-import { CopyAll, Mic, Send } from '@mui/icons-material';
+import { CopyAll, Mic, Send, VolumeOff, VolumeUp } from '@mui/icons-material';
 import { IconButton, InputAdornment, TextField } from '@mui/material';
 import { Box } from '@mui/system';
 import { useCallback, useState } from 'react';
@@ -28,6 +28,9 @@ export function Chat(props: ChatProps) {
   const [copyDestination, setCopyDestination] = useState('');
   const [copyConfirmOpen, setCopyConfirmOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isPlaybackMuted, setIsPlaybackMuted] = useState(
+    connection.player.getMute() ?? false,
+  );
   const [hasPlayedWorkaroundSound, setHasPlayedWorkaroundSound] =
     useState(false);
 
@@ -113,6 +116,13 @@ export function Chat(props: ChatProps) {
 
     setCopyConfirmOpen(true);
   }, [getTranscript, chatHistory]);
+
+  const handleMutePlayback = useCallback(() => {
+    connection.recorder.initPlayback();
+    connection.player.mute(!isPlaybackMuted);
+    setIsPlaybackMuted(!isPlaybackMuted);
+    connection.sendTTSPlaybackMute(!isPlaybackMuted);
+  }, [connection, isPlaybackMuted]);
 
   const stopRecording = useCallback(() => {
     connection.recorder.stop();
@@ -213,6 +223,13 @@ export function Chat(props: ChatProps) {
             disableUnderline: true,
           }}
         />
+        <IconButton onClick={handleMutePlayback}>
+          {isPlaybackMuted ? (
+            <VolumeOff fontSize="small" />
+          ) : (
+            <VolumeUp fontSize="small" />
+          )}
+        </IconButton>
         <IconButton
           onClick={handleSpeakClick}
           sx={{ height: '3rem', width: '3rem', backgroundColor: '#F1F5F9' }}
