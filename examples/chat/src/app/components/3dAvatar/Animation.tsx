@@ -12,7 +12,7 @@ import {
   Vector3,
 } from 'three';
 import { Facial } from './Facial';
-import { behaviorToFacial } from './FacialEmotionMap';
+import { BehaviorToFacial } from './FacialEmotionMap';
 import { AnimationLoader } from './AnimationLoader';
 
 interface AnimationProps {
@@ -157,7 +157,7 @@ export function Animation(props: AnimationProps) {
 
   useEffect(() => {
     if (props.emotionEvent) {
-      emotionRef.current = behaviorToFacial(props.emotionEvent);
+      emotionRef.current = BehaviorToFacial[props.emotionEvent.behavior.code];
     }
   }, [props.emotionEvent]);
 

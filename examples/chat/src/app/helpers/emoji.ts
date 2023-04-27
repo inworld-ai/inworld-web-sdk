@@ -1,50 +1,28 @@
 import { EmotionBehavior } from '@inworld/web-sdk';
 
-function findMapping(behavior: EmotionBehavior): string[] | null {
-  switch (true) {
-    case behavior.isAffection():
-      return ['🥰', '😊', '😘', '😍', '🤗'];
-    case behavior.isAnger():
-      return ['😤', '😠', '😡', '🤬'];
-    case behavior.isBelligerence():
-      return ['😡'];
-    case behavior.isContempt():
-      return ['😠'];
-    case behavior.isCriticism():
-      return ['👎'];
-    case behavior.isDefensiveness():
-      return ['✋'];
-    case behavior.isDisgust():
-      return ['🤢', '🤮', '😖'];
-    case behavior.isDomineering():
-      return ['😠'];
-    case behavior.isHumor():
-      return ['😆 ', '😅', '😂', '🤣'];
-    case behavior.isInterest():
-      return ['🧐', '🤔', '🤨'];
-    case behavior.isJoy():
-      return ['😀', '😃', '😄', '😁', '😆'];
-    case behavior.isSadness():
-      return ['😞', '😔', '😟', '😕', '🙁'];
-    case behavior.isStonewalling():
-      return ['🤐', '😶', '🤫'];
-    case behavior.isSurprise():
-      return ['😲', '😮', '😧', '😳', '🤯'];
-    case behavior.isTenseHumor():
-      return ['😬'];
-    case behavior.isTension():
-      return ['😬', '😰'];
-    case behavior.isValidation():
-      return ['👍', '👌'];
-    case behavior.isWhining():
-      return ['😩', '🥺', '😢', '😭', '😮‍💨'];
-    default:
-      return null;
-  }
-}
+export const EMOJIS: { [key: string]: string[] } = {
+  AFFECTION: ['🥰', '😊', '😘', '😍', '🤗'],
+  ANGER: ['😤', '😠', '😡', '🤬'],
+  BELLIGERENCE: ['😡'],
+  CONTEMPT: ['😠'],
+  CRITICISM: ['👎'],
+  DEFENSIVENESS: ['✋'],
+  DISGUST: ['🤢', '🤮', '😖'],
+  DOMINEERING: ['😠'],
+  HUMOR: ['😆 ', '😅', '😂', '🤣'],
+  INTEREST: ['🧐', '🤔', '🤨'],
+  JOY: ['😀', '😃', '😄', '😁', '😆'],
+  SADNESS: ['😞', '😔', '😟', '😕', '🙁'],
+  STONEWALLING: ['🤐', '😶', '🤫'],
+  SURPRISE: ['😲', '😮', '😧', '😳', '🤯'],
+  TENSE: ['😬'],
+  TENSION: ['😬', '😰'],
+  VALIDATION: ['👍', '👌'],
+  WHINING: ['😩', '🥺', '😢', '😭', '😮‍💨'],
+};
 
 export function getEmoji(behavior: EmotionBehavior): string | null {
-  const emoji = findMapping(behavior);
+  const emoji = EMOJIS[behavior.code];
 
   if (!emoji?.length) return null;
 
