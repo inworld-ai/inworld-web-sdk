@@ -1,8 +1,4 @@
-import {
-  CHAT_HISTORY_TYPE,
-  HistoryItem,
-  InworldConnectionService,
-} from '@inworld/web-sdk';
+import { HistoryItem, InworldConnectionService } from '@inworld/web-sdk';
 import { CopyAll, Mic, Send, VolumeOff, VolumeUp } from '@mui/icons-material';
 import { IconButton, InputAdornment, TextField } from '@mui/material';
 import { Box } from '@mui/system';
@@ -18,11 +14,10 @@ interface ChatProps {
   chatHistory: HistoryItem[];
   connection: InworldConnectionService;
   emotions: EmotionsMap;
-  playerName: string;
 }
 
 export function Chat(props: ChatProps) {
-  const { chatHistory, connection, playerName } = props;
+  const { chatHistory, connection } = props;
 
   const [text, setText] = useState('');
   const [copyDestination, setCopyDestination] = useState('');
@@ -41,70 +36,8 @@ export function Chat(props: ChatProps) {
     [],
   );
 
-  const formatTranscript = useCallback(
-    (messages: HistoryItem[]) => {
-      let transcript = '';
-      let characterLastSpeaking = false; // Used to combine all Character text chunks
-
-      messages.forEach((item) => {
-        switch (item.type) {
-          case CHAT_HISTORY_TYPE.ACTOR:
-            const isCharacter = item.source.isCharacter;
-            const givenName = isCharacter
-              ? item.character?.getDisplayName()
-              : playerName;
-
-            transcript +=
-              characterLastSpeaking && isCharacter
-                ? item.text
-                : `\n${givenName}: ${item.text}`;
-            characterLastSpeaking = isCharacter;
-            break;
-        }
-      });
-
-      return transcript;
-    },
-    [playerName],
-  );
-
-  const getTranscript = useCallback(
-    (messages: HistoryItem[], startId?: string, endId?: string) => {
-      if (!messages.length) {
-        return '';
-      }
-
-      // get full array by default
-      let startIndex: number = 0;
-      let endIndex: number = messages.length - 1;
-
-      if (startId || endId) {
-        // find start/end indexes of the slice if ids are specified
-        messages.forEach((item, index) => {
-          if (item.id === startId) {
-            startIndex = index;
-          }
-
-          if (item.id === endId) {
-            endIndex = index;
-          }
-        });
-      }
-
-      if (endIndex < startIndex) {
-        const tmp = startIndex;
-        startIndex = endIndex;
-        endIndex = tmp;
-      }
-
-      // generate eventual transcript
-      return formatTranscript(messages.slice(startIndex, endIndex + 1));
-    },
-    [formatTranscript],
-  );
-
   const handleCopyClick = useCallback(async () => {
-    const history = getTranscript(chatHistory);
+    const history = connection.getTranscript();
 
     if (navigator.clipboard) {
       navigator.clipboard.writeText(history).then(() => {
@@ -115,7 +48,7 @@ export function Chat(props: ChatProps) {
     }
 
     setCopyConfirmOpen(true);
-  }, [getTranscript, chatHistory]);
+  }, [connection, chatHistory]);
 
   const handleMutePlayback = useCallback(() => {
     connection.recorder.initPlayback();
