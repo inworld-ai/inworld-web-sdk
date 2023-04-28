@@ -173,8 +173,8 @@ describe('open', () => {
       session,
       user,
     });
-    expect(loaded[0].getId()).toBe(characters[0].getId());
-    expect(loaded[1].getId()).toBe(characters[1].getId());
+    expect(loaded[0].id).toBe(characters[0].id);
+    expect(loaded[1].id).toBe(characters[1].id);
   });
 
   test('should catch error on load scene and pass it to handler', async () => {
@@ -543,7 +543,7 @@ describe('onMessage', () => {
         isCharacter: true,
       },
       target: {
-        name: characters[0].getId(),
+        name: characters[0].id,
         isPlayer: true,
         isCharacter: false,
       },

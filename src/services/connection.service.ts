@@ -146,7 +146,7 @@ export class ConnectionService {
         this.state = ConnectionState.ACTIVATING;
 
         await this.connection.open({
-          characters: this.characters.map((c) => c.getId()),
+          characters: this.characters.map((c) => c.id),
           session: this.session,
         });
 

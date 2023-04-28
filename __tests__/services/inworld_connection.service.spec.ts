@@ -160,7 +160,7 @@ describe('history', () => {
         isCharacter: false,
       },
       target: {
-        name: characters[0].getId(),
+        name: characters[0].id,
         isPlayer: false,
         isCharacter: true,
       },

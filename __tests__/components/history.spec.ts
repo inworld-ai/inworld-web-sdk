@@ -30,7 +30,7 @@ const routing: Routing = {
     isCharacter: false,
   },
   target: {
-    name: characters[0].getId(),
+    name: characters[0].id,
     isPlayer: false,
     isCharacter: true,
   },
@@ -101,7 +101,7 @@ describe('text', () => {
       const item = history.get()[0] as HistoryItemActor;
 
       expect(history.get().length).toEqual(1);
-      expect(item.character.getId()).toEqual(characters[0].getId());
+      expect(item.character.id).toEqual(characters[0].id);
     });
 
     test('should add packet to queue', () => {
