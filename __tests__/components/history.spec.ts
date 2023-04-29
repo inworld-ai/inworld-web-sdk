@@ -9,20 +9,23 @@ import {
 } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
 import {
+  EmotionBehavior,
+  EmotionBehaviorCode,
+} from '../../src/entities/emotion-behavior.entity';
+import {
+  EmotionStrength,
+  EmotionStrengthCode,
+} from '../../src/entities/emotion-strength.entity';
+import {
   InworlControlType,
   InworldPacket,
   InworldPacketType,
-  PacketId,
   Routing,
 } from '../../src/entities/inworld_packet.entity';
-import { createCharacter, user } from '../helpers';
+import { createCharacter, getPacketId, user } from '../helpers';
 
 const characters = [createCharacter(), createCharacter()];
-const packetId: PacketId = {
-  packetId: v4(),
-  interactionId: v4(),
-  utteranceId: v4(),
-};
+const packetId = getPacketId();
 const routing: Routing = {
   source: {
     name: v4(),
@@ -61,6 +64,16 @@ const narracterActionPacket = new InworldPacket({
   narratedAction: { text: v4() },
   type: InworldPacketType.NARRATED_ACTION,
 });
+const emotionsPacket = new InworldPacket({
+  packetId,
+  routing,
+  date,
+  emotions: {
+    behavior: new EmotionBehavior(EmotionBehaviorCode.NEUTRAL),
+    strength: new EmotionStrength(EmotionStrengthCode.NORMAL),
+  },
+  type: InworldPacketType.EMOTION,
+});
 const interactionEndPacket = new InworldPacket({
   packetId,
   routing,
@@ -70,6 +83,22 @@ const interactionEndPacket = new InworldPacket({
   control: {
     type: InworlControlType.INTERACTION_END,
   },
+});
+const incomingTextPacket = new InworldPacket({
+  packetId: {
+    ...getPacketId(),
+    interactionId: packetId.interactionId,
+  },
+  routing: {
+    source: routing.target,
+    target: routing.source,
+  },
+  date,
+  text: {
+    text: v4(),
+    final: false,
+  },
+  type: InworldPacketType.TEXT,
 });
 
 const createHistoryWithPacket = (packet: InworldPacket) => {
@@ -207,11 +236,7 @@ describe('text', () => {
 
       history.update(
         new InworldPacket({
-          packetId: {
-            packetId: v4(),
-            utteranceId: v4(),
-            interactionId: v4(),
-          },
+          packetId: getPacketId(),
           routing,
           date,
           text: { text, final: false },
@@ -245,7 +270,7 @@ describe('text', () => {
       expect(history.get().length).toEqual(0);
     });
 
-    test('should filter queue', () => {
+    test('should filter queue by the same interactionId', () => {
       jest
         .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
         .mockImplementationOnce(() => true);
@@ -257,6 +282,27 @@ describe('text', () => {
       history.filter({
         utteranceId: [packetId.utteranceId],
         interactionId: packetId.interactionId,
+      });
+
+      expect(history.get().length).toEqual(0);
+
+      history.display(textPacket, CHAT_HISTORY_TYPE.ACTOR);
+
+      expect(history.get().length).toEqual(0);
+    });
+
+    test('should filter queue by diferrent interactionI', () => {
+      jest
+        .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
+        .mockImplementationOnce(() => true);
+
+      const history = createHistoryWithPacket(textPacket);
+
+      expect(history.get().length).toEqual(0);
+
+      history.filter({
+        utteranceId: [packetId.utteranceId],
+        interactionId: v4(),
       });
 
       expect(history.get().length).toEqual(0);
@@ -296,7 +342,13 @@ describe('text', () => {
         };
         const history = createHistoryWithPacket(textPacket);
 
-        const expected = `${user.fullName}: ${textPacket.text.text}`;
+        history.addOrUpdate({
+          characters,
+          grpcAudioPlayer,
+          packet: incomingTextPacket,
+        });
+
+        const expected = `${user.fullName}: ${textPacket.text.text}\n${characters[0].displayName}: ${incomingTextPacket.text.text}`;
         const transcript = history.getTranscript(userRequest);
 
         expect(transcript).toEqual(expected);
@@ -305,19 +357,67 @@ describe('text', () => {
       test('should return transcript for default user name', () => {
         const history = createHistoryWithPacket(textPacket);
 
-        const expected = `User: ${textPacket.text.text}`;
+        history.addOrUpdate({
+          characters,
+          grpcAudioPlayer,
+          packet: incomingTextPacket,
+        });
+
+        const expected = `User: ${textPacket.text.text}\n${characters[0].displayName}: ${incomingTextPacket.text.text}`;
         const transcript = history.getTranscript();
 
         expect(transcript).toEqual(expected);
       });
 
+      test('should combine multiple character messages in one', () => {
+        const firstPacket = new InworldPacket({
+          packetId: {
+            ...getPacketId(),
+            interactionId: packetId.interactionId,
+          },
+          routing: {
+            source: routing.target,
+            target: routing.source,
+          },
+          date,
+          text: {
+            text: v4(),
+            final: false,
+          },
+          type: InworldPacketType.TEXT,
+        });
+        const secondtPacket = new InworldPacket({
+          packetId: {
+            ...getPacketId(),
+            interactionId: packetId.interactionId,
+          },
+          routing: {
+            source: routing.target,
+            target: routing.source,
+          },
+          date,
+          text: {
+            text: v4(),
+            final: false,
+          },
+          type: InworldPacketType.TEXT,
+        });
+        const history = createHistoryWithPacket(firstPacket);
+
+        history.addOrUpdate({
+          characters,
+          grpcAudioPlayer,
+          packet: secondtPacket,
+        });
+
+        const expected = `${characters[0].displayName}: ${firstPacket.text.text}${secondtPacket.text.text}`;
+        const transcript = history.getTranscript();
+        expect(transcript).toEqual(expected);
+      });
+
       test('should return transcript with new line', () => {
         const secondPacket = new InworldPacket({
-          packetId: {
-            packetId: v4(),
-            interactionId: v4(),
-            utteranceId: v4(),
-          },
+          packetId: getPacketId(),
           routing,
           date,
           text: { text: v4(), final: false },
@@ -331,6 +431,21 @@ describe('text', () => {
         });
 
         const expected = `User: ${textPacket.text.text}\nUser: ${secondPacket.text.text}`;
+        const transcript = history.getTranscript();
+
+        expect(transcript).toEqual(expected);
+      });
+
+      test('should return transcript with emotions', () => {
+        const history = createHistoryWithPacket(emotionsPacket);
+
+        history.addOrUpdate({
+          characters,
+          grpcAudioPlayer,
+          packet: textPacket,
+        });
+
+        const expected = `User: (${emotionsPacket.emotions.behavior.code}) ${textPacket.text.text}`;
         const transcript = history.getTranscript();
 
         expect(transcript).toEqual(expected);
@@ -361,11 +476,7 @@ describe('text', () => {
 
     test('should return transcript with new line', () => {
       const triggerPacket = new InworldPacket({
-        packetId: {
-          packetId: v4(),
-          interactionId: v4(),
-          utteranceId: v4(),
-        },
+        packetId: getPacketId(),
         routing,
         date,
         trigger: { name: v4() },

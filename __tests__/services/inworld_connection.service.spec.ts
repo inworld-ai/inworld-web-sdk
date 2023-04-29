@@ -12,13 +12,17 @@ import { WebSocketConnection } from '../../src/connection/web-socket.connection'
 import {
   InworldPacket,
   InworldPacketType,
-  PacketId,
   Routing,
 } from '../../src/entities/inworld_packet.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
 import { InworldConnectionService } from '../../src/services/inworld_connection.service';
-import { createCharacter, generateSessionToken, writeMock } from '../helpers';
+import {
+  createCharacter,
+  generateSessionToken,
+  getPacketId,
+  writeMock,
+} from '../helpers';
 
 const characters = [createCharacter(), createCharacter()];
 const eventFactory = new EventFactory();
@@ -148,11 +152,7 @@ describe('history', () => {
 
   test('should get history', () => {
     const history = new InworldHistory();
-    const packetId: PacketId = {
-      packetId: v4(),
-      interactionId: v4(),
-      utteranceId: v4(),
-    };
+    const packetId = getPacketId();
     const routing: Routing = {
       source: {
         name: v4(),
@@ -422,5 +422,15 @@ describe('send', () => {
     expect(write).toHaveBeenCalledTimes(1);
     expect(packet.isControl()).toEqual(true);
     expect(packet.isTTSPlaybackUnmute()).toEqual(true);
+  });
+
+  test('should interrupt', async () => {
+    const interrupt = jest
+      .spyOn(ConnectionService.prototype, 'interrupt')
+      .mockImplementationOnce(jest.fn());
+
+    await service.interrupt();
+
+    expect(interrupt).toHaveBeenCalledTimes(1);
   });
 });

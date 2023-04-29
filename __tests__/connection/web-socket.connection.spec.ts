@@ -42,9 +42,9 @@ describe('open', () => {
 
     await server.connected;
 
-    setTimeout(() => {
-      expect(onReady).toHaveBeenCalledTimes(1);
-    }, 0);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(onReady).toHaveBeenCalledTimes(1);
   });
 
   test('should call onMessage', async () => {

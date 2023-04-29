@@ -5,6 +5,7 @@ import { v4 } from 'uuid';
 import { DataChunkDataType } from '../../../proto/packets.pb';
 import { GrpcAudioPlayback } from '../../../src/components/sound/grpc_audio.playback';
 import { EventFactory } from '../../../src/factories/event';
+import { getPacketId } from '../../helpers';
 
 const audioEvent = EventFactory.fromProto({
   dataChunk: {
@@ -15,11 +16,7 @@ const audioEvent = EventFactory.fromProto({
     source: {},
     target: {},
   },
-  packetId: {
-    packetId: v4(),
-    interactionId: v4(),
-    utteranceId: v4(),
-  },
+  packetId: getPacketId(),
 });
 
 let playback: GrpcAudioPlayback;

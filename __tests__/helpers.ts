@@ -9,6 +9,7 @@ import {
 } from '../src/common/interfaces';
 import { QueueItem } from '../src/connection/web-socket.connection';
 import { Character } from '../src/entities/character.entity';
+import { PacketId } from '../src/entities/inworld_packet.entity';
 
 const today = new Date();
 today.setHours(today.getHours() + 1);
@@ -82,3 +83,9 @@ export const client: Client = {
 export const writeMock = (item: QueueItem) => {
   item.afterWriting?.(item.getPacket());
 };
+
+export const getPacketId = (): PacketId => ({
+  packetId: v4(),
+  interactionId: v4(),
+  utteranceId: v4(),
+});

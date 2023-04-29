@@ -489,7 +489,7 @@ export class ConnectionService {
     const changed = this.history.update(packet);
 
     if (changed) {
-      this.connectionProps.onHistoryChange(this.getHistory());
+      this.connectionProps.onHistoryChange?.(this.getHistory());
     }
 
     return changed;
@@ -505,7 +505,7 @@ export class ConnectionService {
     const changed = this.history.display(packet, type);
 
     if (changed) {
-      this.connectionProps.onHistoryChange(this.getHistory());
+      this.connectionProps.onHistoryChange?.(this.getHistory());
     }
   }
 
