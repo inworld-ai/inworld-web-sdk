@@ -1,5 +1,6 @@
 * Allow to interrupt character manually
 * Replace character getters by direct property access
+* Fix function call that checks its narrated action
 
 ## 2022-04-26 v1.0.0
 
