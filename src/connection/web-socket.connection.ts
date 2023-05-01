@@ -148,9 +148,7 @@ export class WebSocketConnection implements Connection {
       this.packetQueue.forEach((item) => this.write(item));
       this.packetQueue = [];
 
-      if (this.connectionProps.onReady) {
-        this.connectionProps.onReady();
-      }
+      this.connectionProps.onReady?.();
     }, 0);
   }
 }

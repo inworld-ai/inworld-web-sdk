@@ -85,7 +85,7 @@ export class InworldHistory {
     const id = packet.routing?.source?.isCharacter
       ? packet.routing?.source?.name
       : packet.routing?.target?.name;
-    const character = characters.find((x) => x.getId() === id);
+    const character = characters.find((x) => x.id === id);
 
     if (packet.isEmotion()) {
       this.emotions[interactionId] = packet.emotions;
@@ -257,7 +257,7 @@ export class InworldHistory {
         case CHAT_HISTORY_TYPE.NARRATED_ACTION:
           const isCharacter = item.source.isCharacter;
           const givenName = isCharacter
-            ? item.character?.getDisplayName()
+            ? item.character?.displayName
             : userName;
           const emotionCode =
             this.emotions[item.interactionId]?.behavior?.code || '';

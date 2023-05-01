@@ -26,7 +26,7 @@ test('should set and get character', () => {
   const found = factory.getCurrentCharacter();
 
   expect(found).toEqual(character);
-  expect(found.getId()).toEqual(character.getId());
+  expect(found.id).toEqual(character.id);
 });
 
 describe('event types', () => {
@@ -49,7 +49,7 @@ describe('event types', () => {
       chunk,
       type: DataChunkDataType.AUDIO,
     });
-    expect(event.routing.target.name).toEqual(character.getId());
+    expect(event.routing.target.name).toEqual(character.id);
   });
 
   test('should generate audio session start', () => {
@@ -61,7 +61,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.AUDIO_SESSION_START,
     });
-    expect(event.routing.target.name).toEqual(character.getId());
+    expect(event.routing.target.name).toEqual(character.id);
   });
 
   test('should generate audio session end', () => {
@@ -73,7 +73,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.AUDIO_SESSION_END,
     });
-    expect(event.routing.target.name).toEqual(character.getId());
+    expect(event.routing.target.name).toEqual(character.id);
   });
 
   test('should generate tts playback start', () => {
@@ -85,7 +85,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.TTS_PLAYBACK_START,
     });
-    expect(event.routing.target.name).toEqual(character.getId());
+    expect(event.routing.target.name).toEqual(character.id);
   });
 
   test('should generate tts playback end', () => {
@@ -97,7 +97,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.TTS_PLAYBACK_END,
     });
-    expect(event.routing.target.name).toEqual(character.getId());
+    expect(event.routing.target.name).toEqual(character.id);
   });
 
   test('should generate tts playback mute', () => {
@@ -109,7 +109,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.TTS_PLAYBACK_MUTE,
     });
-    expect(event.routing.target.name).toEqual(character.getId());
+    expect(event.routing.target.name).toEqual(character.id);
   });
 
   test('should generate tts playback unmute', () => {
@@ -121,7 +121,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.TTS_PLAYBACK_UNMUTE,
     });
-    expect(event.routing.target.name).toEqual(character.getId());
+    expect(event.routing.target.name).toEqual(character.id);
   });
 
   test('should generate text event', () => {
@@ -132,7 +132,7 @@ describe('event types', () => {
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.text.text).toEqual(text);
-    expect(event.routing.target.name).toEqual(character.getId());
+    expect(event.routing.target.name).toEqual(character.id);
   });
 
   test('should generate trigger event without parameters', () => {
@@ -144,7 +144,7 @@ describe('event types', () => {
     expect(event).toHaveProperty('timestamp');
     expect(event.custom.name).toEqual(name);
     expect(event.custom.parameters).toEqual(undefined);
-    expect(event.routing.target.name).toEqual(character.getId());
+    expect(event.routing.target.name).toEqual(character.id);
   });
 
   test('should generate trigger event with parameters', () => {
@@ -157,7 +157,7 @@ describe('event types', () => {
     expect(event).toHaveProperty('timestamp');
     expect(event.custom.name).toEqual(name);
     expect(event.custom.parameters).toEqual(parameters);
-    expect(event.routing.target.name).toEqual(character.getId());
+    expect(event.routing.target.name).toEqual(character.id);
   });
 
   test('should generate cancel response event', () => {
@@ -173,7 +173,7 @@ describe('event types', () => {
       interactionId,
       utteranceId,
     });
-    expect(event.routing.target.name).toEqual(character.getId());
+    expect(event.routing.target.name).toEqual(character.id);
   });
 
   test('should not use character id if character is not set', () => {

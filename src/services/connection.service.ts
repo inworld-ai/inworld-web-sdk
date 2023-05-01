@@ -146,7 +146,7 @@ export class ConnectionService {
         this.state = ConnectionState.ACTIVATING;
 
         await this.connection.open({
-          characters: this.characters.map((c) => c.getId()),
+          characters: this.characters.map((c) => c.id),
           session: this.session,
         });
 
@@ -177,6 +177,14 @@ export class ConnectionService {
 
   getAudioSessionAction() {
     return this.audioSessionAction;
+  }
+
+  interrupt() {
+    const packet = this.connectionProps.grpcAudioPlayer.getCurrentPacket();
+
+    if (packet) {
+      this.interruptByInteraction(packet.packetId.interactionId);
+    }
   }
 
   private async loadCharactersList() {
@@ -235,7 +243,7 @@ export class ConnectionService {
         this.scheduleDisconnect();
 
         if (inworldPacket.isText()) {
-          this.interrupt(inworldPacket.packetId.interactionId);
+          this.interruptByInteraction(inworldPacket.packetId.interactionId);
         }
 
         this.addPacketToHistory(inworldPacket);
@@ -373,7 +381,7 @@ export class ConnectionService {
 
       // Send cancel response event in case of player talking.
       if (inworldPacket.isText() && inworldPacket.routing.source.isPlayer) {
-        this.interrupt(inworldPacket.packetId.interactionId);
+        this.interruptByInteraction(inworldPacket.packetId.interactionId);
       }
 
       // Play audio or silence.
@@ -425,7 +433,7 @@ export class ConnectionService {
     this.connection = new WebSocketConnection(props);
   }
 
-  private interrupt(interactionId: string) {
+  private interruptByInteraction(interactionId: string) {
     const { grpcAudioPlayer, config } = this.connectionProps;
 
     if (!config?.capabilities.interruptions) return;
@@ -481,7 +489,7 @@ export class ConnectionService {
     const changed = this.history.update(packet);
 
     if (changed) {
-      this.connectionProps.onHistoryChange(this.getHistory());
+      this.connectionProps.onHistoryChange?.(this.getHistory());
     }
 
     return changed;
@@ -497,7 +505,7 @@ export class ConnectionService {
     const changed = this.history.display(packet, type);
 
     if (changed) {
-      this.connectionProps.onHistoryChange(this.getHistory());
+      this.connectionProps.onHistoryChange?.(this.getHistory());
     }
   }
 

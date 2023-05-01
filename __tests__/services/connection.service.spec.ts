@@ -4,12 +4,14 @@ import WS from 'jest-websocket-mock';
 import { v4 } from 'uuid';
 
 import {
+  ActorType,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
 } from '../../proto/packets.pb';
 import { SessionToken } from '../../src/common/interfaces';
 import {
   CHAT_HISTORY_TYPE,
+  HistoryItem,
   InworldHistory,
 } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
@@ -41,6 +43,26 @@ const eventFactory = new EventFactory();
 
 const textEvent = eventFactory.text(v4());
 const audioEvent = eventFactory.dataChunk(v4(), DataChunkDataType.AUDIO);
+const incomingTextEvent: ProtoPacket = {
+  packetId: {
+    ...textEvent.packetId,
+    utteranceId: v4(),
+  },
+  routing: {
+    source: {
+      name: v4(),
+      type: ActorType.AGENT,
+    },
+    target: {
+      name: characters[0].id,
+      type: ActorType.PLAYER,
+    },
+  },
+  text: {
+    text: v4(),
+    final: false,
+  },
+};
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -173,8 +195,8 @@ describe('open', () => {
       session,
       user,
     });
-    expect(loaded[0].getId()).toBe(characters[0].getId());
-    expect(loaded[1].getId()).toBe(characters[1].getId());
+    expect(loaded[0].id).toBe(characters[0].id);
+    expect(loaded[1].id).toBe(characters[1].id);
   });
 
   test('should catch error on load scene and pass it to handler', async () => {
@@ -407,39 +429,51 @@ describe('send', () => {
       .spyOn(WorldEngineService.prototype, 'loadScene')
       .mockImplementationOnce(() => Promise.resolve(scene));
 
+    connection = new ConnectionService({
+      name: SCENE,
+      config: {
+        connection: { gateway: { hostname: '' } },
+        capabilities: capabilitiesProps,
+      },
+      user,
+      onError,
+      onMessage,
+      onDisconnect,
+      onHistoryChange: (history: HistoryItem[]) => {
+        expect(history).toEqual([
+          {
+            id: textEvent.packetId.utteranceId,
+            character: undefined,
+            date: new Date(textEvent.timestamp),
+            interactionId: textEvent.packetId.interactionId,
+            isRecognizing: false,
+            source: {
+              isCharacter: false,
+              isPlayer: true,
+              name: undefined,
+            },
+            text: textEvent.text.text,
+            type: CHAT_HISTORY_TYPE.ACTOR,
+          },
+        ]);
+      },
+      grpcAudioPlayer,
+      generateSessionToken,
+      webRtcLoopbackBiDiSession,
+    });
+
     await connection.send(() => textEvent);
 
     expect(open).toHaveBeenCalledTimes(1);
     expect(write).toHaveBeenCalledTimes(1);
-
-    setTimeout(() => {
-      expect(onHistoryChange).toHaveBeenCalledTimes(1);
-      expect(onHistoryChange).toHaveBeenCalledWith([
-        {
-          id: textEvent.packetId.utteranceId,
-          character: undefined,
-          date: new Date(textEvent.timestamp),
-          interactionId: textEvent.packetId.interactionId,
-          isRecognizing: false,
-          source: {
-            isCharacter: false,
-            isPlayer: true,
-            name: undefined,
-          },
-          text: textEvent.text.text,
-          type: CHAT_HISTORY_TYPE.ACTOR,
-        },
-      ]);
-    }, 100);
   });
 
   test('should interrupt on text sending', async () => {
-    const open = jest.spyOn(ConnectionService.prototype, 'open');
     const write = jest
       .spyOn(WebSocketConnection.prototype, 'write')
       .mockImplementation(writeMock);
     const cancelResponse = jest.spyOn(EventFactory.prototype, 'cancelResponse');
-    jest
+    const open = jest
       .spyOn(WebSocketConnection.prototype, 'open')
       .mockImplementationOnce(jest.fn());
     jest
@@ -460,11 +494,9 @@ describe('send', () => {
 
     await connection.send(() => textEvent);
 
-    setTimeout(() => {
-      expect(open).toHaveBeenCalledTimes(1);
-      expect(write).toHaveBeenCalledTimes(2);
-      expect(cancelResponse).toHaveBeenCalledTimes(1);
-    }, 100);
+    expect(open).toHaveBeenCalledTimes(1);
+    expect(write).toHaveBeenCalledTimes(2);
+    expect(cancelResponse).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -536,30 +568,6 @@ describe('onMessage', () => {
       ]);
     jest.spyOn(connection, 'isActive').mockImplementation(() => true);
 
-    const routing = {
-      source: {
-        name: v4(),
-        isPlayer: false,
-        isCharacter: true,
-      },
-      target: {
-        name: characters[0].getId(),
-        isPlayer: true,
-        isCharacter: false,
-      },
-    };
-    const incomingTextEvent: ProtoPacket = {
-      packetId: {
-        ...textEvent.packetId,
-        utteranceId: v4(),
-      },
-      routing,
-      text: {
-        text: v4(),
-        final: false,
-      },
-    };
-
     await connection.open();
 
     await server.connected;
@@ -568,9 +576,7 @@ describe('onMessage', () => {
 
     server.send({ result: incomingTextEvent });
 
-    setTimeout(() => {
-      expect(cancelResponse).toHaveBeenCalledTimes(2);
-    }, 100);
+    expect(cancelResponse).toHaveBeenCalledTimes(2);
   });
 
   test('should interrupt on player text event', async () => {
@@ -594,15 +600,12 @@ describe('onMessage', () => {
     await connection.open();
     await server.connected;
 
-    server.send({ result: textEvent });
+    server.send({ result: incomingTextEvent });
 
-    setTimeout(() => {
-      expect(cancelResponse).toHaveBeenCalledTimes(0);
-    }, 0);
+    expect(cancelResponse).toHaveBeenCalledTimes(0);
   });
 
   test('should display history on incoming audio event', async () => {
-    const onHistoryChange = jest.fn();
     connection = new ConnectionService({
       name: SCENE,
       config: {
@@ -613,7 +616,9 @@ describe('onMessage', () => {
       onError,
       onMessage,
       onDisconnect,
-      onHistoryChange,
+      onHistoryChange: () => {
+        expect(onMessage).toHaveBeenCalledTimes(1);
+      },
       grpcAudioPlayer,
       generateSessionToken,
       webRtcLoopbackBiDiSession,
@@ -631,11 +636,6 @@ describe('onMessage', () => {
     await server.connected;
 
     server.send({ result: audioEvent });
-
-    expect(onMessage).toHaveBeenCalledTimes(1);
-    setTimeout(() => {
-      expect(onHistoryChange).toHaveBeenCalledTimes(1);
-    }, 0);
   });
 });
 

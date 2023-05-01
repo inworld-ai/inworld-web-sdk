@@ -157,4 +157,8 @@ export class InworldConnectionService {
       this.connection.getEventFactory().cancelResponse(cancelResponses),
     );
   }
+
+  async interrupt() {
+    return this.connection.interrupt();
+  }
 }
