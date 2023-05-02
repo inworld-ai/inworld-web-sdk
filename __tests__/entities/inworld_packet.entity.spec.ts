@@ -5,16 +5,12 @@ import {
   InworlControlType,
   InworldPacket,
   InworldPacketType,
-  PacketId,
   Routing,
   TextEvent,
 } from '../../src/entities/inworld_packet.entity';
+import { getPacketId } from '../helpers';
 
-const packetId: PacketId = {
-  packetId: v4(),
-  interactionId: v4(),
-  utteranceId: v4(),
-};
+const packetId = getPacketId();
 const routing: Routing = {
   source: {
     name: v4(),

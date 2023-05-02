@@ -238,7 +238,7 @@ export class EventFactory {
   private routing(): Routing {
     return {
       source: { type: ActorType.PLAYER },
-      target: { type: ActorType.AGENT, name: this.character?.getId() },
+      target: { type: ActorType.AGENT, name: this.character?.id },
     };
   }
 

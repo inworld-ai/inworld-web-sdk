@@ -1,3 +1,9 @@
+## 2022-05-01 v1.1.0
+
+* Allow to interrupt character manually
+* Replace character getters by direct property access
+* Fix function call that checks its narrated action
+
 ## 2022-04-26 v1.0.0
 
 * Add mute/unmute events support
