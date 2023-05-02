@@ -152,7 +152,7 @@ export class InworldPacket {
       this.cancelResponses = props.cancelResponses;
     }
 
-    if (this.isNarratedAction) {
+    if (this.isNarratedAction()) {
       this.narratedAction = props.narratedAction;
     }
   }

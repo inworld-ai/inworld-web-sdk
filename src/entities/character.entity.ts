@@ -1,3 +1,5 @@
+import deprecate from 'util-deprecate';
+
 export interface CharacterProps {
   id: string;
   resourceName: string;
@@ -14,10 +16,10 @@ export interface Assets {
 }
 
 export class Character {
-  private id: string;
-  private resourceName: string;
-  private displayName: string;
-  private assets: Assets;
+  readonly id: string;
+  readonly resourceName: string;
+  readonly displayName: string;
+  readonly assets: Assets;
 
   constructor(props: CharacterProps) {
     this.id = props.id;
@@ -42,3 +44,23 @@ export class Character {
     return this.assets;
   }
 }
+
+Character.prototype.getId = deprecate(
+  Character.prototype.getId,
+  'getId() is deprecated. Use `id` property instead.',
+);
+
+Character.prototype.getResourceName = deprecate(
+  Character.prototype.getResourceName,
+  'getResourceName() is deprecated. Use `desourceName` property instead.',
+);
+
+Character.prototype.getDisplayName = deprecate(
+  Character.prototype.getDisplayName,
+  'getDisplayName() is deprecated. Use `displayName` property instead.',
+);
+
+Character.prototype.getAssets = deprecate(
+  Character.prototype.getAssets,
+  'getAssets() is deprecated. Use `assets` property instead.',
+);

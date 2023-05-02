@@ -103,7 +103,7 @@ function App() {
     });
     const characters = await service.connection.getCharacters();
     const character = characters.find(
-      (c: Character) => c.getResourceName() === form.character?.name,
+      (c: Character) => c.resourceName === form.character?.name,
     );
 
     if (character) {

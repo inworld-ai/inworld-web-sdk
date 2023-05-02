@@ -125,6 +125,10 @@ export class GrpcAudioPlayback {
     return result;
   }
 
+  getCurrentPacket() {
+    return this.currentItem?.packet;
+  }
+
   getPlaybackStream() {
     return this.destinationNode.stream;
   }
