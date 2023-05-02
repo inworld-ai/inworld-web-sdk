@@ -1375,13 +1375,14 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
-"@inworld/web-sdk@0.9.6":
-  version "0.9.6"
-  resolved "https://registry.yarnpkg.com/@inworld/web-sdk/-/web-sdk-0.9.6.tgz#7348238bd552e8e562e25f6dbdd8e76739e83e9a"
-  integrity sha512-yB0xsTG30+MENH03t3N9looY21fiTflwpJO64RcxahMkj2d98AvKL4m7MlJQuJGG9xNq3EUNMsTF6sEZc6yVZQ==
+"@inworld/web-sdk@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@inworld/web-sdk/-/web-sdk-1.1.0.tgz#08e77fd3b55cb72e804917c42f4de87ea03cb61c"
+  integrity sha512-H51xR1hEB4xfIizjHTSLUBmJQGAyBpZVgGFFm1Cq/SdoP3RdDqhBK9/Rx9TqUpKJelHCdA7vjQ7AH62c0E4w8A==
   dependencies:
     base64-arraybuffer "^1.0.2"
     defer-promise "^3.0.0"
+    util-deprecate "^1.0.2"
     uuid "^9.0.0"
 
 "@istanbuljs/load-nyc-config@^1.0.0":

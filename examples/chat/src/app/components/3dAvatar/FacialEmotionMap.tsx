@@ -1,5 +1,3 @@
-import { EmotionEvent } from '@inworld/web-sdk';
-
 /* eslint-disable */
 export const FacialEmotionMap: { [key: string]: { [key: string]: number } } = {
   Neutral: {},
@@ -69,35 +67,24 @@ export const FacialEmotionMap: { [key: string]: { [key: string]: number } } = {
   },
 };
 
-export const behaviorToFacial = ({ behavior }: EmotionEvent) => {
-  switch (true) {
-    case behavior.isNeutral():
-      return 'Neutral';
-    case behavior.isDisgust():
-    case behavior.isContempt():
-    case behavior.isStonewalling():
-      return 'Disgust';
-    case behavior.isBelligerence():
-    case behavior.isDomineering():
-    case behavior.isCriticism():
-    case behavior.isAnger():
-      return 'Anger';
-    case behavior.isTension():
-    case behavior.isTenseHumor():
-    case behavior.isDefensiveness():
-      return 'Fear';
-    case behavior.isSadness():
-    case behavior.isWhining():
-      return 'Sadness';
-    case behavior.isAffection():
-    case behavior.isInterest():
-    case behavior.isHumor():
-    case behavior.isJoy():
-      return 'Joy';
-    case behavior.isSurprise():
-    case behavior.isValidation():
-      return 'Surprise';
-    default:
-      return 'Neutral';
-  }
+export const BehaviorToFacial: { [key: string]: string } = {
+  NEUTRAL: 'Neutral',
+  DISGUST: 'Disgust',
+  CONTEMPT: 'Disgust',
+  BELLIGERENCE: 'Anger',
+  DOMINEERING: 'Anger',
+  CRITICISM: 'Anger',
+  ANGER: 'Anger',
+  TENSION: 'Fear',
+  TENSE_HUMOR: 'Fear',
+  DEFENSIVENESS: 'Fear',
+  WHINING: 'Sadness',
+  SADNESS: 'Sadness',
+  STONEWALLING: 'Disgust',
+  INTEREST: 'Joy',
+  VALIDATION: 'Surprise',
+  AFFECTION: 'Joy',
+  HUMOR: 'Joy',
+  SURPRISE: 'Surprise',
+  JOY: 'Joy',
 };

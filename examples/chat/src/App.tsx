@@ -47,7 +47,6 @@ function App() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [chatHistory, setChatHistory] = useState<HistoryItem[]>([]);
   const [chatting, setChatting] = useState(false);
-  const [playerName, setPlayerName] = useState('');
   const [chatView, setChatView] = useState(CHAT_VIEW.TEXT);
   const [phonemes, setPhonemes] = useState<AdditionalPhonemeInfo[]>([]);
   const [emotionEvent, setEmotionEvent] = useState<EmotionEvent>();
@@ -70,7 +69,6 @@ function App() {
 
     setChatting(true);
     setChatView(form.chatView!);
-    setPlayerName(form.player?.name!);
 
     const service = new InworldService({
       onHistoryChange,
@@ -206,7 +204,6 @@ function App() {
               chatHistory={chatHistory}
               connection={connection!}
               emotions={emotions}
-              playerName={playerName}
             />
           </ChatWrapper>
         </MainWrapper>
