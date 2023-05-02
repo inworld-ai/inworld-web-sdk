@@ -1375,10 +1375,10 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
-"@inworld/web-sdk@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@inworld/web-sdk/-/web-sdk-1.0.0.tgz#a88a66f10a98da563c949607b69465295342612d"
-  integrity sha512-MmoedTUnyjNQMu7FOr7bAIgpvZ7vJj3mSt8VKBopa3WhUaj0Asmsl4iCJjApjB/mP/zeIzcs5vLBDWLVpgwl2Q==
+"@inworld/web-sdk@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@inworld/web-sdk/-/web-sdk-1.1.0.tgz#08e77fd3b55cb72e804917c42f4de87ea03cb61c"
+  integrity sha512-H51xR1hEB4xfIizjHTSLUBmJQGAyBpZVgGFFm1Cq/SdoP3RdDqhBK9/Rx9TqUpKJelHCdA7vjQ7AH62c0E4w8A==
   dependencies:
     base64-arraybuffer "^1.0.2"
     defer-promise "^3.0.0"
