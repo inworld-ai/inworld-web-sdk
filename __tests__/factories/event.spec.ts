@@ -6,13 +6,12 @@ import {
   DataChunkDataType,
   InworldPacket as ProtoPacket,
 } from '../../proto/packets.pb';
+import { protoTimestamp } from '../../src/common/helpers';
 import { InworldPacket } from '../../src/entities/inworld_packet.entity';
 import { EventFactory } from '../../src/factories/event';
 import { createCharacter } from '../helpers';
 
 let factory: EventFactory;
-
-const protoTimestamp = (date?: Date) => (date || new Date()).toISOString();
 
 beforeEach(() => {
   factory = new EventFactory();

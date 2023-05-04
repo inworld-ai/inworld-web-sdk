@@ -3,6 +3,7 @@ import '../mocks/window.mock';
 import { v4 } from 'uuid';
 
 import { DataChunkDataType } from '../../proto/packets.pb';
+import { protoTimestamp } from '../../src/common/helpers';
 import { AudioSessionState } from '../../src/common/interfaces';
 import { InworldHistory } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
@@ -165,7 +166,7 @@ describe('history', () => {
         isCharacter: true,
       },
     };
-    const date = new Date().toISOString();
+    const date = protoTimestamp();
     const packet = new InworldPacket({
       packetId,
       routing,

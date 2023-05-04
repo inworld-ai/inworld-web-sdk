@@ -9,6 +9,7 @@ import {
   Routing,
   TextEventSourceType,
 } from '../../proto/packets.pb';
+import { protoTimestamp } from '../common/helpers';
 import { CancelResponsesProps } from '../common/interfaces';
 import { Character } from '../entities/character.entity';
 import { EmotionBehavior } from '../entities/emotion-behavior.entity';
@@ -37,7 +38,7 @@ export class EventFactory {
       packetId: {
         packetId: v4(),
       },
-      timestamp: this.protoTimestampNow(),
+      timestamp: protoTimestamp(),
       routing: this.routing(),
       dataChunk: { chunk: chunk as unknown as Uint8Array, type },
     };
@@ -48,7 +49,7 @@ export class EventFactory {
       packetId: {
         packetId: v4(),
       },
-      timestamp: this.protoTimestampNow(),
+      timestamp: protoTimestamp(),
       routing: this.routing(),
       control: { action: ControlEventAction.AUDIO_SESSION_START },
     };
@@ -59,7 +60,7 @@ export class EventFactory {
       packetId: {
         packetId: v4(),
       },
-      timestamp: this.protoTimestampNow(),
+      timestamp: protoTimestamp(),
       routing: this.routing(),
       control: { action: ControlEventAction.AUDIO_SESSION_END },
     };
@@ -70,7 +71,7 @@ export class EventFactory {
       packetId: {
         packetId: v4(),
       },
-      timestamp: this.protoTimestampNow(),
+      timestamp: protoTimestamp(),
       routing: this.routing(),
       control: { action: ControlEventAction.TTS_PLAYBACK_START },
     };
@@ -81,7 +82,7 @@ export class EventFactory {
       packetId: {
         packetId: v4(),
       },
-      timestamp: this.protoTimestampNow(),
+      timestamp: protoTimestamp(),
       routing: this.routing(),
       control: { action: ControlEventAction.TTS_PLAYBACK_END },
     };
@@ -92,7 +93,7 @@ export class EventFactory {
       packetId: {
         packetId: v4(),
       },
-      timestamp: this.protoTimestampNow(),
+      timestamp: protoTimestamp(),
       routing: this.routing(),
       control: {
         action: isMuted
@@ -109,7 +110,7 @@ export class EventFactory {
         utteranceId: v4(),
         interactionId: v4(),
       },
-      timestamp: this.protoTimestampNow(),
+      timestamp: protoTimestamp(),
       routing: this.routing(),
       text: {
         sourceType: TextEventSourceType.TYPED_IN,
@@ -126,7 +127,7 @@ export class EventFactory {
         utteranceId: v4(),
         interactionId: v4(),
       },
-      timestamp: this.protoTimestampNow(),
+      timestamp: protoTimestamp(),
       routing: this.routing(),
       custom: {
         name,
@@ -140,7 +141,7 @@ export class EventFactory {
       packetId: {
         packetId: v4(),
       },
-      timestamp: this.protoTimestampNow(),
+      timestamp: protoTimestamp(),
       routing: this.routing(),
       cancelResponses,
     };
@@ -241,8 +242,6 @@ export class EventFactory {
       target: { type: ActorType.AGENT, name: this.character?.id },
     };
   }
-
-  private protoTimestampNow = () => new Date().toISOString();
 
   private static getType(packet: ProtoPacket) {
     if (packet.text) {

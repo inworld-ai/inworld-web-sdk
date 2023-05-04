@@ -8,6 +8,7 @@ import {
   DataChunkDataType,
   InworldPacket as ProtoPacket,
 } from '../../proto/packets.pb';
+import { protoTimestamp } from '../../src/common/helpers';
 import { SessionToken } from '../../src/common/interfaces';
 import {
   CHAT_HISTORY_TYPE,
@@ -259,7 +260,7 @@ describe('open', () => {
       sessionId: v4(),
       token: v4(),
       type: 'Bearer',
-      expirationTime: new Date().toISOString(),
+      expirationTime: protoTimestamp(),
     };
 
     const generateSessionToken = jest.fn(() => Promise.resolve(expiredSession));

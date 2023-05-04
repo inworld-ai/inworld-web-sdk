@@ -1,5 +1,6 @@
 import { v4 } from 'uuid';
 
+import { protoTimestamp } from '../../src/common/helpers';
 import {
   AudioEvent,
   InworlControlType,
@@ -23,7 +24,7 @@ const routing: Routing = {
     isCharacter: true,
   },
 };
-const date = new Date().toISOString();
+const date = protoTimestamp();
 
 test('should get audio packet fields', () => {
   const audio: AudioEvent = {

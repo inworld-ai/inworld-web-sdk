@@ -1,6 +1,7 @@
 import { v4 } from 'uuid';
 
 import { LoadSceneResponseAgent } from '../proto/world-engine.pb';
+import { protoTimestamp } from '../src/common/helpers';
 import {
   Capabilities,
   Client,
@@ -11,8 +12,8 @@ import { QueueItem } from '../src/connection/web-socket.connection';
 import { Character } from '../src/entities/character.entity';
 import { PacketId } from '../src/entities/inworld_packet.entity';
 
-const today = new Date();
-today.setHours(today.getHours() + 1);
+const inOneHours = new Date();
+inOneHours.setHours(inOneHours.getHours() + 1);
 
 export const SCENE = v4();
 
@@ -56,7 +57,7 @@ export const session: SessionToken = {
   sessionId: v4(),
   token: v4(),
   type: 'Bearer',
-  expirationTime: today.toISOString(),
+  expirationTime: protoTimestamp(inOneHours),
 };
 
 export const generateSessionToken = () => Promise.resolve(session);
