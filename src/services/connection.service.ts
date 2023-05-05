@@ -238,7 +238,7 @@ export class ConnectionService {
     this.connection.write({
       getPacket,
       afterWriting: (packet: ProtoPacket) => {
-        inworldPacket = EventFactory.fromProto(packet);
+        inworldPacket = InworldPacket.fromProto(packet);
 
         this.scheduleDisconnect();
 
@@ -354,7 +354,7 @@ export class ConnectionService {
     this.onMessage = async (packet: ProtoPacket) => {
       const { onMessage, grpcAudioPlayer } = this.connectionProps;
 
-      const inworldPacket = EventFactory.fromProto(packet);
+      const inworldPacket = InworldPacket.fromProto(packet);
       const interactionId = inworldPacket.packetId.interactionId;
 
       // Don't pass text packet outside for interrupred interaction.

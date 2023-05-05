@@ -18,6 +18,7 @@ import {
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
 import { GrpcWebRtcLoopbackBiDiSession } from '../../src/components/sound/grpc_web_rtc_loopback_bidi.session';
 import { WebSocketConnection } from '../../src/connection/web-socket.connection';
+import { InworldPacket } from '../../src/entities/inworld_packet.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
 import { WorldEngineService } from '../../src/services/world_engine.service';
@@ -483,7 +484,7 @@ describe('send', () => {
     jest
       .spyOn(GrpcAudioPlayback.prototype, 'excludeCurrentInteractionPackets')
       .mockImplementationOnce(() => [
-        EventFactory.fromProto({
+        InworldPacket.fromProto({
           ...audioEvent,
           packetId: {
             packetId: audioEvent.packetId.packetId,
@@ -560,7 +561,7 @@ describe('onMessage', () => {
     jest
       .spyOn(GrpcAudioPlayback.prototype, 'excludeCurrentInteractionPackets')
       .mockImplementationOnce(() => [
-        EventFactory.fromProto({
+        InworldPacket.fromProto({
           ...audioEvent,
           packetId: {
             ...textEvent.packetId,
@@ -590,7 +591,7 @@ describe('onMessage', () => {
     jest
       .spyOn(GrpcAudioPlayback.prototype, 'excludeCurrentInteractionPackets')
       .mockImplementationOnce(() => [
-        EventFactory.fromProto({
+        InworldPacket.fromProto({
           ...audioEvent,
           packetId: {
             ...textEvent.packetId,
