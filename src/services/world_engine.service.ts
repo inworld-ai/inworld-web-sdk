@@ -8,7 +8,7 @@ import { CLIENT_ID } from '../common/constants';
 import {
   InternalClientConfiguration,
   SessionToken,
-} from '../common/interfaces';
+} from '../common/data_structures';
 
 type PbFunc<P, R> = (req: P, initReq?: fm.InitReq) => Promise<R>;
 

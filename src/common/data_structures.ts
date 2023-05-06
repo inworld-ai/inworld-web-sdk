@@ -1,3 +1,4 @@
+import { InworldPacket as ProtoPacket } from '../../proto/packets.pb';
 import { CapabilitiesRequest } from '../../proto/world-engine.pb';
 import { AdditionalPhonemeInfo } from '../entities/inworld_packet.entity';
 
@@ -37,9 +38,9 @@ export interface ConnectionConfig {
   disconnectTimeout?: number;
   gateway?: Gateway;
 }
-export interface ClientConfiguration {
+export interface ClientConfiguration<CapabilitiesT> {
   connection?: ConnectionConfig;
-  capabilities?: Capabilities;
+  capabilities?: CapabilitiesT;
 }
 
 export interface InternalClientConfiguration {
@@ -75,4 +76,8 @@ export enum AudioSessionState {
   UNKNOWN = 'UNKNOWN',
   START = 'START',
   END = 'END',
+}
+
+export interface Extension<InworldPacketT> {
+  convertPacketFromProto: (proto: ProtoPacket) => InworldPacketT;
 }

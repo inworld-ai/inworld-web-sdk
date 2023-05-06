@@ -4,7 +4,7 @@ import {
   InternalClientConfiguration,
   SessionToken,
   VoidFn,
-} from '../common/interfaces';
+} from '../common/data_structures';
 
 const SESSION_PATH = '/v1/session/default';
 

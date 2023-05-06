@@ -8,8 +8,8 @@ import {
   Routing,
   TextEventSourceType,
 } from '../../proto/packets.pb';
+import { CancelResponsesProps } from '../common/data_structures';
 import { protoTimestamp } from '../common/helpers';
-import { CancelResponsesProps } from '../common/interfaces';
 import { Character } from '../entities/character.entity';
 import { TriggerParameter } from '../entities/inworld_packet.entity';
 
@@ -26,66 +26,42 @@ export class EventFactory {
 
   dataChunk(chunk: string, type: DataChunkDataType): ProtoPacket {
     return {
-      packetId: {
-        packetId: v4(),
-      },
-      timestamp: protoTimestamp(),
-      routing: this.routing(),
+      ...this.baseProtoPacket({ utteranceId: false, interactionId: false }),
       dataChunk: { chunk: chunk as unknown as Uint8Array, type },
     };
   }
 
   audioSessionStart(): ProtoPacket {
     return {
-      packetId: {
-        packetId: v4(),
-      },
-      timestamp: protoTimestamp(),
-      routing: this.routing(),
+      ...this.baseProtoPacket({ utteranceId: false, interactionId: false }),
       control: { action: ControlEventAction.AUDIO_SESSION_START },
     };
   }
 
   audioSessionEnd(): ProtoPacket {
     return {
-      packetId: {
-        packetId: v4(),
-      },
-      timestamp: protoTimestamp(),
-      routing: this.routing(),
+      ...this.baseProtoPacket({ utteranceId: false, interactionId: false }),
       control: { action: ControlEventAction.AUDIO_SESSION_END },
     };
   }
 
   ttsPlaybackStart(): ProtoPacket {
     return {
-      packetId: {
-        packetId: v4(),
-      },
-      timestamp: protoTimestamp(),
-      routing: this.routing(),
+      ...this.baseProtoPacket({ utteranceId: false, interactionId: false }),
       control: { action: ControlEventAction.TTS_PLAYBACK_START },
     };
   }
 
   ttsPlaybackEnd(): ProtoPacket {
     return {
-      packetId: {
-        packetId: v4(),
-      },
-      timestamp: protoTimestamp(),
-      routing: this.routing(),
+      ...this.baseProtoPacket({ utteranceId: false, interactionId: false }),
       control: { action: ControlEventAction.TTS_PLAYBACK_END },
     };
   }
 
   ttsPlaybackMute(isMuted: boolean): ProtoPacket {
     return {
-      packetId: {
-        packetId: v4(),
-      },
-      timestamp: protoTimestamp(),
-      routing: this.routing(),
+      ...this.baseProtoPacket({ utteranceId: false, interactionId: false }),
       control: {
         action: isMuted
           ? ControlEventAction.TTS_PLAYBACK_MUTE
@@ -96,13 +72,7 @@ export class EventFactory {
 
   text(text: string): ProtoPacket {
     return {
-      packetId: {
-        packetId: v4(),
-        utteranceId: v4(),
-        interactionId: v4(),
-      },
-      timestamp: protoTimestamp(),
-      routing: this.routing(),
+      ...this.baseProtoPacket(),
       text: {
         sourceType: TextEventSourceType.TYPED_IN,
         text,
@@ -113,13 +83,7 @@ export class EventFactory {
 
   trigger(name: string, parameters: TriggerParameter[] = []): ProtoPacket {
     return {
-      packetId: {
-        packetId: v4(),
-        utteranceId: v4(),
-        interactionId: v4(),
-      },
-      timestamp: protoTimestamp(),
-      routing: this.routing(),
+      ...this.baseProtoPacket(),
       custom: {
         name,
         ...(parameters.length && { parameters }),
@@ -129,12 +93,20 @@ export class EventFactory {
 
   cancelResponse(cancelResponses?: CancelResponsesProps): ProtoPacket {
     return {
+      ...this.baseProtoPacket({ utteranceId: false, interactionId: false }),
+      cancelResponses,
+    };
+  }
+
+  baseProtoPacket(props?: { utteranceId?: boolean; interactionId?: boolean }) {
+    return {
       packetId: {
         packetId: v4(),
+        ...((props?.utteranceId ?? true) && { utteranceId: v4() }),
+        ...((props?.interactionId ?? true) && { interactionId: v4() }),
       },
       timestamp: protoTimestamp(),
       routing: this.routing(),
-      cancelResponses,
     };
   }
 

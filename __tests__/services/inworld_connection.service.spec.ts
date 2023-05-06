@@ -3,8 +3,8 @@ import '../mocks/window.mock';
 import { v4 } from 'uuid';
 
 import { DataChunkDataType } from '../../proto/packets.pb';
+import { AudioSessionState } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
-import { AudioSessionState } from '../../src/common/interfaces';
 import { InworldHistory } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../../src/components/sound/grpc_audio.recorder';

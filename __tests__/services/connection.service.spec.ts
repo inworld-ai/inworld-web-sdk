@@ -8,8 +8,8 @@ import {
   DataChunkDataType,
   InworldPacket as ProtoPacket,
 } from '../../proto/packets.pb';
+import { SessionToken } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
-import { SessionToken } from '../../src/common/interfaces';
 import {
   CHAT_HISTORY_TYPE,
   HistoryItem,

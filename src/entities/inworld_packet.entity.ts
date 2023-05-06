@@ -111,19 +111,19 @@ export interface NarratedAction {
 export class InworldPacket {
   private type: InworldPacketType = InworldPacketType.UNKNOWN;
 
-  date: string;
-  packetId: PacketId;
-  routing: Routing;
+  readonly date: string;
+  readonly packetId: PacketId;
+  readonly routing: Routing;
 
   // Events
-  text: TextEvent;
-  audio: AudioEvent;
-  trigger: TriggerEvent;
-  control: ControlEvent;
-  emotions: EmotionEvent;
-  silence: SilenceEvent;
-  narratedAction: NarratedAction;
-  cancelResponses: CancelResponsesEvent;
+  readonly text: TextEvent;
+  readonly audio: AudioEvent;
+  readonly trigger: TriggerEvent;
+  readonly control: ControlEvent;
+  readonly emotions: EmotionEvent;
+  readonly silence: SilenceEvent;
+  readonly narratedAction: NarratedAction;
+  readonly cancelResponses: CancelResponsesEvent;
 
   constructor(props: InworldPacketProps) {
     this.packetId = props.packetId;

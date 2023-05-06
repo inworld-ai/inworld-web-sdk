@@ -1,31 +1,42 @@
-import { DataChunkDataType } from '../../proto/packets.pb';
-import { UserRequest } from '../../proto/world-engine.pb';
-import { AudioSessionState, CancelResponsesProps } from '../common/interfaces';
+import {
+  DataChunkDataType,
+  InworldPacket as ProtoPacket,
+} from '../../proto/packets.pb';
+import {
+  AudioSessionState,
+  CancelResponsesProps,
+} from '../common/data_structures';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
 import { InworldPlayer } from '../components/sound/inworld_player';
 import { InworldRecorder } from '../components/sound/inworld_recorder';
 import { Character } from '../entities/character.entity';
-import { TriggerParameter } from '../entities/inworld_packet.entity';
+import {
+  InworldPacket,
+  TriggerParameter,
+} from '../entities/inworld_packet.entity';
 import { ConnectionService } from './connection.service';
 
-interface InworldConnectionServiceProps {
-  connection: ConnectionService;
+interface InworldConnectionServiceProps<
+  InworldPacketT extends InworldPacket = InworldPacket,
+> {
+  connection: ConnectionService<InworldPacketT>;
   grpcAudioPlayer: GrpcAudioPlayback;
   grpcAudioRecorder: GrpcAudioRecorder;
   webRtcLoopbackBiDiSession: GrpcWebRtcLoopbackBiDiSession;
 }
 
-export class InworldConnectionService {
+export class InworldConnectionService<
+  InworldPacketT extends InworldPacket = InworldPacket,
+> {
   private connection: ConnectionService;
   private grpcAudioPlayer: GrpcAudioPlayback;
-  private user: UserRequest;
 
   player: InworldPlayer;
   recorder: InworldRecorder;
 
-  constructor(props: InworldConnectionServiceProps) {
+  constructor(props: InworldConnectionServiceProps<InworldPacketT>) {
     this.connection = props.connection;
     this.grpcAudioPlayer = props.grpcAudioPlayer;
 
@@ -158,7 +169,15 @@ export class InworldConnectionService {
     );
   }
 
+  async sendCustomPacket(getPacket: () => ProtoPacket) {
+    return this.connection.send(() => getPacket());
+  }
+
   async interrupt() {
     return this.connection.interrupt();
+  }
+
+  baseProtoPacket(props?: { utteranceId?: boolean; interactionId?: boolean }) {
+    return this.connection.getEventFactory().baseProtoPacket(props);
   }
 }

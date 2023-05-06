@@ -1,13 +1,13 @@
 import { v4 } from 'uuid';
 
 import { LoadSceneResponseAgent } from '../proto/world-engine.pb';
-import { protoTimestamp } from '../src/common/helpers';
 import {
   Capabilities,
   Client,
   SessionToken,
   User,
-} from '../src/common/interfaces';
+} from '../src/common/data_structures';
+import { protoTimestamp } from '../src/common/helpers';
 import { QueueItem } from '../src/connection/web-socket.connection';
 import { Character } from '../src/entities/character.entity';
 import { PacketId } from '../src/entities/inworld_packet.entity';
