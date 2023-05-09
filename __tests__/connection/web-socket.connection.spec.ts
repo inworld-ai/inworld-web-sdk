@@ -162,7 +162,9 @@ describe('write', () => {
 describe('close', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
 
+  test('should open and close connection', async () => {
     ws = new WebSocketConnection({
       config: {
         connection: { gateway: { hostname: HOSTNAME } },
@@ -172,15 +174,26 @@ describe('close', () => {
       onReady,
       onDisconnect,
     });
-  });
 
-  test('should not throw error', async () => {
     ws.open({ session });
     ws.write({
       getPacket: () => textMessage,
     });
 
     await server.connected;
+
+    expect(() => ws.close()).not.toThrow();
+  });
+
+  test('should not throw error if connection is not open before', async () => {
+    ws = new WebSocketConnection({
+      config: {
+        connection: { gateway: { hostname: HOSTNAME } },
+        capabilities: capabilitiesProps,
+      },
+      onError,
+      onReady,
+    });
 
     expect(() => ws.close()).not.toThrow();
   });

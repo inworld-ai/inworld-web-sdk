@@ -69,10 +69,6 @@ export class WebSocketConnection implements Connection {
   }
 
   close() {
-    if (this.connectionProps.onReady) {
-      this.ws?.removeEventListener('open', this.onReady);
-    }
-
     if (this.connectionProps.onError) {
       this.ws?.removeEventListener('error', this.connectionProps.onError);
     }
@@ -81,6 +77,7 @@ export class WebSocketConnection implements Connection {
       this.ws?.removeEventListener('close', this.connectionProps.onDisconnect);
     }
 
+    this.ws?.removeEventListener('open', this.onReady);
     this.ws?.removeEventListener('message', this.onMessage);
 
     if (this.isActive()) {
