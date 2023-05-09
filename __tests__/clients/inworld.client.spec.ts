@@ -1,13 +1,23 @@
 import '../mocks/window.mock';
 
 import { InworldClient } from '../../src/clients/inworld.client';
+import { ConnectionService } from '../../src/services/connection.service';
+import {
+  ExtendedCapabilities,
+  ExtendedInworldPacket,
+} from '../data_structures';
 import {
   capabilitiesProps,
   client,
+  extendedCapabilitiesProps,
+  extendedCapabilitiesRequestProps,
+  extension,
   generateSessionToken,
   SCENE,
   user,
 } from '../helpers';
+
+jest.mock('../../src/services/connection.service');
 
 describe('should finish with success', () => {
   let inworldClient: InworldClient;
@@ -53,15 +63,26 @@ describe('should finish with success', () => {
   });
 
   test('should allow to specify custom gateway', async () => {
-    const inworldClient = new InworldClient().setScene(SCENE).setConfiguration({
-      connection: {
-        gateway: {
-          hostname: 'locahost',
-          ssl: true,
-        },
+    const connection = {
+      gateway: {
+        hostname: 'locahost',
+        ssl: true,
       },
+    };
+    const inworldClient = new InworldClient().setScene(SCENE).setConfiguration({
+      connection,
     });
-    expect(() => inworldClient.build()).not.toThrow();
+    inworldClient.build();
+
+    expect(ConnectionService).toHaveBeenCalledTimes(1);
+    expect(ConnectionService).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: {
+          connection,
+          capabilities: expect.anything(),
+        },
+      }),
+    );
   });
 });
 
@@ -70,5 +91,36 @@ describe('should throw error', () => {
     const inworldClient = new InworldClient().setScene('');
 
     expect(() => inworldClient.build()).toThrow('Scene name is required');
+  });
+});
+
+describe('extension', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('should extend capabilities and packets', () => {
+    const inworldClient = new InworldClient<
+      ExtendedCapabilities,
+      ExtendedInworldPacket
+    >()
+      .setScene(SCENE)
+      .setConfiguration({
+        capabilities: extendedCapabilitiesProps,
+      })
+      .setExtension(extension);
+
+    inworldClient.build();
+
+    expect(ConnectionService).toHaveBeenCalledTimes(1);
+    expect(ConnectionService).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: {
+          connection: expect.anything(),
+          capabilities: extendedCapabilitiesRequestProps,
+        },
+        extension,
+      }),
+    );
   });
 });

@@ -18,8 +18,10 @@ import {
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
 import { InworldConnectionService } from '../../src/services/inworld_connection.service';
+import { ExtendedInworldPacket } from '../data_structures';
 import {
   createCharacter,
+  extension,
   generateSessionToken,
   getPacketId,
   writeMock,
@@ -433,5 +435,37 @@ describe('send', () => {
     await service.interrupt();
 
     expect(interrupt).toHaveBeenCalledTimes(1);
+  });
+
+  test('should send custom packet', async () => {
+    const connection = new ConnectionService<ExtendedInworldPacket>({
+      grpcAudioPlayer,
+      webRtcLoopbackBiDiSession,
+      generateSessionToken,
+      onHistoryChange,
+      extension,
+    });
+    const service = new InworldConnectionService({
+      connection,
+      grpcAudioPlayer,
+      grpcAudioRecorder,
+      webRtcLoopbackBiDiSession,
+    });
+    const write = jest
+      .spyOn(WebSocketConnection.prototype, 'write')
+      .mockImplementationOnce(writeMock);
+
+    const interactionId = v4();
+    const mutation = { regenerateResponse: { interactionId } };
+    const baseProtoPacket = service.baseProtoPacket();
+    const packet = await service.sendCustomPacket(() => ({
+      ...baseProtoPacket,
+      packetId: { ...baseProtoPacket.packetId, interactionId },
+      mutation,
+    }));
+
+    expect(open).toHaveBeenCalledTimes(0);
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(packet).toHaveProperty('mutation', mutation);
   });
 });
