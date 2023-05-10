@@ -237,16 +237,17 @@ export class ConnectionService {
     // If the connection is not active, we need to add the packet to the queue first to guarantee the order of packets.
     this.connection.write({
       getPacket,
-      afterWriting: (packet: ProtoPacket) => {
-        inworldPacket = EventFactory.fromProto(packet);
+      afterWriting: (packet: InworldPacket) => {
+        inworldPacket = packet;
 
         this.scheduleDisconnect();
 
-        if (inworldPacket.isText()) {
-          this.interruptByInteraction(inworldPacket.packetId.interactionId);
-        }
-
         this.addPacketToHistory(inworldPacket);
+      },
+      beforeWriting: (packet: InworldPacket) => {
+        if (packet.isText()) {
+          this.interruptByInteraction(packet.packetId.interactionId);
+        }
       },
     });
 

@@ -10,6 +10,7 @@ import {
 import { QueueItem } from '../src/connection/web-socket.connection';
 import { Character } from '../src/entities/character.entity';
 import { PacketId } from '../src/entities/inworld_packet.entity';
+import { EventFactory } from '../src/factories/event';
 
 const today = new Date();
 today.setHours(today.getHours() + 1);
@@ -81,7 +82,9 @@ export const client: Client = {
 };
 
 export const writeMock = (item: QueueItem) => {
-  item.afterWriting?.(item.getPacket());
+  const packet = EventFactory.fromProto(item.getPacket());
+  item.beforeWriting?.(packet);
+  item.afterWriting?.(packet);
 };
 
 export const getPacketId = (): PacketId => ({
