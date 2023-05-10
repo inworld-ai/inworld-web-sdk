@@ -439,12 +439,7 @@ export class ConnectionService {
 
     if (!config?.capabilities.interruptions) return;
 
-    const packets =
-      grpcAudioPlayer.excludeCurrentInteractionPackets(interactionId);
-
-    if (!grpcAudioPlayer.isCurrentPacket({ interactionId })) {
-      grpcAudioPlayer.stop();
-    }
+    const packets = grpcAudioPlayer.stopForInteraction(interactionId);
 
     if (packets.length) {
       const interactionId = packets[0].packetId.interactionId;
