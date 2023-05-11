@@ -5,6 +5,8 @@ import {
   SessionToken,
   VoidFn,
 } from '../common/interfaces';
+import { InworldPacket } from '../entities/inworld_packet.entity';
+import { EventFactory } from '../factories/event';
 
 const SESSION_PATH = '/v1/session/default';
 
@@ -31,7 +33,8 @@ interface OpenConnectionProps {
 
 export interface QueueItem {
   getPacket: () => ProtoPacket;
-  afterWriting?: (packet: ProtoPacket) => void;
+  afterWriting?: (packet: InworldPacket) => void;
+  beforeWriting?: (packet: InworldPacket) => void;
 }
 
 export interface Connection {
@@ -97,8 +100,10 @@ export class WebSocketConnection implements Connection {
     // So put packets to queue and send them `onReady` event.
     if (this.isActive()) {
       const packet = item.getPacket();
+      const inworldPacket = EventFactory.fromProto(item.getPacket());
+      item.beforeWriting?.(inworldPacket);
       this.ws?.send(JSON.stringify(packet));
-      item.afterWriting?.(packet);
+      item.afterWriting?.(inworldPacket);
     } else {
       this.packetQueue.push(item);
     }

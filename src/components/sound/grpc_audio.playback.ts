@@ -134,13 +134,36 @@ export class GrpcAudioPlayback {
   }
 
   stop() {
-    this.getSourceNode().disconnect();
-    delete this.audioBufferSourceNode;
+    if (this.audioBufferSourceNode) {
+      this.audioBufferSourceNode.onended = null;
+    }
+
+    this.currentItem = undefined;
+    this.clearSourceNode();
+  }
+
+  stopForInteraction(interactionId: string) {
+    const packets = this.excludeCurrentInteractionPackets(interactionId);
+
+    if (!this.isCurrentPacket({ interactionId })) {
+      this.stop();
+      this.playQueue();
+    }
+
+    return packets;
   }
 
   async init() {
     // Way past safari autoplay. Should be called from inside direct user interaction.
     await this.playbackAudioContext.resume().catch(console.error);
+  }
+
+  private clearSourceNode() {
+    if (this.audioBufferSourceNode) {
+      this.audioBufferSourceNode.disconnect();
+    }
+
+    delete this.audioBufferSourceNode;
   }
 
   private getSourceNode(): AudioBufferSourceNode {
@@ -187,7 +210,7 @@ export class GrpcAudioPlayback {
       );
     }
 
-    this.stop();
+    this.clearSourceNode();
 
     this.getSourceNode().buffer = audioBuffer;
     if (packet.isAudio() && packet.audio.additionalPhonemeInfo) {

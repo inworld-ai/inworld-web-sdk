@@ -109,7 +109,7 @@ function App() {
     if (character) {
       service.connection.setCurrentCharacter(character);
 
-      const assets = character?.getAssets();
+      const assets = character?.assets;
       const rpmImageUri = assets?.rpmImageUriPortrait;
       const avatarImg = assets?.avatarImg;
       setAvatar(avatarImg || rpmImageUri || '');
@@ -170,7 +170,7 @@ function App() {
               visible={chatView === CHAT_VIEW.AVATAR}
               url={
                 config.RPM_AVATAR ||
-                character.getAssets().rpmModelUri ||
+                character.assets.rpmModelUri ||
                 defaults.DEFAULT_RPM_AVATAR
               }
             />

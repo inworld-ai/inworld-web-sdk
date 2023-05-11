@@ -1,3 +1,9 @@
+## 2022-05-011 v1.2.0
+
+* Replace CancelResponses by Mutation.CancelResponses on the protocol level
+* Send TextEvent before CancelResponses on text interruption
+* Continue audio playing after interruption in Safari
+
 ## 2022-05-01 v1.1.0
 
 * Allow to interrupt character manually
