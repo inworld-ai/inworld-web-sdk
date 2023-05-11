@@ -3,13 +3,16 @@ import { v4 } from 'uuid';
 
 import { InworldPacket as ProtoPacket } from '../../proto/packets.pb';
 import { WebSocketConnection } from '../../src/connection/web-socket.connection';
+import { EventFactory } from '../../src/factories/event';
 import { capabilitiesProps, session } from '../helpers';
+
+const eventFactory = new EventFactory();
 
 let server: WS;
 let ws: WebSocketConnection;
 
 const HOSTNAME = 'localhost:1234';
-const textMessage = { text: { text: v4() } };
+const textMessage = eventFactory.text(v4());
 
 const onReady = jest.fn();
 const onError = jest.fn();
