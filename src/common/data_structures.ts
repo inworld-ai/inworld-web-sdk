@@ -1,5 +1,8 @@
 import { InworldPacket as ProtoPacket } from '../../proto/packets.pb';
-import { CapabilitiesRequest } from '../../proto/world-engine.pb';
+import {
+  CapabilitiesRequest,
+  LoadSceneRequest,
+} from '../../proto/world-engine.pb';
 import { AdditionalPhonemeInfo } from '../entities/inworld_packet.entity';
 
 export interface Capabilities {
@@ -78,6 +81,12 @@ export enum AudioSessionState {
   END = 'END',
 }
 
+export type ExtensionLoadSceneProps = Omit<
+  LoadSceneRequest,
+  'name' | 'capabilities' | 'user' | 'client'
+>;
+
 export interface Extension<InworldPacketT> {
-  convertPacketFromProto: (proto: ProtoPacket) => InworldPacketT;
+  convertPacketFromProto?: (proto: ProtoPacket) => InworldPacketT;
+  loadSceneProps?: ExtensionLoadSceneProps;
 }

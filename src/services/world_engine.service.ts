@@ -6,6 +6,7 @@ import {
 } from '../../proto/world-engine.pb';
 import { CLIENT_ID } from '../common/constants';
 import {
+  ExtensionLoadSceneProps,
   InternalClientConfiguration,
   SessionToken,
 } from '../common/data_structures';
@@ -18,11 +19,12 @@ export interface LoadSceneProps {
   user?: UserRequest;
   config: InternalClientConfiguration;
   session: SessionToken;
+  sceneProps?: ExtensionLoadSceneProps;
 }
 
 export class WorldEngineService {
   async loadScene(props: LoadSceneProps) {
-    const { client, config, name, session, user } = props;
+    const { client, config, name, sceneProps, session, user } = props;
     const { hostname, ssl } = config.connection.gateway;
 
     const url = `${ssl ? 'https' : 'http'}://${hostname}`;
@@ -35,6 +37,7 @@ export class WorldEngineService {
       name,
       user,
       capabilities: config.capabilities,
+      ...sceneProps,
     });
   }
 

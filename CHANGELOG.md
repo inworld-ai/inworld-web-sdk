@@ -1,4 +1,4 @@
-* Allow to use extended capabilities
+* Allow to use extended capabilities and scene props
 * Allow to send and receive custom proto packet
 
 ## 2022-05-01 v1.1.0

@@ -84,13 +84,9 @@ export class ConnectionService<
   constructor(props?: ConnectionProps<InworldPacketT>) {
     this.connectionProps = props || ({} as ConnectionProps<InworldPacketT>);
 
-    this.extension = this.connectionProps.extension ?? {
-      convertPacketFromProto: (proto: ProtoPacket) =>
-        InworldPacket.fromProto(proto) as InworldPacketT,
-    };
-
     this.initializeHandlers();
     this.initializeConnection();
+    this.initializeExtension();
   }
 
   isActive() {
@@ -300,6 +296,7 @@ export class ConnectionService<
         this.scene = await engineService.loadScene({
           config: this.connectionProps.config,
           session: this.session,
+          sceneProps: this.extension.loadSceneProps,
           name,
           user,
           client,
@@ -441,6 +438,16 @@ export class ConnectionService<
     };
 
     this.connection = new WebSocketConnection(props);
+  }
+
+  private initializeExtension() {
+    const extension = this.connectionProps.extension ?? {};
+
+    this.extension = {
+      convertPacketFromProto: (proto: ProtoPacket) =>
+        InworldPacket.fromProto(proto) as InworldPacketT,
+      ...extension,
+    };
   }
 
   private interruptByInteraction(interactionId: string) {

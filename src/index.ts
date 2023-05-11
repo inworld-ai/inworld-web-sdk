@@ -12,6 +12,7 @@ import {
   ClientConfiguration,
   ConnectionConfig,
   Extension,
+  ExtensionLoadSceneProps,
   SessionToken,
   User,
 } from './common/data_structures';
@@ -64,6 +65,7 @@ export {
   EmotionStrength,
   EmotionStrengthCode,
   Extension,
+  ExtensionLoadSceneProps,
   HistoryInteractionEnd,
   HistoryItem,
   HistoryItemActor,
