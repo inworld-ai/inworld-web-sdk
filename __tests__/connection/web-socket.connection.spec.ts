@@ -3,13 +3,16 @@ import { v4 } from 'uuid';
 
 import { InworldPacket as ProtoPacket } from '../../proto/packets.pb';
 import { WebSocketConnection } from '../../src/connection/web-socket.connection';
-import { capabilitiesProps, session } from '../helpers';
+import { EventFactory } from '../../src/factories/event';
+import { capabilitiesProps, convertPacketFromProto, session } from '../helpers';
+
+const eventFactory = new EventFactory();
 
 let server: WS;
 let ws: WebSocketConnection;
 
 const HOSTNAME = 'localhost:1234';
-const textMessage = { text: { text: v4() } };
+const textMessage = eventFactory.text(v4());
 
 const onReady = jest.fn();
 const onError = jest.fn();
@@ -38,7 +41,7 @@ afterEach(() => {
 
 describe('open', () => {
   test('should call onReady', async () => {
-    ws.open({ session });
+    ws.open({ session, convertPacketFromProto });
 
     await server.connected;
 
@@ -59,7 +62,7 @@ describe('open', () => {
       },
     });
 
-    ws.open({ session });
+    ws.open({ session, convertPacketFromProto });
 
     await server.connected;
 
@@ -78,7 +81,7 @@ describe('open', () => {
       onError,
     });
 
-    ws.open({ session });
+    ws.open({ session, convertPacketFromProto });
 
     await server.connected;
 
@@ -103,7 +106,7 @@ describe('open', () => {
     await expect(
       new Promise((_, reject) => {
         onError.mockImplementation(reject);
-        ws.open({ session });
+        ws.open({ session, convertPacketFromProto });
       }),
       // WebSocket onerror event gets called with an event of type error and not an error
     ).rejects.toEqual(expect.objectContaining({ type: 'error' }));
@@ -125,7 +128,7 @@ describe('open', () => {
       onDisconnect,
     });
 
-    ws.open({ session });
+    ws.open({ session, convertPacketFromProto });
 
     await server.connected;
     await server.closed;
@@ -136,7 +139,7 @@ describe('open', () => {
 
 describe('write', () => {
   test('should write to active connection', async () => {
-    ws.open({ session });
+    ws.open({ session, convertPacketFromProto });
 
     await server.connected;
 
@@ -148,7 +151,7 @@ describe('write', () => {
   });
 
   test('should write when connection become active', async () => {
-    ws.open({ session });
+    ws.open({ session, convertPacketFromProto });
     ws.write({
       getPacket: () => textMessage,
     });
@@ -175,7 +178,7 @@ describe('close', () => {
       onDisconnect,
     });
 
-    ws.open({ session });
+    ws.open({ session, convertPacketFromProto });
     ws.write({
       getPacket: () => textMessage,
     });

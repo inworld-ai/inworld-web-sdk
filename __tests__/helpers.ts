@@ -105,8 +105,10 @@ export const client: Client = {
   id: 'ClientId',
 };
 
-export const writeMock = (item: QueueItem) => {
-  item.afterWriting?.(item.getPacket());
+export const writeMock = (item: QueueItem<InworldPacket>) => {
+  const packet = InworldPacket.fromProto(item.getPacket());
+  item.beforeWriting?.(packet);
+  item.afterWriting?.(packet);
 };
 
 export const getPacketId = (): PacketId => ({
@@ -115,12 +117,12 @@ export const getPacketId = (): PacketId => ({
   utteranceId: v4(),
 });
 
-export const extension = {
-  convertPacketFromProto: (proto: ProtoPacket) => {
-    const packet = InworldPacket.fromProto(proto) as ExtendedInworldPacket;
+export const convertPacketFromProto = (proto: ProtoPacket) => {
+  const packet = InworldPacket.fromProto(proto) as ExtendedInworldPacket;
 
-    packet.mutation = proto.mutation;
+  packet.mutation = proto.mutation;
 
-    return packet;
-  },
+  return packet;
 };
+
+export const extension = { convertPacketFromProto };

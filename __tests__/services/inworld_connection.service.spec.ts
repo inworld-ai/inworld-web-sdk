@@ -9,7 +9,10 @@ import { InworldHistory } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../../src/components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../../src/components/sound/grpc_web_rtc_loopback_bidi.session';
-import { WebSocketConnection } from '../../src/connection/web-socket.connection';
+import {
+  QueueItem,
+  WebSocketConnection,
+} from '../../src/connection/web-socket.connection';
 import {
   InworldPacket,
   InworldPacketType,
@@ -453,7 +456,11 @@ describe('send', () => {
     });
     const write = jest
       .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce(writeMock);
+      .mockImplementationOnce((item: QueueItem<ExtendedInworldPacket>) => {
+        const packet = extension.convertPacketFromProto(item.getPacket());
+        item.beforeWriting?.(packet);
+        item.afterWriting?.(packet);
+      });
 
     const interactionId = v4();
     const mutation = { regenerateResponse: { interactionId } };

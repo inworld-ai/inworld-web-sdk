@@ -5,6 +5,7 @@ import {
   SessionToken,
   VoidFn,
 } from '../common/data_structures';
+import { InworldPacket } from '../entities/inworld_packet.entity';
 
 const SESSION_PATH = '/v1/session/default';
 
@@ -24,27 +25,32 @@ interface ConnectionProps {
   onMessage?: (packet: ProtoPacket) => Awaitable<void>;
 }
 
-interface OpenConnectionProps {
-  characters?: string[];
+interface OpenConnectionProps<InworldPacketT> {
   session: SessionToken;
+  convertPacketFromProto: (proto: ProtoPacket) => InworldPacketT;
 }
 
-export interface QueueItem {
+export interface QueueItem<InworldPacketT> {
   getPacket: () => ProtoPacket;
-  afterWriting?: (packet: ProtoPacket) => void;
+  afterWriting?: (packet: InworldPacketT) => void;
+  beforeWriting?: (packet: InworldPacketT) => void;
 }
 
-export interface Connection {
+export interface Connection<InworldPacketT> {
   close(): void;
   isActive: () => boolean;
-  open(props: OpenConnectionProps): Promise<void>;
-  write(item: QueueItem): void;
+  open(props: OpenConnectionProps<InworldPacketT>): Promise<void>;
+  write(item: QueueItem<InworldPacketT>): void;
 }
 
-export class WebSocketConnection implements Connection {
+export class WebSocketConnection<
+  InworldPacketT extends InworldPacket = InworldPacket,
+> implements Connection<InworldPacketT>
+{
   private connectionProps: ConnectionProps;
   private ws: WebSocket;
-  private packetQueue: QueueItem[] = [];
+  private packetQueue: QueueItem<InworldPacketT>[] = [];
+  private convertPacketFromProto: (proto: ProtoPacket) => InworldPacketT;
 
   constructor(props: ConnectionProps) {
     this.connectionProps = props;
@@ -54,10 +60,14 @@ export class WebSocketConnection implements Connection {
     return this.ws?.readyState === WebSocket.OPEN;
   }
 
-  async open({ session }: OpenConnectionProps) {
+  async open({
+    session,
+    convertPacketFromProto,
+  }: OpenConnectionProps<InworldPacketT>) {
     const { config, onError, onDisconnect, onMessage, onReady } =
       this.connectionProps;
 
+    this.convertPacketFromProto = convertPacketFromProto;
     this.ws = this.createWebSocket({
       config,
       session,
@@ -89,13 +99,15 @@ export class WebSocketConnection implements Connection {
     this.packetQueue = [];
   }
 
-  write(item: QueueItem) {
+  write(item: QueueItem<InworldPacketT>) {
     // There's time gap between connection creation and connection activation.
     // So put packets to queue and send them `onReady` event.
     if (this.isActive()) {
       const packet = item.getPacket();
+      const inworldPacket = this.convertPacketFromProto(item.getPacket());
+      item.beforeWriting?.(inworldPacket);
       this.ws?.send(JSON.stringify(packet));
-      item.afterWriting?.(packet);
+      item.afterWriting?.(inworldPacket);
     } else {
       this.packetQueue.push(item);
     }

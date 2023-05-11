@@ -62,7 +62,7 @@ export class ConnectionService<
 
   private scene: LoadSceneResponse;
   private session: SessionToken;
-  private connection: Connection;
+  private connection: Connection<InworldPacketT>;
   private connectionProps: ConnectionProps<InworldPacketT>;
 
   private characters: Array<Character> = [];
@@ -152,8 +152,8 @@ export class ConnectionService<
         this.state = ConnectionState.ACTIVATING;
 
         await this.connection.open({
-          characters: this.characters.map((c) => c.id),
           session: this.session,
+          convertPacketFromProto: this.extension.convertPacketFromProto,
         });
 
         this.scheduleDisconnect();
@@ -243,16 +243,17 @@ export class ConnectionService<
     // If the connection is not active, we need to add the packet to the queue first to guarantee the order of packets.
     this.connection.write({
       getPacket,
-      afterWriting: (packet: ProtoPacket) => {
-        inworldPacket = this.extension.convertPacketFromProto(packet);
+      afterWriting: (packet: InworldPacketT) => {
+        inworldPacket = packet;
 
         this.scheduleDisconnect();
 
-        if (inworldPacket.isText()) {
-          this.interruptByInteraction(inworldPacket.packetId.interactionId);
-        }
-
         this.addPacketToHistory(inworldPacket);
+      },
+      beforeWriting: (packet: InworldPacketT) => {
+        if (packet.isText()) {
+          this.interruptByInteraction(packet.packetId.interactionId);
+        }
       },
     });
 
@@ -455,12 +456,7 @@ export class ConnectionService<
 
     if (!config?.capabilities.interruptions) return;
 
-    const packets =
-      grpcAudioPlayer.excludeCurrentInteractionPackets(interactionId);
-
-    if (!grpcAudioPlayer.isCurrentPacket({ interactionId })) {
-      grpcAudioPlayer.stop();
-    }
+    const packets = grpcAudioPlayer.stopForInteraction(interactionId);
 
     if (packets.length) {
       const interactionId = packets[0].packetId.interactionId;

@@ -94,7 +94,7 @@ export class EventFactory {
   cancelResponse(cancelResponses?: CancelResponsesProps): ProtoPacket {
     return {
       ...this.baseProtoPacket({ utteranceId: false, interactionId: false }),
-      cancelResponses,
+      mutation: { cancelResponses },
     };
   }
 
