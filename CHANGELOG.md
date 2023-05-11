@@ -1,3 +1,5 @@
+* Replace CancelResponses by Mutation.CancelResponses on the protocol level
+
 ## 2022-05-01 v1.1.0
 
 * Allow to interrupt character manually

@@ -142,7 +142,7 @@ export class EventFactory {
       },
       timestamp: this.protoTimestampNow(),
       routing: this.routing(),
-      cancelResponses,
+      mutation: { cancelResponses },
     };
   }
 
@@ -223,8 +223,8 @@ export class EventFactory {
       }),
       ...(type === InworldPacketType.CANCEL_RESPONSE && {
         cancelResponses: {
-          interactionId: proto.cancelResponses.interactionId,
-          utteranceId: proto.cancelResponses.utteranceId,
+          interactionId: proto.mutation.cancelResponses.interactionId,
+          utteranceId: proto.mutation.cancelResponses.utteranceId,
         },
       }),
       ...(type === InworldPacketType.NARRATED_ACTION && {
@@ -263,7 +263,7 @@ export class EventFactory {
       return InworldPacketType.CONTROL;
     } else if (packet.emotion) {
       return InworldPacketType.EMOTION;
-    } else if (packet.cancelResponses) {
+    } else if (packet.mutation?.cancelResponses) {
       return InworldPacketType.CANCEL_RESPONSE;
     } else if (packet.action?.narratedAction) {
       return InworldPacketType.NARRATED_ACTION;

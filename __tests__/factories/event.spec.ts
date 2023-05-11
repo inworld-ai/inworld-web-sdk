@@ -169,7 +169,7 @@ describe('event types', () => {
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event).toHaveProperty('timestamp');
-    expect(event.cancelResponses).toEqual({
+    expect(event.mutation.cancelResponses).toEqual({
       interactionId,
       utteranceId,
     });
@@ -187,7 +187,7 @@ describe('event types', () => {
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event).toHaveProperty('timestamp');
-    expect(event.cancelResponses).toEqual({
+    expect(event.mutation.cancelResponses).toEqual({
       interactionId,
       utteranceId,
     });
@@ -286,7 +286,7 @@ describe('convert packet to external one', () => {
         source: {} as Actor,
         target: {} as Actor,
       },
-      cancelResponses: {},
+      mutation: { cancelResponses: {} },
       timestamp: protoTimestamp(),
     };
 
