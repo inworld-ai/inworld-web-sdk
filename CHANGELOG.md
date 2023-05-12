@@ -1,3 +1,5 @@
+## 2022-05-012 v1.3.0
+
 * Allow to use extended capabilities and scene props
 * Allow to send and receive custom proto packet
 
