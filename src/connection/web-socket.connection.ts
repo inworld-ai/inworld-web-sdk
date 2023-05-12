@@ -91,7 +91,7 @@ export class WebSocketConnection<
     this.ws?.removeEventListener('message', this.onMessage);
 
     if (this.isActive()) {
-      this.ws?.close();
+      this.ws.close();
       this.connectionProps.onDisconnect?.();
     }
 
@@ -106,7 +106,7 @@ export class WebSocketConnection<
       const packet = item.getPacket();
       const inworldPacket = this.convertPacketFromProto(item.getPacket());
       item.beforeWriting?.(inworldPacket);
-      this.ws?.send(JSON.stringify(packet));
+      this.ws.send(JSON.stringify(packet));
       item.afterWriting?.(inworldPacket);
     } else {
       this.packetQueue.push(item);
