@@ -5,13 +5,14 @@ import {
   Capabilities,
   Client,
   ClientConfiguration,
+  Extension,
   Gateway,
   GenerateSessionTokenFn,
   InternalClientConfiguration,
   OnPhomeneFn,
   User,
   VoidFn,
-} from '../common/interfaces';
+} from '../common/data_structures';
 import { HistoryItem } from '../components/history';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
@@ -20,17 +21,20 @@ import { InworldPacket } from '../entities/inworld_packet.entity';
 import { ConnectionService } from '../services/connection.service';
 import { InworldConnectionService } from '../services/inworld_connection.service';
 
-export class InworldClient {
+export class InworldClient<
+  CapabilitiesT extends Capabilities = Capabilities,
+  InworldPacketT extends InworldPacket = InworldPacket,
+> {
   private user: UserRequest;
   private scene: string = '';
   private client: Client;
-  private config: InternalClientConfiguration;
+  private config: ClientConfiguration<CapabilitiesT> = {};
 
   private generateSessionToken: GenerateSessionTokenFn;
 
   private onDisconnect: VoidFn | undefined;
   private onError: ((err: Event | Error) => void) | undefined;
-  private onMessage: ((message: InworldPacket) => Awaitable<void>) | undefined;
+  private onMessage: ((message: InworldPacketT) => Awaitable<void>) | undefined;
   private onReady: (() => Awaitable<void>) | undefined;
   private onHistoryChange:
     | ((history: HistoryItem[]) => Awaitable<void>)
@@ -38,18 +42,14 @@ export class InworldClient {
   private onPhoneme: OnPhomeneFn;
 
   private onAfterPlaying:
-    | ((message: InworldPacket) => Awaitable<void>)
+    | ((message: InworldPacketT) => Awaitable<void>)
     | undefined;
   private onBeforePlaying:
-    | ((message: InworldPacket) => Awaitable<void>)
+    | ((message: InworldPacketT) => Awaitable<void>)
     | undefined;
   private onStopPlaying: (() => Awaitable<void>) | undefined;
 
-  constructor() {
-    this.config = {
-      capabilities: this.ensureCapabilities(),
-    };
-  }
+  private extension: Extension<InworldPacketT>;
 
   setUser(user: User) {
     this.user = {
@@ -74,18 +74,8 @@ export class InworldClient {
     return this;
   }
 
-  setConfiguration(config: ClientConfiguration) {
-    const { connection = {}, capabilities = {} } = config;
-    const { gateway } = connection;
-
-    this.config = {
-      ...config,
-      connection: {
-        ...connection,
-        gateway: this.ensureGateway(GRPC_HOSTNAME, gateway),
-      },
-      capabilities: this.ensureCapabilities(capabilities),
-    };
+  setConfiguration(config: ClientConfiguration<CapabilitiesT>) {
+    this.config = config;
 
     return this;
   }
@@ -108,7 +98,7 @@ export class InworldClient {
     return this;
   }
 
-  setOnMessage(fn?: (message: InworldPacket) => Awaitable<void>) {
+  setOnMessage(fn?: (message: InworldPacketT) => Awaitable<void>) {
     this.onMessage = fn;
 
     return this;
@@ -132,13 +122,13 @@ export class InworldClient {
     return this;
   }
 
-  setOnAfterPlaying(fn?: (message: InworldPacket) => Awaitable<void>) {
+  setOnAfterPlaying(fn?: (message: InworldPacketT) => Awaitable<void>) {
     this.onAfterPlaying = fn;
 
     return this;
   }
 
-  setOnBeforePlaying(fn?: (message: InworldPacket) => Awaitable<void>) {
+  setOnBeforePlaying(fn?: (message: InworldPacketT) => Awaitable<void>) {
     this.onBeforePlaying = fn;
 
     return this;
@@ -150,34 +140,41 @@ export class InworldClient {
     return this;
   }
 
+  setExtension(extension: Extension<InworldPacketT>) {
+    this.extension = extension;
+
+    return this;
+  }
+
   build() {
     this.validate();
 
     const webRtcLoopbackBiDiSession = new GrpcWebRtcLoopbackBiDiSession();
     const grpcAudioRecorder = new GrpcAudioRecorder();
-    const grpcAudioPlayer = new GrpcAudioPlayback({
+    const grpcAudioPlayer = new GrpcAudioPlayback<InworldPacketT>({
       onAfterPlaying: this.onAfterPlaying,
       onBeforePlaying: this.onBeforePlaying,
       onStopPlaying: this.onStopPlaying,
       onPhoneme: this.onPhoneme,
     });
 
-    const connection = new ConnectionService({
+    const connection = new ConnectionService<InworldPacketT>({
       grpcAudioPlayer,
       webRtcLoopbackBiDiSession,
       name: this.scene,
       user: this.user,
       client: this.client,
-      config: this.config,
+      config: this.buildConfiguration(),
       onError: this.onError,
       onReady: this.onReady,
       onMessage: this.onMessage,
       onHistoryChange: this.onHistoryChange,
       onDisconnect: this.onDisconnect,
       generateSessionToken: this.generateSessionToken,
+      extension: this.extension,
     });
 
-    return new InworldConnectionService({
+    return new InworldConnectionService<InworldPacketT>({
       connection,
       grpcAudioPlayer,
       grpcAudioRecorder,
@@ -185,17 +182,42 @@ export class InworldClient {
     });
   }
 
-  private ensureCapabilities(capabilities?: Capabilities): CapabilitiesRequest {
+  private buildConfiguration(): InternalClientConfiguration {
+    const { connection = {}, capabilities = {} } = this.config;
+    const { gateway } = connection;
+
     return {
-      audio: capabilities?.audio ?? true,
-      emotions: capabilities?.emotions ?? false,
-      interruptions: capabilities?.interruptions ?? false,
-      narratedActions: capabilities?.narratedActions ?? false,
-      phonemeInfo: capabilities?.phonemes ?? false,
-      silenceEvents: capabilities?.silence ?? false,
+      connection: {
+        ...connection,
+        gateway: this.ensureGateway(GRPC_HOSTNAME, gateway),
+      },
+      capabilities: this.buildCapabilities(capabilities as CapabilitiesT),
+    };
+  }
+
+  private buildCapabilities(capabilities: CapabilitiesT): CapabilitiesRequest {
+    const {
+      audio = true,
+      emotions = false,
+      interruptions = false,
+      narratedActions = false,
+      turnBasedStt = false,
+      phonemes: phonemeInfo = false,
+      silence: silenceEvents = false,
+      ...restCapabilities
+    } = capabilities;
+
+    return {
+      audio,
+      emotions,
+      interruptions,
+      narratedActions,
+      phonemeInfo,
+      silenceEvents,
       text: true,
       triggers: true,
-      turnBasedStt: capabilities?.turnBasedStt ?? false,
+      turnBasedStt,
+      ...restCapabilities,
     };
   }
 

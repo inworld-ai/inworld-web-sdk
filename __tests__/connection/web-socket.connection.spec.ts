@@ -4,7 +4,7 @@ import { v4 } from 'uuid';
 import { InworldPacket as ProtoPacket } from '../../proto/packets.pb';
 import { WebSocketConnection } from '../../src/connection/web-socket.connection';
 import { EventFactory } from '../../src/factories/event';
-import { capabilitiesProps, session } from '../helpers';
+import { capabilitiesProps, convertPacketFromProto, session } from '../helpers';
 
 const eventFactory = new EventFactory();
 
@@ -41,7 +41,7 @@ afterEach(() => {
 
 describe('open', () => {
   test('should call onReady', async () => {
-    ws.open({ session });
+    ws.open({ session, convertPacketFromProto });
 
     await server.connected;
 
@@ -62,7 +62,7 @@ describe('open', () => {
       },
     });
 
-    ws.open({ session });
+    ws.open({ session, convertPacketFromProto });
 
     await server.connected;
 
@@ -81,7 +81,7 @@ describe('open', () => {
       onError,
     });
 
-    ws.open({ session });
+    ws.open({ session, convertPacketFromProto });
 
     await server.connected;
 
@@ -106,7 +106,7 @@ describe('open', () => {
     await expect(
       new Promise((_, reject) => {
         onError.mockImplementation(reject);
-        ws.open({ session });
+        ws.open({ session, convertPacketFromProto });
       }),
       // WebSocket onerror event gets called with an event of type error and not an error
     ).rejects.toEqual(expect.objectContaining({ type: 'error' }));
@@ -115,20 +115,20 @@ describe('open', () => {
   test('should call onDisconnect', async () => {
     const HOSTNAME = 'localhost:1235';
 
-    const server = new WS(`ws://${HOSTNAME}/v1/session/default`);
+    const server = new WS(`wss://${HOSTNAME}/v1/session/default`);
     server.on('connection', (socket) => {
       socket.close({ wasClean: false, code: 1003, reason: 'NOPE' });
     });
 
     const ws = new WebSocketConnection({
       config: {
-        connection: { gateway: { hostname: HOSTNAME } },
+        connection: { gateway: { hostname: HOSTNAME, ssl: true } },
         capabilities: capabilitiesProps,
       },
       onDisconnect,
     });
 
-    ws.open({ session });
+    ws.open({ session, convertPacketFromProto });
 
     await server.connected;
     await server.closed;
@@ -139,19 +139,27 @@ describe('open', () => {
 
 describe('write', () => {
   test('should write to active connection', async () => {
-    ws.open({ session });
+    const afterWriting = jest.fn();
+    const beforeWriting = jest.fn();
+
+    ws.open({ session, convertPacketFromProto });
 
     await server.connected;
 
     ws.write({
+      afterWriting,
+      beforeWriting,
       getPacket: () => textMessage,
     });
 
     await expect(server).toReceiveMessage(textMessage);
+
+    expect(afterWriting).toHaveBeenCalledTimes(1);
+    expect(beforeWriting).toHaveBeenCalledTimes(1);
   });
 
   test('should write when connection become active', async () => {
-    ws.open({ session });
+    ws.open({ session, convertPacketFromProto });
     ws.write({
       getPacket: () => textMessage,
     });
@@ -165,7 +173,54 @@ describe('write', () => {
 describe('close', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
 
+  describe('should open and close connection', () => {
+    test('with Disconnect', async () => {
+      ws = new WebSocketConnection({
+        config: {
+          connection: { gateway: { hostname: HOSTNAME } },
+          capabilities: capabilitiesProps,
+        },
+        onError,
+        onReady,
+        onDisconnect,
+      });
+
+      ws.open({ session, convertPacketFromProto });
+      ws.write({
+        getPacket: () => textMessage,
+      });
+
+      await server.connected;
+
+      expect(() => ws.close()).not.toThrow();
+      expect(onDisconnect).toHaveBeenCalledTimes(1);
+    });
+
+    test('without Disconnect', async () => {
+      ws = new WebSocketConnection({
+        config: {
+          connection: { gateway: { hostname: HOSTNAME } },
+          capabilities: capabilitiesProps,
+        },
+        onError,
+        onReady,
+      });
+
+      ws.open({ session, convertPacketFromProto });
+      ws.write({
+        getPacket: () => textMessage,
+      });
+
+      await server.connected;
+
+      expect(() => ws.close()).not.toThrow();
+      expect(onDisconnect).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  test('should not throw error if connection is not open before', async () => {
     ws = new WebSocketConnection({
       config: {
         connection: { gateway: { hostname: HOSTNAME } },
@@ -175,15 +230,6 @@ describe('close', () => {
       onReady,
       onDisconnect,
     });
-  });
-
-  test('should not throw error', async () => {
-    ws.open({ session });
-    ws.write({
-      getPacket: () => textMessage,
-    });
-
-    await server.connected;
 
     expect(() => ws.close()).not.toThrow();
   });

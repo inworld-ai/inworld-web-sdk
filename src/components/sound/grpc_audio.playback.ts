@@ -1,17 +1,19 @@
 import { decode } from 'base64-arraybuffer';
 
-import { Awaitable, OnPhomeneFn } from '../../common/interfaces';
+import { Awaitable, OnPhomeneFn } from '../../common/data_structures';
 import { InworldPacket } from '../../entities/inworld_packet.entity';
 
-interface AudioQueueItem {
-  packet: InworldPacket;
-  onBeforePlaying?: (packet: InworldPacket) => void;
-  onAfterPlaying?: (packet: InworldPacket) => void;
+interface AudioQueueItem<InworldPacketT> {
+  packet: InworldPacketT;
+  onBeforePlaying?: (packet: InworldPacketT) => void;
+  onAfterPlaying?: (packet: InworldPacketT) => void;
 }
 
-export class GrpcAudioPlayback {
-  private currentItem: AudioQueueItem | undefined;
-  private audioQueue: AudioQueueItem[] = [];
+export class GrpcAudioPlayback<
+  InworldPacketT extends InworldPacket = InworldPacket,
+> {
+  private currentItem: AudioQueueItem<InworldPacketT> | undefined;
+  private audioQueue: AudioQueueItem<InworldPacketT>[] = [];
 
   private isPlaying = false;
 
@@ -19,10 +21,10 @@ export class GrpcAudioPlayback {
   private audioBufferSourceNode?: AudioBufferSourceNode;
 
   private onAfterPlaying:
-    | ((message: InworldPacket) => Awaitable<void>)
+    | ((message: InworldPacketT) => Awaitable<void>)
     | undefined;
   private onBeforePlaying:
-    | ((message: InworldPacket) => Awaitable<void>)
+    | ((message: InworldPacketT) => Awaitable<void>)
     | undefined;
   private onStopPlaying: (() => Awaitable<void>) | undefined;
   private onPhoneme: OnPhomeneFn;
@@ -30,8 +32,8 @@ export class GrpcAudioPlayback {
   destinationNode = this.playbackAudioContext.createMediaStreamDestination();
 
   constructor(props?: {
-    onAfterPlaying?: (message: InworldPacket) => Awaitable<void>;
-    onBeforePlaying?: (message: InworldPacket) => Awaitable<void>;
+    onAfterPlaying?: (message: InworldPacketT) => Awaitable<void>;
+    onBeforePlaying?: (message: InworldPacketT) => Awaitable<void>;
     onStopPlaying?: () => Awaitable<void>;
     onPhoneme?: OnPhomeneFn;
   }) {
@@ -45,7 +47,7 @@ export class GrpcAudioPlayback {
     return this.isPlaying;
   }
 
-  addToQueue(item: AudioQueueItem): void {
+  addToQueue(item: AudioQueueItem<InworldPacketT>): void {
     this.audioQueue.push(item);
     if (!this.isPlaying) {
       this.playQueue();
@@ -59,7 +61,7 @@ export class GrpcAudioPlayback {
 
   excludeCurrentInteractionPackets(exceptInteractionId: string) {
     const toExlcude = this.audioQueue.filter(
-      (item: AudioQueueItem) =>
+      (item: AudioQueueItem<InworldPacketT>) =>
         item.packet.packetId.interactionId !== exceptInteractionId &&
         item.packet.packetId.interactionId ===
           this.currentItem?.packet?.packetId.interactionId,
@@ -67,13 +69,13 @@ export class GrpcAudioPlayback {
 
     if (toExlcude.length) {
       this.audioQueue = this.audioQueue.filter(
-        (item: AudioQueueItem) =>
+        (item: AudioQueueItem<InworldPacketT>) =>
           item.packet.packetId.interactionId !==
           this.currentItem?.packet?.packetId.interactionId,
       );
     }
 
-    const result: AudioQueueItem[] = [...toExlcude];
+    const result: AudioQueueItem<InworldPacketT>[] = [...toExlcude];
 
     if (
       this.currentItem &&
@@ -81,7 +83,7 @@ export class GrpcAudioPlayback {
     )
       result.unshift(this.currentItem);
 
-    return result.map((item: AudioQueueItem) => item.packet);
+    return result.map((item: AudioQueueItem<InworldPacketT>) => item.packet);
   }
 
   hasPacketInQueue(props: {
@@ -89,7 +91,7 @@ export class GrpcAudioPlayback {
     utteranceId?: string;
   }): boolean {
     const { interactionId, utteranceId } = props;
-    return !!this.audioQueue.find((item: AudioQueueItem) => {
+    return !!this.audioQueue.find((item: AudioQueueItem<InworldPacketT>) => {
       let result = true;
       const packetId = item.packet.packetId;
 

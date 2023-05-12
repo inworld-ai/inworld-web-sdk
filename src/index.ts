@@ -5,14 +5,17 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
 
+import { InworldPacket as ProtoPacket } from '../proto/packets.pb';
 import { InworldClient } from './clients/inworld.client';
 import {
   Capabilities,
   ClientConfiguration,
   ConnectionConfig,
+  Extension,
+  ExtensionLoadSceneProps,
   SessionToken,
   User,
-} from './common/interfaces';
+} from './common/data_structures';
 import {
   CHAT_HISTORY_TYPE,
   HistoryInteractionEnd,
@@ -61,6 +64,8 @@ export {
   EmotionEvent,
   EmotionStrength,
   EmotionStrengthCode,
+  Extension,
+  ExtensionLoadSceneProps,
   HistoryInteractionEnd,
   HistoryItem,
   HistoryItemActor,
@@ -71,6 +76,7 @@ export {
   InworldConnectionService,
   InworldPacket,
   PacketId,
+  ProtoPacket,
   Routing,
   SessionToken,
   TextEvent,

@@ -1,3 +1,8 @@
+## 2022-05-012 v1.3.0
+
+* Allow to use extended capabilities and scene props
+* Allow to send and receive custom proto packet
+
 ## 2022-05-011 v1.2.0
 
 * Replace CancelResponses by Mutation.CancelResponses on the protocol level

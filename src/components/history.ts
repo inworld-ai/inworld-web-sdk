@@ -10,10 +10,10 @@ import {
 } from '../entities/inworld_packet.entity';
 import { GrpcAudioPlayback } from './sound/grpc_audio.playback';
 
-interface InworldHistoryAddProps {
+interface InworldHistoryAddProps<InworldPacketT> {
   characters: Character[];
   grpcAudioPlayer: GrpcAudioPlayback;
-  packet: InworldPacket;
+  packet: InworldPacketT;
   outgoing?: boolean;
 }
 
@@ -66,7 +66,9 @@ interface EmotionsMap {
   [key: string]: EmotionEvent;
 }
 
-export class InworldHistory {
+export class InworldHistory<
+  InworldPacketT extends InworldPacket = InworldPacket,
+> {
   private history: HistoryItem[] = [];
   private queue: HistoryItem[] = [];
   private emotions: EmotionsMap = {};
@@ -76,7 +78,7 @@ export class InworldHistory {
     grpcAudioPlayer,
     packet,
     outgoing,
-  }: InworldHistoryAddProps) {
+  }: InworldHistoryAddProps<InworldPacketT>) {
     let chatItem: HistoryItem | undefined;
 
     const utteranceId = packet.packetId?.utteranceId;
@@ -142,7 +144,7 @@ export class InworldHistory {
     return !!chatItem;
   }
 
-  update(packet: InworldPacket) {
+  update(packet: InworldPacketT) {
     if (packet.isText()) {
       const currentHistoryIndex = this.history.findIndex(
         (item) => item.id === packet.packetId?.utteranceId,
@@ -162,7 +164,7 @@ export class InworldHistory {
   }
 
   display(
-    packet: InworldPacket,
+    packet: InworldPacketT,
     type:
       | CHAT_HISTORY_TYPE.ACTOR
       | CHAT_HISTORY_TYPE.INTERACTION_END
@@ -279,7 +281,7 @@ export class InworldHistory {
     return transcript;
   }
 
-  private combineTextItem(packet: InworldPacket): HistoryItemActor {
+  private combineTextItem(packet: InworldPacketT): HistoryItemActor {
     const date = new Date(packet.date);
     const source = packet.routing?.source;
     const utteranceId = packet.packetId?.utteranceId;
@@ -297,7 +299,7 @@ export class InworldHistory {
   }
 
   private combineNarratedActionItem(
-    packet: InworldPacket,
+    packet: InworldPacketT,
   ): HistoryItemNarratedAction {
     const date = new Date(packet.date);
     const interactionId = packet.packetId?.interactionId;
@@ -313,7 +315,7 @@ export class InworldHistory {
   }
 
   private combineTriggerItem(
-    packet: InworldPacket,
+    packet: InworldPacketT,
     outgoing?: boolean,
   ): HistoryItemTriggerEvent {
     const date = new Date(packet.date);
@@ -333,7 +335,7 @@ export class InworldHistory {
   }
 
   private combineInteractionEndItem(
-    packet: InworldPacket,
+    packet: InworldPacketT,
   ): HistoryInteractionEnd {
     const date = new Date(packet.date);
     const interactionId = packet.packetId?.interactionId;

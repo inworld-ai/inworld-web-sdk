@@ -1,6 +1,7 @@
 {
   "coveragePathIgnorePatterns": ["/node_modules/", "proto"],
   "modulePathIgnorePatterns": [
+    "__tests__/data_structures.ts",
     "__tests__/helpers.ts",
     "__tests__/mocks/"
   ],
