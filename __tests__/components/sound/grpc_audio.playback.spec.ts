@@ -4,10 +4,10 @@ import { v4 } from 'uuid';
 
 import { DataChunkDataType } from '../../../proto/packets.pb';
 import { GrpcAudioPlayback } from '../../../src/components/sound/grpc_audio.playback';
-import { EventFactory } from '../../../src/factories/event';
+import { InworldPacket } from '../../../src/entities/inworld_packet.entity';
 import { getPacketId } from '../../helpers';
 
-const audioEvent = EventFactory.fromProto({
+const audioEvent = InworldPacket.fromProto({
   dataChunk: {
     chunk: v4() as unknown as Uint8Array,
     type: DataChunkDataType.AUDIO,

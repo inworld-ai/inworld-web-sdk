@@ -2,6 +2,7 @@ import '../mocks/window.mock';
 
 import { v4 } from 'uuid';
 
+import { protoTimestamp } from '../../src/common/helpers';
 import {
   CHAT_HISTORY_TYPE,
   HistoryItemActor,
@@ -38,7 +39,7 @@ const routing: Routing = {
     isCharacter: true,
   },
 };
-const date = new Date().toISOString();
+const date = protoTimestamp();
 const grpcAudioPlayer = new GrpcAudioPlayback();
 const textPacket = new InworldPacket({
   packetId,

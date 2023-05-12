@@ -1,19 +1,25 @@
 import { v4 } from 'uuid';
 
+import { InworldPacket as ProtoPacket } from '../proto/packets.pb';
 import { LoadSceneResponseAgent } from '../proto/world-engine.pb';
 import {
   Capabilities,
   Client,
   SessionToken,
   User,
-} from '../src/common/interfaces';
+} from '../src/common/data_structures';
+import { protoTimestamp } from '../src/common/helpers';
 import { QueueItem } from '../src/connection/web-socket.connection';
 import { Character } from '../src/entities/character.entity';
-import { PacketId } from '../src/entities/inworld_packet.entity';
-import { EventFactory } from '../src/factories/event';
+import { InworldPacket, PacketId } from '../src/entities/inworld_packet.entity';
+import {
+  ExtendedCapabilities,
+  ExtendedCapabilitiesRequest,
+  ExtendedInworldPacket,
+} from './data_structures';
 
-const today = new Date();
-today.setHours(today.getHours() + 1);
+const inOneHours = new Date();
+inOneHours.setHours(inOneHours.getHours() + 1);
 
 export const SCENE = v4();
 
@@ -57,7 +63,7 @@ export const session: SessionToken = {
   sessionId: v4(),
   token: v4(),
   type: 'Bearer',
-  expirationTime: today.toISOString(),
+  expirationTime: protoTimestamp(inOneHours),
 };
 
 export const generateSessionToken = () => Promise.resolve(session);
@@ -72,6 +78,24 @@ export const capabilitiesProps: Capabilities = {
   turnBasedStt: true,
 };
 
+export const extendedCapabilitiesProps: ExtendedCapabilities = {
+  ...capabilitiesProps,
+  regenerateResponse: true,
+};
+
+export const extendedCapabilitiesRequestProps: ExtendedCapabilitiesRequest = {
+  audio: true,
+  emotions: true,
+  interruptions: true,
+  phonemeInfo: true,
+  silenceEvents: true,
+  narratedActions: true,
+  text: true,
+  triggers: true,
+  turnBasedStt: true,
+  regenerateResponse: true,
+};
+
 export const user: User = {
   fullName: 'Full Name',
   id: 'id',
@@ -81,8 +105,8 @@ export const client: Client = {
   id: 'ClientId',
 };
 
-export const writeMock = (item: QueueItem) => {
-  const packet = EventFactory.fromProto(item.getPacket());
+export const writeMock = (item: QueueItem<InworldPacket>) => {
+  const packet = InworldPacket.fromProto(item.getPacket());
   item.beforeWriting?.(packet);
   item.afterWriting?.(packet);
 };
@@ -92,3 +116,13 @@ export const getPacketId = (): PacketId => ({
   interactionId: v4(),
   utteranceId: v4(),
 });
+
+export const convertPacketFromProto = (proto: ProtoPacket) => {
+  const packet = InworldPacket.fromProto(proto) as ExtendedInworldPacket;
+
+  packet.mutation = proto.mutation;
+
+  return packet;
+};
+
+export const extension = { convertPacketFromProto };

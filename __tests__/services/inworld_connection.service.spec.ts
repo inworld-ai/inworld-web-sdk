@@ -3,12 +3,16 @@ import '../mocks/window.mock';
 import { v4 } from 'uuid';
 
 import { DataChunkDataType } from '../../proto/packets.pb';
-import { AudioSessionState } from '../../src/common/interfaces';
+import { AudioSessionState } from '../../src/common/data_structures';
+import { protoTimestamp } from '../../src/common/helpers';
 import { InworldHistory } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../../src/components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../../src/components/sound/grpc_web_rtc_loopback_bidi.session';
-import { WebSocketConnection } from '../../src/connection/web-socket.connection';
+import {
+  QueueItem,
+  WebSocketConnection,
+} from '../../src/connection/web-socket.connection';
 import {
   InworldPacket,
   InworldPacketType,
@@ -17,8 +21,10 @@ import {
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
 import { InworldConnectionService } from '../../src/services/inworld_connection.service';
+import { ExtendedInworldPacket } from '../data_structures';
 import {
   createCharacter,
+  extension,
   generateSessionToken,
   getPacketId,
   writeMock,
@@ -165,7 +171,7 @@ describe('history', () => {
         isCharacter: true,
       },
     };
-    const date = new Date().toISOString();
+    const date = protoTimestamp();
     const packet = new InworldPacket({
       packetId,
       routing,
@@ -432,5 +438,41 @@ describe('send', () => {
     await service.interrupt();
 
     expect(interrupt).toHaveBeenCalledTimes(1);
+  });
+
+  test('should send custom packet', async () => {
+    const connection = new ConnectionService<ExtendedInworldPacket>({
+      grpcAudioPlayer,
+      webRtcLoopbackBiDiSession,
+      generateSessionToken,
+      onHistoryChange,
+      extension,
+    });
+    const service = new InworldConnectionService({
+      connection,
+      grpcAudioPlayer,
+      grpcAudioRecorder,
+      webRtcLoopbackBiDiSession,
+    });
+    const write = jest
+      .spyOn(WebSocketConnection.prototype, 'write')
+      .mockImplementationOnce((item: QueueItem<ExtendedInworldPacket>) => {
+        const packet = extension.convertPacketFromProto(item.getPacket());
+        item.beforeWriting?.(packet);
+        item.afterWriting?.(packet);
+      });
+
+    const interactionId = v4();
+    const mutation = { regenerateResponse: { interactionId } };
+    const baseProtoPacket = service.baseProtoPacket();
+    const packet = await service.sendCustomPacket(() => ({
+      ...baseProtoPacket,
+      packetId: { ...baseProtoPacket.packetId, interactionId },
+      mutation,
+    }));
+
+    expect(open).toHaveBeenCalledTimes(0);
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(packet).toHaveProperty('mutation', mutation);
   });
 });

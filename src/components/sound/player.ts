@@ -24,10 +24,7 @@ export class Player {
   }
 
   getMute(): boolean {
-    if (this.audioElement) {
-      return this.audioElement.muted;
-    }
-    return false;
+    return this.audioElement.muted;
   }
 
   setStream(stream: MediaStream) {
