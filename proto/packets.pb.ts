@@ -51,17 +51,6 @@ export enum ControlEventAction {
   SESSION_END = "SESSION_END",
 }
 
-export enum GestureEventType {
-  GREETING = "GREETING",
-  FAREWELL = "FAREWELL",
-  AGREEMENT = "AGREEMENT",
-  DISAGREEMENT = "DISAGREEMENT",
-  GRATITUDE = "GRATITUDE",
-  CELEBRATION = "CELEBRATION",
-  BOREDOM = "BOREDOM",
-  UNCERTAINTY = "UNCERTAINTY",
-}
-
 export enum EmotionEventSpaffCode {
   NEUTRAL = "NEUTRAL",
   DISGUST = "DISGUST",
@@ -113,18 +102,18 @@ export type PacketId = {
   packetId?: string
   utteranceId?: string
   interactionId?: string
+  correlationId?: string
 }
 
 
 type BaseInworldPacket = {
   timestamp?: GoogleProtobufTimestamp.Timestamp
   routing?: Routing
-  oldPacketId?: string
   packetId?: PacketId
 }
 
 export type InworldPacket = BaseInworldPacket
-  & OneOf<{ text: TextEvent; control: ControlEvent; audioChunk: AudioChunk; gesture: GestureEvent; custom: CustomEvent; cancelResponses: CancelResponsesEvent; emotion: EmotionEvent; dataChunk: DataChunk; action: ActionEvent; mutation: MutationEvent; loadSceneOutput: LoadSceneOutputEvent }>
+  & OneOf<{ text: TextEvent; control: ControlEvent; audioChunk: AudioChunk; custom: CustomEvent; cancelResponses: CancelResponsesEvent; emotion: EmotionEvent; dataChunk: DataChunk; action: ActionEvent; mutation: MutationEvent; loadSceneOutput: LoadSceneOutputEvent; debugInfo: DebugInfoEvent }>
 
 export type TextEvent = {
   text?: string
@@ -140,11 +129,6 @@ export type ControlEvent = {
 
 export type AudioChunk = {
   chunk?: Uint8Array
-}
-
-export type GestureEvent = {
-  type?: GestureEventType
-  playback?: Playback
 }
 
 export type CustomEventParameter = {
@@ -198,6 +182,19 @@ export type NarratedAction = {
   content?: string
 }
 
+export type RelationInfoRelationAttributes = {
+  trust?: number
+  respect?: number
+  familiar?: number
+  flirtatious?: number
+  attraction?: number
+}
+
+export type RelationInfo = {
+  relationState?: RelationInfoRelationAttributes
+  relationUpdate?: RelationInfoRelationAttributes
+}
+
 
 type BaseMutationEvent = {
 }
@@ -231,3 +228,10 @@ export type LoadSceneOutputEventAgent = {
 export type LoadSceneOutputEvent = {
   agents?: LoadSceneOutputEventAgent[]
 }
+
+
+type BaseDebugInfoEvent = {
+}
+
+export type DebugInfoEvent = BaseDebugInfoEvent
+  & OneOf<{ relation: RelationInfo }>
