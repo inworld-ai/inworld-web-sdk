@@ -15,6 +15,8 @@ import {
   ExtensionLoadSceneProps,
   SessionToken,
   User,
+  UserProfile,
+  UserProfileField,
 } from './common/data_structures';
 import {
   CHAT_HISTORY_TYPE,
@@ -83,4 +85,6 @@ export {
   TriggerEvent,
   TriggerParameter,
   User,
+  UserProfile,
+  UserProfileField,
 };

@@ -15,9 +15,19 @@ export interface Capabilities {
   turnBasedStt?: boolean;
 }
 
+export interface UserProfileField {
+  id: string;
+  value: string;
+}
+
+export interface UserProfile {
+  fields: UserProfileField[];
+}
+
 export interface User {
   id?: string;
   fullName?: string;
+  profile?: UserProfile;
 }
 
 export interface Client {

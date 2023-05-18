@@ -1,10 +1,6 @@
 import { InworldPacket as ProtoPacket } from '../../proto/packets.pb';
 import { LoadSceneResponseAgent } from '../../proto/world-engine.pb';
-import {
-  ClientRequest,
-  LoadSceneResponse,
-  UserRequest,
-} from '../../proto/world-engine.pb';
+import { ClientRequest, LoadSceneResponse } from '../../proto/world-engine.pb';
 import {
   AudioSessionState,
   Awaitable,
@@ -15,6 +11,7 @@ import {
   GenerateSessionTokenFn,
   InternalClientConfiguration,
   SessionToken,
+  User,
   VoidFn,
 } from '../common/data_structures';
 import {
@@ -36,7 +33,7 @@ import { WorldEngineService } from './world_engine.service';
 
 interface ConnectionProps<InworldPacketT> {
   name?: string;
-  user?: UserRequest;
+  user?: User;
   client?: ClientRequest;
   config?: InternalClientConfiguration;
   onReady?: () => Awaitable<void>;

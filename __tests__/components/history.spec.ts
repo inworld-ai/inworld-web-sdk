@@ -337,10 +337,6 @@ describe('text', () => {
 
     describe('text', () => {
       test('should return transcript for provided user name', () => {
-        const userRequest = {
-          id: user.id,
-          name: user.fullName,
-        };
         const history = createHistoryWithPacket(textPacket);
 
         history.addOrUpdate({
@@ -350,7 +346,7 @@ describe('text', () => {
         });
 
         const expected = `${user.fullName}: ${textPacket.text.text}\n${characters[0].displayName}: ${incomingTextPacket.text.text}`;
-        const transcript = history.getTranscript(userRequest);
+        const transcript = history.getTranscript(user);
 
         expect(transcript).toEqual(expected);
       });
