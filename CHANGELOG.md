@@ -1,3 +1,5 @@
+- Allow to propagate user profile fields
+
 ## 2023-07-25 v1.4.1
 
 - Added Innequin model to the Chat example
