@@ -107,4 +107,80 @@ describe('load scene', () => {
       user,
     });
   });
+
+  test('should use provided provided user name', async () => {
+    const mockLoadScene = jest.fn(
+      (_req: LoadSceneRequest, _initReq?: fm.InitReq) => {
+        return Promise.resolve({ agents });
+      },
+    );
+
+    WorldEngine.LoadScene = mockLoadScene;
+
+    await client.loadScene({
+      config: {
+        capabilities,
+        connection: {
+          gateway: { hostname: 'examples.com', ssl: true },
+        },
+      },
+      name: SCENE,
+      session,
+      user: { fullName: user.fullName },
+    });
+    expect(mockLoadScene.mock.calls[0][0].user).toEqual({
+      name: user.fullName,
+    });
+  });
+
+  test('should use provided provided user id', async () => {
+    const mockLoadScene = jest.fn(
+      (_req: LoadSceneRequest, _initReq?: fm.InitReq) => {
+        return Promise.resolve({ agents });
+      },
+    );
+
+    WorldEngine.LoadScene = mockLoadScene;
+
+    await client.loadScene({
+      config: {
+        capabilities,
+        connection: {
+          gateway: { hostname: 'examples.com', ssl: true },
+        },
+      },
+      name: SCENE,
+      session,
+      user: { id: user.id },
+    });
+    expect(mockLoadScene.mock.calls[0][0].user).toEqual({ id: user.id });
+  });
+
+  test('should use provided provided user profile', async () => {
+    const mockLoadScene = jest.fn(
+      (_req: LoadSceneRequest, _initReq?: fm.InitReq) => {
+        return Promise.resolve({ agents });
+      },
+    );
+
+    WorldEngine.LoadScene = mockLoadScene;
+
+    await client.loadScene({
+      config: {
+        capabilities,
+        connection: {
+          gateway: { hostname: 'examples.com', ssl: true },
+        },
+      },
+      name: SCENE,
+      session,
+      user: { profile: user.profile },
+    });
+    expect(
+      mockLoadScene.mock.calls[0][0].userSettings.playerProfile.fields[0],
+    ).toEqual({
+      fieldId: user.profile.fields[0].id,
+      fieldValue: user.profile.fields[0].value,
+    });
+  });
 });

@@ -1,7 +1,7 @@
 import { v4 } from 'uuid';
 
-import { UserRequest } from '../../proto/world-engine.pb';
 import { DEFAULT_USER_NAME } from '../common/constants';
+import { User } from '../common/data_structures';
 import { Character } from '../entities/character.entity';
 import {
   Actor,
@@ -242,12 +242,12 @@ export class InworldHistory<
     this.history = [];
   }
 
-  getTranscript(user?: UserRequest): string {
+  getTranscript(user?: User): string {
     if (!this.history.length) {
       return '';
     }
 
-    const userName = user?.name || DEFAULT_USER_NAME;
+    const userName = user?.fullName || DEFAULT_USER_NAME;
 
     let transcript = '';
     let characterLastSpeaking = false;

@@ -99,6 +99,7 @@ export const extendedCapabilitiesRequestProps: ExtendedCapabilitiesRequest = {
 export const user: User = {
   fullName: 'Full Name',
   id: 'id',
+  profile: { fields: [{ id: 'field_1', value: 'value_1' }] },
 };
 
 export const client: Client = {
