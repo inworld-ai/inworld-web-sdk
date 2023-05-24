@@ -8,12 +8,14 @@
 import { InworldPacket as ProtoPacket } from '../proto/packets.pb';
 import { InworldClient } from './clients/inworld.client';
 import {
+  AudioPlayingConfig,
   Capabilities,
   ClientConfiguration,
   ConnectionConfig,
   Extension,
   ExtensionLoadSceneProps,
   SessionToken,
+  StopAudioPlaying,
   User,
 } from './common/data_structures';
 import {
@@ -53,6 +55,7 @@ export {
   Actor,
   AdditionalPhonemeInfo,
   AudioEvent,
+  AudioPlayingConfig,
   CancelResponsesEvent,
   Capabilities,
   Character,
@@ -79,6 +82,7 @@ export {
   ProtoPacket,
   Routing,
   SessionToken,
+  StopAudioPlaying,
   TextEvent,
   TriggerEvent,
   TriggerParameter,

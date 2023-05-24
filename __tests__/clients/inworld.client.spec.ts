@@ -35,7 +35,10 @@ describe('should finish with success', () => {
     jest.clearAllMocks();
     inworldClient = new InworldClient()
       .setScene(SCENE)
-      .setConfiguration({ capabilities: capabilitiesProps })
+      .setConfiguration({
+        capabilities: capabilitiesProps,
+        audioPlaying: { stop: { duration: 1000, ticks: 30 } },
+      })
       .setUser(user)
       .setClient(client)
       .setGenerateSessionToken(generateSessionToken)

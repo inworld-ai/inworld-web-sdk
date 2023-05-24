@@ -149,9 +149,12 @@ export class InworldClient<
   build() {
     this.validate();
 
+    const config = this.buildConfiguration();
+
     const webRtcLoopbackBiDiSession = new GrpcWebRtcLoopbackBiDiSession();
     const grpcAudioRecorder = new GrpcAudioRecorder();
     const grpcAudioPlayer = new GrpcAudioPlayback<InworldPacketT>({
+      audioPlayingConfig: config.audioPlaying,
       onAfterPlaying: this.onAfterPlaying,
       onBeforePlaying: this.onBeforePlaying,
       onStopPlaying: this.onStopPlaying,
@@ -159,12 +162,12 @@ export class InworldClient<
     });
 
     const connection = new ConnectionService<InworldPacketT>({
+      config,
       grpcAudioPlayer,
       webRtcLoopbackBiDiSession,
       name: this.scene,
       user: this.user,
       client: this.client,
-      config: this.buildConfiguration(),
       onError: this.onError,
       onReady: this.onReady,
       onMessage: this.onMessage,
@@ -183,10 +186,11 @@ export class InworldClient<
   }
 
   private buildConfiguration(): InternalClientConfiguration {
-    const { connection = {}, capabilities = {} } = this.config;
+    const { connection = {}, capabilities = {}, ...restConfig } = this.config;
     const { gateway } = connection;
 
     return {
+      ...restConfig,
       connection: {
         ...connection,
         gateway: this.ensureGateway(GRPC_HOSTNAME, gateway),

@@ -1,6 +1,10 @@
 import { decode } from 'base64-arraybuffer';
 
-import { Awaitable, OnPhomeneFn } from '../../common/data_structures';
+import {
+  AudioPlayingConfig,
+  Awaitable,
+  OnPhomeneFn,
+} from '../../common/data_structures';
 import { InworldPacket } from '../../entities/inworld_packet.entity';
 
 interface AudioQueueItem<InworldPacketT> {
@@ -14,10 +18,17 @@ export class GrpcAudioPlayback<
 > {
   private currentItem: AudioQueueItem<InworldPacketT> | undefined;
   private audioQueue: AudioQueueItem<InworldPacketT>[] = [];
+  private audioPlayingConfig: AudioPlayingConfig = {
+    stop: {
+      duration: 500, // 0.5 second,
+      ticks: 25,
+    },
+  };
 
   private isPlaying = false;
+  private isStopping = false;
 
-  private playbackAudioContext = new AudioContext({ sampleRate: 16000 });
+  playbackAudioContext = new AudioContext({ sampleRate: 16000 });
   private audioBufferSourceNode?: AudioBufferSourceNode;
 
   private onAfterPlaying:
@@ -29,18 +40,27 @@ export class GrpcAudioPlayback<
   private onStopPlaying: (() => Awaitable<void>) | undefined;
   private onPhoneme: OnPhomeneFn;
 
-  destinationNode = this.playbackAudioContext.createMediaStreamDestination();
+  private destinationNode =
+    this.playbackAudioContext.createMediaStreamDestination();
+  private gainNode: GainNode = this.playbackAudioContext.createGain();
 
   constructor(props?: {
+    audioPlayingConfig?: AudioPlayingConfig;
     onAfterPlaying?: (message: InworldPacketT) => Awaitable<void>;
     onBeforePlaying?: (message: InworldPacketT) => Awaitable<void>;
     onStopPlaying?: () => Awaitable<void>;
     onPhoneme?: OnPhomeneFn;
   }) {
+    if (props?.audioPlayingConfig) {
+      this.audioPlayingConfig = props.audioPlayingConfig;
+    }
+
     this.onAfterPlaying = props?.onAfterPlaying;
     this.onBeforePlaying = props?.onBeforePlaying;
     this.onStopPlaying = props?.onStopPlaying;
     this.onPhoneme = props?.onPhoneme;
+
+    this.gainNode.connect(this.playbackAudioContext.destination);
   }
 
   getIsActive(): boolean {
@@ -135,20 +155,25 @@ export class GrpcAudioPlayback<
     return this.destinationNode.stream;
   }
 
-  stop() {
+  async stop() {
     if (this.audioBufferSourceNode) {
       this.audioBufferSourceNode.onended = null;
     }
 
     this.currentItem = undefined;
+    this.isStopping = true;
+
+    await this.adjustVolume(0);
+
+    this.isStopping = false;
     this.clearSourceNode();
   }
 
-  stopForInteraction(interactionId: string) {
+  async stopForInteraction(interactionId: string) {
     const packets = this.excludeCurrentInteractionPackets(interactionId);
 
-    if (!this.isCurrentPacket({ interactionId })) {
-      this.stop();
+    if (this.currentItem && !this.isCurrentPacket({ interactionId })) {
+      await this.stop();
       this.playQueue();
     }
 
@@ -165,6 +190,8 @@ export class GrpcAudioPlayback<
       this.audioBufferSourceNode.disconnect();
     }
 
+    this.gainNode.gain.value = 1;
+
     delete this.audioBufferSourceNode;
   }
 
@@ -173,7 +200,7 @@ export class GrpcAudioPlayback<
       this.audioBufferSourceNode = new AudioBufferSourceNode(
         this.playbackAudioContext,
       );
-      this.audioBufferSourceNode.connect(this.destinationNode);
+      this.audioBufferSourceNode.connect(this.gainNode);
       this.audioBufferSourceNode.onended = () => {
         this.onAfterPlaying?.(this.currentItem.packet!);
         this.currentItem.onAfterPlaying?.(this.currentItem.packet!);
@@ -185,6 +212,8 @@ export class GrpcAudioPlayback<
   }
 
   private playQueue = async (): Promise<void> => {
+    if (this.isStopping) return;
+
     if (!this.audioQueue.length) {
       this.getSourceNode().buffer = null;
       this.isPlaying = false;
@@ -222,4 +251,32 @@ export class GrpcAudioPlayback<
     this.onBeforePlaying?.(packet!);
     this.currentItem.onBeforePlaying?.(packet);
   };
+
+  private adjustVolume(newVolume: number): Promise<void> {
+    const originalVolume = this.gainNode.gain.value;
+    const delta = newVolume - originalVolume;
+
+    if (!delta) {
+      this.gainNode.gain.value = newVolume;
+      return Promise.resolve();
+    }
+
+    const { duration, ticks } = this.audioPlayingConfig?.stop;
+
+    let tick = 1;
+    const interval = Math.floor(duration / ticks);
+    const easing = (p: number) => 0.5 - Math.cos(p * Math.PI) / 2;
+
+    return new Promise((resolve) => {
+      const timer = setInterval(() => {
+        this.gainNode.gain.value =
+          originalVolume + easing(tick / ticks) * delta;
+
+        if (++tick === ticks + 1) {
+          clearInterval(timer);
+          resolve();
+        }
+      }, interval);
+    });
+  }
 }
