@@ -18,6 +18,7 @@ import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
 import { InworldPacket } from '../entities/inworld_packet.entity';
+import { isNaturalNumber } from '../guard/number';
 import { ConnectionService } from '../services/connection.service';
 import { InworldConnectionService } from '../services/inworld_connection.service';
 
@@ -154,7 +155,7 @@ export class InworldClient<
     const webRtcLoopbackBiDiSession = new GrpcWebRtcLoopbackBiDiSession();
     const grpcAudioRecorder = new GrpcAudioRecorder();
     const grpcAudioPlayer = new GrpcAudioPlayback<InworldPacketT>({
-      audioPlayingConfig: config.audioPlaying,
+      audioPlaybackConfig: config.audioPlayback,
       onAfterPlaying: this.onAfterPlaying,
       onBeforePlaying: this.onBeforePlaying,
       onStopPlaying: this.onStopPlaying,
@@ -235,6 +236,20 @@ export class InworldClient<
   private validate() {
     if (!this.scene) {
       throw Error('Scene name is required');
+    }
+
+    const { audioPlayback } = this.config;
+
+    if (audioPlayback) {
+      if (!isNaturalNumber(audioPlayback.stop.duration)) {
+        throw Error(
+          'Stop duration for audio playback should be a natural number',
+        );
+      }
+
+      if (!isNaturalNumber(audioPlayback.stop.ticks)) {
+        throw Error('Stop ticks for audio playback should be a natural number');
+      }
     }
   }
 }

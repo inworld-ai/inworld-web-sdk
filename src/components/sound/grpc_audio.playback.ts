@@ -1,7 +1,7 @@
 import { decode } from 'base64-arraybuffer';
 
 import {
-  AudioPlayingConfig,
+  AudioPlaybackConfig,
   Awaitable,
   OnPhomeneFn,
 } from '../../common/data_structures';
@@ -18,7 +18,7 @@ export class GrpcAudioPlayback<
 > {
   private currentItem: AudioQueueItem<InworldPacketT> | undefined;
   private audioQueue: AudioQueueItem<InworldPacketT>[] = [];
-  private audioPlayingConfig: AudioPlayingConfig = {
+  private audioPlaybackConfig: AudioPlaybackConfig = {
     stop: {
       duration: 500, // 0.5 second,
       ticks: 25,
@@ -45,14 +45,14 @@ export class GrpcAudioPlayback<
   private gainNode: GainNode = this.playbackAudioContext.createGain();
 
   constructor(props?: {
-    audioPlayingConfig?: AudioPlayingConfig;
+    audioPlaybackConfig?: AudioPlaybackConfig;
     onAfterPlaying?: (message: InworldPacketT) => Awaitable<void>;
     onBeforePlaying?: (message: InworldPacketT) => Awaitable<void>;
     onStopPlaying?: () => Awaitable<void>;
     onPhoneme?: OnPhomeneFn;
   }) {
-    if (props?.audioPlayingConfig) {
-      this.audioPlayingConfig = props.audioPlayingConfig;
+    if (props?.audioPlaybackConfig) {
+      this.audioPlaybackConfig = props.audioPlaybackConfig;
     }
 
     this.onAfterPlaying = props?.onAfterPlaying;
@@ -257,11 +257,10 @@ export class GrpcAudioPlayback<
     const delta = newVolume - originalVolume;
 
     if (!delta) {
-      this.gainNode.gain.value = newVolume;
       return Promise.resolve();
     }
 
-    const { duration, ticks } = this.audioPlayingConfig?.stop;
+    const { duration, ticks } = this.audioPlaybackConfig?.stop;
 
     let tick = 1;
     const interval = Math.floor(duration / ticks);
