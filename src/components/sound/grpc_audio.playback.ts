@@ -5,6 +5,7 @@ import {
   Awaitable,
   OnPhomeneFn,
 } from '../../common/data_structures';
+import { interpolate } from '../../common/helpers';
 import { InworldPacket } from '../../entities/inworld_packet.entity';
 
 interface AudioQueueItem<InworldPacketT> {
@@ -264,12 +265,11 @@ export class GrpcAudioPlayback<
 
     let tick = 1;
     const interval = Math.floor(duration / ticks);
-    const easing = (p: number) => 0.5 - Math.cos(p * Math.PI) / 2;
 
     return new Promise((resolve) => {
       const timer = setInterval(() => {
         this.gainNode.gain.value =
-          originalVolume + easing(tick / ticks) * delta;
+          originalVolume + interpolate(tick / ticks) * delta;
 
         if (++tick === ticks + 1) {
           clearInterval(timer);
