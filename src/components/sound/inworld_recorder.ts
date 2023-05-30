@@ -80,6 +80,7 @@ export class InworldRecorder {
 
   // Should be called AFTER any user interaction with the page.
   // Because of strict browser security policies.
+  // https://developer.apple.com/forums/thread/698156
   async initPlayback() {
     await this.grpcAudioPlayer.init();
     await this.webRtcLoopbackBiDiSession.startSession(
