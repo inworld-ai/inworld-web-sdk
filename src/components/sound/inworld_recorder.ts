@@ -48,6 +48,7 @@ export class InworldRecorder {
     // WebRtc Loopback doesn't work on iOS mobile.
     // FIXME: Need investigate the issue more thoroughly and find a "feature support" way
     // to detect WebRtc doesn't work.
+    // https://developer.apple.com/forums/thread/698156
     const stream = isIOSMobile()
       ? this.recordingStream
       : this.webRtcLoopbackBiDiSession.getRecorderLoopBackStream();
@@ -80,7 +81,6 @@ export class InworldRecorder {
 
   // Should be called AFTER any user interaction with the page.
   // Because of strict browser security policies.
-  // https://developer.apple.com/forums/thread/698156
   async initPlayback() {
     await this.grpcAudioPlayer.init();
     await this.webRtcLoopbackBiDiSession.startSession(
