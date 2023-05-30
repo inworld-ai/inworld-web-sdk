@@ -1,3 +1,5 @@
+* Fix audio recording for iOS mobile using LTE
+
 ## 2022-05-012 v1.3.0
 
 * Allow to use extended capabilities and scene props
