@@ -1,3 +1,5 @@
+## 2023-05-30 v1.3.1
+
 * Fix audio recording for iOS mobile using LTE
 
 ## 2023-05-12 v1.3.0
