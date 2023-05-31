@@ -1,3 +1,5 @@
+import { isIOSMobile } from '../../common/helpers';
+
 export class GrpcWebRtcLoopbackBiDiSession {
   private static OFFER_OPTIONS = {
     offerVideo: false,
@@ -15,6 +17,16 @@ export class GrpcWebRtcLoopbackBiDiSession {
   private loopbackPlaybackStream?: MediaStream;
 
   async startSession(inputStream: MediaStream, outputStream: MediaStream) {
+    // WebRtc Loopback doesn't work on iOS mobile.
+    // FIXME: Need investigate the issue more thoroughly and find a "feature support" way
+    // to detect WebRtc doesn't work.
+    // https://developer.apple.com/forums/thread/698156
+    if (isIOSMobile()) {
+      this.loopbackRecordStream = inputStream;
+      this.loopbackPlaybackStream = outputStream;
+      return this;
+    }
+
     let offer, answer;
 
     this.loopbackRecordStream = new MediaStream();
