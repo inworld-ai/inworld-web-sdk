@@ -1,11 +1,5 @@
 /* eslint-disable */
 import { Texture, TextureLoader } from 'three';
-import { AnimationFile } from '../../../types';
-
-import { useEffect, useRef } from "react";
-import { useLoader } from "@react-three/fiber";
-import { Config } from '../../../../config';
-import { GLTF, GLTFLoader } from 'three-stdlib';
 
 export class TextureFileLoader {
   

@@ -2,26 +2,23 @@
 import { AdditionalPhonemeInfo, EmotionEvent } from "@inworld/web-sdk";
 import { useFrame, useLoader } from "@react-three/fiber";
 import { Suspense, useEffect, useRef, useCallback, useState } from "react";
-import { AnimationClip, AnimationMixer, Clock, MathUtils, SkinnedMesh, Object3D, MeshPhysicalMaterial } from "three";
+import { AnimationClip, SkinnedMesh } from "three";
 import { AnimationLoader } from "./loaders/AnimationLoader";
 import { AnimationsLoader } from "./loaders/AnimationsLoader";
 import { Animator } from "./animator/Animator";
 // import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { Visemes } from '../../../data/visemes';
 
-import { ListChildren } from '../../helpers/helpers3D';
 import { AnimationFile, 
-  ANIMATION_TYPE, 
   EMOTIONS, 
   EMOTIONS_FACE, 
   FACE_TEXTURE_TYPES, 
   FACE_TYPES, 
-  TEXTURE_TYPES, 
   MATERIAL_TYPES, 
-  VISEME_TYPES} from '../../types';
+  VISEME_TYPES,
+  AnimationGesture,
+  ANIMATION_TYPE} from '../../types';
 
-import { Config } from '../../../config';
 import { MaterialLoader } from "./loaders/MaterialLoader";
 import { MaterialsLoader } from "./loaders/MaterialsLoader";
 
@@ -53,6 +50,8 @@ export function Model(props: ModelProps) {
   const [animationFiles, setAnimationFiles] = useState<{
     [key: string]: AnimationLoader | null;
   }>({});
+
+  const [animationGestures, setAnimationGestures] = useState<AnimationGesture[]>([]);
 
   const [facialMaterials, setFacialMaterials] = useState<{
     [key: string]: MaterialLoader | null;
@@ -95,14 +94,25 @@ export function Model(props: ModelProps) {
     }
   }, [isModelLoaded, isAnimationsLoaded, animationFiles, isReady]);
 
-  // 4. Animations Loading Completed
+  // 4. Animations Loading Completed. Process clips and gesture data.
   useEffect(() => {
     if (isModelLoaded && isAnimationsLoaded && !isFacialMaterialsLoaded && !isReady) {
       console.log('Animations Loaded');
       const loadingAnimationClips = { ...animationClips };
+      const loadingAnimationGestures = [ ...animationGestures ];
       for (const i in animationFiles) {
         loadingAnimationClips[animationFiles[i]!.animation.name] = animationFiles[i]!.animationClip!;
+        // console.log('Animations Duration', animationFiles[i]!.animationClip!.name, animationFiles[i]!.animationClip!.duration);
+        if (animationFiles[i]!.animation.type == ANIMATION_TYPE.GESTURE) {
+          const animationGesture: AnimationGesture = { 
+            name: animationFiles[i]!.animation.name, 
+            duration: animationFiles[i]!.animationClip!.duration, 
+            emotion: animationFiles[i]!.animation.emotion, 
+          };
+          loadingAnimationGestures.push(animationGesture);
+        }
       }
+      setAnimationGestures(loadingAnimationGestures);
       setAnimationClips(loadingAnimationClips);      
     }
   }, [animationFiles, isAnimationsLoaded, isFacialMaterialsLoaded, isModelLoaded, isReady]);
@@ -135,7 +145,7 @@ export function Model(props: ModelProps) {
     }
   }, [isModelLoaded, isFacialMaterialsLoaded, facialMaterials, isReady]);
 
-  // 7. Materials Loading Completed
+  // 7. Materials Loading Completed. Set Ready to true.
   useEffect(() => {
     if (isModelLoaded && isAnimationsLoaded && isFacialMaterialsLoaded && !isReady) {
       console.log('Materials Loaded');
@@ -152,6 +162,7 @@ export function Model(props: ModelProps) {
           <primitive object={modelData.scene} />
           <Animator 
             animationClips={animationClips}
+            animationGestures={animationGestures}
             animationSequence={props.animationSequence}
             emotion={props.emotion}
             emotionEvent={props.emotionEvent}

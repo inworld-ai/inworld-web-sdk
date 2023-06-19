@@ -2,9 +2,15 @@ import { EmotionEvent } from '@inworld/web-sdk';
 
 export type AnimationFile = {
   name: string;
-  emotion: string;
-  type: string;
+  emotion: EMOTIONS;
+  type: ANIMATION_TYPE;
   file: string;
+}
+
+export type AnimationGesture = {
+  duration: number;
+  emotion: EMOTIONS;
+  name: string;
 }
 
 export type Configuration = {
@@ -42,6 +48,7 @@ export interface EmotionsMap {
 
 export enum ANIMATION_TYPE {
   IDLE = 'idle',
+  GESTURE = 'gesture',
   INTRO = 'intro',
   OUTRO = 'outro',
   HELLO = 'hello',
@@ -54,6 +61,7 @@ export enum CHAT_VIEW {
 
 export enum EMOTIONS {
   ANGRY = 'angry',
+  FEAR = 'fear',
   HAPPY = 'happy',
   NEUTRAL = 'neutral',
   SAD = 'sad',

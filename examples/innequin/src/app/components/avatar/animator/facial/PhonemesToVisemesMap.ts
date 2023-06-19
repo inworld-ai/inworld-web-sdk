@@ -58,7 +58,7 @@ export const phonemeToVisemeMap: { [phoneme: string]: Range<15> | null } = {
   ʒ: 6,
 
   // Vowels
-  ɐ: 1,
+  ɐ: 1, // ??? no mapping in documentation 1 recommended
   ə: 11,
   ɚ: 11,
   æ: 10,
