@@ -25,7 +25,6 @@ let phonemeData: AdditionalPhonemeInfo[] = [];
 
 export function Mouth(props: MouthProps) {
 
-  // const phonemes = useRef(phonemeData);
   const lastViseme = useRef(0);
 
   // Facial Mouth Emotion Change

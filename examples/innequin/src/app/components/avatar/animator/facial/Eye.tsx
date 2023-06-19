@@ -1,8 +1,8 @@
-import { useEffect, useCallback, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MeshPhysicalMaterial, SkinnedMesh } from "three";
-import { EMOTIONS, EMOTIONS_FACE, EYE_STATES, FACE_TYPES, MATERIAL_TYPES } from "../../../../types";
+import { EMOTIONS_FACE, EYE_STATES, FACE_TYPES, MATERIAL_TYPES } from "../../../../types";
 import { MaterialLoader } from "../../loaders/MaterialLoader";
-import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
+import { EmotionEvent } from '@inworld/web-sdk';
 
 interface EyeProps {
     emotionFace: EMOTIONS_FACE;

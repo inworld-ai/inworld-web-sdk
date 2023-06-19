@@ -22,11 +22,11 @@ let emotion: EMOTIONS_FACE = EMOTIONS_FACE.NEUTRAL;
 export function Facial(props: FacialProps) {
   
   const emotionRef = useRef(emotion);
+  const emotionSetRef = useRef(emotion);
 
   // Facial Brow/Nose Emotion Change
   useEffect(() => {
     if (props.isReady) {
-      // console.log('Animator: ', props.emotionFace);
       Object.values(FACE_TYPES).forEach((valueFaceType) => {
         if (valueFaceType === FACE_TYPES.EYE || valueFaceType === FACE_TYPES.MOUTH) { return; };
         (props.facialMeshes[valueFaceType]?.material as MeshPhysicalMaterial).map 
@@ -35,6 +35,7 @@ export function Facial(props: FacialProps) {
           = props.facialMaterials[emotionRef.current + "_" + valueFaceType + "_" + MATERIAL_TYPES.FEATURE]!.getTextureAlpha()!;
         (props.facialMeshes[valueFaceType]?.material as MeshPhysicalMaterial).needsUpdate = true;
       });
+      emotionSetRef.current = emotionRef.current;
     }
   }, [props.isReady, emotionRef.current, props.emotionFace, props.facialMaterials, props.facialMeshes]);
 
@@ -51,7 +52,7 @@ export function Facial(props: FacialProps) {
       facialMeshes={props.facialMeshes} 
       emotionEvent={props.emotionEvent} 
       isReady={props.isReady}
-      emotionRef={emotionRef}
+      emotionRef={emotionSetRef}
     />
     <Mouth 
       emotionFace={props.emotionFace} 
@@ -60,7 +61,7 @@ export function Facial(props: FacialProps) {
       emotionEvent={props.emotionEvent} 
       phonemes={props.phonemes} 
       isReady={props.isReady} 
-      emotionRef={emotionRef}
+      emotionRef={emotionSetRef}
     />
   </>;
 

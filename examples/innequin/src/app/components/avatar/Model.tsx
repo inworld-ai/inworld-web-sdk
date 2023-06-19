@@ -42,6 +42,7 @@ export function Model(props: ModelProps) {
   const [isFacialMaterialsLoaded, setIsFacialMaterialsLoaded] = useState(false);
   const [isModelLoaded, setIsModelLoaded] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const [animationClips, setAnimationClips] = useState<{
     [key: string]: AnimationClip | null;
@@ -121,7 +122,7 @@ export function Model(props: ModelProps) {
   
   // 5. Init Loading Material Files
   useEffect(() => {
-    if (isModelLoaded && !isFacialMaterialsLoaded && Object.keys(facialMaterials).length === 0 && !isReady) {
+    if (isModelLoaded && isAnimationsLoaded && !isFacialMaterialsLoaded && Object.keys(facialMaterials).length === 0 && !isReady) {
       const loadingFacialMaterials = { ...facialMaterials };
       Object.values(EMOTIONS_FACE).forEach((valueEmotionType) => {
         Object.values(FACE_TEXTURE_TYPES).forEach((valueFaceType) => {
@@ -137,14 +138,14 @@ export function Model(props: ModelProps) {
       });
       setFacialMaterials(loadingFacialMaterials);  
     }
-  }, [isModelLoaded, isFacialMaterialsLoaded, facialMaterials, isReady]);
+  }, [isModelLoaded, isAnimationsLoaded, isFacialMaterialsLoaded, facialMaterials, isReady]);
 
   // 6. Load Material Files
   useEffect(() => {
-    if (isModelLoaded && !isFacialMaterialsLoaded && Object.keys(facialMaterials).length > 0 && !isReady) {
+    if (isModelLoaded && isAnimationsLoaded && !isFacialMaterialsLoaded && Object.keys(facialMaterials).length > 0 && !isReady) {
       const materialsLoader = new MaterialsLoader(facialMaterials, () => setIsFacialMaterialsLoaded(true));
     }
-  }, [isModelLoaded, isFacialMaterialsLoaded, facialMaterials, isReady]);
+  }, [isModelLoaded, isAnimationsLoaded, isFacialMaterialsLoaded, facialMaterials, isReady]);
 
   // 7. Materials Loading Completed. Set Ready to true.
   useEffect(() => {
@@ -173,7 +174,8 @@ export function Model(props: ModelProps) {
             isReady={isReady} 
             isModelLoaded={isModelLoaded} 
             model={modelData.scene.children[0]} 
-            phonemes={props.phonemes} />
+            phonemes={props.phonemes}
+            setIsPlaying={setIsPlaying} />
         </Suspense>
       )}
     </>
