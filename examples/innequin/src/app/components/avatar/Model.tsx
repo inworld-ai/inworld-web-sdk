@@ -96,10 +96,11 @@ export function Model(props: ModelProps) {
 
   // 4. Animations Loading Completed. Process clips and gesture data.
   useEffect(() => {
-    if (isModelLoaded && isAnimationsLoaded && !isFacialMaterialsLoaded && !isReady) {
+    if (isModelLoaded && animationFiles && isAnimationsLoaded && !isFacialMaterialsLoaded && !isReady) {
       console.log('Animations Loaded');
       const loadingAnimationClips = { ...animationClips };
       const loadingAnimationGestures = [ ...animationGestures ];
+      // console.log('animationFiles', animationFiles);
       for (const i in animationFiles) {
         loadingAnimationClips[animationFiles[i]!.animation.name] = animationFiles[i]!.animationClip!;
         // console.log('Animations Duration', animationFiles[i]!.animationClip!.name, animationFiles[i]!.animationClip!.duration);
