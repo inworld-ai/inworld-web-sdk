@@ -48,15 +48,8 @@ export function Animator(props: AnimatorProps) {
   const animationState = useRef(ANIMATION_TYPE.HELLO);
   const [animatorReady, setAnimatorReady] = useState(false);
   const clockRef = useRef(new Clock());
-
-  // const emotionRef = useRef(emotion);
-  // const emotionOldRef = useRef(emotion);
-
   const [emotionState, setEmotionState] = useState(EMOTIONS.NEUTRAL);
   const [emotionStateOld, setEmotionStateOld] = useState(EMOTIONS.NEUTRAL);
-
-
-  const emotionToChangeRef = useRef(emotion);
   const [gesture, setGesture] = useState("");
   const gestureOldRef = useRef("");
 
@@ -77,9 +70,7 @@ export function Animator(props: AnimatorProps) {
 
   // Play Hello Animation
   useEffect(() => {
-    if (animatorReady && animationMixer && props.animationClips && /*emotionRef.current*/emotionState && animationState.current == ANIMATION_TYPE.HELLO) {
-      console.log('Play Hello Animation');
-      // animationState.current = ANIMATION_TYPE.HELLO;
+    if (animatorReady && animationMixer && props.animationClips && emotionState && animationState.current == ANIMATION_TYPE.HELLO) {
       let action = animationMixer
       .clipAction(props.animationClips[props.animationSequence[animationIndexRef.current]]!);
       action.loop = LoopOnce;
@@ -88,13 +79,10 @@ export function Animator(props: AnimatorProps) {
       setTimeout(() => playIdle(), (props.animationClips[props.animationSequence[animationIndexRef.current]]!.duration - ANIMATION_FADE_TIME_S) * 1000);
       props.setIsPlaying(true);
     }
-  }, [animatorReady, props.animationClips, animationMixer, emotionState]);//emotionRef.current]);
+  }, [animatorReady, props.animationClips, animationMixer, emotionState]);
 
   // Handle Body Intro/Outro Changes
   useEffect(() => {
-    // console.log('Handle Body Intro/Outro Changes', emotionOldRef.current, emotionRef.current);
-    console.log('Handle Body Intro/Outro Changes', emotionStateOld, emotionState);
-    // if (animatorReady && emotionRef.current && emotionOldRef.current != emotionRef.current) {
     if (animatorReady && emotionState && emotionStateOld != emotionState && animationState.current == ANIMATION_TYPE.IDLE) {
       if (emotionStateOld == EMOTIONS.NEUTRAL ) {
         playIntro();
@@ -196,8 +184,6 @@ export function Animator(props: AnimatorProps) {
       action.loop = LoopOnce;
       action.clampWhenFinished = true;
       action.play();
-      // console.log('Play Gesture Emotion State:', emotionOldRef.current, emotionRef.current);
-      console.log('Play Gesture Emotion State:', emotionStateOld, emotionState);
       const newEmotion = emotionStateOld != emotionState;
       setEmotionStateOld(emotionState);
       animationIndexRef.current = newIndex;
@@ -217,29 +203,25 @@ export function Animator(props: AnimatorProps) {
         // This is needed due to a bug in Three.js around combining a GLB model and GLB animation file that both have a 90* offset.
         props.model.rotation.set(0, 0, 0); 
       }
-  
-      if ( 
-        phonemeData.length > 0
-        ) {
-          talkingCurrentTime += delta;
-          if (gesture == "" && 
-            animationState.current == ANIMATION_TYPE.IDLE && 
-            talkingCurrentTime > ANIMATION_FADE_TIME_S &&
-            talkingCurrentTime < phonemeData[phonemeData.length - 1].startOffsetS!) {
-            if (gestureDebounce == 0) {
-              randomGesture(phonemeData[phonemeData.length - 1].startOffsetS! - talkingCurrentTime);
-            }
-          } else if(talkingCurrentTime > phonemeData[phonemeData.length - 1].startOffsetS!) {
-            // Reset data if talking time is over the phoneme length
-            phonemeData = [];
-            talkingCurrentTime = 0;
-            if (gestureDebounce > 0) {
-              gestureDebounce--;
-            }
+      if ( phonemeData.length > 0 ) {
+        talkingCurrentTime += delta;
+        if (gesture == "" && 
+          animationState.current == ANIMATION_TYPE.IDLE && 
+          talkingCurrentTime > ANIMATION_FADE_TIME_S &&
+          talkingCurrentTime < phonemeData[phonemeData.length - 1].startOffsetS!) {
+          if (gestureDebounce == 0) {
+            randomGesture(phonemeData[phonemeData.length - 1].startOffsetS! - talkingCurrentTime);
           }
+        } else if(talkingCurrentTime > phonemeData[phonemeData.length - 1].startOffsetS!) {
+          // Reset data if talking time is over the phoneme length
+          phonemeData = [];
+          talkingCurrentTime = 0;
+          if (gestureDebounce > 0) {
+            gestureDebounce--;
+          }
+        }
       }
     }
-
   });
 
   // Handles storing the phonomes
@@ -257,22 +239,8 @@ export function Animator(props: AnimatorProps) {
     if (animatorReady && props.emotionEvent) {
       // console.log('Emotion To Change');
       setEmotionState(BehaviorToBody[props.emotionEvent.behavior.code]);
-      // gestureDebounceRef.current++;
     }
   }, [animatorReady, props.emotionEvent]);
-
-  // Handles change in emotion. We use this to sync the face with the body if emotion changes mid sentence
-  // useEffect(() => {
-  //   if (animatorReady && props.emotionEvent) {
-  //     emotionToChangeRef.current = BehaviorToBody[props.emotionEvent.behavior.code];
-  //   }
-  // }, [animatorReady, props.emotionEvent]);
-
-  // useEffect(() => {
-  //   if (animatorReady && emotionToChangeRef.current) {
-  //     emotionRef.current = emotionToChangeRef.current;
-  //   }
-  // }, [animatorReady, emotionToChangeRef.current]);
 
   // Handles choosing a random gesture
   const randomGesture = useCallback((maxDuration: number) => {
