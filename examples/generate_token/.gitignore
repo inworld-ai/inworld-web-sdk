@@ -3,5 +3,6 @@ build
 node_modules
 .eslintcache
 .env
+keys/*
 # Mac filesystem
 **/.DS_Store
