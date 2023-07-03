@@ -1,12 +1,13 @@
 import 'dotenv/config';
 
 import { InworldClient } from '@inworld/nodejs-sdk';
+import https from 'https'
 import fs from 'fs'
 import cors from 'cors';
 import express from 'express';
 import { exit } from 'process';
 
-const SSL_KEY_FOLDER='./keys'
+const SSL_KEY_FOLDER='./keys/'
 
 // Env variable configuration error checking
 try {
@@ -37,8 +38,16 @@ try {
       throw new Error('SSL_KEY_NAME env variable is required when USE_SSL is true');
     }
     
+    if (!fs.existsSync(SSL_KEY_FOLDER + process.env.SSL_KEY_NAME)) {
+      throw new Error('SSL key file not found.');
+    }
+
     if (!process.env.SSL_CERT_NAME) {
       throw new Error('SSL_CERT_NAME env variable is required when USE_SSL is true');
+    }
+
+    if (!fs.existsSync(SSL_KEY_FOLDER + process.env.SSL_CERT_NAME)) {
+      throw new Error('SSL certificate file not found.');
     }
 
   }
@@ -50,7 +59,6 @@ try {
 
 const PORT = process.env.PORT;
 const USE_SSL = process.env.USE_SSL === 'true' ? true : false;
-
 
 const client = new InworldClient().setApiKey({
   key: process.env.INWORLD_KEY!,
@@ -68,6 +76,22 @@ app.get('/', async (_, res) => {
   res.end(JSON.stringify(token));
 });
 
-app.listen(PORT, () => {
-  console.log(`Listening to port ${PORT}`);
-});
+if (USE_SSL) {
+  const privateKey = fs.readFileSync( SSL_KEY_FOLDER + process.env.SSL_KEY_NAME );
+  const certificate = fs.readFileSync( SSL_KEY_FOLDER + process.env.SSL_CERT_NAME );
+  
+  https.createServer({
+    key: privateKey,
+    cert: certificate
+  }, app).listen(PORT,  () => {
+    console.log(`Listening to port ${PORT}`);
+  });
+
+} else {
+
+  app.listen(PORT, () => {
+    console.log(`Listening to port ${PORT}`);
+  });
+
+}
+
