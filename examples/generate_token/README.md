@@ -8,9 +8,7 @@ This example project contains a server that uses the Inworld API Key and Secret 
 ---
 - [Requirements](#requirements)
 - [Instructions](#instructions)
-- [External Server Setup](#server-setup)
-    - [AWS](#server-setup-aws)
-    - [Heroku](#server-setup-heroku)
+- [HTTPS Server Setup](#server-setup)
 
 ---
 
@@ -35,19 +33,11 @@ This example project contains a server that uses the Inworld API Key and Secret 
 
 <br>
 
-## Server Setup <a id="server-setup" name="server-setup"></a>
----
-
-### AWS <a id="server-setup-aws" name="server-setup-aws"></a>
-
-
-
-### Heroku <a id="server-setup-heroku" name="server-setup-heroku"></a>
-
-
-## SSL Key Requirements <a id="ssl" name="ssl"></a>
+## HTTPS Server Setup <a id="server-setup" name="server-setup"></a>
 ---
 
 Do to modern security requirements for browsers 
+
+
 
 
