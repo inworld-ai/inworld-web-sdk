@@ -105,9 +105,9 @@ export const client: Client = {
   id: 'ClientId',
 };
 
-export const writeMock = (item: QueueItem<InworldPacket>) => {
+export const writeMock = async (item: QueueItem<InworldPacket>) => {
   const packet = InworldPacket.fromProto(item.getPacket());
-  item.beforeWriting?.(packet);
+  await item.beforeWriting?.(packet);
   item.afterWriting?.(packet);
 };
 

@@ -1,3 +1,5 @@
+* Use gradual fading to stop the character's audio playback
+
 ## 2023-05-30 v1.3.2
 
 * Fix audio playback for iOS mobile using LTE

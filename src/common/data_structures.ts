@@ -36,6 +36,15 @@ export interface Gateway {
   ssl?: boolean;
 }
 
+export interface AudioPlaybackConfig {
+  stop: StopAudioPlayback;
+}
+
+export interface StopAudioPlayback {
+  duration: number;
+  ticks: number;
+}
+
 export interface ConnectionConfig {
   autoReconnect?: boolean;
   disconnectTimeout?: number;
@@ -44,11 +53,13 @@ export interface ConnectionConfig {
 export interface ClientConfiguration<CapabilitiesT> {
   connection?: ConnectionConfig;
   capabilities?: CapabilitiesT;
+  audioPlayback?: AudioPlaybackConfig;
 }
 
 export interface InternalClientConfiguration {
   connection?: ConnectionConfig;
   capabilities: CapabilitiesRequest;
+  audioPlayback?: AudioPlaybackConfig;
 }
 
 export interface CancelResponses {
