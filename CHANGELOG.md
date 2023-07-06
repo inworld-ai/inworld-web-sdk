@@ -1,4 +1,11 @@
+## 2023-07-06 v1.4.0
+
+* Added SSL support to generate_token example
+* Added audio playback config to examples
 * Use gradual fading to stop the character's audio playback
+* Fix Validate stop playback settings
+* Fix Move interpolate function to helpers
+* Add audio playback config to example
 
 ## 2023-05-30 v1.3.2
 
