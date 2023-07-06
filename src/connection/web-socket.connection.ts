@@ -33,7 +33,7 @@ interface OpenConnectionProps<InworldPacketT> {
 export interface QueueItem<InworldPacketT> {
   getPacket: () => ProtoPacket;
   afterWriting?: (packet: InworldPacketT) => void;
-  beforeWriting?: (packet: InworldPacketT) => void;
+  beforeWriting?: (packet: InworldPacketT) => Promise<void>;
 }
 
 export interface Connection<InworldPacketT> {
@@ -99,13 +99,13 @@ export class WebSocketConnection<
     this.packetQueue = [];
   }
 
-  write(item: QueueItem<InworldPacketT>) {
+  async write(item: QueueItem<InworldPacketT>) {
     // There's time gap between connection creation and connection activation.
     // So put packets to queue and send them `onReady` event.
     if (this.isActive()) {
       const packet = item.getPacket();
       const inworldPacket = this.convertPacketFromProto(item.getPacket());
-      item.beforeWriting?.(inworldPacket);
+      await item.beforeWriting?.(inworldPacket);
       this.ws.send(JSON.stringify(packet));
       item.afterWriting?.(inworldPacket);
     } else {

@@ -17,11 +17,17 @@ export type ConfigurationPlayer = {
   name?: string;
 };
 
+export type ConfigurationAudio = {
+  stopDuration?: number;
+  stopTicks?: number;
+};
+
 export type Configuration = {
   character?: ConfigurationCharacter;
   scene?: ConfigurationScene;
   player?: ConfigurationPlayer;
   chatView?: CHAT_VIEW;
+  audio: ConfigurationAudio;
 };
 
 export interface EmotionsMap {

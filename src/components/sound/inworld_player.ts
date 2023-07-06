@@ -18,8 +18,8 @@ export class InworldPlayer {
     player.setMute(mute);
   }
 
-  stop() {
-    this.grpcAudioPlayer.stop();
+  async stop() {
+    return this.grpcAudioPlayer.stop();
   }
 
   clear() {
