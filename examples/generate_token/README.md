@@ -31,6 +31,7 @@ It's important to note that this service is easily run on localhost or on a non-
 1. From the project directory type `yarn install` to download and install the project dependencies.
 1. Copy the `.env-sample` file to `.evn`.
 1. Open the `.env` file in an editor and enter your Inworld API Key and Secret after the `INWORLD_KEY` and `INWORLD_SECRET` fields respectively. Save and close the file.
+1. If you are using this server in SSL/HTTPS mode follow the instructions [here](#server-setup) then follow the next step.
 1. Launch the application by typing in `yarn start`.
 
 <br>
