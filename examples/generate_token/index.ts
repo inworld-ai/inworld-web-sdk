@@ -80,16 +80,13 @@ if (USE_SSL) {
   const certificate = fs.readFileSync(
     SSL_KEY_FOLDER + process.env.SSL_CERT_NAME
   );
-  
   https.createServer({
     key: privateKey,
     cert: certificate
-  }, 
-    app
-  )
+  }, app)
   .listen(PORT, () => {
-      console.log(`Listening to port ${PORT}`);
-    });
+    console.log(`Listening to port ${PORT}`);
+  });
 } else {
   app.listen(PORT, () => {
     console.log(`Listening to port ${PORT}`);
