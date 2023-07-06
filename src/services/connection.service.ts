@@ -185,11 +185,11 @@ export class ConnectionService<
     return this.audioSessionAction;
   }
 
-  interrupt() {
+  async interrupt() {
     const packet = this.connectionProps.grpcAudioPlayer.getCurrentPacket();
 
     if (packet) {
-      this.interruptByInteraction(packet.packetId.interactionId);
+      await this.interruptByInteraction(packet.packetId.interactionId);
     }
   }
 
@@ -250,9 +250,9 @@ export class ConnectionService<
 
         this.addPacketToHistory(inworldPacket);
       },
-      beforeWriting: (packet: InworldPacketT) => {
+      beforeWriting: async (packet: InworldPacketT) => {
         if (packet.isText()) {
-          this.interruptByInteraction(packet.packetId.interactionId);
+          await this.interruptByInteraction(packet.packetId.interactionId);
         }
       },
     });
@@ -389,7 +389,7 @@ export class ConnectionService<
 
       // Send cancel response event in case of player talking.
       if (inworldPacket.isText() && inworldPacket.routing.source.isPlayer) {
-        this.interruptByInteraction(inworldPacket.packetId.interactionId);
+        await this.interruptByInteraction(inworldPacket.packetId.interactionId);
       }
 
       // Play audio or silence.
@@ -451,12 +451,12 @@ export class ConnectionService<
     };
   }
 
-  private interruptByInteraction(interactionId: string) {
+  private async interruptByInteraction(interactionId: string) {
     const { grpcAudioPlayer, config } = this.connectionProps;
 
     if (!config?.capabilities.interruptions) return;
 
-    const packets = grpcAudioPlayer.stopForInteraction(interactionId);
+    const packets = await grpcAudioPlayer.stopForInteraction(interactionId);
 
     if (packets.length) {
       const interactionId = packets[0].packetId.interactionId;

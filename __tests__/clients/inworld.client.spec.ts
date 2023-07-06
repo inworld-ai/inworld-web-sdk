@@ -35,7 +35,10 @@ describe('should finish with success', () => {
     jest.clearAllMocks();
     inworldClient = new InworldClient()
       .setScene(SCENE)
-      .setConfiguration({ capabilities: capabilitiesProps })
+      .setConfiguration({
+        capabilities: capabilitiesProps,
+        audioPlayback: { stop: { duration: 1000, ticks: 30 } },
+      })
       .setUser(user)
       .setClient(client)
       .setGenerateSessionToken(generateSessionToken)
@@ -91,6 +94,45 @@ describe('should throw error', () => {
     const inworldClient = new InworldClient().setScene('');
 
     expect(() => inworldClient.build()).toThrow('Scene name is required');
+  });
+
+  test.each([
+    {
+      input: {
+        duration: -500,
+        ticks: 5,
+      },
+      field: 'duration',
+    },
+    {
+      input: {
+        duration: 0,
+        ticks: 5,
+      },
+      field: 'duration',
+    },
+    {
+      input: {
+        duration: 500,
+        ticks: -5,
+      },
+      field: 'ticks',
+    },
+    {
+      input: {
+        duration: 500,
+        ticks: 0,
+      },
+      field: 'ticks',
+    },
+  ])('on wrong $input', ({ input, field }) => {
+    const inworldClient = new InworldClient().setScene(SCENE).setConfiguration({
+      audioPlayback: { stop: input },
+    });
+
+    expect(() => inworldClient.build()).toThrow(
+      `Stop ${field} for audio playback should be a natural number`,
+    );
   });
 });
 
