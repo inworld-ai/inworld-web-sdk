@@ -3,5 +3,8 @@ build
 node_modules
 .eslintcache
 .env
+*.crt
+*.key
+*.pem
 # Mac filesystem
 **/.DS_Store
