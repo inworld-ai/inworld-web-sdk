@@ -1,17 +1,15 @@
 import 'dotenv/config';
-
 import { InworldClient } from '@inworld/nodejs-sdk';
-import https from 'https'
-import fs from 'fs'
 import cors from 'cors';
 import express from 'express';
+import fs from 'fs';
+import https from 'https';
 import { exit } from 'process';
 
-const SSL_KEY_FOLDER='./keys/'
+const SSL_KEY_FOLDER='./keys/';
 
 // Env variable configuration error checking
 try {
-
   if (!fs.existsSync('.env')) {
     throw new Error('.env file not found. Did you copy the .env_sample file to .env?');
   }
@@ -83,15 +81,14 @@ if (USE_SSL) {
   https.createServer({
     key: privateKey,
     cert: certificate
-  }, app).listen(PORT,  () => {
-    console.log(`Listening to port ${PORT}`);
-  });
-
+  }, 
+    app
+  )
+  .listen(PORT, () => {
+      console.log(`Listening to port ${PORT}`);
+    });
 } else {
-
   app.listen(PORT, () => {
     console.log(`Listening to port ${PORT}`);
   });
-
 }
-
