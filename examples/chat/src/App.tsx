@@ -28,6 +28,7 @@ import {
   get as getConfiguration,
   save as saveConfiguration,
 } from './app/helpers/configuration';
+import { toInt } from './app/helpers/transform';
 import { CHAT_VIEW, Configuration, EmotionsMap } from './app/types';
 import { config } from './config';
 import * as defaults from './defaults';
@@ -70,13 +71,23 @@ function App() {
     setChatting(true);
     setChatView(form.chatView!);
 
+    const duration = toInt(form.audio.stopDuration ?? 0);
+    const ticks = toInt(form.audio.stopTicks ?? 0);
+
     const service = new InworldService({
       onHistoryChange,
       capabilities: {
         ...(form.chatView === CHAT_VIEW.AVATAR && { phonemes: true }),
+        ...(form.chatView !== CHAT_VIEW.AVATAR && { interruptions: true }),
         emotions: true,
         narratedActions: true,
       },
+      ...(duration &&
+        ticks && {
+          audioPlayback: {
+            stop: { duration, ticks },
+          },
+        }),
       sceneName: form.scene?.name!,
       playerName: form.player?.name!,
       onPhoneme: (phonemes: AdditionalPhonemeInfo[]) => {
@@ -190,7 +201,7 @@ function App() {
                     {avatar && (
                       <CircularRpmAvatar
                         src={avatar}
-                        name={character.getDisplayName()}
+                        name={character.displayName}
                         size="48px"
                         sx={{ display: ['none', 'flex'] }}
                       />
@@ -213,6 +224,7 @@ function App() {
     </>
   ) : (
     <ConfigView
+      chatView={formMethods.watch('chatView')}
       canStart={formMethods.formState.isValid}
       onStart={openConnection}
       onResetForm={resetForm}

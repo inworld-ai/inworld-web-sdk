@@ -456,11 +456,13 @@ describe('send', () => {
     });
     const write = jest
       .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce((item: QueueItem<ExtendedInworldPacket>) => {
-        const packet = extension.convertPacketFromProto(item.getPacket());
-        item.beforeWriting?.(packet);
-        item.afterWriting?.(packet);
-      });
+      .mockImplementationOnce(
+        async (item: QueueItem<ExtendedInworldPacket>) => {
+          const packet = extension.convertPacketFromProto(item.getPacket());
+          await item.beforeWriting?.(packet);
+          item.afterWriting?.(packet);
+        },
+      );
 
     const interactionId = v4();
     const mutation = { regenerateResponse: { interactionId } };

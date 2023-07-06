@@ -1,5 +1,6 @@
 import {
   AdditionalPhonemeInfo,
+  AudioPlaybackConfig,
   Capabilities,
   HistoryItem,
   InworldClient,
@@ -10,6 +11,7 @@ import {
 import { config } from '../config';
 
 interface InworldServiceProps {
+  audioPlayback?: AudioPlaybackConfig;
   capabilities: Capabilities;
   sceneName: string;
   playerName: string;
@@ -27,6 +29,7 @@ export class InworldService {
     const client = new InworldClient()
       .setConfiguration({
         capabilities: props.capabilities,
+        audioPlayback: props.audioPlayback,
       })
       .setUser({ fullName: props.playerName })
       .setScene(props.sceneName)
