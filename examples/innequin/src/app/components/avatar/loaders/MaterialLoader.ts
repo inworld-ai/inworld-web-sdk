@@ -7,7 +7,7 @@ import { EMOTIONS_FACE, FACE_TEXTURE_TYPES, MATERIAL_TYPES, TEXTURE_TYPES, VISEM
 
 // File constants
 const ALPHA: string = '_opacity';
-const EXT: string = '.PNG';
+const EXT: string = '.png';
 const VISEMES: string = 'visemes';
 
 export class MaterialLoader {
