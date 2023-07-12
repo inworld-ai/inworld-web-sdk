@@ -11,7 +11,7 @@ const SSL_KEY_FOLDER = './keys/';
 
 // Env variable configuration error checking
 try {
-  if (!fs.existsSync('.env')) {
+  if (!fs.existsSync('.env') && !process.env.NOENV) {
     throw new Error(
       '.env file not found. Did you copy the .env_sample file to .env?'
     );
