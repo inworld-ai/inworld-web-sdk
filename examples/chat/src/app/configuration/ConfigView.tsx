@@ -7,12 +7,15 @@ import {
   Typography,
 } from '@mui/material';
 
+import { CHAT_VIEW } from '../types';
+import { Audio } from './Audio';
 import { CharacterName } from './CharacterName';
 import { ChatView } from './ChatView';
 import { PlayerName } from './PlayerName';
 import { SceneName } from './SceneName';
 
 interface ConfigViewProps {
+  chatView?: CHAT_VIEW;
   canStart: boolean;
   onStart: () => Promise<void>;
   onResetForm: () => void;
@@ -43,6 +46,13 @@ export const ConfigView = (props: ConfigViewProps) => {
                 <ChatView />
               </Grid>
             </Grid>
+            {props.chatView !== CHAT_VIEW.AVATAR && (
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Audio />
+                </Grid>
+              </Grid>
+            )}
           </CardContent>
         </Card>
       </Box>

@@ -5,6 +5,10 @@ window.MediaStream = jest.fn().mockImplementation(() => ({
 window.AudioContext = jest.fn().mockImplementation(() => ({
   createMediaStreamDestination: jest.fn(),
   decodeAudioData: jest.fn(),
+  createGain: jest.fn().mockImplementation(() => ({
+    connect: jest.fn(),
+    gain: { value: 1 },
+  })),
 }));
 
 window.AudioBufferSourceNode = jest.fn().mockImplementation(() => ({

@@ -10,16 +10,14 @@ import * as GoogleProtobufTimestamp from "./google/protobuf/timestamp.pb"
 import * as AiInworldPacketsPackets from "./packets.pb"
 import * as AiInworldVoicesVoices from "./voices.pb"
 
-export enum InteractionDislikeType {
-  DISLIKE_TYPE_UNSPECIFIED = "DISLIKE_TYPE_UNSPECIFIED",
-  DISLIKE_TYPE_IRRELEVANT = "DISLIKE_TYPE_IRRELEVANT",
-  DISLIKE_TYPE_UNSAFE = "DISLIKE_TYPE_UNSAFE",
-  DISLIKE_TYPE_UNTRUE = "DISLIKE_TYPE_UNTRUE",
-  DISLIKE_TYPE_INCORRECT_USE_KNOWLEDGE = "DISLIKE_TYPE_INCORRECT_USE_KNOWLEDGE",
-  DISLIKE_TYPE_UNEXPECTED_ACTION = "DISLIKE_TYPE_UNEXPECTED_ACTION",
-  DISLIKE_TYPE_UNEXPECTED_GOAL_BEHAVIOR = "DISLIKE_TYPE_UNEXPECTED_GOAL_BEHAVIOR",
-  DISLIKE_TYPE_REPETITION = "DISLIKE_TYPE_REPETITION",
-}
+type Absent<T, K extends keyof T> = { [k in Exclude<keyof T, K>]?: undefined };
+type OneOf<T> =
+  | { [k in keyof T]?: undefined }
+  | (
+    keyof T extends infer K ?
+      (K extends string & keyof T ? { [k in K]: T[K] } & Absent<T, K>
+        : never)
+    : never);
 
 export enum VoicePreset {
   VOICE_PRESET_UNSPECIFIED = "VOICE_PRESET_UNSPECIFIED",
@@ -65,21 +63,6 @@ export enum PreviousDialogDialogParticipant {
   CHARACTER = "CHARACTER",
 }
 
-export type InteractionFeedback = {
-  isLike?: boolean
-  type?: InteractionDislikeType[]
-  comment?: string
-}
-
-export type CreateInteractionFeedbackRequest = {
-  parent?: string
-  feedback?: InteractionFeedback
-}
-
-export type PingCharacterRequest = {
-  name?: string
-}
-
 export type CapabilitiesRequest = {
   audio?: boolean
   text?: boolean
@@ -97,6 +80,8 @@ export type CapabilitiesRequest = {
   narratedActions?: boolean
   regenerateResponse?: boolean
   loadSceneInSession?: boolean
+  relations?: boolean
+  debugInfo?: boolean
 }
 
 export type UserRequest = {
@@ -153,8 +138,18 @@ export type AudioSettings = {
   ttsSampleRateHertz?: number
 }
 
+export type UserSettingsPlayerProfilePlayerField = {
+  fieldId?: string
+  fieldValue?: string
+}
+
+export type UserSettingsPlayerProfile = {
+  fields?: UserSettingsPlayerProfilePlayerField[]
+}
+
 export type UserSettings = {
   viewTranscriptConsent?: boolean
+  playerProfile?: UserSettingsPlayerProfile
 }
 
 export type SessionContinuationContinuationInfo = {
@@ -181,6 +176,7 @@ export type PreviousStateStateHolder = {
   state?: Uint8Array
   previousDialog?: PreviousDialog
   packets?: AiInworldPacketsPackets.InworldPacket[]
+  relationsToActors?: ActorRelations[]
 }
 
 export type PreviousState = {
@@ -228,16 +224,22 @@ export type ListBaseVoicesRequest = {
   ttsTypes?: AiInworldVoicesVoices.TTSType[]
 }
 
-export type ListBaseVoicesResponceBaseVoice = {
+
+type BaseListBaseVoicesResponceBaseVoice = {
   languageCodes?: string[]
   name?: string
   gender?: AiInworldVoicesVoices.Gender
   naturalSampleRateHertz?: number
+  age?: AiInworldVoicesVoices.Age
 }
+
+export type ListBaseVoicesResponceBaseVoice = BaseListBaseVoicesResponceBaseVoice
+  & OneOf<{ elevenlabsMetadata: AiInworldVoicesVoices.VoiceElevenLabsMetadata }>
 
 export type ListBaseVoicesResponce = {
   googleVoices?: ListBaseVoicesResponceBaseVoice[]
   inworldVoices?: ListBaseVoicesResponceBaseVoice[]
+  elevenLabsVoices?: ListBaseVoicesResponceBaseVoice[]
 }
 
 export type AccessToken = {
@@ -249,6 +251,17 @@ export type AccessToken = {
 
 export type GenerateTokenRequest = {
   key?: string
+  resources?: string[]
+}
+
+export type ActorRelationsRelation = {
+  type?: string
+  label?: string
+}
+
+export type ActorRelations = {
+  actorId?: string
+  relations?: ActorRelationsRelation[]
 }
 
 export class WorldEngine {
@@ -269,11 +282,5 @@ export class WorldEngine {
   }
   static GenerateToken(req: GenerateTokenRequest, initReq?: fm.InitReq): Promise<AccessToken> {
     return fm.fetchReq<GenerateTokenRequest, AccessToken>(`/auth/v1/tokens/token:generate`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
-  }
-  static PingCharacter(req: PingCharacterRequest, initReq?: fm.InitReq): Promise<GoogleProtobufEmpty.Empty> {
-    return fm.fetchReq<PingCharacterRequest, GoogleProtobufEmpty.Empty>(`/auth/v1/character:ping`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
-  }
-  static CreateInteractionFeedback(req: CreateInteractionFeedbackRequest, initReq?: fm.InitReq): Promise<GoogleProtobufEmpty.Empty> {
-    return fm.fetchReq<CreateInteractionFeedbackRequest, GoogleProtobufEmpty.Empty>(`/v1/${req["parentsessiondefaultagentsinteractions"]}/feedback`, {...initReq, method: "POST", body: JSON.stringify(req["feedback"], fm.replacer)})
   }
 }
