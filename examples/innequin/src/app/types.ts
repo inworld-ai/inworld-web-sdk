@@ -17,6 +17,7 @@ export type Configuration = {
   ANIMATIONS_URI: string;
   DEFAULT_ANIMATION: string;
   GENERATE_TOKEN_URL: string;
+  IMAGES_BODY_URI: string;
   IMAGES_FACIAL_URI: string;
   INWORLD_CHARACTER: string | undefined,
   INWORLD_SCENE: string | undefined,
@@ -52,6 +53,17 @@ export enum ANIMATION_TYPE {
   INTRO = 'intro',
   OUTRO = 'outro',
   HELLO = 'hello',
+}
+
+export enum BODY_TEXTURE_TYPE {
+  BRONZE = 'BRONZE',
+  CAMO = 'CAMO',
+  WOOD0 = 'WOOD0',
+  WOOD1 = 'WOOD1',
+  WOOD2 = 'WOOD2',
+  WOOD3 = 'WOOD3',
+  WOOD4 = 'WOOD4',
+  SKITZ = 'SKITZ',
 }
 
 export enum CHAT_VIEW {
@@ -98,14 +110,32 @@ export enum FACE_TEXTURE_TYPES {
 }
 
 export enum MATERIAL_TYPES {
+  BODY = 'body',
   FEATURE = 'feature',
   VISEME = 'viseme',
   EMOTE = 'emote',
 }
 
+export enum MESH_TYPES {
+  BODY = 'body',
+  BROW = 'brow',
+  EYE = 'eye',
+  MOUTH = 'mouth',
+  NOSE = 'nose',
+}
+
+export enum MESH_IDS {
+  BROW = 0,
+  EYE = 1,
+  MOUTH = 2,
+  NOSE = 3,
+  BODY = 4,
+}
+
 export enum TEXTURE_TYPES {
   ALPHA = 'alpha',
   COLOR = 'color',
+  NORMAL = 'normal',
 }
 
 export enum VISEME_TYPES {

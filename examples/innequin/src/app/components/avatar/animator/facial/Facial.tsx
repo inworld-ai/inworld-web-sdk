@@ -2,7 +2,7 @@ import { useEffect, useCallback, useRef, useState } from "react";
 import { MeshPhysicalMaterial, SkinnedMesh } from "three";
 import { EMOTIONS_FACE, FACE_TYPES, MATERIAL_TYPES } from "../../../../types";
 import { BehaviorToFacial } from "./BehaviorToFacial";
-import { MaterialLoader } from "../../loaders/MaterialLoader";
+import { FaceMaterialLoader } from "../../loaders/FaceMaterialLoader";
 import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
 
 import { Eye } from "./Eye";
@@ -10,9 +10,9 @@ import { Mouth } from "./Mouth";
 
 interface FacialProps {
     emotionFace: EMOTIONS_FACE;
-    facialMaterials: { [key: string]: MaterialLoader | null; };
-    facialMeshes: { [key: string]: SkinnedMesh | null; };
+    facialMaterials: { [key: string]: FaceMaterialLoader | null; };
     isReady: Boolean;
+    modelMeshes: { [key: string]: SkinnedMesh | null; };
     phonemes: AdditionalPhonemeInfo[];
     emotionEvent?: EmotionEvent;
 }
@@ -29,15 +29,15 @@ export function Facial(props: FacialProps) {
     if (props.isReady) {
       Object.values(FACE_TYPES).forEach((valueFaceType) => {
         if (valueFaceType === FACE_TYPES.EYE || valueFaceType === FACE_TYPES.MOUTH) { return; };
-        (props.facialMeshes[valueFaceType]?.material as MeshPhysicalMaterial).map 
+        (props.modelMeshes[valueFaceType]?.material as MeshPhysicalMaterial).map 
           = props.facialMaterials[emotionRef.current + "_" + valueFaceType + "_" + MATERIAL_TYPES.FEATURE]!.getTextureColor()!;
-        (props.facialMeshes[valueFaceType]?.material as MeshPhysicalMaterial).alphaMap 
+        (props.modelMeshes[valueFaceType]?.material as MeshPhysicalMaterial).alphaMap 
           = props.facialMaterials[emotionRef.current + "_" + valueFaceType + "_" + MATERIAL_TYPES.FEATURE]!.getTextureAlpha()!;
-        (props.facialMeshes[valueFaceType]?.material as MeshPhysicalMaterial).needsUpdate = true;
+        (props.modelMeshes[valueFaceType]?.material as MeshPhysicalMaterial).needsUpdate = true;
       });
       emotionSetRef.current = emotionRef.current;
     }
-  }, [props.isReady, emotionRef.current, props.emotionFace, props.facialMaterials, props.facialMeshes]);
+  }, [props.isReady, emotionRef.current, props.emotionFace, props.facialMaterials, props.modelMeshes]);
 
   useEffect(() => {
     if (props.emotionEvent) {
@@ -47,21 +47,21 @@ export function Facial(props: FacialProps) {
 
   return <>
     <Eye 
-      emotionFace={props.emotionFace} 
-      facialMaterials={props.facialMaterials} 
-      facialMeshes={props.facialMeshes} 
       emotionEvent={props.emotionEvent} 
-      isReady={props.isReady}
+      emotionFace={props.emotionFace} 
       emotionRef={emotionSetRef}
+      facialMaterials={props.facialMaterials} 
+      isReady={props.isReady}
+      modelMeshes={props.modelMeshes} 
     />
     <Mouth 
-      emotionFace={props.emotionFace} 
-      facialMaterials={props.facialMaterials} 
-      facialMeshes={props.facialMeshes} 
       emotionEvent={props.emotionEvent} 
-      phonemes={props.phonemes} 
-      isReady={props.isReady} 
+      emotionFace={props.emotionFace} 
       emotionRef={emotionSetRef}
+      facialMaterials={props.facialMaterials} 
+      isReady={props.isReady} 
+      modelMeshes={props.modelMeshes} 
+      phonemes={props.phonemes} 
     />
   </>;
 

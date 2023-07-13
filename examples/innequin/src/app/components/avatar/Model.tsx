@@ -2,28 +2,33 @@
 import { AdditionalPhonemeInfo, EmotionEvent } from "@inworld/web-sdk";
 import { useFrame, useLoader } from "@react-three/fiber";
 import { Suspense, useEffect, useRef, useCallback, useState } from "react";
-import { AnimationClip, SkinnedMesh } from "three";
+import { AnimationClip, MeshPhysicalMaterial, SkinnedMesh } from "three";
 import { AnimationLoader } from "./loaders/AnimationLoader";
 import { AnimationsLoader } from "./loaders/AnimationsLoader";
 import { Animator } from "./animator/Animator";
 // import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
-import { AnimationFile, 
+import { AnimationFile,
+  AnimationGesture,
+  ANIMATION_TYPE,
+  BODY_TEXTURE_TYPE, 
   EMOTIONS, 
   EMOTIONS_FACE, 
   FACE_TEXTURE_TYPES, 
   FACE_TYPES, 
-  MATERIAL_TYPES, 
+  MATERIAL_TYPES,
+  MESH_TYPES, 
   VISEME_TYPES,
-  AnimationGesture,
-  ANIMATION_TYPE} from '../../types';
+  MESH_IDS} from '../../types';
 
-import { MaterialLoader } from "./loaders/MaterialLoader";
+import { BodyMaterialLoader } from "./loaders/BodyMaterialLoader";
+import { FaceMaterialLoader } from "./loaders/FaceMaterialLoader";
 import { MaterialsLoader } from "./loaders/MaterialsLoader";
 
 interface ModelProps {
   url: string;
+  bodyTexture: BODY_TEXTURE_TYPE;
   emotion: EMOTIONS;
   emotionFace: EMOTIONS_FACE;
   animationFiles: AnimationFile[];
@@ -35,6 +40,7 @@ interface ModelProps {
 
 export function Model(props: ModelProps) {
 
+  const bodyTextureRef = useRef(props.bodyTexture);
   const modelData = useLoader(GLTFLoader, props.url);
   const modelRef = useRef(modelData);
 
@@ -43,6 +49,7 @@ export function Model(props: ModelProps) {
   const [isModelLoaded, setIsModelLoaded] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [bodyMaterialLoading, setBodyMaterialLoading] = useState(false);
 
   const [animationClips, setAnimationClips] = useState<{
     [key: string]: AnimationClip | null;
@@ -54,11 +61,15 @@ export function Model(props: ModelProps) {
 
   const [animationGestures, setAnimationGestures] = useState<AnimationGesture[]>([]);
 
-  const [facialMaterials, setFacialMaterials] = useState<{
-    [key: string]: MaterialLoader | null;
+  const [bodyMaterials, setBodyMaterials] = useState<{
+    [key: string]: BodyMaterialLoader | null;
   }>({});
 
-  const [facialMeshes, setFacialMeshes] = useState<{
+  const [facialMaterials, setFacialMaterials] = useState<{
+    [key: string]: FaceMaterialLoader | null;
+  }>({});
+
+  const [modelMeshes, setModelMeshes] = useState<{
     [key: string]: SkinnedMesh | null;
   }>({});
 
@@ -67,12 +78,14 @@ export function Model(props: ModelProps) {
     if (!isModelLoaded && modelData) {
       console.log('Model Loaded');
       modelRef.current = modelData;
-      const loadingFacialMeshes = { ...facialMeshes };
-      loadingFacialMeshes[FACE_TYPES.BROW] = modelData.scene.children[0].children[0].children[2].children[0] as SkinnedMesh;
-      loadingFacialMeshes[FACE_TYPES.EYE] = modelData.scene.children[0].children[0].children[2].children[1] as SkinnedMesh;
-      loadingFacialMeshes[FACE_TYPES.MOUTH] = modelData.scene.children[0].children[0].children[2].children[2] as SkinnedMesh;
-      loadingFacialMeshes[FACE_TYPES.NOSE] = modelData.scene.children[0].children[0].children[2].children[3] as SkinnedMesh;
-      setFacialMeshes(loadingFacialMeshes);
+      const loadingModelMeshes = { ...modelMeshes };
+      // console.log(`Mesh Count`, modelData.scene.children[0].children[0]);
+      loadingModelMeshes[MESH_TYPES.BROW] = modelData.scene.children[0].children[0].children[0].children[0] as SkinnedMesh;
+      loadingModelMeshes[MESH_TYPES.EYE] = modelData.scene.children[0].children[0].children[0].children[1] as SkinnedMesh;
+      loadingModelMeshes[MESH_TYPES.MOUTH] = modelData.scene.children[0].children[0].children[0].children[2] as SkinnedMesh;
+      loadingModelMeshes[MESH_TYPES.NOSE] = modelData.scene.children[0].children[0].children[0].children[3] as SkinnedMesh;
+      loadingModelMeshes[MESH_TYPES.BODY] = modelData.scene.children[0].children[0].children[0].children[4] as SkinnedMesh;
+      setModelMeshes(loadingModelMeshes);
       setIsModelLoaded(true);
     }
   }, [modelData, isModelLoaded]);
@@ -127,11 +140,11 @@ export function Model(props: ModelProps) {
       Object.values(EMOTIONS_FACE).forEach((valueEmotionType) => {
         Object.values(FACE_TEXTURE_TYPES).forEach((valueFaceType) => {
           // console.log('Loading: ' + valueEmotionType + " " + valueFaceType);
-          loadingFacialMaterials[valueEmotionType + "_" + valueFaceType + "_" + MATERIAL_TYPES.FEATURE] = new MaterialLoader(valueEmotionType, valueFaceType, MATERIAL_TYPES.FEATURE);
+          loadingFacialMaterials[valueEmotionType + "_" + valueFaceType + "_" + MATERIAL_TYPES.FEATURE] = new FaceMaterialLoader(valueEmotionType, valueFaceType, MATERIAL_TYPES.FEATURE);
           if (valueFaceType == FACE_TEXTURE_TYPES.MOUTH) {
             Object.values(VISEME_TYPES).forEach((valueVisemeType) => {
               // console.log('Loading: ' + valueEmotionType + " " + valueVisemeType);
-              loadingFacialMaterials[valueEmotionType + "_" + valueVisemeType + "_" + MATERIAL_TYPES.VISEME] = new MaterialLoader(valueEmotionType, valueFaceType, MATERIAL_TYPES.VISEME, valueVisemeType);
+              loadingFacialMaterials[valueEmotionType + "_" + valueVisemeType + "_" + MATERIAL_TYPES.VISEME] = new FaceMaterialLoader(valueEmotionType, valueFaceType, MATERIAL_TYPES.VISEME, valueVisemeType);
             });
           }
         });
@@ -156,6 +169,48 @@ export function Model(props: ModelProps) {
     }
   }, [isModelLoaded, isAnimationsLoaded, isFacialMaterialsLoaded, isReady]);
 
+  // Change the body texture material.
+  useEffect(() => {
+    if (isReady && props.bodyTexture != bodyTextureRef.current && !bodyMaterialLoading) {
+      console.log('Body Texture Change:', props.bodyTexture);
+      bodyTextureRef.current = props.bodyTexture;
+      handleOnChangeBodyTexture();
+    }
+  }, [props.bodyTexture, bodyMaterialLoading, isReady]);
+
+  // Handles either loads a new texture or calls for the current texture to be set.
+  const handleOnChangeBodyTexture = useCallback(() => {
+    if (!isReady) return;
+    console.log('handleOnChangeBodyTexture');
+    if (!(props.bodyTexture in bodyMaterials)) {
+      console.log('handleOnChangeBodyTexture material is not loaded');
+      setBodyMaterialLoading(true);
+      const loadedBodyMaterials = { ...bodyMaterials };
+      loadedBodyMaterials[props.bodyTexture] = new BodyMaterialLoader(props.bodyTexture, MATERIAL_TYPES.BODY);
+      setBodyMaterials(loadedBodyMaterials);
+      loadedBodyMaterials[props.bodyTexture]?.load(() => setBodyMaterialLoading(false));
+    } else {
+      console.log('handleOnChangeBodyTexture material is loaded');
+      handleUpdateBodyTexture();
+    }
+
+  }, [props.bodyTexture, bodyMaterials, isReady]);
+  
+  // Handles when the loading of the new texture is completed.
+  useEffect(() => {
+    if (isReady && !bodyMaterialLoading && props.bodyTexture in bodyMaterials) {
+      console.log('Body Texture Loaded');
+      handleUpdateBodyTexture();
+    }
+  }, [bodyMaterials, bodyMaterialLoading, props.bodyTexture, isReady]);
+
+  // Handles updating the body texture.
+  const handleUpdateBodyTexture = useCallback(() => {
+    if (!isReady) return;
+    console.log('handleUpdateBodyTexture');
+    (modelMeshes[MESH_TYPES.BODY]?.material as MeshPhysicalMaterial).map = bodyMaterials[props.bodyTexture]!.getTextureColor()!;
+    (modelMeshes[MESH_TYPES.BODY]?.material as MeshPhysicalMaterial).normalMap = bodyMaterials[props.bodyTexture]!.getTextureNormal()!;
+  }, [props.bodyTexture, bodyMaterials, isReady, modelMeshes]);
 
   return (
     <>
@@ -170,10 +225,10 @@ export function Model(props: ModelProps) {
             emotionEvent={props.emotionEvent}
             emotionFace={props.emotionFace}
             facialMaterials={facialMaterials}
-            facialMeshes={facialMeshes}
             isReady={isReady} 
             isModelLoaded={isModelLoaded} 
             model={modelData.scene.children[0]} 
+            modelMeshes={modelMeshes}
             phonemes={props.phonemes}
             setIsPlaying={setIsPlaying} />
         </Suspense>

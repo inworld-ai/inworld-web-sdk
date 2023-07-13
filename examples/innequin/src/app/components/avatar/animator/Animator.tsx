@@ -7,7 +7,7 @@ import {
   SkinnedMesh} from "three";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useRef, useCallback, useState } from "react";
-import { MaterialLoader } from "../loaders/MaterialLoader";
+import { FaceMaterialLoader } from "../loaders/FaceMaterialLoader";
 import { ANIMATION_TYPE, EMOTIONS, EMOTIONS_FACE, AnimationGesture } from '../../../types';
 import { Facial } from "./facial/Facial";
 import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
@@ -20,11 +20,11 @@ interface AnimatorProps {
   emotion: EMOTIONS;
   emotionEvent?: EmotionEvent;
   emotionFace: EMOTIONS_FACE;
-  facialMaterials: { [key: string]: MaterialLoader | null; };
-  facialMeshes: { [key: string]: SkinnedMesh | null; };
+  facialMaterials: { [key: string]: FaceMaterialLoader | null; };
   isReady: Boolean;
   isModelLoaded: Boolean;
   model: Object3D;
+  modelMeshes: { [key: string]: SkinnedMesh | null; };
   phonemes: AdditionalPhonemeInfo[];
   setIsPlaying: Function;
 }
@@ -280,7 +280,7 @@ export function Animator(props: AnimatorProps) {
             emotionEvent={props.emotionEvent}
             emotionFace={props.emotionFace} 
             facialMaterials={props.facialMaterials} 
-            facialMeshes={props.facialMeshes} 
+            modelMeshes={props.modelMeshes} 
             isReady={props.isReady}
             phonemes={props.phonemes}
           />

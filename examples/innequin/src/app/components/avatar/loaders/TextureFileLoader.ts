@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { Texture, TextureLoader } from 'three';
+import { SRGBColorSpace, Texture, TextureLoader } from 'three';
 
 export class TextureFileLoader {
   
@@ -31,6 +31,7 @@ export class TextureFileLoader {
 
   private onLoad(texture: Texture) {
     this.texture = texture;
+    this.texture.colorSpace = SRGBColorSpace;
     this.texture.flipY = false;
     this.isLoaded = true;
     this.callback!();

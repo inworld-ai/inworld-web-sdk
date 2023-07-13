@@ -1,11 +1,11 @@
-import { MaterialLoader } from "./MaterialLoader";
+import { FaceMaterialLoader } from "./FaceMaterialLoader";
 
 export class MaterialsLoader {
 
     callback: Function;
     count: number = 0;
 
-    constructor(materialFiles: {[key: string]: MaterialLoader | null;}, callback: Function) {
+    constructor(materialFiles: {[key: string]: FaceMaterialLoader | null;}, callback: Function) {
         this.callback = callback;
         this.onLoad = this.onLoad.bind(this);
         for (let i in materialFiles) {

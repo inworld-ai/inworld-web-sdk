@@ -35,7 +35,15 @@ import { Avatar } from './app/components/avatar/Avatar';
 import { AnimationFiles, AnimationSequence } from './data/animations';
 import { Config } from './config';
 
-import { CHAT_VIEW, Configuration, ConfigurationSession, EMOTIONS, EMOTIONS_FACE, EmotionsMap } from './app/types';
+import { 
+  BODY_TEXTURE_TYPE, 
+  CHAT_VIEW, 
+  Configuration, 
+  ConfigurationSession, 
+  EMOTIONS, 
+  EMOTIONS_FACE, 
+  EmotionsMap 
+} from './app/types';
 import * as defaults from './defaults';
 
 
@@ -62,6 +70,7 @@ function App() {
     const [avatar, setAvatar] = useState('');
     const [emotions, setEmotions] = useState<EmotionsMap>({});
 
+    const [bodyTexture, setBodyTexture] = useState(BODY_TEXTURE_TYPE.WOOD1);
     const [emotion, setEmotion] = useState(EMOTIONS.NEUTRAL);
     const [emotionFace, setEmotionFace] = useState(EMOTIONS_FACE.NEUTRAL);
 
@@ -178,7 +187,7 @@ function App() {
     <>
       {character ? (
         <MainWrapper>
-          {/* <Box
+          <Box
               sx={{
                 borderRadius: '1.75rem',
                 backgroundColor: 'white',
@@ -188,18 +197,21 @@ function App() {
                 
               }}
             >
-              <ControlBar 
+              <ControlBar
+                bodyTexture={bodyTexture}
+                setBodyTexture={setBodyTexture}
                 emotion={emotion} 
                 emotionFace={emotionFace} 
                 setEmotion={setEmotion} 
                 setEmotionFace={setEmotionFace} 
                 visible={chatView === CHAT_VIEW.AVATAR}
               />
-            </Box> */}
+            </Box>
           <ChatWrapper>
             <Avatar
               animationFiles={AnimationFiles}
               animationSequence={AnimationSequence}
+              bodyTexture={bodyTexture}
               emotion={emotion} 
               emotionFace={emotionFace} 
               visible={chatView === CHAT_VIEW.AVATAR}

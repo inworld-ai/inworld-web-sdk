@@ -5,10 +5,11 @@ import { PerspectiveCamera, Camera, Vector3 } from "three";
 import { LinearProgress, Typography } from '@mui/material';
 import { Skeleton } from '../skeleton/Skeleton';
 import { Model } from './Model';
-import { AnimationFile, ANIMATION_TYPE, EMOTIONS, EMOTIONS_FACE } from '../../types';
+import { AnimationFile, BODY_TEXTURE_TYPE, EMOTIONS, EMOTIONS_FACE } from '../../types';
 
 interface SceneProps {
     url: string;
+    bodyTexture: BODY_TEXTURE_TYPE;
     emotion: EMOTIONS;
     emotionFace: EMOTIONS_FACE;
     animationFiles: AnimationFile[];
@@ -49,6 +50,7 @@ export default function Scene(props: SceneProps) {
                           url={props.url}
                           animationFiles={props.animationFiles}
                           animationSequence={props.animationSequence}
+                          bodyTexture={props.bodyTexture}
                           emotion={props.emotion}
                           emotionFace={props.emotionFace}
                           phonemes={props.phonemes}

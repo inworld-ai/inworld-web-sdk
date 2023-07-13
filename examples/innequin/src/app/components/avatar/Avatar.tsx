@@ -1,6 +1,6 @@
 import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
 import { Box, Divider, Stack } from '@mui/material';
-import { AnimationFile, ANIMATION_TYPE, EMOTIONS, EMOTIONS_FACE } from '../../types';
+import { AnimationFile, BODY_TEXTURE_TYPE, EMOTIONS, EMOTIONS_FACE } from '../../types';
 
 import { useCallback, useEffect, useState } from "react";
 
@@ -9,6 +9,7 @@ import Scene from './Scene';
 interface AvatarProps {
   animationFiles: AnimationFile[];
   animationSequence: string[];
+  bodyTexture: BODY_TEXTURE_TYPE;
   emotion: EMOTIONS;
   emotionEvent?: EmotionEvent;
   emotionFace: EMOTIONS_FACE;
@@ -44,7 +45,8 @@ export function Avatar(props: AvatarProps) {
         }}
       >
         <Scene 
-          url={props.url} 
+          url={props.url}
+          bodyTexture={props.bodyTexture}
           emotion={props.emotion} 
           emotionFace={props.emotionFace}
           animationFiles={props.animationFiles} 

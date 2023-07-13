@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { MeshPhysicalMaterial, SkinnedMesh } from "three";
 import { EMOTIONS_FACE, EYE_STATES, FACE_TYPES, MATERIAL_TYPES } from "../../../../types";
-import { MaterialLoader } from "../../loaders/MaterialLoader";
+import { FaceMaterialLoader } from "../../loaders/FaceMaterialLoader";
 import { EmotionEvent } from '@inworld/web-sdk';
 
 interface EyeProps {
-    emotionFace: EMOTIONS_FACE;
-    facialMaterials: { [key: string]: MaterialLoader | null; };
-    facialMeshes: { [key: string]: SkinnedMesh | null; };
-    isReady: Boolean;
     emotionEvent?: EmotionEvent;
+    emotionFace: EMOTIONS_FACE;
     emotionRef: React.MutableRefObject<EMOTIONS_FACE>;
+    facialMaterials: { [key: string]: FaceMaterialLoader | null; };
+    isReady: Boolean;
+    modelMeshes: { [key: string]: SkinnedMesh | null; };
 }
 
 export function Eye(props: EyeProps) {
@@ -27,13 +27,13 @@ export function Eye(props: EyeProps) {
   useEffect(() => {
     if (props.isReady) {
       const eyeFaceType: EYE_STATES = isBlinking ? EYE_STATES.EYE_BLINK : EYE_STATES.EYE;
-      (props.facialMeshes[FACE_TYPES.EYE]?.material as MeshPhysicalMaterial).map 
+      (props.modelMeshes[FACE_TYPES.EYE]?.material as MeshPhysicalMaterial).map 
         = props.facialMaterials[props.emotionRef.current + "_" + eyeFaceType + "_" + MATERIAL_TYPES.FEATURE]!.getTextureColor()!;
-      (props.facialMeshes[FACE_TYPES.EYE]?.material as MeshPhysicalMaterial).alphaMap 
+      (props.modelMeshes[FACE_TYPES.EYE]?.material as MeshPhysicalMaterial).alphaMap 
         = props.facialMaterials[props.emotionRef.current + "_" + eyeFaceType + "_" + MATERIAL_TYPES.FEATURE]!.getTextureAlpha()!;
-      (props.facialMeshes[FACE_TYPES.EYE]?.material as MeshPhysicalMaterial).needsUpdate = true;
+      (props.modelMeshes[FACE_TYPES.EYE]?.material as MeshPhysicalMaterial).needsUpdate = true;
     }
-  }, [props.isReady, props.emotionRef.current, props.emotionFace, props.facialMaterials, props.facialMeshes, isBlinking]);
+  }, [props.isReady, props.emotionRef.current, props.emotionFace, props.facialMaterials, props.modelMeshes, isBlinking]);
 
   // Blink Change Timer
   useEffect(() => {
