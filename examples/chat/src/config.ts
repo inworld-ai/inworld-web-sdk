@@ -1,3 +1,5 @@
+import { Configuration } from './app/types';
+
 export const config = {
   INWORLD_CHARACTER: process.env.REACT_APP_INWORLD_CHARACTER,
   INWORLD_SCENE: process.env.REACT_APP_INWORLD_SCENE,
