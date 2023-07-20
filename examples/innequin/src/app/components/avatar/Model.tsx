@@ -36,6 +36,8 @@ interface ModelProps {
   onLoad?: () => void;
   phonemes: AdditionalPhonemeInfo[];
   emotionEvent?: EmotionEvent;
+  setLoadProgress: Function;
+  setLoadProgressTotal: Function;
 }
 
 export function Model(props: ModelProps) {
@@ -85,6 +87,8 @@ export function Model(props: ModelProps) {
       loadingModelMeshes[MESH_TYPES.MOUTH] = modelData.scene.children[0].children[0].children[0].children[2] as SkinnedMesh;
       loadingModelMeshes[MESH_TYPES.NOSE] = modelData.scene.children[0].children[0].children[0].children[3] as SkinnedMesh;
       loadingModelMeshes[MESH_TYPES.BODY] = modelData.scene.children[0].children[0].children[0].children[4] as SkinnedMesh;
+      props.setLoadProgress(33);
+      props.setLoadProgressTotal(66);
       setModelMeshes(loadingModelMeshes);
       setIsModelLoaded(true);
     }
@@ -104,7 +108,7 @@ export function Model(props: ModelProps) {
   // 3. Load Animation Files
   useEffect(() => {
     if (isModelLoaded && !isAnimationsLoaded && Object.keys(animationFiles).length > 0 && !isReady) {
-      const animationsLoader = new AnimationsLoader(animationFiles, () => setIsAnimationsLoaded(true));
+      const animationsLoader = new AnimationsLoader(animationFiles, () => setIsAnimationsLoaded(true), 33, 66, props.setLoadProgress);
     }
   }, [isModelLoaded, isAnimationsLoaded, animationFiles, isReady]);
 
@@ -127,6 +131,8 @@ export function Model(props: ModelProps) {
           loadingAnimationGestures.push(animationGesture);
         }
       }
+      props.setLoadProgress(66);
+      props.setLoadProgressTotal(100);
       setAnimationGestures(loadingAnimationGestures);
       setAnimationClips(loadingAnimationClips);      
     }
@@ -156,7 +162,7 @@ export function Model(props: ModelProps) {
   // 6. Load Material Files
   useEffect(() => {
     if (isModelLoaded && isAnimationsLoaded && !isFacialMaterialsLoaded && Object.keys(facialMaterials).length > 0 && !isReady) {
-      const materialsLoader = new MaterialsLoader(facialMaterials, () => setIsFacialMaterialsLoaded(true));
+      const materialsLoader = new MaterialsLoader(facialMaterials, () => setIsFacialMaterialsLoaded(true), 66, 100, props.setLoadProgress);
     }
   }, [isModelLoaded, isAnimationsLoaded, isFacialMaterialsLoaded, facialMaterials, isReady]);
 
@@ -164,6 +170,8 @@ export function Model(props: ModelProps) {
   useEffect(() => {
     if (isModelLoaded && isAnimationsLoaded && isFacialMaterialsLoaded && !isReady) {
       console.log('Materials Loaded');
+      props.setLoadProgress(100);
+      props.setLoadProgressTotal(100);
       setIsReady(true);
       props.onLoad?.();
     }

@@ -20,8 +20,10 @@ interface SceneProps {
 
 export default function Scene(props: SceneProps) {
   
-    const [isLoaded, setIsLoaded] = useState(false);
     const [camera, setCamera] = useState(new PerspectiveCamera(7, window.innerWidth / window.innerHeight, 0.01, 1000));
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [loadProgress, setLoadProgress] = useState(0);
+    const [loadProgressTotal, setLoadProgressTotal] = useState(33);
 
     useEffect(() => {
       if (isLoaded) {
@@ -55,6 +57,8 @@ export default function Scene(props: SceneProps) {
                           emotionFace={props.emotionFace}
                           phonemes={props.phonemes}
                           emotionEvent={props.emotionEvent}
+                          setLoadProgress={setLoadProgress}
+                          setLoadProgressTotal={setLoadProgressTotal}
                           onLoad={() => {
                               setIsLoaded(true)
                           }}
@@ -64,6 +68,18 @@ export default function Scene(props: SceneProps) {
                 <ambientLight intensity={0.5} />
                 <spotLight position={[10, 40, 10]} angle={0.15} penumbra={1} />
             </Canvas>
+            {!isLoaded && (
+              <LinearProgress
+                className="progressLoader"
+                sx={{
+                  width: '70%',
+                  top: '-50%',
+                  left: '15%',
+                  zIndex: 1000,
+                }}            
+                variant="buffer" value={loadProgress} valueBuffer={loadProgressTotal} 
+              />
+            )}
         </Suspense>
     </>
   );
