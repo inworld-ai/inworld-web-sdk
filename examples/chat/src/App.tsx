@@ -196,6 +196,7 @@ function App() {
     <>
       {character ? (
         <MainWrapper>
+          {false && (
           <Box
             sx={{
               borderRadius: '1.75rem',
@@ -212,9 +213,10 @@ function App() {
               emotionFace={emotionFace} 
               setEmotion={setEmotion} 
               setEmotionFace={setEmotionFace} 
-              visible={chatView === CHAT_VIEW.AVATAR}
+              visible={false}
             />
           </Box>
+          )}
           <ChatWrapper>
             {chatView === CHAT_VIEW.AVATAR && (
               <Avatar
