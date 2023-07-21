@@ -4,7 +4,7 @@ import { Suspense, useState } from 'react';
 import { Canvas, Camera } from '@react-three/fiber';
 import { Model } from './Model';
 import { LinearProgress, Typography } from '@mui/material';
-import { Skeleton } from '../Skeleton/Skeleton';
+import { Skeleton } from '../skeleton/Skeleton';
 interface InworldChar3DProps {
   url: string;
   phonemes: AdditionalPhonemeInfo[];

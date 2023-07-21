@@ -46,7 +46,7 @@ export const ConfigView = (props: ConfigViewProps) => {
                 <ChatView />
               </Grid>
             </Grid>
-            {props.chatView !== CHAT_VIEW.AVATAR && (
+            {props.chatView === CHAT_VIEW.TEXT && (
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
                   <Audio />

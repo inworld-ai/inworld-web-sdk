@@ -1,8 +1,8 @@
-import { Configuration } from '../types';
+import { ConfigurationSession } from '../types';
 
 const INWORLD_CONFIGURATION_KEY = 'inworldConfiguration';
 
-export const save = (values: Configuration) => {
+export const save = (values: ConfigurationSession) => {
   localStorage.setItem(INWORLD_CONFIGURATION_KEY, JSON.stringify(values));
 };
 

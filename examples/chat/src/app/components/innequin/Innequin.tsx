@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import Scene from './Scene';
 
-interface AvatarProps {
+interface InnequinProps {
   animationFiles: AnimationFile[];
   animationSequence: string[];
   bodyTexture: BODY_TEXTURE_TYPE;
@@ -18,11 +18,11 @@ interface AvatarProps {
   url: string;
 }
 
-export function Avatar(props: AvatarProps) {
+export function Innequin(props: InnequinProps) {
 
   return (
     <Stack
-      className="avatar"
+      className="innequin"
       direction="row"
       divider={<Divider orientation="vertical" flexItem />}
       spacing={1}

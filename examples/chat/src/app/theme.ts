@@ -1,6 +1,6 @@
 import { createTheme, responsiveFontSizes } from '@mui/material';
 
-import { INWORLD_COLORS, SLATE } from './colors';
+import { INWORLD_COLORS, SLATE } from './helpers/colors';
 
 export const theme = responsiveFontSizes(
   createTheme({

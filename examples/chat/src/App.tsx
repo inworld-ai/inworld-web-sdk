@@ -8,13 +8,15 @@ import {
   InworldConnectionService,
   InworldPacket,
 } from '@inworld/web-sdk';
+
 import { ArrowBackRounded } from '@mui/icons-material';
-import { Button, Grid } from '@mui/material';
+import { Box, Button, Grid } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { Chat } from './app/chat/Chat';
 import { Avatar } from './app/components/3dAvatar/Avatar';
+import { Innequin } from './app/components/innequin/Innequin';
 import { CircularRpmAvatar } from './app/components/CircularRpmAvatar';
 import { Layout } from './app/components/Layout';
 import {
@@ -28,10 +30,24 @@ import {
   get as getConfiguration,
   save as saveConfiguration,
 } from './app/helpers/configuration';
+
+import ControlBar from './app/components/ControlBar';
+
 import { toInt } from './app/helpers/transform';
-import { CHAT_VIEW, Configuration, EmotionsMap } from './app/types';
-import { config } from './config';
+
+import { 
+  BODY_TEXTURE_TYPE, 
+  CHAT_VIEW, 
+  Configuration, 
+  ConfigurationSession, 
+  EMOTIONS, 
+  EMOTIONS_FACE, 
+  EmotionsMap 
+} from './app/types';
+import { Config } from './config';
+import { AnimationFiles, AnimationSequence } from './data/animations';
 import * as defaults from './defaults';
+
 
 interface CurrentContext {
   characters: Character[];
@@ -39,20 +55,25 @@ interface CurrentContext {
   connection?: InworldConnectionService;
 }
 
-function App() {
-  const formMethods = useForm<Configuration>({ mode: 'onChange' });
 
-  const [initialized, setInitialized] = useState(false);
+function App() {
+  const formMethods = useForm<ConfigurationSession>({ mode: 'onChange' });
+
   const [connection, setConnection] = useState<InworldConnectionService>();
   const [character, setCharacter] = useState<Character>();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [chatHistory, setChatHistory] = useState<HistoryItem[]>([]);
   const [chatting, setChatting] = useState(false);
   const [chatView, setChatView] = useState(CHAT_VIEW.TEXT);
+  const [initialized, setInitialized] = useState(false);
   const [phonemes, setPhonemes] = useState<AdditionalPhonemeInfo[]>([]);
   const [emotionEvent, setEmotionEvent] = useState<EmotionEvent>();
   const [avatar, setAvatar] = useState('');
   const [emotions, setEmotions] = useState<EmotionsMap>({});
+
+  const [bodyTexture, setBodyTexture] = useState(BODY_TEXTURE_TYPE.WOOD1);
+  const [emotion, setEmotion] = useState(EMOTIONS.NEUTRAL);
+  const [emotionFace, setEmotionFace] = useState(EMOTIONS_FACE.NEUTRAL);
 
   const stateRef = useRef<CurrentContext>();
   stateRef.current = {
@@ -66,6 +87,7 @@ function App() {
   }, []);
 
   const openConnection = useCallback(async () => {
+    
     const form = formMethods.getValues();
 
     setChatting(true);
@@ -77,8 +99,8 @@ function App() {
     const service = new InworldService({
       onHistoryChange,
       capabilities: {
-        ...(form.chatView === CHAT_VIEW.AVATAR && { phonemes: true }),
-        ...(form.chatView !== CHAT_VIEW.AVATAR && { interruptions: true }),
+        ...(form.chatView !== CHAT_VIEW.TEXT && { phonemes: true }),
+        ...(form.chatView === CHAT_VIEW.TEXT && { interruptions: true }),
         emotions: true,
         narratedActions: true,
       },
@@ -163,7 +185,7 @@ function App() {
 
     formMethods.reset({
       ...(configuration
-        ? (JSON.parse(configuration) as Configuration)
+        ? (JSON.parse(configuration) as ConfigurationSession)
         : defaults.configuration),
     });
 
@@ -174,17 +196,51 @@ function App() {
     <>
       {character ? (
         <MainWrapper>
-          <ChatWrapper>
-            <Avatar
-              emotionEvent={emotionEvent}
-              phonemes={phonemes}
+          <Box
+            sx={{
+              borderRadius: '1.75rem',
+              backgroundColor: 'white',
+              top: '50px',
+              width: '9%',
+              height: '50%',
+            }}
+          >
+            <ControlBar
+              bodyTexture={bodyTexture}
+              setBodyTexture={setBodyTexture}
+              emotion={emotion} 
+              emotionFace={emotionFace} 
+              setEmotion={setEmotion} 
+              setEmotionFace={setEmotionFace} 
               visible={chatView === CHAT_VIEW.AVATAR}
-              url={
-                config.RPM_AVATAR ||
-                character.assets.rpmModelUri ||
-                defaults.DEFAULT_RPM_AVATAR
-              }
             />
+          </Box>
+          <ChatWrapper>
+            {chatView === CHAT_VIEW.AVATAR && (
+              <Avatar
+                emotionEvent={emotionEvent}
+                phonemes={phonemes}
+                visible={chatView === CHAT_VIEW.AVATAR}
+                url={
+                  Config.RPM_AVATAR ||
+                  character.assets.rpmModelUri ||
+                  defaults.DEFAULT_RPM_AVATAR
+                }
+              />
+            )}
+            {chatView === CHAT_VIEW.INNEQUIN && (
+              <Innequin
+                animationFiles={AnimationFiles}
+                animationSequence={AnimationSequence}
+                bodyTexture={bodyTexture}
+                emotion={emotion} 
+                emotionFace={emotionFace} 
+                visible={chatView === CHAT_VIEW.INNEQUIN}
+                url={ Config.MODEL_URI }
+                emotionEvent={emotionEvent}
+                phonemes={phonemes}
+              />
+            )}
             <SimulatorHeader>
               <Grid container>
                 <Grid item sm={6}>

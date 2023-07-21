@@ -5,37 +5,39 @@ export type AnimationFile = {
   emotion: EMOTIONS;
   type: ANIMATION_TYPE;
   file: string;
-}
+};
 
 export type AnimationGesture = {
   duration: number;
   emotion: EMOTIONS;
   name: string;
-}
-
-export type Configuration = {
-  
-  character?: ConfigurationCharacter;
-  scene?: ConfigurationScene;
-  player?: ConfigurationPlayer;
-  chatView?: CHAT_VIEW;
-  audio: ConfigurationAudio;
-
-  ANIMATIONS_URI: string;
-  DEFAULT_ANIMATION: string;
-  GENERATE_TOKEN_URL: string;
-  IMAGES_BODY_URI: string;
-  IMAGES_FACIAL_URI: string;
-  INWORLD_CHARACTER: string | undefined,
-  INWORLD_SCENE: string | undefined,
-  MODEL_URI: string;
 };
 
 export enum CHAT_VIEW {
   TEXT = 'Text',
   AVATAR = 'Avatar',
   INNEQUIN = 'Innequin',
-}
+};
+
+export type Configuration = {
+  ANIMATIONS_URI: string;
+  DEFAULT_ANIMATION: string;
+  GENERATE_TOKEN_URL: string;
+  IMAGES_BODY_URI: string;
+  IMAGES_FACIAL_URI: string;
+  INWORLD_CHARACTER: string | undefined;
+  INWORLD_SCENE: string | undefined;
+  MODEL_URI: string;
+  RPM_AVATAR: string | undefined;
+};
+
+export type ConfigurationSession = {
+  audio: ConfigurationAudio;
+  character?: ConfigurationCharacter;
+  scene?: ConfigurationScene;
+  player?: ConfigurationPlayer;
+  chatView?: CHAT_VIEW;
+};
 
 export type ConfigurationCharacter = {
   name?: string;
