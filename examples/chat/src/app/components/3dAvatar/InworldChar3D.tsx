@@ -1,10 +1,10 @@
 /* eslint-disable */
 import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
 import { Suspense, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, Camera } from '@react-three/fiber';
 import { Model } from './Model';
 import { LinearProgress, Typography } from '@mui/material';
-import { Skeleton } from '../Skeleton/Skeleton';
+import { Skeleton } from '../skeleton/Skeleton';
 interface InworldChar3DProps {
   url: string;
   phonemes: AdditionalPhonemeInfo[];

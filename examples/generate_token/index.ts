@@ -13,7 +13,7 @@ const SSL_KEY_FOLDER = './keys/';
 try {
   if (!fs.existsSync('.env')) {
     throw new Error(
-      '.env file not found. Did you copy the .env_sample file to .env?'
+      '.env file not found. Did you copy the .env_sample file to .env?',
     );
   }
   if (!process.env.INWORLD_KEY) {
@@ -26,15 +26,15 @@ try {
     throw new Error('PORT env variable is required');
   }
   if (
-    !process.env.USE_SSL && 
+    !process.env.USE_SSL &&
     (process.env.USE_SSL === 'true' || process.env.USE_SSL === 'false')
   ) {
     throw new Error('USE_SSL env variable must be either true or false');
-  } 
+  }
   if (process.env.USE_SSL === 'true') {
     if (!process.env.SSL_KEY_NAME) {
       throw new Error(
-        'SSL_KEY_NAME env variable is required when USE_SSL is true'
+        'SSL_KEY_NAME env variable is required when USE_SSL is true',
       );
     }
     if (!fs.existsSync(SSL_KEY_FOLDER + process.env.SSL_KEY_NAME)) {
@@ -42,7 +42,7 @@ try {
     }
     if (!process.env.SSL_CERT_NAME) {
       throw new Error(
-        'SSL_CERT_NAME env variable is required when USE_SSL is true'
+        'SSL_CERT_NAME env variable is required when USE_SSL is true',
       );
     }
     if (!fs.existsSync(SSL_KEY_FOLDER + process.env.SSL_CERT_NAME)) {
@@ -74,19 +74,21 @@ app.get('/', async (_, res) => {
 });
 
 if (USE_SSL) {
-  const privateKey = fs.readFileSync(
-    SSL_KEY_FOLDER + process.env.SSL_KEY_NAME
-  );
+  const privateKey = fs.readFileSync(SSL_KEY_FOLDER + process.env.SSL_KEY_NAME);
   const certificate = fs.readFileSync(
-    SSL_KEY_FOLDER + process.env.SSL_CERT_NAME
+    SSL_KEY_FOLDER + process.env.SSL_CERT_NAME,
   );
-  https.createServer({
-    key: privateKey,
-    cert: certificate
-  }, app)
-  .listen(PORT, () => {
-    console.log(`Listening to port ${PORT}`);
-  });
+  https
+    .createServer(
+      {
+        key: privateKey,
+        cert: certificate,
+      },
+      app,
+    )
+    .listen(PORT, () => {
+      console.log(`Listening to port ${PORT}`);
+    });
 } else {
   app.listen(PORT, () => {
     console.log(`Listening to port ${PORT}`);

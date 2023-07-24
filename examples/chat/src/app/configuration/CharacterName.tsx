@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { save as saveConfiguration } from '../helpers/configuration';
-import { Configuration } from '../types';
+import { ConfigurationSession } from '../types';
 
 const FIELD_NAME = 'character.name';
 export const RESOURCE_NAME_PATTERN = RegExp(
@@ -12,7 +12,7 @@ export const RESOURCE_NAME_PATTERN = RegExp(
 
 export const CharacterName = () => {
   const { getValues, formState, register, setValue } =
-    useFormContext<Configuration>();
+    useFormContext<ConfigurationSession>();
 
   const onChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {

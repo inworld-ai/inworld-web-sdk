@@ -1,10 +1,10 @@
 import { CHAT_VIEW } from './app/types';
-import { config } from './config';
+import { Config } from './config';
 
 export const configuration = {
-  character: { name: config.INWORLD_CHARACTER },
+  character: { name: Config.INWORLD_CHARACTER },
   chatView: CHAT_VIEW.TEXT,
-  scene: { name: config.INWORLD_SCENE },
+  scene: { name: Config.INWORLD_SCENE },
   player: { name: 'Participant' },
 };
 

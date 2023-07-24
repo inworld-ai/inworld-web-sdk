@@ -8,7 +8,7 @@ import {
   InworldPacket,
 } from '@inworld/web-sdk';
 
-import { config } from '../config';
+import { Config } from '../config';
 
 interface InworldServiceProps {
   audioPlayback?: AudioPlaybackConfig;
@@ -45,7 +45,7 @@ export class InworldService {
   }
 
   private async generateSessionToken() {
-    const response = await fetch(config.GENERATE_TOKEN_URL);
+    const response = await fetch(Config.GENERATE_TOKEN_URL);
 
     return response.json();
   }
