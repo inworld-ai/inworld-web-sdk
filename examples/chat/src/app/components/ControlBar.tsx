@@ -1,4 +1,4 @@
-import { Box, Button, Divider, Stack } from '@mui/material';
+import { Button, Divider, Stack } from '@mui/material';
 
 import { BODY_TEXTURE_TYPE, EMOTIONS, EMOTIONS_FACE } from '../types';
 
@@ -21,7 +21,7 @@ export default function ControlBar(props: ControlBarProps) {
         divider={<Divider orientation="vertical" flexItem />}
         spacing={1}
         sx={{
-          backgroundColor: "white",
+          backgroundColor: 'white',
           position: 'absolute',
           left: 0,
           display: props.visible ? 'flex' : 'none',
@@ -53,17 +53,56 @@ export default function ControlBar(props: ControlBarProps) {
           spacing={1}
         >
           <p>Body Skin</p>
-          <Button variant="outlined" onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.BRONZE)}>Bronze</Button>
-          <Button variant="outlined" onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.CAMO)}>Camo</Button>
-          <Button variant="outlined" onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.SKITZ)}>Skitz</Button>
-          <Button variant="outlined" onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.WOOD0)}>Wood0</Button>
-          <Button variant="outlined" onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.WOOD1)}>Wood1</Button>
-          <Button variant="outlined" onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.WOOD2)}>Wood2</Button>
-          <Button variant="outlined" onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.WOOD3)}>Wood3</Button>
-          <Button variant="outlined" onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.WOOD4)}>Wood4</Button>
+          <Button
+            variant="outlined"
+            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.BRONZE)}
+          >
+            Bronze
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.CAMO)}
+          >
+            Camo
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.SKITZ)}
+          >
+            Skitz
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.WOOD0)}
+          >
+            Wood0
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.WOOD1)}
+          >
+            Wood1
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.WOOD2)}
+          >
+            Wood2
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.WOOD3)}
+          >
+            Wood3
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.WOOD4)}
+          >
+            Wood4
+          </Button>
         </Stack>
       </Stack>
-
     </>
-  )
+  );
 }
