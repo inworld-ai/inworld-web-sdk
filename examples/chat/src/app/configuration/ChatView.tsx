@@ -11,7 +11,8 @@ import { save as saveConfiguration } from '../helpers/configuration';
 import { CHAT_VIEW, ConfigurationSession } from '../types';
 
 export const ChatView = () => {
-  const { control, getValues, setValue } = useFormContext<ConfigurationSession>();
+  const { control, getValues, setValue } =
+    useFormContext<ConfigurationSession>();
 
   return (
     <Box sx={{ m: 2 }}>

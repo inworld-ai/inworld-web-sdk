@@ -8,7 +8,6 @@ import {
   InworldConnectionService,
   InworldPacket,
 } from '@inworld/web-sdk';
-
 import { ArrowBackRounded } from '@mui/icons-material';
 import { Box, Button, Grid } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -16,8 +15,9 @@ import { FormProvider, useForm } from 'react-hook-form';
 
 import { Chat } from './app/chat/Chat';
 import { Avatar } from './app/components/3dAvatar/Avatar';
-import { Innequin } from './app/components/innequin/Innequin';
 import { CircularRpmAvatar } from './app/components/CircularRpmAvatar';
+import ControlBar from './app/components/ControlBar';
+import { Innequin } from './app/components/innequin/Innequin';
 import { Layout } from './app/components/Layout';
 import {
   ChatWrapper,
@@ -30,31 +30,24 @@ import {
   get as getConfiguration,
   save as saveConfiguration,
 } from './app/helpers/configuration';
-
-import ControlBar from './app/components/ControlBar';
-
 import { toInt } from './app/helpers/transform';
-
-import { 
-  BODY_TEXTURE_TYPE, 
-  CHAT_VIEW, 
-  Configuration, 
-  ConfigurationSession, 
-  EMOTIONS, 
-  EMOTIONS_FACE, 
-  EmotionsMap 
+import {
+  BODY_TEXTURE_TYPE,
+  CHAT_VIEW,
+  ConfigurationSession,
+  EMOTIONS,
+  EMOTIONS_FACE,
+  EmotionsMap,
 } from './app/types';
 import { Config } from './config';
 import { AnimationFiles, AnimationSequence } from './data/animations';
 import * as defaults from './defaults';
-
 
 interface CurrentContext {
   characters: Character[];
   chatting: boolean;
   connection?: InworldConnectionService;
 }
-
 
 function App() {
   const formMethods = useForm<ConfigurationSession>({ mode: 'onChange' });
@@ -87,7 +80,6 @@ function App() {
   }, []);
 
   const openConnection = useCallback(async () => {
-    
     const form = formMethods.getValues();
 
     setChatting(true);
@@ -197,25 +189,25 @@ function App() {
       {character ? (
         <MainWrapper>
           {false && (
-          <Box
-            sx={{
-              borderRadius: '1.75rem',
-              backgroundColor: 'white',
-              top: '50px',
-              width: '9%',
-              height: '50%',
-            }}
-          >
-            <ControlBar
-              bodyTexture={bodyTexture}
-              setBodyTexture={setBodyTexture}
-              emotion={emotion} 
-              emotionFace={emotionFace} 
-              setEmotion={setEmotion} 
-              setEmotionFace={setEmotionFace} 
-              visible={false}
-            />
-          </Box>
+            <Box
+              sx={{
+                borderRadius: '1.75rem',
+                backgroundColor: 'white',
+                top: '50px',
+                width: '9%',
+                height: '50%',
+              }}
+            >
+              <ControlBar
+                bodyTexture={bodyTexture}
+                setBodyTexture={setBodyTexture}
+                emotion={emotion}
+                emotionFace={emotionFace}
+                setEmotion={setEmotion}
+                setEmotionFace={setEmotionFace}
+                visible={false}
+              />
+            </Box>
           )}
           <ChatWrapper>
             {chatView === CHAT_VIEW.AVATAR && (
@@ -235,10 +227,10 @@ function App() {
                 animationFiles={AnimationFiles}
                 animationSequence={AnimationSequence}
                 bodyTexture={bodyTexture}
-                emotion={emotion} 
-                emotionFace={emotionFace} 
+                emotion={emotion}
+                emotionFace={emotionFace}
                 visible={chatView === CHAT_VIEW.INNEQUIN}
-                url={ Config.MODEL_URI }
+                url={Config.MODEL_URI}
                 emotionEvent={emotionEvent}
                 phonemes={phonemes}
               />

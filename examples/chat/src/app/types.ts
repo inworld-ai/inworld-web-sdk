@@ -17,7 +17,7 @@ export enum CHAT_VIEW {
   TEXT = 'Text',
   AVATAR = 'Avatar',
   INNEQUIN = 'Innequin',
-};
+}
 
 export type Configuration = {
   ANIMATIONS_URI: string;

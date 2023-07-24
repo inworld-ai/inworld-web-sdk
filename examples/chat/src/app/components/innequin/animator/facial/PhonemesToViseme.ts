@@ -2,15 +2,16 @@ import { AdditionalPhonemeInfo } from '@inworld/web-sdk';
 
 import { phonemeToVisemeMap } from './PhonemesToVisemesMap';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const SMOOTH_FACTOR_S = 0.15;
-const LAST_PHONEME_DURATION = 1;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const EXPRESSION_FACTOR = 0.5;
+const LAST_PHONEME_DURATION = 1;
 
 export const getVisemeData = function (
   offset: number,
   phonemeData: AdditionalPhonemeInfo[],
 ) {
-
   // exit condition 1;
   if (!phonemeData[phonemeData.length - 1]) {
     return;
@@ -27,7 +28,6 @@ export const getVisemeData = function (
     currentIndex < phonemeData.length;
     currentIndex++
   ) {
-
     // iterating though all phonemes, trying to calculate smoothed blendshape;
 
     const currentOffset = phonemeData[currentIndex].startOffsetS!;
@@ -46,9 +46,9 @@ export const getVisemeData = function (
 
     // let visemeValue = 0;
 
-    if  (offset > currentOffset && offset < nextOffset ) {
-        // console.log('currentPhoneme', offset, currentOffset, nextOffset, currentPhoneme, currentViseme);
-        return currentViseme;
+    if (offset > currentOffset && offset < nextOffset) {
+      // console.log('currentPhoneme', offset, currentOffset, nextOffset, currentPhoneme, currentViseme);
+      return currentViseme;
     }
 
     if (currentIndex == phonemeData.length) {
@@ -57,5 +57,4 @@ export const getVisemeData = function (
   }
 
   return -1;
-
 };

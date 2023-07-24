@@ -3,10 +3,11 @@ import { useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { save as saveConfiguration } from '../helpers/configuration';
-import { Configuration, ConfigurationSession } from '../types';
+import { ConfigurationSession } from '../types';
 
 export const Audio = () => {
-  const { getValues, register, setValue } = useFormContext<ConfigurationSession>();
+  const { getValues, register, setValue } =
+    useFormContext<ConfigurationSession>();
 
   const onChange = useCallback(() => {
     saveConfiguration(getValues());

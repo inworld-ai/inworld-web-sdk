@@ -1,9 +1,12 @@
 import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
 import { Box, Divider, Stack } from '@mui/material';
-import { AnimationFile, BODY_TEXTURE_TYPE, EMOTIONS, EMOTIONS_FACE } from '../../types';
 
-import { useCallback, useEffect, useState } from "react";
-
+import {
+  AnimationFile,
+  BODY_TEXTURE_TYPE,
+  EMOTIONS,
+  EMOTIONS_FACE,
+} from '../../types';
 import Scene from './Scene';
 
 interface InnequinProps {
@@ -19,7 +22,6 @@ interface InnequinProps {
 }
 
 export function Innequin(props: InnequinProps) {
-
   return (
     <Stack
       className="innequin"
@@ -44,12 +46,12 @@ export function Innequin(props: InnequinProps) {
           height: '100%',
         }}
       >
-        <Scene 
+        <Scene
           url={props.url}
           bodyTexture={props.bodyTexture}
-          emotion={props.emotion} 
+          emotion={props.emotion}
           emotionFace={props.emotionFace}
-          animationFiles={props.animationFiles} 
+          animationFiles={props.animationFiles}
           animationSequence={props.animationSequence}
           emotionEvent={props.emotionEvent}
           phonemes={props.phonemes}
