@@ -203,8 +203,13 @@ export class GrpcAudioPlayback<
       );
       this.audioBufferSourceNode.connect(this.gainNode);
       this.audioBufferSourceNode.onended = () => {
-        this.onAfterPlaying?.(this.currentItem.packet!);
-        this.currentItem.onAfterPlaying?.(this.currentItem.packet!);
+        const { packet } = this.currentItem || {};
+
+        if (packet?.isAudio()) {
+          this.onAfterPlaying?.(packet);
+          this.currentItem.onAfterPlaying?.(packet);
+        }
+
         this.currentItem = undefined;
         this.playQueue();
       };
@@ -226,7 +231,7 @@ export class GrpcAudioPlayback<
     this.isPlaying = true;
 
     let audioBuffer;
-    const { packet } = this.currentItem || {};
+    const { packet } = this.currentItem;
 
     if (packet?.isSilence() && packet.silence.durationMs) {
       const durationSec = packet.silence.durationMs / 1000;
@@ -245,12 +250,18 @@ export class GrpcAudioPlayback<
     this.clearSourceNode();
 
     this.getSourceNode().buffer = audioBuffer;
-    if (packet.isAudio() && packet.audio.additionalPhonemeInfo) {
-      this.onPhoneme?.(packet.audio.additionalPhonemeInfo);
+
+    if (packet.isAudio()) {
+      if (packet.audio.additionalPhonemeInfo) {
+        this.onPhoneme?.(packet.audio.additionalPhonemeInfo);
+      }
+
+      this.currentItem.packet.audio.durationMs = audioBuffer.duration * 1000;
     }
+
     this.getSourceNode().start();
-    this.onBeforePlaying?.(packet!);
-    this.currentItem.onBeforePlaying?.(packet);
+    this.onBeforePlaying?.(this.currentItem.packet);
+    this.currentItem.onBeforePlaying?.(this.currentItem.packet);
   };
 
   private adjustVolume(newVolume: number): Promise<void> {
