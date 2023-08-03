@@ -52,7 +52,7 @@ Character.prototype.getId = deprecate(
 
 Character.prototype.getResourceName = deprecate(
   Character.prototype.getResourceName,
-  'getResourceName() is deprecated. Use `desourceName` property instead.',
+  'getResourceName() is deprecated. Use `resourceName` property instead.',
 );
 
 Character.prototype.getDisplayName = deprecate(
