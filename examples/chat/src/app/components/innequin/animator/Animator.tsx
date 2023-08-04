@@ -10,12 +10,7 @@ import {
   SkinnedMesh,
 } from 'three';
 
-import {
-  ANIMATION_TYPE,
-  AnimationGesture,
-  EMOTIONS,
-  EMOTIONS_FACE,
-} from '../../../types';
+import { ANIMATION_TYPE, AnimationGesture, EMOTIONS } from '../data/types';
 import { FaceMaterialLoader } from '../loaders/FaceMaterialLoader';
 import { BehaviorToBody } from './BehaviorToBody';
 import { Facial } from './facial/Facial';
@@ -24,9 +19,7 @@ interface AnimatorProps {
   animationClips: { [key: string]: AnimationClip | null };
   animationGestures: AnimationGesture[];
   animationSequence: string[];
-  emotion: EMOTIONS;
   emotionEvent?: EmotionEvent;
-  emotionFace: EMOTIONS_FACE;
   facialMaterials: { [key: string]: FaceMaterialLoader | null };
   isReady: Boolean;
   isModelLoaded: Boolean;
@@ -292,7 +285,7 @@ export function Animator(props: AnimatorProps) {
       if (animationMixer instanceof AnimationMixer) {
         animationMixer.update(clockRef.current.getDelta());
         // This is needed due to a bug in Three.js around combining a GLB model and GLB animation file that both have a 90* offset.
-        props.model.rotation.set(0, 0, 0);
+        // props.model.rotation.set(0, 0, 0);
       }
       if (phonemeData.length > 0) {
         talkingCurrentTime += delta;
@@ -396,7 +389,6 @@ export function Animator(props: AnimatorProps) {
     <>
       <Facial
         emotionEvent={props.emotionEvent}
-        emotionFace={props.emotionFace}
         facialMaterials={props.facialMaterials}
         modelMeshes={props.modelMeshes}
         isReady={props.isReady}

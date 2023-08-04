@@ -4,18 +4,13 @@ import { useEffect, useRef } from 'react';
 import { MeshPhysicalMaterial, SkinnedMesh } from 'three';
 
 import { Visemes } from '../../../../../data/visemes';
-import {
-  EMOTIONS_FACE,
-  FACE_TYPES,
-  MATERIAL_TYPES,
-  VISEME_TYPES,
-} from '../../../../types';
+import { VISEME_TYPES } from '../../../../types';
+import { EMOTIONS_FACE, FACE_TYPES, MATERIAL_TYPES } from '../../data/types';
 import { FaceMaterialLoader } from '../../loaders/FaceMaterialLoader';
 import { getVisemeData } from './PhonemesToViseme';
 
 interface MouthProps {
   emotionEvent?: EmotionEvent;
-  emotionFace: EMOTIONS_FACE;
   emotionRef: React.MutableRefObject<EMOTIONS_FACE>;
   facialMaterials: { [key: string]: FaceMaterialLoader | null };
   isReady: Boolean;
@@ -61,7 +56,6 @@ export function Mouth(props: MouthProps) {
   }, [
     props.isReady,
     props.emotionRef.current,
-    props.emotionFace,
     props.facialMaterials,
     props.modelMeshes,
   ]);

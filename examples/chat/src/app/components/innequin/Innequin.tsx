@@ -1,24 +1,18 @@
 import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
 import { Box, Divider, Stack } from '@mui/material';
 
-import {
-  AnimationFile,
-  BODY_TEXTURE_TYPE,
-  EMOTIONS,
-  EMOTIONS_FACE,
-} from '../../types';
+import { BODY_TEXTURE_TYPE } from '../../types';
+import { AnimationFile } from './data/types';
 import Scene from './Scene';
 
 interface InnequinProps {
   animationFiles: AnimationFile[];
   animationSequence: string[];
   bodyTexture: BODY_TEXTURE_TYPE;
-  emotion: EMOTIONS;
   emotionEvent?: EmotionEvent;
-  emotionFace: EMOTIONS_FACE;
   phonemes: AdditionalPhonemeInfo[];
   visible: boolean;
-  url: string;
+  modelURI: string;
 }
 
 export function Innequin(props: InnequinProps) {
@@ -47,10 +41,8 @@ export function Innequin(props: InnequinProps) {
         }}
       >
         <Scene
-          url={props.url}
+          modelURI={props.modelURI}
           bodyTexture={props.bodyTexture}
-          emotion={props.emotion}
-          emotionFace={props.emotionFace}
           animationFiles={props.animationFiles}
           animationSequence={props.animationSequence}
           emotionEvent={props.emotionEvent}

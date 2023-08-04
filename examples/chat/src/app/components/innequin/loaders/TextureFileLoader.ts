@@ -2,14 +2,14 @@
 import { SRGBColorSpace, Texture, TextureLoader } from 'three';
 
 export class TextureFileLoader {
-  
+
   callback?: Function;
   fileURI: string;
   isLoaded: Boolean = false;
   texture?: Texture;
   textureLoader: TextureLoader;
 
-  constructor( fileURI: string ) {
+  constructor(fileURI: string) {
     this.fileURI = fileURI;
     this.textureLoader = new TextureLoader();
     this.onLoad = this.onLoad.bind(this);
@@ -22,7 +22,7 @@ export class TextureFileLoader {
 
   public load(callback: Function) {
     this.callback = callback;
-    this.textureLoader.load( this.fileURI, this.onLoad, undefined, this.onError);
+    this.textureLoader.load(this.fileURI, this.onLoad, undefined, this.onError);
   }
 
   private onError(error: ErrorEvent) {

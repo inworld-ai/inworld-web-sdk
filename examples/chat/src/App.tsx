@@ -17,6 +17,10 @@ import { Chat } from './app/chat/Chat';
 import { Avatar } from './app/components/3dAvatar/Avatar';
 import { CircularRpmAvatar } from './app/components/CircularRpmAvatar';
 import ControlBar from './app/components/ControlBar';
+import {
+  AnimationFiles,
+  AnimationSequence,
+} from './app/components/innequin/data/animations';
 import { Innequin } from './app/components/innequin/Innequin';
 import { Layout } from './app/components/Layout';
 import {
@@ -35,12 +39,9 @@ import {
   BODY_TEXTURE_TYPE,
   CHAT_VIEW,
   ConfigurationSession,
-  EMOTIONS,
-  EMOTIONS_FACE,
   EmotionsMap,
 } from './app/types';
 import { Config } from './config';
-import { AnimationFiles, AnimationSequence } from './data/animations';
 import * as defaults from './defaults';
 
 interface CurrentContext {
@@ -52,6 +53,7 @@ interface CurrentContext {
 function App() {
   const formMethods = useForm<ConfigurationSession>({ mode: 'onChange' });
 
+  const [bodyTexture, setBodyTexture] = useState(BODY_TEXTURE_TYPE.WOOD1);
   const [connection, setConnection] = useState<InworldConnectionService>();
   const [character, setCharacter] = useState<Character>();
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -63,10 +65,6 @@ function App() {
   const [emotionEvent, setEmotionEvent] = useState<EmotionEvent>();
   const [avatar, setAvatar] = useState('');
   const [emotions, setEmotions] = useState<EmotionsMap>({});
-
-  const [bodyTexture, setBodyTexture] = useState(BODY_TEXTURE_TYPE.WOOD1);
-  const [emotion, setEmotion] = useState(EMOTIONS.NEUTRAL);
-  const [emotionFace, setEmotionFace] = useState(EMOTIONS_FACE.NEUTRAL);
 
   const stateRef = useRef<CurrentContext>();
   stateRef.current = {
@@ -188,7 +186,7 @@ function App() {
     <>
       {character ? (
         <MainWrapper>
-          {false && (
+          {true && (
             <Box
               sx={{
                 borderRadius: '1.75rem',
@@ -201,11 +199,7 @@ function App() {
               <ControlBar
                 bodyTexture={bodyTexture}
                 setBodyTexture={setBodyTexture}
-                emotion={emotion}
-                emotionFace={emotionFace}
-                setEmotion={setEmotion}
-                setEmotionFace={setEmotionFace}
-                visible={false}
+                visible={true}
               />
             </Box>
           )}
@@ -227,12 +221,10 @@ function App() {
                 animationFiles={AnimationFiles}
                 animationSequence={AnimationSequence}
                 bodyTexture={bodyTexture}
-                emotion={emotion}
-                emotionFace={emotionFace}
-                visible={chatView === CHAT_VIEW.INNEQUIN}
-                url={Config.MODEL_URI}
                 emotionEvent={emotionEvent}
                 phonemes={phonemes}
+                visible={chatView === CHAT_VIEW.INNEQUIN}
+                modelURI={Config.MODEL_URI}
               />
             )}
             <SimulatorHeader>

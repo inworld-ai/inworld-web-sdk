@@ -7,12 +7,11 @@ import {
   EYE_STATES,
   FACE_TYPES,
   MATERIAL_TYPES,
-} from '../../../../types';
+} from '../../data/types';
 import { FaceMaterialLoader } from '../../loaders/FaceMaterialLoader';
 
 interface EyeProps {
   emotionEvent?: EmotionEvent;
-  emotionFace: EMOTIONS_FACE;
   emotionRef: React.MutableRefObject<EMOTIONS_FACE>;
   facialMaterials: { [key: string]: FaceMaterialLoader | null };
   isReady: Boolean;
@@ -61,7 +60,6 @@ export function Eye(props: EyeProps) {
   }, [
     props.isReady,
     props.emotionRef.current,
-    props.emotionFace,
     props.facialMaterials,
     props.modelMeshes,
     isBlinking,

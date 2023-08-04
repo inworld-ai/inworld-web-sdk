@@ -2,22 +2,20 @@ import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
 import { useLoader } from '@react-three/fiber';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { AnimationClip, MeshPhysicalMaterial, SkinnedMesh } from 'three';
-// import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
+import { BODY_TEXTURE_TYPE, VISEME_TYPES } from '../../types';
+import { Animator } from './animator/Animator';
 import {
   ANIMATION_TYPE,
   AnimationFile,
   AnimationGesture,
-  BODY_TEXTURE_TYPE,
-  EMOTIONS,
   EMOTIONS_FACE,
   FACE_TEXTURE_TYPES,
   MATERIAL_TYPES,
   MESH_TYPES,
-  VISEME_TYPES,
-} from '../../types';
-import { Animator } from './animator/Animator';
+} from './data/types';
 import { AnimationLoader } from './loaders/AnimationLoader';
 import { AnimationsLoader } from './loaders/AnimationsLoader';
 import { BodyMaterialLoader } from './loaders/BodyMaterialLoader';
@@ -25,22 +23,25 @@ import { FaceMaterialLoader } from './loaders/FaceMaterialLoader';
 import { MaterialsLoader } from './loaders/MaterialsLoader';
 
 interface ModelProps {
-  url: string;
+  modelURI: string;
   bodyTexture: BODY_TEXTURE_TYPE;
-  emotion: EMOTIONS;
-  emotionFace: EMOTIONS_FACE;
   animationFiles: AnimationFile[];
   animationSequence: string[];
   onLoad?: () => void;
   phonemes: AdditionalPhonemeInfo[];
   emotionEvent?: EmotionEvent;
+  setIsSpinner: Function;
   setLoadProgress: Function;
   setLoadProgressTotal: Function;
 }
 
 export function Model(props: ModelProps) {
   const bodyTextureRef = useRef(props.bodyTexture);
-  const modelData = useLoader(GLTFLoader, props.url);
+  const modelData = useLoader(GLTFLoader, props.modelURI, (loader) => {
+    const dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath('./draco-gltf/');
+    loader.setDRACOLoader(dracoLoader);
+  });
   const modelRef = useRef(modelData);
 
   const [isAnimationsLoaded, setIsAnimationsLoaded] = useState(false);
@@ -81,17 +82,34 @@ export function Model(props: ModelProps) {
       console.log('Model Loaded');
       modelRef.current = modelData;
       const loadingModelMeshes = { ...modelMeshes };
-      // console.log(`Mesh Count`, modelData.scene.children[0].children[0]);
-      loadingModelMeshes[MESH_TYPES.BROW] = modelData.scene.children[0]
-        .children[0].children[0].children[0] as SkinnedMesh;
-      loadingModelMeshes[MESH_TYPES.EYE] = modelData.scene.children[0]
-        .children[0].children[0].children[1] as SkinnedMesh;
-      loadingModelMeshes[MESH_TYPES.MOUTH] = modelData.scene.children[0]
-        .children[0].children[0].children[2] as SkinnedMesh;
-      loadingModelMeshes[MESH_TYPES.NOSE] = modelData.scene.children[0]
-        .children[0].children[0].children[3] as SkinnedMesh;
-      loadingModelMeshes[MESH_TYPES.BODY] = modelData.scene.children[0]
-        .children[0].children[0].children[4] as SkinnedMesh;
+      const skeleton = modelData.scene.children[0].children.find(
+        (item) => item.name === 'skeleton',
+      );
+      console.log(`Mesh Count`, modelData.scene.children[0].children);
+      loadingModelMeshes[MESH_TYPES.BROW] = skeleton?.children.find(
+        (item) => item.name === 'faceLayer_brows_geo',
+      ) as SkinnedMesh;
+      loadingModelMeshes[MESH_TYPES.EYE] = skeleton?.children.find(
+        (item) => item.name === 'faceLayer_eyes_geo',
+      ) as SkinnedMesh;
+      loadingModelMeshes[MESH_TYPES.MOUTH] = skeleton?.children.find(
+        (item) => item.name === 'faceLayer_mouth_geo',
+      ) as SkinnedMesh;
+      loadingModelMeshes[MESH_TYPES.NOSE] = skeleton?.children.find(
+        (item) => item.name === 'faceLayer_nose_geo',
+      ) as SkinnedMesh;
+      loadingModelMeshes[MESH_TYPES.BODY_ARMS] = skeleton?.children.find(
+        (item) => item.name === 'Mannequin_Arms',
+      ) as SkinnedMesh;
+      loadingModelMeshes[MESH_TYPES.BODY_HEAD] = skeleton?.children.find(
+        (item) => item.name === 'Mannequin_Head_03',
+      ) as SkinnedMesh;
+      loadingModelMeshes[MESH_TYPES.BODY_LEGS] = skeleton?.children.find(
+        (item) => item.name === 'Mannequin_Legs',
+      ) as SkinnedMesh;
+      loadingModelMeshes[MESH_TYPES.BODY_TORSO] = skeleton?.children.find(
+        (item) => item.name === 'Mannequin_Body',
+      ) as SkinnedMesh;
       props.setLoadProgress(33);
       props.setLoadProgressTotal(66);
       setModelMeshes(loadingModelMeshes);
@@ -273,10 +291,11 @@ export function Model(props: ModelProps) {
   useEffect(() => {
     if (
       isReady &&
-      props.bodyTexture != bodyTextureRef.current &&
+      props.bodyTexture && //  != bodyTextureRef.current
       !bodyMaterialLoading
     ) {
       console.log('Body Texture Change:', props.bodyTexture);
+      // props.setIsSpinner(true);
       bodyTextureRef.current = props.bodyTexture;
       handleOnChangeBodyTexture();
     }
@@ -316,10 +335,26 @@ export function Model(props: ModelProps) {
   const handleUpdateBodyTexture = useCallback(() => {
     if (!isReady) return;
     console.log('handleUpdateBodyTexture');
-    (modelMeshes[MESH_TYPES.BODY]?.material as MeshPhysicalMaterial).map =
-      bodyMaterials[props.bodyTexture]!.getTextureColor()!;
-    (modelMeshes[MESH_TYPES.BODY]?.material as MeshPhysicalMaterial).normalMap =
-      bodyMaterials[props.bodyTexture]!.getTextureNormal()!;
+    (modelMeshes[MESH_TYPES.BODY_ARMS]?.material as MeshPhysicalMaterial).map =
+      bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
+    (
+      modelMeshes[MESH_TYPES.BODY_ARMS]?.material as MeshPhysicalMaterial
+    ).normalMap = bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
+    (modelMeshes[MESH_TYPES.BODY_HEAD]?.material as MeshPhysicalMaterial).map =
+      bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
+    (
+      modelMeshes[MESH_TYPES.BODY_HEAD]?.material as MeshPhysicalMaterial
+    ).normalMap = bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
+    (modelMeshes[MESH_TYPES.BODY_LEGS]?.material as MeshPhysicalMaterial).map =
+      bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
+    (
+      modelMeshes[MESH_TYPES.BODY_LEGS]?.material as MeshPhysicalMaterial
+    ).normalMap = bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
+    (modelMeshes[MESH_TYPES.BODY_TORSO]?.material as MeshPhysicalMaterial).map =
+      bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
+    (
+      modelMeshes[MESH_TYPES.BODY_TORSO]?.material as MeshPhysicalMaterial
+    ).normalMap = bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
   }, [props.bodyTexture, bodyMaterials, isReady, modelMeshes]);
 
   return (
@@ -331,9 +366,7 @@ export function Model(props: ModelProps) {
             animationClips={animationClips}
             animationGestures={animationGestures}
             animationSequence={props.animationSequence}
-            emotion={props.emotion}
             emotionEvent={props.emotionEvent}
-            emotionFace={props.emotionFace}
             facialMaterials={facialMaterials}
             isReady={isReady}
             isModelLoaded={isModelLoaded}
