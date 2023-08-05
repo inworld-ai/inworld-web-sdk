@@ -13,3 +13,4 @@ jest.config.json
 /tsconfig.json
 */**/yarn.lock
 */**/package-lock.json
+RELEASEME.md
