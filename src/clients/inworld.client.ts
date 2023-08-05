@@ -1,4 +1,4 @@
-import { CapabilitiesRequest, UserRequest } from '../../proto/world-engine.pb';
+import { CapabilitiesRequest } from '../../proto/world-engine.pb';
 import { GRPC_HOSTNAME } from '../common/constants';
 import {
   Awaitable,
@@ -26,7 +26,7 @@ export class InworldClient<
   CapabilitiesT extends Capabilities = Capabilities,
   InworldPacketT extends InworldPacket = InworldPacket,
 > {
-  private user: UserRequest;
+  private user: User;
   private scene: string = '';
   private client: Client;
   private config: ClientConfiguration<CapabilitiesT> = {};
@@ -53,10 +53,7 @@ export class InworldClient<
   private extension: Extension<InworldPacketT>;
 
   setUser(user: User) {
-    this.user = {
-      id: user.id,
-      name: user.fullName,
-    };
+    this.user = user;
 
     return this;
   }
