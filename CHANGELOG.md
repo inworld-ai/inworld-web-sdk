@@ -1,3 +1,5 @@
+## 2023-08-04 v1.5.1
+
 - Use correct link to GitHub page
 
 ## 2023-08-04 v1.5.0
