@@ -173,7 +173,6 @@ describe('load scene', () => {
     expect(mockLoadScene.mock.calls[0][0].user).toEqual({ id: user.id });
   });
 
-
   test('should use provided provided user name', async () => {
     const mockLoadScene = jest.fn(
       (_req: LoadSceneRequest, _initReq?: fm.InitReq) => {
