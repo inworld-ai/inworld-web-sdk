@@ -1,4 +1,5 @@
 - Allow to propagate user profile fields
+- Propagate audio duration to onBeforePlaying and onAfterPlaying callbacks
 
 ## 2023-07-25 v1.4.2
 
