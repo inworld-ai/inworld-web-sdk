@@ -1,3 +1,5 @@
+## 2023-08-04 v1.5.0
+
 - Allow to propagate user profile fields
 - Propagate audio duration to onBeforePlaying and onAfterPlaying callbacks
 - Use UUID as user persistent id by default
