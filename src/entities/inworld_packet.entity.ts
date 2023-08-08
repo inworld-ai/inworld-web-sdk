@@ -88,6 +88,9 @@ export interface AdditionalPhonemeInfo {
 
 export interface AudioEvent {
   chunk: string;
+  // Available only when metadata is loaded.
+  // I.e. before audio playing.
+  durationMs?: number;
   additionalPhonemeInfo?: AdditionalPhonemeInfo[];
 }
 

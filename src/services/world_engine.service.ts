@@ -1,22 +1,23 @@
+import { v4 } from 'uuid';
+
 import * as fm from '../../proto/fetch.pb';
-import {
-  ClientRequest,
-  UserRequest,
-  WorldEngine,
-} from '../../proto/world-engine.pb';
+import { ClientRequest, WorldEngine } from '../../proto/world-engine.pb';
 import { CLIENT_ID } from '../common/constants';
 import {
   ExtensionLoadSceneProps,
   InternalClientConfiguration,
   SessionToken,
+  User,
 } from '../common/data_structures';
+
+const INWORLD_USER_ID = 'inworldUserId';
 
 type PbFunc<P, R> = (req: P, initReq?: fm.InitReq) => Promise<R>;
 
 export interface LoadSceneProps {
   name: string;
   client?: ClientRequest;
-  user?: UserRequest;
+  user?: User;
   config: InternalClientConfiguration;
   session: SessionToken;
   sceneProps?: ExtensionLoadSceneProps;
@@ -26,6 +27,7 @@ export class WorldEngineService {
   async loadScene(props: LoadSceneProps) {
     const { client, config, name, sceneProps, session, user } = props;
     const { hostname, ssl } = config.connection.gateway;
+    const { id, fullName, profile } = user;
 
     const url = `${ssl ? 'https' : 'http'}://${hostname}`;
 
@@ -35,8 +37,20 @@ export class WorldEngineService {
         ...client,
       },
       name,
-      user,
+      user: {
+        id: id ? id : this.getUserId(),
+        ...(fullName && { name: fullName }),
+      },
       capabilities: config.capabilities,
+      ...(profile?.fields.length && {
+        userSettings: {
+          playerProfile: {
+            fields: profile.fields.map(
+              ({ id: fieldId, value: fieldValue }) => ({ fieldId, fieldValue }),
+            ),
+          },
+        },
+      }),
       ...sceneProps,
     });
   }
@@ -62,4 +76,15 @@ export class WorldEngineService {
 
     return pb(req, params);
   };
+
+  private getUserId() {
+    let id = localStorage.getItem(INWORLD_USER_ID);
+
+    if (!id) {
+      id = v4();
+      localStorage.setItem(INWORLD_USER_ID, id);
+    }
+
+    return id;
+  }
 }

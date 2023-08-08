@@ -1,3 +1,17 @@
+## 2023-08-04 v1.5.1
+
+- Use correct link to GitHub page
+
+## 2023-08-04 v1.5.0
+
+- Allow to propagate user profile fields
+- Propagate audio duration to onBeforePlaying and onAfterPlaying callbacks
+- Use UUID as user persistent id by default
+
+## 2023-07-25 v1.4.2
+
+- Updated example project Generate Token
+
 ## 2023-07-25 v1.4.1
 
 - Added Innequin model to the Chat example
