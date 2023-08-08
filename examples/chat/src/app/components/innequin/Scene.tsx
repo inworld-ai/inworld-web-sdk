@@ -81,7 +81,7 @@ export default function Scene(props: SceneProps) {
             </Suspense>
           )}
           <ambientLight intensity={0.5} />
-          <spotLight position={[10, 40, 10]} angle={0.15} penumbra={1} />
+          <spotLight position={[-10, 40, 0]} angle={0.15} penumbra={1} />
         </Canvas>
         {!isLoaded && (
           <LinearProgress
