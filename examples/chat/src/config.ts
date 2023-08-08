@@ -12,7 +12,7 @@ export const Config: Configuration = {
     'https://storage.googleapis.com/assets-inworld-ai/models/innequin/imgs/face/',
   INWORLD_CHARACTER: process.env.REACT_APP_INWORLD_CHARACTER,
   INWORLD_SCENE: process.env.REACT_APP_INWORLD_SCENE,
-  MODEL_URI: './innequin.glb',
+  MODEL_URI: './assets/innequin.glb',
   RPM_AVATAR: process.env.REACT_APP_RPM_AVATAR,
   CAMERA_SETTINGS: {
     POS_X: 0,

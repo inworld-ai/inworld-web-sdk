@@ -3,5 +3,8 @@ build
 node_modules
 .eslintcache
 
+/examples/chat/public/assets/*
+/examples/chat/public/draco-gltf/*
+
 # Mac filesystem
 **/.DS_Store
