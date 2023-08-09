@@ -31,7 +31,7 @@ export function Model(props: ModelProps) {
   useEffect(() => {
     if (modelData) {
       console.log('modelData', modelData);
-      const mesh = modelData.children[0].children[0] as SkinnedMesh;
+      const mesh = modelData.children[0].children[1] as SkinnedMesh;
       setSknnedMesh(mesh);
       // iterate through blendshape names in order to find the beginning of the
       // viseme sequence (viseme_sil + 14 next)
