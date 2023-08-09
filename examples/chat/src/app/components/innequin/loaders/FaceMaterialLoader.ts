@@ -3,7 +3,13 @@ import { Texture } from 'three';
 
 import { Config } from '../../../../config';
 import { TextureFileLoader } from './TextureFileLoader';
-import { EMOTIONS_FACE, FACE_TEXTURE_TYPES, MATERIAL_TYPES, TEXTURE_TYPES, VISEME_TYPES } from '../../../types';
+import {
+  EMOTIONS_FACE,
+  FACE_TEXTURE_TYPES,
+  MATERIAL_TYPES,
+  TEXTURE_TYPES,
+  VISEME_TYPES,
+} from '../../../types';
 
 // File constants
 const ALPHA: string = '_opacity';
@@ -11,7 +17,6 @@ const EXT: string = '.png';
 const VISEMES: string = 'visemes';
 
 export class FaceMaterialLoader {
-  
   callback?: Function;
   isLoaded: Boolean = false;
   emotionType: EMOTIONS_FACE;
@@ -21,40 +26,55 @@ export class FaceMaterialLoader {
   textureFileLoaderAlpha: TextureFileLoader;
   textureFileLoaderColor: TextureFileLoader;
 
-  constructor( emotionType: EMOTIONS_FACE, faceType: FACE_TEXTURE_TYPES, materialType: MATERIAL_TYPES, visemeType? : VISEME_TYPES ) {
+  constructor(
+    emotionType: EMOTIONS_FACE,
+    faceType: FACE_TEXTURE_TYPES,
+    materialType: MATERIAL_TYPES,
+    visemeType?: VISEME_TYPES,
+  ) {
     this.emotionType = emotionType;
     this.faceType = faceType;
     this.materialType = materialType;
     this.visemeType = visemeType;
-    this.textureFileLoaderAlpha = new TextureFileLoader(this._generateFileURI(TEXTURE_TYPES.ALPHA));
-    this.textureFileLoaderColor = new TextureFileLoader(this._generateFileURI(TEXTURE_TYPES.COLOR));
+    this.textureFileLoaderAlpha = new TextureFileLoader(
+      this._generateFileURI(TEXTURE_TYPES.ALPHA),
+    );
+    this.textureFileLoaderColor = new TextureFileLoader(
+      this._generateFileURI(TEXTURE_TYPES.COLOR),
+    );
     this.onLoad = this.onLoad.bind(this);
   }
 
-  private _generateFileURI(textureType: TEXTURE_TYPES, visemeType? : VISEME_TYPES): string {
+  private _generateFileURI(
+    textureType: TEXTURE_TYPES,
+    visemeType?: VISEME_TYPES,
+  ): string {
     let fileURI = Config.IMAGES_FACIAL_URI;
 
-    if (this.materialType === MATERIAL_TYPES.FEATURE || this.materialType === MATERIAL_TYPES.VISEME) {
-        fileURI += this.emotionType + "/";
+    if (
+      this.materialType === MATERIAL_TYPES.FEATURE ||
+      this.materialType === MATERIAL_TYPES.VISEME
+    ) {
+      fileURI += this.emotionType + '/';
     }
-    
+
     if (this.materialType === MATERIAL_TYPES.FEATURE) {
-        fileURI += this.faceType + "_" + this.emotionType;
+      fileURI += this.faceType + '_' + this.emotionType;
     }
 
     if (this.materialType === MATERIAL_TYPES.VISEME) {
-        fileURI += VISEMES + "/" + this.visemeType + "_" + this.emotionType;
+      fileURI += VISEMES + '/' + this.visemeType + '_' + this.emotionType;
     }
 
     if (this.materialType === MATERIAL_TYPES.EMOTE) {
-        // TODO
+      // TODO
     }
 
     if (textureType === TEXTURE_TYPES.ALPHA) {
-        fileURI += ALPHA + EXT    
+      fileURI += ALPHA + EXT;
     }
     if (textureType === TEXTURE_TYPES.COLOR) {
-        fileURI += EXT  
+      fileURI += EXT;
     }
     return fileURI;
   }
@@ -74,10 +94,12 @@ export class FaceMaterialLoader {
   }
 
   private onLoad() {
-    if ( this.textureFileLoaderAlpha.isLoaded && this.textureFileLoaderColor.isLoaded) {
-        this.isLoaded = true;
-        this.callback!();
+    if (
+      this.textureFileLoaderAlpha.isLoaded &&
+      this.textureFileLoaderColor.isLoaded
+    ) {
+      this.isLoaded = true;
+      this.callback!();
     }
   }
-
 }
