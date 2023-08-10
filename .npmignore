@@ -11,6 +11,7 @@ __tests__
 .prettierrc.json
 jest.config.json
 /tsconfig.json
+/.release-it.json
 */**/yarn.lock
 */**/package-lock.json
 RELEASEME.md
