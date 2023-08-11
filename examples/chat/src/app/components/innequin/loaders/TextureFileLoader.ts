@@ -2,7 +2,6 @@
 import { SRGBColorSpace, Texture, TextureLoader } from 'three';
 
 export class TextureFileLoader {
-
   callback?: Function;
   fileURI: string;
   isLoaded: Boolean = false;
@@ -26,7 +25,7 @@ export class TextureFileLoader {
   }
 
   private onError(error: ErrorEvent) {
-    throw new Error("Error loading texture file " + this.fileURI + " " + error);
+    throw new Error('Error loading texture file ' + this.fileURI + ' ' + error);
   }
 
   private onLoad(texture: Texture) {
@@ -36,5 +35,4 @@ export class TextureFileLoader {
     this.isLoaded = true;
     this.callback!();
   }
-
 }

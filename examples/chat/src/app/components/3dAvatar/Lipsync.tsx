@@ -26,7 +26,7 @@ export function LipSync(props: LipSyncProps) {
   useEffect(() => {
     let modelData = props.modelRef.current;
     if (modelData) {
-      const mesh = modelData.children[0].children[0] as SkinnedMesh;
+      const mesh = modelData.children[0].children[1] as SkinnedMesh;
 
       setSknnedMesh(mesh);
       for (let i = 0; i < mesh.userData.targetNames.length; i++) {

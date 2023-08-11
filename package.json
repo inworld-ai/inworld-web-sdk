@@ -27,6 +27,7 @@
     "build": "tsc -p .",
     "release:pack": "yarn build && yarn pack",
     "release:publish": "yarn build && yarn publish",
+    "release:bump": "release-it",
     "test": "jest --no-cache --reporters=default",
     "test:coverage": "jest --coverage",
     "lint:check": "eslint --cache  \"./**/*.{js,jsx,ts,tsx}\" --ignore-path .eslintignore",
@@ -36,6 +37,7 @@
     "prepare": "husky install"
   },
   "devDependencies": {
+    "@release-it/keep-a-changelog": "^4.0.0",
     "@types/defer-promise": "^1.0.0",
     "@types/jest": "^29.2.0",
     "@types/js-cookie": "^3.0.2",
@@ -53,6 +55,7 @@
     "jest-environment-jsdom": "^29.3.1",
     "jest-websocket-mock": "^2.4.0",
     "prettier": "^2.7.1",
+    "release-it": "^16.1.4",
     "ts-jest": "^28.0.7",
     "ts-loader": "^9.4.1",
     "typescript": "^4.7.4",
