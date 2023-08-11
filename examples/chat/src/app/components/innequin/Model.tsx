@@ -39,7 +39,9 @@ export function Model(props: ModelProps) {
   const bodyTextureRef = useRef(props.bodyTexture);
   const modelData = useLoader(GLTFLoader, props.modelURI, (loader) => {
     const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath('./draco-gltf/');
+    dracoLoader.setDecoderPath(
+      'https://storage.googleapis.com/assets-inworld-ai/models/innequin/v2/draco-gltf/',
+    );
     loader.setDRACOLoader(dracoLoader);
   });
   const modelRef = useRef(modelData);
@@ -291,7 +293,7 @@ export function Model(props: ModelProps) {
   useEffect(() => {
     if (
       isReady &&
-      props.bodyTexture && //  != bodyTextureRef.current
+      props.bodyTexture != bodyTextureRef.current && //  != bodyTextureRef.current
       !bodyMaterialLoading
     ) {
       console.log('Body Texture Change:', props.bodyTexture);

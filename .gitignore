@@ -3,6 +3,7 @@ build
 node_modules
 .eslintcache
 
+# Development folder for locally hosted assets.
 /examples/chat/public/assets/*
 
 # Mac filesystem

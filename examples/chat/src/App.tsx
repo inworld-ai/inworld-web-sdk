@@ -186,7 +186,7 @@ function App() {
     <>
       {character ? (
         <MainWrapper>
-          {true && (
+          {false && (
             <Box
               sx={{
                 borderRadius: '1.75rem',

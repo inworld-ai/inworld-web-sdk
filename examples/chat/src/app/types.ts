@@ -64,12 +64,12 @@ export enum BODY_TEXTURE_TYPE {
   BRONZE = 'BRONZE',
   CAMO = 'CAMO',
   DOTS = 'DOTS',
+  SKITZ = 'SKITZ',
   WOOD0 = 'WOOD0',
   WOOD1 = 'WOOD1',
   WOOD2 = 'WOOD2',
   WOOD3 = 'WOOD3',
   WOOD4 = 'WOOD4',
-  SKITZ = 'SKITZ',
 }
 
 export enum VISEME_TYPES {

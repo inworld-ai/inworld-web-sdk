@@ -5,7 +5,7 @@ node_modules
 /.pnp
 .pnp.js
 
-# folder for locally hosted assets
+# Development folder for locally hosted assets.
 /public/assets/*
 
 # testing
