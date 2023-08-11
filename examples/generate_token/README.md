@@ -14,7 +14,7 @@ If you require to host the project on your own dedicated platform and need SSL o
 - [Instructions](#instructions)
 - [Environment Variables](#env)
 - [Railway.app Service Setup](#railway-setup)
-- [Dedicate SSL/HTTPS Server Setup](#server-setup)
+- [Dedicated SSL/HTTPS Server Setup](#server-setup)
 
 <br>
 
@@ -71,7 +71,7 @@ The following is are the instructions for setting up the Inworld Generate Token 
 
 ---
 
-![Railway.app Dashboard Homepage](/imgs/img-1-a.png 'Railway.app Dashboard Homepage')
+![Railway.app Dashboard Homepage](./imgs/img-1-a.png 'Railway.app Dashboard Homepage')
 
 <br>
 
@@ -79,7 +79,7 @@ The following is are the instructions for setting up the Inworld Generate Token 
 
 ---
 
-![Railway.app Template Deploy](/imgs/img-1-b.png 'Railway.app Template Deploy')
+![Railway.app Template Deploy](./imgs/img-1-b.png 'Railway.app Template Deploy')
 
 <br>
 
@@ -87,7 +87,7 @@ The following is are the instructions for setting up the Inworld Generate Token 
 
 ---
 
-![Railway.app Template Deploy](/imgs/img-1-c.png 'Railway.app Template Deploy')
+![Railway.app Template Deploy](./imgs/img-1-c.png 'Railway.app Template Deploy')
 
 <br>
 
@@ -95,7 +95,7 @@ The following is are the instructions for setting up the Inworld Generate Token 
 
 ---
 
-![Railway.app Domain Settings](/imgs/img-1-d.png 'Railway.app Domain Settings')
+![Railway.app Domain Settings](./imgs/img-1-d.png 'Railway.app Domain Settings')
 
 <br>
 
@@ -103,7 +103,7 @@ The following is are the instructions for setting up the Inworld Generate Token 
 
 ---
 
-![Railway.app Domain Settings](/imgs/img-1-e.png 'Railway.app Domain Settings')
+![Railway.app Domain Settings](./imgs/img-1-e.png 'Railway.app Domain Settings')
 
 <br>
 
@@ -111,11 +111,11 @@ The following is are the instructions for setting up the Inworld Generate Token 
 
 ---
 
-![Service Token Response](/imgs/img-1-f.png 'Service Token Response')
+![Service Token Response](./imgs/img-1-f.png 'Service Token Response')
 
 <br>
 
-## Dedicate SSL/HTTPS Server Setup <a id="server-setup" name="server-setup"></a>
+## Dedicated SSL/HTTPS Server Setup <a id="server-setup" name="server-setup"></a>
 
 Do to modern security requirements for browsers, if you run the Inworld Web SDK from an external or Production service that uses SSL/HTTPS you will need to setup the this project on a service that can allow HTTPS OR you need a SSL Key/Certificate.
 
