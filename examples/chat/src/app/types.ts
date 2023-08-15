@@ -10,6 +10,7 @@ export type Configuration = {
   ANIMATIONS_URI: string;
   CAMERA_SETTINGS: ConfigurationCamera;
   DEFAULT_ANIMATION: string;
+  DRACO_COMPRESSION_URI: string;
   GENERATE_TOKEN_URL: string;
   IMAGES_BODY_URI: string;
   IMAGES_FACIAL_URI: string;
