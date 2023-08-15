@@ -2,14 +2,13 @@ import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
 import { useEffect, useRef } from 'react';
 import { MeshPhysicalMaterial, SkinnedMesh } from 'three';
 
-import { EMOTIONS_FACE, FACE_TYPES, MATERIAL_TYPES } from '../../../../types';
+import { EMOTIONS_FACE, FACE_TYPES, MATERIAL_TYPES } from '../../data/types';
 import { FaceMaterialLoader } from '../../loaders/FaceMaterialLoader';
 import { BehaviorToFacial } from './BehaviorToFacial';
 import { Eye } from './Eye';
 import { Mouth } from './Mouth';
 
 interface FacialProps {
-  emotionFace: EMOTIONS_FACE;
   facialMaterials: { [key: string]: FaceMaterialLoader | null };
   isReady: Boolean;
   modelMeshes: { [key: string]: SkinnedMesh | null };
@@ -62,7 +61,6 @@ export function Facial(props: FacialProps) {
   }, [
     props.isReady,
     emotionRef.current,
-    props.emotionFace,
     props.facialMaterials,
     props.modelMeshes,
   ]);
@@ -77,7 +75,6 @@ export function Facial(props: FacialProps) {
     <>
       <Eye
         emotionEvent={props.emotionEvent}
-        emotionFace={props.emotionFace}
         emotionRef={emotionSetRef}
         facialMaterials={props.facialMaterials}
         isReady={props.isReady}
@@ -85,7 +82,6 @@ export function Facial(props: FacialProps) {
       />
       <Mouth
         emotionEvent={props.emotionEvent}
-        emotionFace={props.emotionFace}
         emotionRef={emotionSetRef}
         facialMaterials={props.facialMaterials}
         isReady={props.isReady}

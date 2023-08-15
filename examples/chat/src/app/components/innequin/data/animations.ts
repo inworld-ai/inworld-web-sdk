@@ -1,4 +1,4 @@
-import { ANIMATION_TYPE, AnimationFile, EMOTIONS } from '../app/types';
+import { ANIMATION_TYPE, AnimationFile, EMOTIONS } from './types';
 
 export const AnimationFiles: AnimationFile[] = [
   {

@@ -1,4 +1,4 @@
-import { EMOTIONS_FACE } from '../../../../types';
+import { EMOTIONS_FACE } from '../../data/types';
 
 export const BehaviorToFacial: { [key: string]: EMOTIONS_FACE } = {
   NEUTRAL: EMOTIONS_FACE.NEUTRAL,

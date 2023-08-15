@@ -3,13 +3,14 @@ import { Texture } from 'three';
 
 import { Config } from '../../../../config';
 import { TextureFileLoader } from './TextureFileLoader';
+import { VISEME_TYPES } from '../../../types';
+
 import {
   EMOTIONS_FACE,
   FACE_TEXTURE_TYPES,
   MATERIAL_TYPES,
   TEXTURE_TYPES,
-  VISEME_TYPES,
-} from '../../../types';
+} from '../data/types';
 
 // File constants
 const ALPHA: string = '_opacity';

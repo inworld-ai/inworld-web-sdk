@@ -30,10 +30,10 @@
     "release:bump": "release-it",
     "test": "jest --no-cache --reporters=default",
     "test:coverage": "jest --coverage",
-    "lint:check": "eslint --cache  \"./**/*.{js,jsx,ts,tsx}\" --ignore-path .gitignore",
+    "lint:check": "eslint --cache  \"./**/*.{js,jsx,ts,tsx}\" --ignore-path .eslintignore",
     "lint:fix": "yarn run lint:check --fix",
-    "prettier:check": "yarn prettier --check \"./{src,__tests__,examples}/**/*.{js,jsx,ts,tsx}\" --ignore-path .gitignore",
-    "prettier:format": "yarn prettier --write \"./{src,__tests__,examples}/**/*.{js,jsx,ts,tsx}\" --ignore-path .gitignore",
+    "prettier:check": "yarn prettier --check \"./{src,__tests__,examples}/**/*.{js,jsx,ts,tsx}\" --ignore-path .eslintignore",
+    "prettier:format": "yarn prettier --write \"./{src,__tests__,examples}/**/*.{js,jsx,ts,tsx}\" --ignore-path .eslintignore",
     "prepare": "husky install"
   },
   "devDependencies": {

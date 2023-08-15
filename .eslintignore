@@ -1,0 +1,7 @@
+coverage
+build
+node_modules
+.eslintcache
+/examples/chat/public/assets/*
+**/draco-gltf/*
+/examples/chat/public/draco-gltf/*

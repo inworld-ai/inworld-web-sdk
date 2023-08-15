@@ -1,23 +1,18 @@
 import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
-import { LinearProgress, Typography } from '@mui/material';
+import { CircularProgress, LinearProgress, Typography } from '@mui/material';
 import { Canvas } from '@react-three/fiber';
 import { Suspense, useEffect, useState } from 'react';
 import { PerspectiveCamera, Vector3 } from 'three';
 
-import {
-  AnimationFile,
-  BODY_TEXTURE_TYPE,
-  EMOTIONS,
-  EMOTIONS_FACE,
-} from '../../types';
+import { Config } from '../../../config';
+import { BODY_TEXTURE_TYPE } from '../../types';
 import { Skeleton } from '../skeleton/Skeleton';
+import { AnimationFile } from './data/types';
 import { Model } from './Model';
 
 interface SceneProps {
-  url: string;
+  modelURI: string;
   bodyTexture: BODY_TEXTURE_TYPE;
-  emotion: EMOTIONS;
-  emotionFace: EMOTIONS_FACE;
   animationFiles: AnimationFile[];
   animationSequence: string[];
   phonemes: AdditionalPhonemeInfo[];
@@ -28,21 +23,32 @@ export default function Scene(props: SceneProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [camera, setCamera] = useState(
     new PerspectiveCamera(
-      7,
+      Config.CAMERA_SETTINGS.FOV,
       window.innerWidth / window.innerHeight,
-      0.01,
-      1000,
+      Config.CAMERA_SETTINGS.NEAR,
+      Config.CAMERA_SETTINGS.FAR,
     ),
   );
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isSpinner, setIsSpinner] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
   const [loadProgressTotal, setLoadProgressTotal] = useState(33);
 
   useEffect(() => {
     if (isLoaded) {
       console.log('Scene isLoaded');
-      camera.position.set(0, 0.06, 0.2);
-      camera.lookAt(new Vector3(0, 0.007, 0));
+      camera.position.set(
+        Config.CAMERA_SETTINGS.POS_X,
+        Config.CAMERA_SETTINGS.POS_Y,
+        Config.CAMERA_SETTINGS.POS_Z,
+      );
+      camera.lookAt(
+        new Vector3(
+          Config.CAMERA_SETTINGS.TAR_X,
+          Config.CAMERA_SETTINGS.TAR_Y,
+          Config.CAMERA_SETTINGS.TAR_Z,
+        ),
+      );
     }
   }, [isLoaded]);
 
@@ -59,14 +65,13 @@ export default function Scene(props: SceneProps) {
           {true && (
             <Suspense fallback={null}>
               <Model
-                url={props.url}
+                modelURI={props.modelURI}
                 animationFiles={props.animationFiles}
                 animationSequence={props.animationSequence}
                 bodyTexture={props.bodyTexture}
-                emotion={props.emotion}
-                emotionFace={props.emotionFace}
                 phonemes={props.phonemes}
                 emotionEvent={props.emotionEvent}
+                setIsSpinner={setIsSpinner}
                 setLoadProgress={setLoadProgress}
                 setLoadProgressTotal={setLoadProgressTotal}
                 onLoad={() => {
@@ -76,7 +81,7 @@ export default function Scene(props: SceneProps) {
             </Suspense>
           )}
           <ambientLight intensity={0.5} />
-          <spotLight position={[10, 40, 10]} angle={0.15} penumbra={1} />
+          <spotLight position={[-10, 40, 0]} angle={0.15} penumbra={1} />
         </Canvas>
         {!isLoaded && (
           <LinearProgress
@@ -90,6 +95,17 @@ export default function Scene(props: SceneProps) {
             variant="buffer"
             value={loadProgress}
             valueBuffer={loadProgressTotal}
+          />
+        )}
+        {isSpinner && (
+          <CircularProgress
+            sx={{
+              width: '40px',
+              height: '40px',
+              top: '-50%',
+              left: '50%',
+              zIndex: 1000,
+            }}
           />
         )}
       </Suspense>

@@ -1,12 +1,8 @@
 import { Button, Divider, Stack } from '@mui/material';
 
-import { BODY_TEXTURE_TYPE, EMOTIONS, EMOTIONS_FACE } from '../types';
+import { BODY_TEXTURE_TYPE } from '../types';
 
 interface ControlBarProps {
-  emotion: EMOTIONS;
-  emotionFace: EMOTIONS_FACE;
-  setEmotion: Function;
-  setEmotionFace: Function;
   bodyTexture: BODY_TEXTURE_TYPE;
   setBodyTexture: Function;
   visible: boolean;
@@ -64,6 +60,12 @@ export default function ControlBar(props: ControlBarProps) {
             onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.CAMO)}
           >
             Camo
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.DOTS)}
+          >
+            Dots
           </Button>
           <Button
             variant="outlined"

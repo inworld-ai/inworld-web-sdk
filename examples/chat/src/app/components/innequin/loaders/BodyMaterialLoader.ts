@@ -3,16 +3,13 @@ import { Texture, SRGBColorSpace } from 'three';
 
 import { Config } from '../../../../config';
 import { TextureFileLoader } from './TextureFileLoader';
-import {
-  BODY_TEXTURE_TYPE,
-  MATERIAL_TYPES,
-  TEXTURE_TYPES,
-} from '../../../types';
+import { BODY_TEXTURE_TYPE } from '../../../types';
+import { MATERIAL_TYPES, TEXTURE_TYPES } from '../data/types';
 
 // File constants
 const PREFIX: string = 'Mannequin_';
-const COLOR: string = '_BaseColor';
-const NORMAL: string = '_Normal';
+const COLOR: string = '.BaseColor';
+const NORMAL: string = '.Normal';
 const EXT: string = '.jpg';
 
 export class BodyMaterialLoader {

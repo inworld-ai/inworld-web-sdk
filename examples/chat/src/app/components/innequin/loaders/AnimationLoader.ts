@@ -1,9 +1,6 @@
 /* eslint-disable */
 import { AnimationClip } from 'three';
-import { AnimationFile } from '../../../types';
-
-import { useEffect, useRef } from 'react';
-import { useLoader } from '@react-three/fiber';
+import { AnimationFile } from '../data/types';
 import { Config } from '../../../../config';
 import { GLTF, GLTFLoader } from 'three-stdlib';
 
