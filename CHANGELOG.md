@@ -1,8 +1,3 @@
-## [1.5.2] - 2023-08-12
-
-- Added a required Inworld Scene ID to the .env of the generate_token example
-- Updated Chat example project with Innequin V2
-
 ## [1.5.1] - 2023-08-04
 
 - Use correct link to GitHub page
