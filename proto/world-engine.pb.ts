@@ -70,7 +70,6 @@ export type CapabilitiesRequest = {
   interruptions?: boolean
   triggers?: boolean
   emotions?: boolean
-  animations?: boolean
   turnBasedStt?: boolean
   emotionStreaming?: boolean
   silenceEvents?: boolean
@@ -82,6 +81,7 @@ export type CapabilitiesRequest = {
   loadSceneInSession?: boolean
   relations?: boolean
   debugInfo?: boolean
+  ttsMp3?: boolean
 }
 
 export type UserRequest = {
