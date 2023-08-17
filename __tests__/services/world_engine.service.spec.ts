@@ -8,7 +8,7 @@ import {
 } from '../../proto/world-engine.pb';
 import { CLIENT_ID } from '../../src/common/constants';
 import { WorldEngineService } from '../../src/services/world_engine.service';
-import { createAgent, session, user } from '../helpers';
+import { createAgent, previousDialog, session, user } from '../helpers';
 const SCENE = v4();
 
 const agents = [createAgent(), createAgent()];
@@ -222,5 +222,32 @@ describe('load scene', () => {
       fieldId: user.profile.fields[0].id,
       fieldValue: user.profile.fields[0].value,
     });
+  });
+
+  test('should send previous dialog', async () => {
+    const mockLoadScene = jest.fn(
+      (_req: LoadSceneRequest, _initReq?: fm.InitReq) => {
+        return Promise.resolve({ agents });
+      },
+    );
+
+    WorldEngine.LoadScene = mockLoadScene;
+
+    await client.loadScene({
+      config: {
+        capabilities,
+        connection: {
+          gateway: { hostname: 'examples.com', ssl: true },
+        },
+      },
+      name: SCENE,
+      session,
+      sessionContinuation: { previousDialog },
+      user,
+    });
+
+    expect(
+      mockLoadScene.mock.calls[0][0].sessionContinuation.previousDialog,
+    ).toEqual(previousDialog.toProto());
   });
 });

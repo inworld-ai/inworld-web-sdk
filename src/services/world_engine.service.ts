@@ -9,6 +9,7 @@ import {
   SessionToken,
   User,
 } from '../common/data_structures';
+import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
 
 const INWORLD_USER_ID = 'inworldUserId';
 
@@ -20,12 +21,21 @@ export interface LoadSceneProps {
   user?: User;
   config: InternalClientConfiguration;
   session: SessionToken;
+  sessionContinuation?: SessionContinuation;
   sceneProps?: ExtensionLoadSceneProps;
 }
 
 export class WorldEngineService {
   async loadScene(props: LoadSceneProps) {
-    const { client, config, name, sceneProps, session, user } = props;
+    const {
+      client,
+      config,
+      name,
+      sceneProps,
+      session,
+      sessionContinuation,
+      user,
+    } = props;
     const { hostname, ssl } = config.connection.gateway;
     const { id, fullName, profile } = user;
 
@@ -49,6 +59,11 @@ export class WorldEngineService {
               ({ id: fieldId, value: fieldValue }) => ({ fieldId, fieldValue }),
             ),
           },
+        },
+      }),
+      ...(sessionContinuation?.previousDialog && {
+        sessionContinuation: {
+          previousDialog: sessionContinuation.previousDialog.toProto(),
         },
       }),
       ...sceneProps,

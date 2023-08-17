@@ -27,6 +27,7 @@ import {
   WebSocketConnection,
 } from '../connection/web-socket.connection';
 import { Character } from '../entities/character.entity';
+import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../entities/inworld_packet.entity';
 import { EventFactory } from '../factories/event';
 import { WorldEngineService } from './world_engine.service';
@@ -36,6 +37,7 @@ interface ConnectionProps<InworldPacketT> {
   user?: User;
   client?: ClientRequest;
   config?: InternalClientConfiguration;
+  sessionContinuation?: SessionContinuation;
   onReady?: () => Awaitable<void>;
   onError?: (err: Event | Error) => void;
   onMessage?: (packet: InworldPacketT) => Awaitable<void>;
@@ -264,7 +266,7 @@ export class ConnectionService<
   private async loadScene() {
     if (this.state === ConnectionState.LOADING) return;
 
-    const { generateSessionToken, name, client, user } = this.connectionProps;
+    const { client, generateSessionToken, name, user } = this.connectionProps;
 
     try {
       const { sessionId, expirationTime } = this.session || {};
@@ -293,6 +295,7 @@ export class ConnectionService<
         this.scene = await engineService.loadScene({
           config: this.connectionProps.config,
           session: this.session,
+          sessionContinuation: this.connectionProps.sessionContinuation,
           sceneProps: this.extension.loadSceneProps,
           name,
           user,

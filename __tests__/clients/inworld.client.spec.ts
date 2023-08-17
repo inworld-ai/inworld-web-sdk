@@ -13,6 +13,7 @@ import {
   extendedCapabilitiesRequestProps,
   extension,
   generateSessionToken,
+  phrases,
   SCENE,
   user,
 } from '../helpers';
@@ -50,7 +51,8 @@ describe('should finish with success', () => {
       .setOnError(onError)
       .setOnReady(onReady)
       .setOnHistoryChange(onHistoryChange)
-      .setOnPhoneme(onPhoneme);
+      .setOnPhoneme(onPhoneme)
+      .setSessionContinuation({ previousDialog: phrases });
   });
 
   test('should open connection', async () => {
