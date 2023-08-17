@@ -21,7 +21,7 @@ import { WebSocketConnection } from '../../src/connection/web-socket.connection'
 import { InworldPacket } from '../../src/entities/inworld_packet.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
-import { WorldEngineService } from '../../src/services/world_engine.service';
+import { WorldEngineService } from '../../src/services/pb/world_engine.service';
 import {
   capabilitiesProps,
   convertAgentsToCharacters,
