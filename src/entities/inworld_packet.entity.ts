@@ -5,8 +5,8 @@ import {
   DataChunkDataType,
   InworldPacket as ProtoPacket,
 } from '../../proto/packets.pb';
-import { EmotionBehavior } from './emotion-behavior.entity';
-import { EmotionStrength } from './emotion-strength.entity';
+import { EmotionBehavior } from './emotion_behavior.entity';
+import { EmotionStrength } from './emotion_strength.entity';
 
 export enum InworldPacketType {
   UNKNOWN = 'UNKNOWN',
