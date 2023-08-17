@@ -2,7 +2,7 @@ import { EmotionEventStrength } from '../../proto/packets.pb';
 import {
   EmotionStrength,
   EmotionStrengthCode,
-} from '../../src/entities/emotion-strength.entity';
+} from '../../src/entities/emotion_strength.entity';
 
 const mappingTestTable = [
   {
