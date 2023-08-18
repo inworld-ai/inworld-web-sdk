@@ -11,6 +11,7 @@ import {
   createAgent,
   extension,
   previousDialog,
+  previousState,
   SCENE,
   session,
   user,
@@ -211,6 +212,25 @@ describe('load scene', () => {
     expect(
       mockLoadScene.mock.calls[0][0].sessionContinuation.previousDialog,
     ).toEqual(previousDialog.toProto());
+  });
+
+  test('should send previous state', async () => {
+    await client.loadScene({
+      config: {
+        capabilities,
+        connection: {
+          gateway: { hostname: 'examples.com', ssl: true },
+        },
+      },
+      name: SCENE,
+      session,
+      sessionContinuation: { previousState },
+      user,
+    });
+
+    expect(
+      mockLoadScene.mock.calls[0][0].sessionContinuation.previousState,
+    ).toEqual(previousState);
   });
 
   test('should call extention functions', async () => {

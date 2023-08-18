@@ -54,6 +54,7 @@ export class WorldEngineService<
   ): LoadSceneRequest {
     const { client, config, name, sessionContinuation, user = {} } = props;
     const { id, fullName, profile } = user;
+    const { previousDialog, previousState } = sessionContinuation;
 
     return {
       client: {
@@ -75,9 +76,10 @@ export class WorldEngineService<
           },
         },
       }),
-      ...(sessionContinuation?.previousDialog && {
+      ...((previousDialog || previousState) && {
         sessionContinuation: {
-          previousDialog: sessionContinuation.previousDialog.toProto(),
+          ...(previousDialog && { previousDialog: previousDialog.toProto() }),
+          ...(previousState && { previousState }),
         },
       }),
     };
