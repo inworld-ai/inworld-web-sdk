@@ -2,6 +2,7 @@
 
 ### Added
 
+- Scene name pattern validation
 - Allow to get the conversation state
 - Allow to propagate previous conversation state to new connection
 

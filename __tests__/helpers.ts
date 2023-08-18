@@ -21,7 +21,7 @@ import {
 const inOneHours = new Date();
 inOneHours.setHours(inOneHours.getHours() + 1);
 
-export const SCENE = v4();
+export const SCENE = `workspaces/${v4()}/characters/${v4()}`;
 
 export const createCharacter = () =>
   new Character({
