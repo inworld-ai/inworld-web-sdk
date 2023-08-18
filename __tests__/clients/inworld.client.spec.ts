@@ -1,5 +1,7 @@
 import '../mocks/window.mock';
 
+import { v4 } from 'uuid';
+
 import { InworldClient } from '../../src/clients/inworld.client';
 import { ConnectionService } from '../../src/services/connection.service';
 import { ExtendedInworldPacket } from '../data_structures';
@@ -92,6 +94,12 @@ describe('should throw error', () => {
     const inworldClient = new InworldClient().setScene('');
 
     expect(() => inworldClient.build()).toThrow('Scene name is required');
+  });
+
+  test('on empty scene', async () => {
+    const client = new InworldClient().setScene(v4());
+
+    expect(() => client.build()).toThrow('Scene name has wrong format');
   });
 
   test.each([
