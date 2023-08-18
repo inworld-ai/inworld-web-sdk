@@ -1,3 +1,10 @@
+## [Unreleased]
+
+### Added
+
+- Allow to get the conversation state
+- Allow to propagate previous conversation state to new connection
+
 ## [1.5.1] - 2023-08-04
 
 - Use correct link to GitHub page

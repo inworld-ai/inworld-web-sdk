@@ -8,6 +8,7 @@ import { AdditionalPhonemeInfo } from '../entities/inworld_packet.entity';
 export interface Capabilities {
   audio?: boolean;
   emotions?: boolean;
+  continuation?: boolean;
   interruptions?: boolean;
   narratedActions?: boolean;
   phonemes?: boolean;

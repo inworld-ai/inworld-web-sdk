@@ -71,6 +71,7 @@ export const generateSessionToken = () => Promise.resolve(session);
 export const capabilitiesProps: Capabilities = {
   audio: true,
   emotions: true,
+  continuation: true,
   interruptions: true,
   phonemes: true,
   silence: true,
@@ -86,6 +87,7 @@ export const extendedCapabilitiesProps: ExtendedCapabilities = {
 export const extendedCapabilitiesRequestProps: ExtendedCapabilitiesRequest = {
   audio: true,
   emotions: true,
+  continuation: true,
   interruptions: true,
   phonemeInfo: true,
   silenceEvents: true,
@@ -127,3 +129,5 @@ export const convertPacketFromProto = (proto: ProtoPacket) => {
 };
 
 export const extension = { convertPacketFromProto };
+
+export const previousState = new Uint8Array(32);
