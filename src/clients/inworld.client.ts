@@ -17,7 +17,10 @@ import { HistoryItem } from '../components/history';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
-import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
+import {
+  SessionContinuation,
+  SessionContinuationProps,
+} from '../entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../entities/inworld_packet.entity';
 import { isNaturalNumber } from '../guard/number';
 import { ConnectionService } from '../services/connection.service';
@@ -146,8 +149,8 @@ export class InworldClient<
     return this;
   }
 
-  setSessionContinuation(sessionContinuation: SessionContinuation) {
-    this.sessionContinuation = sessionContinuation;
+  setSessionContinuation(sessionContinuation: SessionContinuationProps) {
+    this.sessionContinuation = new SessionContinuation(sessionContinuation);
 
     return this;
   }

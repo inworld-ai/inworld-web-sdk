@@ -30,7 +30,10 @@ import {
   HistoryItemTriggerEvent,
 } from './components/history';
 import { Character } from './entities/character.entity';
-import { SessionContinuation } from './entities/continuation/session_continuation.entity';
+import {
+  SessionContinuation,
+  SessionContinuationProps,
+} from './entities/continuation/session_continuation.entity';
 import {
   EmotionBehavior,
   EmotionBehaviorCode,
@@ -85,6 +88,7 @@ export {
   ProtoPacket,
   Routing,
   SessionContinuation,
+  SessionContinuationProps,
   SessionToken,
   StopAudioPlayback,
   TextEvent,
