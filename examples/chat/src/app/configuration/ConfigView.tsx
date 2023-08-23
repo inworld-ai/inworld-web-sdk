@@ -13,6 +13,7 @@ import { CharacterName } from './CharacterName';
 import { ChatView } from './ChatView';
 import { PlayerName } from './PlayerName';
 import { SceneName } from './SceneName';
+import { SessionContinuation } from './SessionContinuation';
 
 interface ConfigViewProps {
   chatView?: CHAT_VIEW;
@@ -53,6 +54,11 @@ export const ConfigView = (props: ConfigViewProps) => {
                 </Grid>
               </Grid>
             )}
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={12}>
+                <SessionContinuation />
+              </Grid>
+            </Grid>
           </CardContent>
         </Card>
       </Box>
