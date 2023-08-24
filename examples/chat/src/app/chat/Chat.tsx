@@ -1,6 +1,6 @@
 import { HistoryItem, InworldConnectionService } from '@inworld/web-sdk';
 import { CopyAll, Mic, Send, VolumeOff, VolumeUp } from '@mui/icons-material';
-import { IconButton, InputAdornment, TextField } from '@mui/material';
+import { IconButton, InputAdornment, TextField, Tooltip } from '@mui/material';
 import { Box } from '@mui/system';
 import { useCallback, useState } from 'react';
 
@@ -156,22 +156,31 @@ export function Chat(props: ChatProps) {
             disableUnderline: true,
           }}
         />
-        <IconButton onClick={handleMutePlayback}>
-          {isPlaybackMuted ? (
-            <VolumeOff fontSize="small" />
-          ) : (
-            <VolumeUp fontSize="small" />
-          )}
-        </IconButton>
-        <IconButton
-          onClick={handleSpeakClick}
-          sx={{ height: '3rem', width: '3rem', backgroundColor: '#F1F5F9' }}
+        <Tooltip title={isPlaybackMuted ? 'Unmute' : 'Mute'} placement="top">
+          <IconButton onClick={handleMutePlayback}>
+            {isPlaybackMuted ? (
+              <VolumeOff fontSize="small" />
+            ) : (
+              <VolumeUp fontSize="small" />
+            )}
+          </IconButton>
+        </Tooltip>
+        <Tooltip
+          title={isRecording ? 'Stop speaking' : 'Start speaking'}
+          placement="top"
         >
-          {isRecording ? <RecordIcon /> : <Mic />}
-        </IconButton>
-        <IconButton onClick={handleCopyClick}>
-          <CopyAll fontSize="small" />
-        </IconButton>
+          <IconButton
+            onClick={handleSpeakClick}
+            sx={{ height: '3rem', width: '3rem', backgroundColor: '#F1F5F9' }}
+          >
+            {isRecording ? <RecordIcon /> : <Mic />}
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Copy transcript" placement="top">
+          <IconButton onClick={handleCopyClick}>
+            <CopyAll fontSize="small" />
+          </IconButton>
+        </Tooltip>
       </ActionsStyled>
       <CopyConfirmedDialog
         copyConfirmOpen={copyConfirmOpen}
