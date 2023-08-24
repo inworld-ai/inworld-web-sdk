@@ -61,6 +61,10 @@ export class InworldConnectionService<
     });
   }
 
+  async getSessionState() {
+    return this.connection.getSessionState();
+  }
+
   async open() {
     return this.connection.openManually();
   }

@@ -29,6 +29,7 @@ import { Character } from '../entities/character.entity';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../entities/inworld_packet.entity';
 import { EventFactory } from '../factories/event';
+import { StateSerializationService } from './pb/state_serialization.service';
 import { WorldEngineService } from './pb/world_engine.service';
 
 interface ConnectionProps<InworldPacketT, HistoryItemT> {
@@ -70,6 +71,8 @@ export class ConnectionService<
 
   private eventFactory = new EventFactory();
 
+  private stateService = new StateSerializationService();
+
   private onDisconnect: (() => Awaitable<void>) | undefined;
   private onError: (err: Event | Error) => Awaitable<void>;
   private onMessage: ((packet: ProtoPacket) => Awaitable<void>) | undefined;
@@ -97,6 +100,22 @@ export class ConnectionService<
 
   isAutoReconnected() {
     return this.connectionProps.config?.connection?.autoReconnect ?? true;
+  }
+
+  async getSessionState() {
+    try {
+      const { config, name: scene } = this.connectionProps;
+      const session = await this.getSessionToken();
+      const proto = await this.stateService.getSessionState({
+        config,
+        scene,
+        session,
+      });
+
+      return proto.state;
+    } catch (err) {
+      this.onError(err);
+    }
   }
 
   async openManually() {
@@ -270,28 +289,10 @@ export class ConnectionService<
   private async loadScene() {
     if (this.state === ConnectionState.LOADING) return;
 
-    const { client, generateSessionToken, name, user } = this.connectionProps;
+    const { name, client, user } = this.connectionProps;
 
     try {
-      const { sessionId, expirationTime } = this.session || {};
-
-      // Generate new session token is it's empty or expired
-      if (
-        !expirationTime ||
-        new Date(expirationTime).getTime() - new Date().getTime() <=
-          TIME_DIFF_MS
-      ) {
-        this.state = ConnectionState.LOADING;
-        this.session = await generateSessionToken();
-
-        // Reuse session id to keep context of previous conversation
-        if (sessionId) {
-          this.session = {
-            ...this.session,
-            sessionId,
-          };
-        }
-      }
+      this.session = await this.getSessionToken();
 
       const engineService = new WorldEngineService<InworldPacketT>();
 
@@ -317,6 +318,31 @@ export class ConnectionService<
     } catch (err) {
       this.onError(err);
     }
+  }
+
+  private async getSessionToken() {
+    let sessionToken = this.session || ({} as SessionToken);
+
+    const { sessionId, expirationTime } = sessionToken;
+
+    // Generate new session token is it's empty or expired
+    if (
+      !expirationTime ||
+      new Date(expirationTime).getTime() - new Date().getTime() <= TIME_DIFF_MS
+    ) {
+      this.state = ConnectionState.LOADING;
+      sessionToken = await this.connectionProps.generateSessionToken();
+
+      // Reuse session id to keep context of previous conversation
+      if (sessionId) {
+        sessionToken = {
+          ...this.session,
+          sessionId,
+        };
+      }
+    }
+
+    return sessionToken;
   }
 
   private scheduleDisconnect() {
