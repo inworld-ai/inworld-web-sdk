@@ -21,12 +21,14 @@ import { WebSocketConnection } from '../../src/connection/web-socket.connection'
 import { InworldPacket } from '../../src/entities/inworld_packet.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
+import { StateSerializationService } from '../../src/services/pb/state_serialization.service';
 import { WorldEngineService } from '../../src/services/pb/world_engine.service';
 import {
   capabilitiesProps,
   convertAgentsToCharacters,
   createAgent,
   generateSessionToken,
+  previousState,
   SCENE,
   session,
   user,
@@ -153,6 +155,45 @@ describe('history', () => {
 
     expect(getTranscript).toHaveBeenCalledTimes(1);
     expect(transcript).toEqual(result);
+  });
+});
+
+describe('getSessionState', () => {
+  const generateSessionToken = jest.fn(() => Promise.resolve(session));
+  const connection = new ConnectionService({
+    name: SCENE,
+    onError,
+    grpcAudioPlayer,
+    generateSessionToken,
+    webRtcLoopbackBiDiSession,
+  });
+
+  test('should get state', async () => {
+    const getSessionState = jest
+      .spyOn(StateSerializationService.prototype, 'getSessionState')
+      .mockImplementationOnce(() => Promise.resolve({ state: previousState }));
+
+    const result = await connection.getSessionState();
+
+    expect(generateSessionToken).toHaveBeenCalledTimes(1);
+    expect(getSessionState).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(previousState);
+  });
+
+  test('should catch error and pass it to handler', async () => {
+    const err = new Error();
+    const getSessionState = jest
+      .spyOn(StateSerializationService.prototype, 'getSessionState')
+      .mockImplementationOnce(() => {
+        throw err;
+      });
+
+    await connection.getSessionState();
+
+    expect(generateSessionToken).toHaveBeenCalledTimes(1);
+    expect(getSessionState).toHaveBeenCalledTimes(1);
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError).toHaveBeenCalledWith(err);
   });
 });
 
