@@ -26,6 +26,7 @@ interface HistoryProps {
   chatView: CHAT_VIEW;
   history: HistoryItem[];
   emotions: EmotionsMap;
+  onInteractionEnd: (value: boolean) => void;
 }
 
 type CombinedHistoryItem = {
@@ -121,11 +122,14 @@ export const History = (props: HistoryProps) => {
         event.interactionId === lastInteractionId &&
         event.type === CHAT_HISTORY_TYPE.INTERACTION_END,
     );
+    const isInteractionEnd =
+      !hasActors || (!!currentRecord && !!interactionEnd);
 
-    setIsInteractionEnd(!hasActors || (!!currentRecord && !!interactionEnd));
+    setIsInteractionEnd(isInteractionEnd);
+    props.onInteractionEnd(isInteractionEnd);
 
     setCombinedChatHistory(mergedRecords);
-  }, [history]);
+  }, [history, props.onInteractionEnd]);
 
   const getContent = (
     message:

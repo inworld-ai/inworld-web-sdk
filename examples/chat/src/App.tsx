@@ -77,72 +77,76 @@ function App() {
     setChatHistory(history);
   }, []);
 
-  const openConnection = useCallback(async () => {
-    const form = formMethods.getValues();
+  const openConnection = useCallback(
+    async (previousState?: Uint8Array) => {
+      const form = formMethods.getValues();
 
-    setChatting(true);
-    setChatView(form.chatView!);
+      setChatting(true);
+      setChatView(form.chatView!);
 
-    const duration = toInt(form.audio.stopDuration ?? 0);
-    const ticks = toInt(form.audio.stopTicks ?? 0);
+      const duration = toInt(form.audio.stopDuration ?? 0);
+      const ticks = toInt(form.audio.stopTicks ?? 0);
 
-    const service = new InworldService({
-      onHistoryChange,
-      capabilities: {
-        ...(form.chatView !== CHAT_VIEW.TEXT && { phonemes: true }),
-        ...(form.chatView === CHAT_VIEW.TEXT && { interruptions: true }),
-        emotions: true,
-        narratedActions: true,
-      },
-      ...(duration &&
-        ticks && {
-          audioPlayback: {
-            stop: { duration, ticks },
-          },
-        }),
-      sceneName: form.scene?.name!,
-      playerName: form.player?.name!,
-      onPhoneme: (phonemes: AdditionalPhonemeInfo[]) => {
-        setPhonemes(phonemes);
-      },
-      onReady: async () => {
-        console.log('Ready!');
-      },
-      onDisconnect: () => {
-        console.log('Disconnect!');
-      },
-      onMessage: (inworldPacket: InworldPacket) => {
-        if (
-          inworldPacket.isEmotion() &&
-          inworldPacket.packetId?.interactionId
-        ) {
-          setEmotionEvent(inworldPacket.emotions);
-          setEmotions((currentState) => ({
-            ...currentState,
-            [inworldPacket.packetId.interactionId]: inworldPacket.emotions,
-          }));
-        }
-      },
-    });
-    const characters = await service.connection.getCharacters();
-    const character = characters.find(
-      (c: Character) => c.resourceName === form.character?.name,
-    );
+      const service = new InworldService({
+        onHistoryChange,
+        capabilities: {
+          ...(form.chatView !== CHAT_VIEW.TEXT && { phonemes: true }),
+          ...(form.chatView === CHAT_VIEW.TEXT && { interruptions: true }),
+          emotions: true,
+          narratedActions: true,
+        },
+        ...(previousState && { continuation: { previousState } }),
+        ...(duration &&
+          ticks && {
+            audioPlayback: {
+              stop: { duration, ticks },
+            },
+          }),
+        sceneName: form.scene?.name!,
+        playerName: form.player?.name!,
+        onPhoneme: (phonemes: AdditionalPhonemeInfo[]) => {
+          setPhonemes(phonemes);
+        },
+        onReady: async () => {
+          console.log('Ready!');
+        },
+        onDisconnect: () => {
+          console.log('Disconnect!');
+        },
+        onMessage: (inworldPacket: InworldPacket) => {
+          if (
+            inworldPacket.isEmotion() &&
+            inworldPacket.packetId?.interactionId
+          ) {
+            setEmotionEvent(inworldPacket.emotions);
+            setEmotions((currentState) => ({
+              ...currentState,
+              [inworldPacket.packetId.interactionId]: inworldPacket.emotions,
+            }));
+          }
+        },
+      });
+      const characters = await service.connection.getCharacters();
+      const character = characters.find(
+        (c: Character) => c.resourceName === form.character?.name,
+      );
 
-    if (character) {
-      service.connection.setCurrentCharacter(character);
+      if (character) {
+        service.connection.setCurrentCharacter(character);
 
-      const assets = character?.assets;
-      const rpmImageUri = assets?.rpmImageUriPortrait;
-      const avatarImg = assets?.avatarImg;
-      setAvatar(avatarImg || rpmImageUri || '');
-    }
+        const assets = character?.assets;
+        const rpmImageUri = assets?.rpmImageUriPortrait;
+        const avatarImg = assets?.avatarImg;
+        setAvatar(avatarImg || rpmImageUri || '');
+      }
 
-    setConnection(service.connection);
+      setConnection(service.connection);
 
-    setCharacter(character);
-    setCharacters(characters);
-  }, [formMethods, onHistoryChange]);
+      setCharacter(character);
+      setCharacters(characters);
+    },
+    [formMethods, onHistoryChange],
+  );
 
   const stopChatting = useCallback(async () => {
     // Disable flags
@@ -257,6 +261,7 @@ function App() {
               chatHistory={chatHistory}
               connection={connection!}
               emotions={emotions}
+              onRestore={openConnection}
             />
           </ChatWrapper>
         </MainWrapper>
@@ -268,7 +273,7 @@ function App() {
     <ConfigView
       chatView={formMethods.watch('chatView')}
       canStart={formMethods.formState.isValid}
-      onStart={openConnection}
+      onStart={() => openConnection()}
       onResetForm={resetForm}
     />
   );
