@@ -1,6 +1,11 @@
 ## [Unreleased]
 
+### Added
+
+- Allow to propagate previous dialog to new connection
+
 ### Fixed
+
 - Resolve the issue of script loading occurring before the document is ready
 
 ## [1.5.1] - 2023-08-04

@@ -31,6 +31,15 @@ import {
 } from './components/history';
 import { Character } from './entities/character.entity';
 import {
+  DialogParticipant,
+  DialogPhrase,
+  PreviousDialog,
+} from './entities/continuation/previous_dialog.entity';
+import {
+  SessionContinuation,
+  SessionContinuationProps,
+} from './entities/continuation/session_continuation.entity';
+import {
   EmotionBehavior,
   EmotionBehaviorCode,
 } from './entities/emotion-behavior.entity';
@@ -64,6 +73,8 @@ export {
   CHAT_HISTORY_TYPE,
   ClientConfiguration,
   ConnectionConfig,
+  DialogParticipant,
+  DialogPhrase,
   EmotionBehavior,
   EmotionBehaviorCode,
   EmotionEvent,
@@ -81,8 +92,11 @@ export {
   InworldConnectionService,
   InworldPacket,
   PacketId,
+  PreviousDialog,
   ProtoPacket,
   Routing,
+  SessionContinuation,
+  SessionContinuationProps,
   SessionToken,
   StopAudioPlayback,
   TextEvent,
