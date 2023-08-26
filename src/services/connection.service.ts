@@ -49,11 +49,10 @@ interface ConnectionProps<InworldPacketT> {
 
 const TIME_DIFF_MS = 50 * 60 * 1000; // 5 minutes
 
-const player = Player.getInstance();
-
 export class ConnectionService<
   InworldPacketT extends InworldPacket = InworldPacket,
 > {
+  private player = Player.getInstance();
   private state: ConnectionState = ConnectionState.INACTIVE;
   private audioSessionAction = AudioSessionState.UNKNOWN;
 
@@ -343,7 +342,9 @@ export class ConnectionService<
         new MediaStream(),
         grpcAudioPlayer.getPlaybackStream(),
       );
-      player.setStream(webRtcLoopbackBiDiSession.getPlaybackLoopbackStream());
+      this.player.setStream(
+        webRtcLoopbackBiDiSession.getPlaybackLoopbackStream(),
+      );
       this.state = ConnectionState.ACTIVE;
       onReady?.();
     };

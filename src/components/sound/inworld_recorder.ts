@@ -3,9 +3,8 @@ import { GrpcAudioRecorder } from './grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from './grpc_web_rtc_loopback_bidi.session';
 import { Player } from './player';
 
-const player = Player.getInstance();
-
 export class InworldRecorder {
+  private player = Player.getInstance();
   private isActive = true;
   private listener: (base64AudioChunk: string) => void;
   private grpcAudioPlayer: GrpcAudioPlayback;
@@ -40,7 +39,7 @@ export class InworldRecorder {
       this.grpcAudioPlayer.getPlaybackStream(),
     );
 
-    player.setStream(
+    this.player.setStream(
       this.webRtcLoopbackBiDiSession.getPlaybackLoopbackStream(),
     );
 
@@ -79,7 +78,7 @@ export class InworldRecorder {
       this.grpcAudioPlayer.getPlaybackStream(),
     );
 
-    player.setStream(
+    this.player.setStream(
       this.webRtcLoopbackBiDiSession.getPlaybackLoopbackStream(),
     );
   }
