@@ -83,6 +83,10 @@ export class InworldConnectionService<
     return this.connection.getEventFactory().getCurrentCharacter();
   }
 
+  async getScene() {
+    return this.connection.getScene();
+  }
+
   getHistory() {
     return this.connection.getHistory();
   }

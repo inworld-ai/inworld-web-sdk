@@ -21,12 +21,14 @@ import {
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
 import { InworldConnectionService } from '../../src/services/inworld_connection.service';
+import { WorldEngineService } from '../../src/services/world_engine.service';
 import { ExtendedInworldPacket } from '../data_structures';
 import {
   createCharacter,
   extension,
   generateSessionToken,
   getPacketId,
+  scene,
   writeMock,
 } from '../helpers';
 
@@ -222,7 +224,7 @@ describe('send', () => {
     .spyOn(ConnectionService.prototype, 'open')
     .mockImplementationOnce(jest.fn());
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     jest
       .spyOn(ConnectionService.prototype, 'isActive')
@@ -233,12 +235,19 @@ describe('send', () => {
     jest
       .spyOn(grpcAudioPlayer, 'excludeCurrentInteractionPackets')
       .mockImplementation(() => []);
+    jest
+      .spyOn(WorldEngineService.prototype, 'loadScene')
+      .mockImplementation(() => Promise.resolve(scene));
+
     service = new InworldConnectionService({
       connection,
       grpcAudioPlayer,
       grpcAudioRecorder,
       webRtcLoopbackBiDiSession,
     });
+
+    // Ensure scene is loaded and characters are set
+    await service.getScene();
   });
 
   test('should send audio', async () => {
@@ -247,7 +256,6 @@ describe('send', () => {
       .mockImplementationOnce(writeMock);
 
     const chunk = v4();
-
     const packet = await service.sendAudio(chunk);
 
     expect(open).toHaveBeenCalledTimes(0);
@@ -334,6 +342,7 @@ describe('send', () => {
   test('should throw error if audio session was finished twice', async () => {
     jest
       .spyOn(WebSocketConnection.prototype, 'write')
+      .mockImplementationOnce(writeMock)
       .mockImplementationOnce(writeMock);
     jest
       .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
@@ -463,6 +472,9 @@ describe('send', () => {
           item.afterWriting?.(packet);
         },
       );
+
+    // Ensure scene is loaded and characters are set
+    await service.getScene();
 
     const interactionId = v4();
     const mutation = { regenerateResponse: { interactionId } };

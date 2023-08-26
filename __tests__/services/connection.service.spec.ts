@@ -25,9 +25,9 @@ import { WorldEngineService } from '../../src/services/world_engine.service';
 import {
   capabilitiesProps,
   convertAgentsToCharacters,
-  createAgent,
   generateSessionToken,
   SCENE,
+  scene,
   session,
   user,
   writeMock,
@@ -36,9 +36,7 @@ import {
 const onError = jest.fn();
 const onMessage = jest.fn();
 const onDisconnect = jest.fn();
-const agents = [createAgent(), createAgent()];
-const characters = convertAgentsToCharacters(agents);
-const scene = { agents };
+const characters = convertAgentsToCharacters(scene.agents);
 const grpcAudioPlayer = new GrpcAudioPlayback();
 const webRtcLoopbackBiDiSession = new GrpcWebRtcLoopbackBiDiSession();
 const eventFactory = new EventFactory();
@@ -464,6 +462,7 @@ describe('send', () => {
       webRtcLoopbackBiDiSession,
     });
 
+    await connection.getScene();
     await connection.send(() => textEvent);
 
     expect(open).toHaveBeenCalledTimes(1);
@@ -494,6 +493,7 @@ describe('send', () => {
         }),
       ]);
 
+    await connection.open();
     await connection.send(() => textEvent);
 
     expect(open).toHaveBeenCalledTimes(1);

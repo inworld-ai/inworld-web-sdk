@@ -1,6 +1,5 @@
 import { InworldPacket as ProtoPacket } from '../../proto/packets.pb';
-import { LoadSceneResponseAgent } from '../../proto/world-engine.pb';
-import { ClientRequest, LoadSceneResponse } from '../../proto/world-engine.pb';
+import { ClientRequest } from '../../proto/world-engine.pb';
 import {
   AudioSessionState,
   Awaitable,
@@ -26,9 +25,9 @@ import {
   Connection,
   WebSocketConnection,
 } from '../connection/web-socket.connection';
-import { Character } from '../entities/character.entity';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../entities/inworld_packet.entity';
+import { Scene } from '../entities/scene.entity';
 import { EventFactory } from '../factories/event';
 import { WorldEngineService } from './world_engine.service';
 
@@ -58,12 +57,10 @@ export class ConnectionService<
   private state: ConnectionState = ConnectionState.INACTIVE;
   private audioSessionAction = AudioSessionState.UNKNOWN;
 
-  private scene: LoadSceneResponse;
+  private scene: Scene;
   private session: SessionToken;
   private connection: Connection<InworldPacketT>;
   private connectionProps: ConnectionProps<InworldPacketT>;
-
-  private characters: Array<Character> = [];
 
   private intervals: NodeJS.Timeout[] = [];
   private disconnectTimeoutId: NodeJS.Timeout;
@@ -139,7 +136,13 @@ export class ConnectionService<
   async getCharactersList() {
     await this.loadScene();
 
-    return this.characters;
+    return this.scene?.characters ?? [];
+  }
+
+  async getScene() {
+    await this.loadScene();
+
+    return this.scene;
   }
 
   async open() {
@@ -188,32 +191,6 @@ export class ConnectionService<
 
     if (packet) {
       await this.interruptByInteraction(packet.packetId.interactionId);
-    }
-  }
-
-  private async loadCharactersList() {
-    if (!this.scene) {
-      await this.loadScene();
-    }
-
-    this.characters = (this.scene?.agents || [])?.map(
-      (agent: LoadSceneResponseAgent) =>
-        new Character({
-          id: agent.agentId,
-          resourceName: agent.brainName,
-          displayName: agent.givenName,
-          assets: {
-            avatarImg: agent.characterAssets.avatarImg,
-            avatarImgOriginal: agent.characterAssets.avatarImgOriginal,
-            rpmModelUri: agent.characterAssets.rpmModelUri,
-            rpmImageUriPortrait: agent.characterAssets.rpmImageUriPortrait,
-            rpmImageUriPosture: agent.characterAssets.rpmImageUriPosture,
-          },
-        }),
-    );
-
-    if (!this.getEventFactory().getCurrentCharacter() && this.characters[0]) {
-      this.getEventFactory().setCurrentCharacter(this.characters[0]);
     }
   }
 
@@ -266,43 +243,38 @@ export class ConnectionService<
   private async loadScene() {
     if (this.state === ConnectionState.LOADING) return;
 
-    const { client, generateSessionToken, name, user } = this.connectionProps;
-
     try {
-      const { sessionId, expirationTime } = this.session || {};
+      const firstLoading = !this.scene;
 
-      // Generate new session token is it's empty or expired
-      if (
-        !expirationTime ||
-        new Date(expirationTime).getTime() - new Date().getTime() <=
-          TIME_DIFF_MS
-      ) {
-        this.state = ConnectionState.LOADING;
-        this.session = await generateSessionToken();
+      this.session = await this.getSessionToken();
+      this.scene = await this.getSceneFromEngine();
 
-        // Reuse session id to keep context of previous conversation
-        if (sessionId) {
-          this.session = {
-            ...this.session,
-            sessionId,
-          };
-        }
-      }
+      if (firstLoading) {
+        const {
+          characters,
+          previousState: { stateHolders },
+        } = this.scene;
 
-      const engineService = new WorldEngineService();
-
-      if (!this.scene) {
-        this.scene = await engineService.loadScene({
-          config: this.connectionProps.config,
-          session: this.session,
-          sessionContinuation: this.connectionProps.sessionContinuation,
-          sceneProps: this.extension.loadSceneProps,
-          name,
-          user,
-          client,
+        // Set history previous state
+        this.clearHistory();
+        stateHolders?.forEach((stateHolder) => {
+          stateHolder.packets?.forEach((packet) =>
+            this.history.addOrUpdate({
+              characters,
+              grpcAudioPlayer: this.connectionProps.grpcAudioPlayer,
+              packet: packet as InworldPacketT,
+              fromHistory: true,
+            }),
+          );
         });
 
-        await this.loadCharactersList();
+        if (this.getHistory()?.length) {
+          this.connectionProps.onHistoryChange?.(this.getHistory());
+        }
+
+        if (!this.getEventFactory().getCurrentCharacter() && characters[0]) {
+          this.getEventFactory().setCurrentCharacter(characters[0]);
+        }
       }
 
       if (
@@ -313,6 +285,51 @@ export class ConnectionService<
     } catch (err) {
       this.onError(err);
     }
+  }
+
+  private async getSessionToken() {
+    let sessionToken = this.session || ({} as SessionToken);
+
+    const { sessionId, expirationTime } = sessionToken;
+
+    // Generate new session token is it's empty or expired
+    if (
+      !expirationTime ||
+      new Date(expirationTime).getTime() - new Date().getTime() <= TIME_DIFF_MS
+    ) {
+      this.state = ConnectionState.LOADING;
+      sessionToken = await this.connectionProps.generateSessionToken();
+
+      // Reuse session id to keep context of previous conversation
+      if (sessionId) {
+        sessionToken = {
+          ...this.session,
+          sessionId,
+        };
+      }
+    }
+
+    return sessionToken;
+  }
+
+  private async getSceneFromEngine() {
+    if (this.scene) return this.scene;
+
+    const { name, client, user } = this.connectionProps;
+
+    const engineService = new WorldEngineService();
+
+    const proto = await engineService.loadScene({
+      config: this.connectionProps.config,
+      session: this.session,
+      sceneProps: this.extension.loadSceneProps,
+      sessionContinuation: this.connectionProps.sessionContinuation,
+      name,
+      user,
+      client,
+    });
+
+    return Scene.fromProto(proto);
   }
 
   private scheduleDisconnect() {
@@ -490,7 +507,7 @@ export class ConnectionService<
   private addPacketToHistory(packet: InworldPacketT) {
     const changed = this.history.addOrUpdate({
       grpcAudioPlayer: this.connectionProps.grpcAudioPlayer,
-      characters: this.characters,
+      characters: this.scene.characters,
       packet,
     });
 

@@ -53,14 +53,14 @@ export const createAgent = (): LoadSceneResponseAgent => {
 
 export const convertAgentsToCharacters = (agents: LoadSceneResponseAgent[]) => {
   return agents.map(
-    (agent: LoadSceneResponseAgent) =>
-      new Character({
-        id: agent.agentId,
-        resourceName: agent.brainName,
-        displayName: agent.givenName,
-        assets: agent.characterAssets,
-      }),
+    (agent: LoadSceneResponseAgent) => Character.fromProto(agent) as Character,
   );
+};
+
+export const scene = {
+  agents: [createAgent(), createAgent()],
+  key: SCENE,
+  previousState: {},
 };
 
 export const session: SessionToken = {

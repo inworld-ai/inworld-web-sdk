@@ -3,6 +3,7 @@
 ### Added
 
 - Allow to propagate previous dialog to new connection
+- Allow to get scene object
 
 ### Fixed
 

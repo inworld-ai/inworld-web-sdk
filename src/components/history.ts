@@ -15,6 +15,7 @@ interface InworldHistoryAddProps<InworldPacketT> {
   grpcAudioPlayer: GrpcAudioPlayback;
   packet: InworldPacketT;
   outgoing?: boolean;
+  fromHistory?: boolean;
 }
 
 export enum CHAT_HISTORY_TYPE {
@@ -30,6 +31,7 @@ export interface HistoryItemBase {
   interactionId?: string;
   source: Actor;
   type: CHAT_HISTORY_TYPE;
+  fromHistory?: boolean;
 }
 
 export interface HistoryItemActor extends HistoryItemBase {
@@ -78,6 +80,7 @@ export class InworldHistory<
     grpcAudioPlayer,
     packet,
     outgoing,
+    fromHistory,
   }: InworldHistoryAddProps<InworldPacketT>) {
     let chatItem: HistoryItem | undefined;
 
@@ -93,7 +96,7 @@ export class InworldHistory<
       this.emotions[interactionId] = packet.emotions;
     } else if (packet.isText()) {
       const actorItem: HistoryItem = {
-        ...this.combineTextItem(packet),
+        ...this.combineTextItem(packet, { fromHistory }),
         character,
       };
 
@@ -104,7 +107,7 @@ export class InworldHistory<
       }
     } else if (packet.isNarratedAction()) {
       const actionItem = {
-        ...this.combineNarratedActionItem(packet),
+        ...this.combineNarratedActionItem(packet, { fromHistory }),
         character,
       };
 
@@ -117,10 +120,12 @@ export class InworldHistory<
         this.queue = [...this.queue, actionItem];
       }
     } else if (packet.isTrigger()) {
-      chatItem = this.combineTriggerItem(packet, outgoing);
+      chatItem = this.combineTriggerItem(packet, { fromHistory, outgoing });
     } else if (packet.isInteractionEnd()) {
-      const controlItem: HistoryInteractionEnd =
-        this.combineInteractionEndItem(packet);
+      const controlItem: HistoryInteractionEnd = this.combineInteractionEndItem(
+        packet,
+        { fromHistory },
+      );
 
       if (grpcAudioPlayer.hasPacketInQueue({ interactionId })) {
         this.queue = [...this.queue, controlItem];
@@ -281,7 +286,10 @@ export class InworldHistory<
     return transcript;
   }
 
-  private combineTextItem(packet: InworldPacketT): HistoryItemActor {
+  private combineTextItem(
+    packet: InworldPacket,
+    options?: { fromHistory?: boolean },
+  ): HistoryItemActor {
     const date = new Date(packet.date);
     const source = packet.routing?.source;
     const utteranceId = packet.packetId?.utteranceId;
@@ -295,11 +303,13 @@ export class InworldHistory<
       date,
       interactionId,
       source,
+      fromHistory: options?.fromHistory,
     };
   }
 
   private combineNarratedActionItem(
     packet: InworldPacketT,
+    options?: { fromHistory?: boolean },
   ): HistoryItemNarratedAction {
     const date = new Date(packet.date);
     const interactionId = packet.packetId?.interactionId;
@@ -311,12 +321,13 @@ export class InworldHistory<
       source: packet.routing?.source,
       type: CHAT_HISTORY_TYPE.NARRATED_ACTION,
       text: packet.narratedAction.text,
+      fromHistory: options?.fromHistory,
     };
   }
 
   private combineTriggerItem(
     packet: InworldPacketT,
-    outgoing?: boolean,
+    options?: { fromHistory?: boolean; outgoing?: boolean },
   ): HistoryItemTriggerEvent {
     const date = new Date(packet.date);
     const source = packet.routing?.source;
@@ -328,14 +339,16 @@ export class InworldHistory<
       type: CHAT_HISTORY_TYPE.TRIGGER_EVENT,
       name: packet.trigger.name,
       date,
-      interactionId,
-      outgoing,
       source,
+      interactionId,
+      outgoing: options?.outgoing,
+      fromHistory: options?.fromHistory,
     };
   }
 
   private combineInteractionEndItem(
     packet: InworldPacketT,
+    options?: { fromHistory?: boolean },
   ): HistoryInteractionEnd {
     const date = new Date(packet.date);
     const interactionId = packet.packetId?.interactionId;
@@ -346,6 +359,7 @@ export class InworldHistory<
       interactionId,
       source: packet.routing?.source,
       type: CHAT_HISTORY_TYPE.INTERACTION_END,
+      fromHistory: options?.fromHistory,
     };
   }
 }

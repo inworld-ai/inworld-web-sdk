@@ -1,5 +1,7 @@
 import deprecate from 'util-deprecate';
 
+import { LoadSceneResponseAgent } from '../../proto/world-engine.pb';
+
 export interface CharacterProps {
   id: string;
   resourceName: string;
@@ -42,6 +44,21 @@ export class Character {
 
   getAssets() {
     return this.assets;
+  }
+
+  static fromProto(proto: LoadSceneResponseAgent) {
+    return new Character({
+      id: proto.agentId,
+      resourceName: proto.brainName,
+      displayName: proto.givenName,
+      assets: {
+        avatarImg: proto.characterAssets.avatarImg,
+        avatarImgOriginal: proto.characterAssets.avatarImgOriginal,
+        rpmModelUri: proto.characterAssets.rpmModelUri,
+        rpmImageUriPortrait: proto.characterAssets.rpmImageUriPortrait,
+        rpmImageUriPosture: proto.characterAssets.rpmImageUriPosture,
+      },
+    });
   }
 }
 
