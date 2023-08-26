@@ -52,9 +52,17 @@ export class WorldEngineService<
   private buildRequest(
     props: LoadSceneProps<InworldPacketT, HistoryItemT>,
   ): LoadSceneRequest {
-    const { client, config, name, sessionContinuation, user = {} } = props;
+    const {
+      client,
+      config,
+      name,
+      sessionContinuation: {
+        previousDialog,
+        previousState,
+      } = {} as SessionContinuation,
+      user = {},
+    } = props;
     const { id, fullName, profile } = user;
-    const { previousDialog, previousState } = sessionContinuation;
 
     return {
       client: {

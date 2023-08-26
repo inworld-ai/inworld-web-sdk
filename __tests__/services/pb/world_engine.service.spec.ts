@@ -5,11 +5,13 @@ import {
   WorldEngine,
 } from '../../../proto/world-engine.pb';
 import { CLIENT_ID } from '../../../src/common/constants';
+import { SessionContinuation } from '../../../src/entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../../../src/entities/inworld_packet.entity';
 import { WorldEngineService } from '../../../src/services/pb/world_engine.service';
 import {
   createAgent,
   extension,
+  phrases,
   previousDialog,
   previousState,
   SCENE,
@@ -205,7 +207,7 @@ describe('load scene', () => {
       },
       name: SCENE,
       session,
-      sessionContinuation: { previousDialog },
+      sessionContinuation: new SessionContinuation({ previousDialog: phrases }),
       user,
     });
 
@@ -224,7 +226,7 @@ describe('load scene', () => {
       },
       name: SCENE,
       session,
-      sessionContinuation: { previousState },
+      sessionContinuation: new SessionContinuation({ previousState }),
       user,
     });
 

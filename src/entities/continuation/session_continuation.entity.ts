@@ -10,7 +10,10 @@ export class SessionContinuation {
   readonly previousState: Uint8Array | undefined;
 
   constructor(props: SessionContinuationProps) {
-    this.previousDialog = new PreviousDialog(props.previousDialog);
+    if (props.previousDialog) {
+      this.previousDialog = new PreviousDialog(props.previousDialog);
+    }
+
     this.previousState = props.previousState;
   }
 }
