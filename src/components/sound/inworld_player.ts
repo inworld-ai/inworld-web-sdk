@@ -1,9 +1,8 @@
 import { GrpcAudioPlayback } from './grpc_audio.playback';
 import { Player } from './player';
 
-const player = Player.getInstance();
-
 export class InworldPlayer {
+  private player = Player.getInstance();
   private grpcAudioPlayer: GrpcAudioPlayback;
 
   constructor(props: { grpcAudioPlayer: GrpcAudioPlayback }) {
@@ -11,11 +10,11 @@ export class InworldPlayer {
   }
 
   getMute() {
-    return player.getMute();
+    return this.player.getMute();
   }
 
   mute(mute: boolean) {
-    player.setMute(mute);
+    this.player.setMute(mute);
   }
 
   async stop() {
@@ -27,7 +26,7 @@ export class InworldPlayer {
   }
 
   playWorkaroundSound() {
-    player.playWorkaroundSound();
+    this.player.playWorkaroundSound();
   }
 
   isActive() {

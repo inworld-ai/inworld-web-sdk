@@ -6,6 +6,9 @@
 - Allow to get the conversation state
 - Allow to propagate previous conversation state to new connection
 
+### Fixed
+- Resolve the issue of script loading occurring before the document is ready
+
 ## [1.5.1] - 2023-08-04
 
 - Use correct link to GitHub page
