@@ -1,14 +1,14 @@
 import { v4 } from 'uuid';
 
-import * as fm from '../../proto/fetch.pb';
+import * as fm from '../../../proto/fetch.pb';
 import {
   CapabilitiesRequest,
   LoadSceneRequest,
   WorldEngine,
-} from '../../proto/world-engine.pb';
-import { CLIENT_ID } from '../../src/common/constants';
-import { WorldEngineService } from '../../src/services/world_engine.service';
-import { createAgent, previousDialog, session, user } from '../helpers';
+} from '../../../proto/world-engine.pb';
+import { CLIENT_ID } from '../../../src/common/constants';
+import { WorldEngineService } from '../../../src/services/pb/world_engine.service';
+import { createAgent, previousDialog, session, user } from '../../helpers';
 const SCENE = v4();
 
 const agents = [createAgent(), createAgent()];

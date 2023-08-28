@@ -1,19 +1,17 @@
 import { v4 } from 'uuid';
 
-import * as fm from '../../proto/fetch.pb';
-import { ClientRequest, WorldEngine } from '../../proto/world-engine.pb';
-import { CLIENT_ID } from '../common/constants';
+import { ClientRequest, WorldEngine } from '../../../proto/world-engine.pb';
+import { CLIENT_ID } from '../../common/constants';
 import {
   ExtensionLoadSceneProps,
   InternalClientConfiguration,
   SessionToken,
   User,
-} from '../common/data_structures';
-import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
+} from '../../common/data_structures';
+import { SessionContinuation } from '../../entities/continuation/session_continuation.entity';
+import { PbService } from './pb.service';
 
 const INWORLD_USER_ID = 'inworldUserId';
-
-type PbFunc<P, R> = (req: P, initReq?: fm.InitReq) => Promise<R>;
 
 export interface LoadSceneProps {
   name: string;
@@ -25,7 +23,7 @@ export interface LoadSceneProps {
   sceneProps?: ExtensionLoadSceneProps;
 }
 
-export class WorldEngineService {
+export class WorldEngineService extends PbService {
   async loadScene(props: LoadSceneProps) {
     const {
       client,
@@ -36,12 +34,9 @@ export class WorldEngineService {
       sessionContinuation,
       user,
     } = props;
-    const { hostname, ssl } = config.connection.gateway;
     const { id, fullName, profile } = user;
 
-    const url = `${ssl ? 'https' : 'http'}://${hostname}`;
-
-    return this.engineSessionRequest(url, session, WorldEngine.LoadScene, {
+    return this.request(config, session, WorldEngine.LoadScene, {
       client: {
         id: CLIENT_ID,
         ...client,
@@ -69,28 +64,6 @@ export class WorldEngineService {
       ...sceneProps,
     });
   }
-
-  private engineSessionRequest = async <P, R>(
-    pathPrefix: string,
-    session: SessionToken,
-    pb: PbFunc<P, R>,
-    req: P,
-  ) => {
-    const params = {
-      headers: {
-        ...(session.sessionId && {
-          'Grpc-Metadata-session-id': session.sessionId,
-        }),
-        ...(session.type &&
-          session.token && {
-            Authorization: `${session.type} ${session.token}`,
-          }),
-      },
-      pathPrefix,
-    };
-
-    return pb(req, params);
-  };
 
   private getUserId() {
     let id = localStorage.getItem(INWORLD_USER_ID);

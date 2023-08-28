@@ -30,7 +30,7 @@ import { Character } from '../entities/character.entity';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../entities/inworld_packet.entity';
 import { EventFactory } from '../factories/event';
-import { WorldEngineService } from './world_engine.service';
+import { WorldEngineService } from './pb/world_engine.service';
 
 interface ConnectionProps<InworldPacketT> {
   name?: string;
