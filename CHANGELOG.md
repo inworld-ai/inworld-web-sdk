@@ -7,6 +7,7 @@
 ### Fixed
 
 - Resolve the issue of script loading occurring before the document is ready
+- Fix mute/unmute volume changing for currently playing audio track
 
 ## [1.5.1] - 2023-08-04
 

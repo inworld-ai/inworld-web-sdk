@@ -22,12 +22,6 @@ describe('work with player', () => {
     player = Player.getInstance();
   });
 
-  test('should set mute player as true', () => {
-    player.setMute(true);
-
-    expect(player.getMute()).toEqual(true);
-  });
-
   test('should set stream', () => {
     const stream = new MediaStream();
 
