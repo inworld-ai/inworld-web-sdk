@@ -21,7 +21,7 @@ import { WebSocketConnection } from '../../src/connection/web-socket.connection'
 import { InworldPacket } from '../../src/entities/inworld_packet.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
-import { WorldEngineService } from '../../src/services/world_engine.service';
+import { WorldEngineService } from '../../src/services/pb/world_engine.service';
 import {
   capabilitiesProps,
   convertAgentsToCharacters,
@@ -189,14 +189,6 @@ describe('open', () => {
 
     expect(loadScene).toHaveBeenCalledTimes(1);
     expect(openSession).toHaveBeenCalledTimes(1);
-    expect(loadScene).toHaveBeenCalledWith({
-      name: SCENE,
-      config: {
-        capabilities: capabilitiesProps,
-      },
-      session,
-      user,
-    });
     expect(loaded[0].id).toBe(characters[0].id);
     expect(loaded[1].id).toBe(characters[1].id);
   });

@@ -17,6 +17,10 @@ import { HistoryItem } from '../components/history';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
+import {
+  SessionContinuation,
+  SessionContinuationProps,
+} from '../entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../entities/inworld_packet.entity';
 import { isNaturalNumber } from '../guard/number';
 import { ConnectionService } from '../services/connection.service';
@@ -30,6 +34,7 @@ export class InworldClient<
   private scene: string = '';
   private client: Client;
   private config: ClientConfiguration<CapabilitiesT> = {};
+  private sessionContinuation: SessionContinuation;
 
   private generateSessionToken: GenerateSessionTokenFn;
 
@@ -144,6 +149,12 @@ export class InworldClient<
     return this;
   }
 
+  setSessionContinuation(sessionContinuation: SessionContinuationProps) {
+    this.sessionContinuation = new SessionContinuation(sessionContinuation);
+
+    return this;
+  }
+
   build() {
     this.validate();
 
@@ -172,6 +183,7 @@ export class InworldClient<
       onHistoryChange: this.onHistoryChange,
       onDisconnect: this.onDisconnect,
       generateSessionToken: this.generateSessionToken,
+      sessionContinuation: this.sessionContinuation,
       extension: this.extension,
     });
 
@@ -200,6 +212,7 @@ export class InworldClient<
   private buildCapabilities(capabilities: CapabilitiesT): CapabilitiesRequest {
     const {
       audio = true,
+      continuation = false,
       emotions = false,
       interruptions = false,
       narratedActions = false,
@@ -211,6 +224,7 @@ export class InworldClient<
 
     return {
       audio,
+      continuation,
       emotions,
       interruptions,
       narratedActions,

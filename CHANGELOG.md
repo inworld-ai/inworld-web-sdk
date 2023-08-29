@@ -1,3 +1,15 @@
+## [Unreleased]
+
+### Added
+
+- Allow to propagate previous dialog to new connection
+- Allow manage load scene response and request via extension
+
+### Fixed
+
+- Resolve the issue of script loading occurring before the document is ready
+- Fix mute/unmute volume changing for currently playing audio track
+
 ## [1.5.1] - 2023-08-04
 
 - Use correct link to GitHub page

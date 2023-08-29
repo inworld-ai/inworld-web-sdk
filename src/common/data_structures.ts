@@ -2,12 +2,14 @@ import { InworldPacket as ProtoPacket } from '../../proto/packets.pb';
 import {
   CapabilitiesRequest,
   LoadSceneRequest,
+  LoadSceneResponse,
 } from '../../proto/world-engine.pb';
 import { AdditionalPhonemeInfo } from '../entities/inworld_packet.entity';
 
 export interface Capabilities {
   audio?: boolean;
   emotions?: boolean;
+  continuation?: boolean;
   interruptions?: boolean;
   narratedActions?: boolean;
   phonemes?: boolean;
@@ -109,5 +111,6 @@ export type ExtensionLoadSceneProps = Omit<
 
 export interface Extension<InworldPacketT> {
   convertPacketFromProto?: (proto: ProtoPacket) => InworldPacketT;
-  loadSceneProps?: ExtensionLoadSceneProps;
+  beforeLoadScene?: (request: LoadSceneRequest) => LoadSceneRequest;
+  afterLoadScene?: (res: LoadSceneResponse) => void;
 }

@@ -1,20 +1,26 @@
-import { v4 } from 'uuid';
-
-import * as fm from '../../proto/fetch.pb';
+import * as fm from '../../../proto/fetch.pb';
 import {
   CapabilitiesRequest,
   LoadSceneRequest,
   WorldEngine,
-} from '../../proto/world-engine.pb';
-import { CLIENT_ID } from '../../src/common/constants';
-import { WorldEngineService } from '../../src/services/world_engine.service';
-import { createAgent, session, user } from '../helpers';
-const SCENE = v4();
+} from '../../../proto/world-engine.pb';
+import { CLIENT_ID } from '../../../src/common/constants';
+import { InworldPacket } from '../../../src/entities/inworld_packet.entity';
+import { WorldEngineService } from '../../../src/services/pb/world_engine.service';
+import {
+  createAgent,
+  extension,
+  previousDialog,
+  SCENE,
+  session,
+  user,
+} from '../../helpers';
 
 const agents = [createAgent(), createAgent()];
 
 describe('load scene', () => {
-  let client: WorldEngineService;
+  let client: WorldEngineService<InworldPacket>;
+  let mockLoadScene: jest.Mock;
   const capabilities: CapabilitiesRequest = {
     animations: true,
     emotions: true,
@@ -23,6 +29,10 @@ describe('load scene', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     client = new WorldEngineService();
+    mockLoadScene = jest.fn((_req: LoadSceneRequest, _initReq?: fm.InitReq) => {
+      return Promise.resolve({ agents });
+    });
+    WorldEngine.LoadScene = mockLoadScene;
   });
 
   test('should use provided capabilities and gateway', async () => {
@@ -62,13 +72,6 @@ describe('load scene', () => {
 
   test('should use provided custom client id', async () => {
     const sceneClient = { id: 'client-id' };
-    const mockLoadScene = jest.fn(
-      (_req: LoadSceneRequest, _initReq?: fm.InitReq) => {
-        return Promise.resolve({ agents });
-      },
-    );
-
-    WorldEngine.LoadScene = mockLoadScene;
 
     await client.loadScene({
       config: {
@@ -87,13 +90,6 @@ describe('load scene', () => {
 
   test("should use default user id if it's not provided", async () => {
     const user = { fullName: 'Full Name' };
-    const mockLoadScene = jest.fn(
-      (_req: LoadSceneRequest, _initReq?: fm.InitReq) => {
-        return Promise.resolve({ agents });
-      },
-    );
-
-    WorldEngine.LoadScene = mockLoadScene;
 
     await client.loadScene({
       config: {
@@ -151,14 +147,6 @@ describe('load scene', () => {
   });
 
   test('should use provided provided user id', async () => {
-    const mockLoadScene = jest.fn(
-      (_req: LoadSceneRequest, _initReq?: fm.InitReq) => {
-        return Promise.resolve({ agents });
-      },
-    );
-
-    WorldEngine.LoadScene = mockLoadScene;
-
     await client.loadScene({
       config: {
         capabilities,
@@ -174,14 +162,6 @@ describe('load scene', () => {
   });
 
   test('should use provided provided user name', async () => {
-    const mockLoadScene = jest.fn(
-      (_req: LoadSceneRequest, _initReq?: fm.InitReq) => {
-        return Promise.resolve({ agents });
-      },
-    );
-
-    WorldEngine.LoadScene = mockLoadScene;
-
     await client.loadScene({
       config: {
         capabilities,
@@ -197,14 +177,6 @@ describe('load scene', () => {
   });
 
   test('should use provided provided user profile', async () => {
-    const mockLoadScene = jest.fn(
-      (_req: LoadSceneRequest, _initReq?: fm.InitReq) => {
-        return Promise.resolve({ agents });
-      },
-    );
-
-    WorldEngine.LoadScene = mockLoadScene;
-
     await client.loadScene({
       config: {
         capabilities,
@@ -222,5 +194,41 @@ describe('load scene', () => {
       fieldId: user.profile.fields[0].id,
       fieldValue: user.profile.fields[0].value,
     });
+  });
+
+  test('should send previous dialog', async () => {
+    await client.loadScene({
+      config: {
+        capabilities,
+        connection: {
+          gateway: { hostname: 'examples.com', ssl: true },
+        },
+      },
+      name: SCENE,
+      session,
+      sessionContinuation: { previousDialog },
+      user,
+    });
+
+    expect(
+      mockLoadScene.mock.calls[0][0].sessionContinuation.previousDialog,
+    ).toEqual(previousDialog.toProto());
+  });
+
+  test('should call extention functions', async () => {
+    await client.loadScene({
+      config: {
+        capabilities,
+        connection: {
+          gateway: { hostname: 'examples.com', ssl: true },
+        },
+      },
+      name: SCENE,
+      session,
+      extension,
+    });
+
+    expect(extension.beforeLoadScene).toHaveBeenCalledTimes(1);
+    expect(extension.afterLoadScene).toHaveBeenCalledTimes(1);
   });
 });

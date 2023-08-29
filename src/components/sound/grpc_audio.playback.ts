@@ -29,7 +29,7 @@ export class GrpcAudioPlayback<
   private isPlaying = false;
   private isStopping = false;
 
-  playbackAudioContext = new AudioContext({ sampleRate: 16000 });
+  private playbackAudioContext = new AudioContext({ sampleRate: 16000 });
   private audioBufferSourceNode?: AudioBufferSourceNode;
 
   private onAfterPlaying:
@@ -44,6 +44,7 @@ export class GrpcAudioPlayback<
   private destinationNode =
     this.playbackAudioContext.createMediaStreamDestination();
   private gainNode: GainNode = this.playbackAudioContext.createGain();
+  private muted = false;
 
   constructor(props?: {
     audioPlaybackConfig?: AudioPlaybackConfig;
@@ -156,6 +157,16 @@ export class GrpcAudioPlayback<
     return this.destinationNode.stream;
   }
 
+  getMute() {
+    return this.muted;
+  }
+
+  async mute(mute: boolean) {
+    this.muted = mute;
+
+    return this.adjustVolume(mute ? 0 : 1);
+  }
+
   async stop() {
     if (this.audioBufferSourceNode) {
       this.audioBufferSourceNode.onended = null;
@@ -191,7 +202,9 @@ export class GrpcAudioPlayback<
       this.audioBufferSourceNode.disconnect();
     }
 
-    this.gainNode.gain.value = 1;
+    if (!this.muted) {
+      this.gainNode.gain.value = 1;
+    }
 
     delete this.audioBufferSourceNode;
   }

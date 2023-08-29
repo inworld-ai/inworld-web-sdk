@@ -1,16 +1,24 @@
 import { v4 } from 'uuid';
 
 import { InworldPacket as ProtoPacket } from '../proto/packets.pb';
-import { LoadSceneResponseAgent } from '../proto/world-engine.pb';
+import {
+  LoadSceneRequest,
+  LoadSceneResponseAgent,
+} from '../proto/world-engine.pb';
 import {
   Capabilities,
   Client,
+  Extension,
   SessionToken,
   User,
 } from '../src/common/data_structures';
 import { protoTimestamp } from '../src/common/helpers';
 import { QueueItem } from '../src/connection/web-socket.connection';
 import { Character } from '../src/entities/character.entity';
+import {
+  DialogParticipant,
+  PreviousDialog,
+} from '../src/entities/continuation/previous_dialog.entity';
 import { InworldPacket, PacketId } from '../src/entities/inworld_packet.entity';
 import {
   ExtendedCapabilities,
@@ -70,6 +78,7 @@ export const generateSessionToken = () => Promise.resolve(session);
 
 export const capabilitiesProps: Capabilities = {
   audio: true,
+  continuation: true,
   emotions: true,
   interruptions: true,
   phonemes: true,
@@ -85,6 +94,7 @@ export const extendedCapabilitiesProps: ExtendedCapabilities = {
 
 export const extendedCapabilitiesRequestProps: ExtendedCapabilitiesRequest = {
   audio: true,
+  continuation: true,
   emotions: true,
   interruptions: true,
   phonemeInfo: true,
@@ -126,4 +136,24 @@ export const convertPacketFromProto = (proto: ProtoPacket) => {
   return packet;
 };
 
-export const extension = { convertPacketFromProto };
+export const extension: Extension<ExtendedInworldPacket> = {
+  convertPacketFromProto,
+  afterLoadScene: jest.fn(),
+  beforeLoadScene: jest.fn((req: LoadSceneRequest) => req),
+};
+
+export const phrases = [
+  {
+    talker: DialogParticipant.CHARACTER,
+    phrase: v4(),
+  },
+  {
+    talker: DialogParticipant.PLAYER,
+    phrase: v4(),
+  },
+  {
+    talker: DialogParticipant.UNKNOWN,
+    phrase: v4(),
+  },
+];
+export const previousDialog = new PreviousDialog(phrases);

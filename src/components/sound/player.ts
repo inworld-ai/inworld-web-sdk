@@ -17,16 +17,6 @@ export class Player {
     document.body.append(this.audioElement);
   }
 
-  setMute(mute: boolean) {
-    if (this.audioElement) {
-      this.audioElement.muted = mute;
-    }
-  }
-
-  getMute(): boolean {
-    return this.audioElement.muted;
-  }
-
   setStream(stream: MediaStream) {
     this.mediaStream = stream;
     this.audioElement.srcObject = stream;

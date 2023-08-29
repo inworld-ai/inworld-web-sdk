@@ -27,6 +27,12 @@ beforeEach(() => {
   playback = new GrpcAudioPlayback();
 });
 
+test('should set mute player as true', () => {
+  playback.mute(true);
+
+  expect(playback.getMute()).toEqual(true);
+});
+
 describe('isActive', () => {
   beforeEach(() => {
     jest.clearAllMocks();
