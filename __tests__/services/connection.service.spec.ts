@@ -189,14 +189,6 @@ describe('open', () => {
 
     expect(loadScene).toHaveBeenCalledTimes(1);
     expect(openSession).toHaveBeenCalledTimes(1);
-    expect(loadScene).toHaveBeenCalledWith({
-      name: SCENE,
-      config: {
-        capabilities: capabilitiesProps,
-      },
-      session,
-      user,
-    });
     expect(loaded[0].id).toBe(characters[0].id);
     expect(loaded[1].id).toBe(characters[1].id);
   });

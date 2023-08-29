@@ -1,9 +1,13 @@
 import { v4 } from 'uuid';
 
-import { ClientRequest, WorldEngine } from '../../../proto/world-engine.pb';
+import {
+  ClientRequest,
+  LoadSceneRequest,
+  WorldEngine,
+} from '../../../proto/world-engine.pb';
 import { CLIENT_ID } from '../../common/constants';
 import {
-  ExtensionLoadSceneProps,
+  Extension,
   InternalClientConfiguration,
   SessionToken,
   User,
@@ -13,30 +17,40 @@ import { PbService } from './pb.service';
 
 const INWORLD_USER_ID = 'inworldUserId';
 
-export interface LoadSceneProps {
+export interface LoadSceneProps<InworldPacketT> {
   name: string;
   client?: ClientRequest;
   user?: User;
   config: InternalClientConfiguration;
   session: SessionToken;
   sessionContinuation?: SessionContinuation;
-  sceneProps?: ExtensionLoadSceneProps;
+  extension?: Extension<InworldPacketT>;
 }
 
-export class WorldEngineService extends PbService {
-  async loadScene(props: LoadSceneProps) {
-    const {
-      client,
-      config,
-      name,
-      sceneProps,
-      session,
-      sessionContinuation,
-      user,
-    } = props;
+export class WorldEngineService<InworldPacketT> extends PbService {
+  async loadScene(props: LoadSceneProps<InworldPacketT>) {
+    const req = this.buildRequest(props);
+    const finalReq = props.extension?.beforeLoadScene(req) ?? req;
+
+    const res = await this.request(
+      props.config,
+      props.session,
+      WorldEngine.LoadScene,
+      finalReq,
+    );
+
+    props.extension?.afterLoadScene(res);
+
+    return res;
+  }
+
+  private buildRequest(
+    props: LoadSceneProps<InworldPacketT>,
+  ): LoadSceneRequest {
+    const { client, config, name, sessionContinuation, user = {} } = props;
     const { id, fullName, profile } = user;
 
-    return this.request(config, session, WorldEngine.LoadScene, {
+    return {
       client: {
         id: CLIENT_ID,
         ...client,
@@ -61,8 +75,7 @@ export class WorldEngineService extends PbService {
           previousDialog: sessionContinuation.previousDialog.toProto(),
         },
       }),
-      ...sceneProps,
-    });
+    };
   }
 
   private getUserId() {

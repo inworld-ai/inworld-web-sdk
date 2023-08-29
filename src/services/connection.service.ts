@@ -289,14 +289,14 @@ export class ConnectionService<
         }
       }
 
-      const engineService = new WorldEngineService();
+      const engineService = new WorldEngineService<InworldPacketT>();
 
       if (!this.scene) {
         this.scene = await engineService.loadScene({
           config: this.connectionProps.config,
           session: this.session,
           sessionContinuation: this.connectionProps.sessionContinuation,
-          sceneProps: this.extension.loadSceneProps,
+          extension: this.extension,
           name,
           user,
           client,
