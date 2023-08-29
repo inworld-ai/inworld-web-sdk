@@ -10,11 +10,11 @@ export class InworldPlayer {
   }
 
   getMute() {
-    return this.player.getMute();
+    return this.grpcAudioPlayer.getMute();
   }
 
   mute(mute: boolean) {
-    this.player.setMute(mute);
+    this.grpcAudioPlayer.mute(mute);
   }
 
   async stop() {
