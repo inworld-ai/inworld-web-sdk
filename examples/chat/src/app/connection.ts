@@ -39,7 +39,8 @@ export class InworldService {
       .setOnMessage(props.onMessage)
       .setOnPhoneme(props.onPhoneme)
       .setOnHistoryChange(props.onHistoryChange)
-      .setOnDisconnect(props.onDisconnect);
+      .setOnDisconnect(props.onDisconnect)
+      .setExtension({});
 
     this.connection = client.build();
   }

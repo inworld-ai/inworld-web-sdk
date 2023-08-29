@@ -1,10 +1,14 @@
 import { v4 } from 'uuid';
 
 import { InworldPacket as ProtoPacket } from '../proto/packets.pb';
-import { LoadSceneResponseAgent } from '../proto/world-engine.pb';
+import {
+  LoadSceneRequest,
+  LoadSceneResponseAgent,
+} from '../proto/world-engine.pb';
 import {
   Capabilities,
   Client,
+  Extension,
   SessionToken,
   User,
 } from '../src/common/data_structures';
@@ -132,7 +136,11 @@ export const convertPacketFromProto = (proto: ProtoPacket) => {
   return packet;
 };
 
-export const extension = { convertPacketFromProto };
+export const extension: Extension<ExtendedInworldPacket> = {
+  convertPacketFromProto,
+  afterLoadScene: jest.fn(),
+  beforeLoadScene: jest.fn((req: LoadSceneRequest) => req),
+};
 
 export const phrases = [
   {

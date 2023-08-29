@@ -30,7 +30,7 @@ import { Character } from '../entities/character.entity';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../entities/inworld_packet.entity';
 import { EventFactory } from '../factories/event';
-import { WorldEngineService } from './world_engine.service';
+import { WorldEngineService } from './pb/world_engine.service';
 
 interface ConnectionProps<InworldPacketT> {
   name?: string;
@@ -289,14 +289,14 @@ export class ConnectionService<
         }
       }
 
-      const engineService = new WorldEngineService();
+      const engineService = new WorldEngineService<InworldPacketT>();
 
       if (!this.scene) {
         this.scene = await engineService.loadScene({
           config: this.connectionProps.config,
           session: this.session,
           sessionContinuation: this.connectionProps.sessionContinuation,
-          sceneProps: this.extension.loadSceneProps,
+          extension: this.extension,
           name,
           user,
           client,
