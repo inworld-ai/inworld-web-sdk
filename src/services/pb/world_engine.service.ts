@@ -30,7 +30,7 @@ export interface LoadSceneProps<InworldPacketT> {
 export class WorldEngineService<InworldPacketT> extends PbService {
   async loadScene(props: LoadSceneProps<InworldPacketT>) {
     const req = this.buildRequest(props);
-    const finalReq = props.extension?.beforeLoadScene(req) ?? req;
+    const finalReq = props.extension?.beforeLoadScene?.(req) ?? req;
 
     const res = await this.request(
       props.config,
@@ -39,7 +39,7 @@ export class WorldEngineService<InworldPacketT> extends PbService {
       finalReq,
     );
 
-    props.extension?.afterLoadScene(res);
+    props.extension?.afterLoadScene?.(res);
 
     return res;
   }
