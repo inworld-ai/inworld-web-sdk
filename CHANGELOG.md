@@ -1,3 +1,8 @@
+## [Unreleased]
+
+### Fixed
+
+- Ensure `beforeLoadScene` and `afterLoadScene` are present before call them
 ## [1.5.2] - 2023-08-29
 
 ### Added

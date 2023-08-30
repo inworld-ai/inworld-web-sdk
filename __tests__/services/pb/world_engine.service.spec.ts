@@ -231,4 +231,21 @@ describe('load scene', () => {
     expect(extension.beforeLoadScene).toHaveBeenCalledTimes(1);
     expect(extension.afterLoadScene).toHaveBeenCalledTimes(1);
   });
+
+  test('should not throw error on empty extension', async () => {
+    await client.loadScene({
+      config: {
+        capabilities,
+        connection: {
+          gateway: { hostname: 'examples.com', ssl: true },
+        },
+      },
+      name: SCENE,
+      session,
+      extension: {},
+    });
+
+    expect(extension.beforeLoadScene).toHaveBeenCalledTimes(0);
+    expect(extension.afterLoadScene).toHaveBeenCalledTimes(0);
+  });
 });
