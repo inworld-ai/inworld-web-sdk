@@ -21,6 +21,9 @@ jobs:
         run: git config --global user.email "github-service-account@inworld.ai" &&  git config --global user.name "CI-inworld"
       - name: Checkout source code
         uses: actions/checkout@v3
+        with:
+          ref: main
+          ssh-key: ${{ secrets.GH_SERVICE_ACCOUNT_SSH_KEY }}
       - name: Setup node
         uses: actions/setup-node@v3
         with:
@@ -40,7 +43,8 @@ jobs:
       - name: Install dependencies
         run: yarn install --ignore-scripts --frozen-lockfile
       - name: Bump version
-        run: yarn release:bump ${{ inputs.increment }} --ci
+        run: |
+          yarn release:bump ${{ inputs.increment }} --ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish

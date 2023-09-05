@@ -15,6 +15,8 @@ export const Config: Configuration = {
   MODEL_URI:
     'https://storage.googleapis.com/assets-inworld-ai/models/innequin/v2/models/body/innequin.glb', // ./assets/innequin.glb
   RPM_AVATAR: process.env.REACT_APP_RPM_AVATAR,
+  DRACO_COMPRESSION_URI:
+    'https://storage.googleapis.com/assets-inworld-ai/models/innequin/v2/draco-gltf/',
   CAMERA_SETTINGS: {
     POS_X: 0, // 0 Defaults
     POS_Y: 2, // 2

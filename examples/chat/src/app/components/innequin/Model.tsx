@@ -6,6 +6,7 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 import { BODY_TEXTURE_TYPE, VISEME_TYPES } from '../../types';
+import { Config } from './../../../config';
 import { Animator } from './animator/Animator';
 import {
   ANIMATION_TYPE,
@@ -39,9 +40,7 @@ export function Model(props: ModelProps) {
   const bodyTextureRef = useRef(props.bodyTexture);
   const modelData = useLoader(GLTFLoader, props.modelURI, (loader) => {
     const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath(
-      'https://storage.googleapis.com/assets-inworld-ai/models/innequin/v2/draco-gltf/',
-    );
+    dracoLoader.setDecoderPath(Config.DRACO_COMPRESSION_URI);
     loader.setDRACOLoader(dracoLoader);
   });
   const modelRef = useRef(modelData);

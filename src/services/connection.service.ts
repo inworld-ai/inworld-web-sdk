@@ -27,15 +27,17 @@ import {
   WebSocketConnection,
 } from '../connection/web-socket.connection';
 import { Character } from '../entities/character.entity';
+import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../entities/inworld_packet.entity';
 import { EventFactory } from '../factories/event';
-import { WorldEngineService } from './world_engine.service';
+import { WorldEngineService } from './pb/world_engine.service';
 
 interface ConnectionProps<InworldPacketT> {
   name?: string;
   user?: User;
   client?: ClientRequest;
   config?: InternalClientConfiguration;
+  sessionContinuation?: SessionContinuation;
   onReady?: () => Awaitable<void>;
   onError?: (err: Event | Error) => void;
   onMessage?: (packet: InworldPacketT) => Awaitable<void>;
@@ -49,11 +51,10 @@ interface ConnectionProps<InworldPacketT> {
 
 const TIME_DIFF_MS = 50 * 60 * 1000; // 5 minutes
 
-const player = Player.getInstance();
-
 export class ConnectionService<
   InworldPacketT extends InworldPacket = InworldPacket,
 > {
+  private player = Player.getInstance();
   private state: ConnectionState = ConnectionState.INACTIVE;
   private audioSessionAction = AudioSessionState.UNKNOWN;
 
@@ -265,7 +266,7 @@ export class ConnectionService<
   private async loadScene() {
     if (this.state === ConnectionState.LOADING) return;
 
-    const { generateSessionToken, name, client, user } = this.connectionProps;
+    const { client, generateSessionToken, name, user } = this.connectionProps;
 
     try {
       const { sessionId, expirationTime } = this.session || {};
@@ -288,13 +289,14 @@ export class ConnectionService<
         }
       }
 
-      const engineService = new WorldEngineService();
+      const engineService = new WorldEngineService<InworldPacketT>();
 
       if (!this.scene) {
         this.scene = await engineService.loadScene({
           config: this.connectionProps.config,
           session: this.session,
-          sceneProps: this.extension.loadSceneProps,
+          sessionContinuation: this.connectionProps.sessionContinuation,
+          extension: this.extension,
           name,
           user,
           client,
@@ -343,7 +345,9 @@ export class ConnectionService<
         new MediaStream(),
         grpcAudioPlayer.getPlaybackStream(),
       );
-      player.setStream(webRtcLoopbackBiDiSession.getPlaybackLoopbackStream());
+      this.player.setStream(
+        webRtcLoopbackBiDiSession.getPlaybackLoopbackStream(),
+      );
       this.state = ConnectionState.ACTIVE;
       onReady?.();
     };

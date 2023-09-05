@@ -1,6 +1,20 @@
-## [1.5.2] - 2023-08-12
+## [1.5.3] - 2023-08-30
 
-- Updated Chat example project with Innequin V2
+### Fixed
+
+- Ensure `beforeLoadScene` and `afterLoadScene` are present before call them
+
+## [1.5.2] - 2023-08-29
+
+### Added
+
+- Allow to propagate previous dialog to new connection
+- Allow manage load scene response and request via extension
+
+### Fixed
+
+- Resolve the issue of script loading occurring before the document is ready
+- Fix mute/unmute volume changing for currently playing audio track
 
 ## [1.5.1] - 2023-08-04
 
