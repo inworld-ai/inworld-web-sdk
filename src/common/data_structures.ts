@@ -63,9 +63,9 @@ export interface ConnectionConfig {
   disconnectTimeout?: number;
   gateway?: Gateway;
 }
-export interface ClientConfiguration<CapabilitiesT> {
+export interface ClientConfiguration {
   connection?: ConnectionConfig;
-  capabilities?: CapabilitiesT;
+  capabilities?: Capabilities;
   audioPlayback?: AudioPlaybackConfig;
 }
 
