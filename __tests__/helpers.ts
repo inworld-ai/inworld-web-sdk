@@ -23,6 +23,7 @@ import { InworldPacket, PacketId } from '../src/entities/inworld_packet.entity';
 import {
   ExtendedCapabilities,
   ExtendedCapabilitiesRequest,
+  ExtendedHistoryItem,
   ExtendedInworldPacket,
 } from './data_structures';
 
@@ -136,11 +137,12 @@ export const convertPacketFromProto = (proto: ProtoPacket) => {
   return packet;
 };
 
-export const extension: Extension<ExtendedInworldPacket> = {
-  convertPacketFromProto,
-  afterLoadScene: jest.fn(),
-  beforeLoadScene: jest.fn((req: LoadSceneRequest) => req),
-};
+export const extension: Extension<ExtendedInworldPacket, ExtendedHistoryItem> =
+  {
+    convertPacketFromProto,
+    afterLoadScene: jest.fn(),
+    beforeLoadScene: jest.fn((req: LoadSceneRequest) => req),
+  };
 
 export const phrases = [
   {

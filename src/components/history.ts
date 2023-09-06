@@ -1,7 +1,7 @@
 import { v4 } from 'uuid';
 
 import { DEFAULT_USER_NAME } from '../common/constants';
-import { User } from '../common/data_structures';
+import { Extension, User } from '../common/data_structures';
 import { Character } from '../entities/character.entity';
 import {
   Actor,
@@ -66,12 +66,24 @@ interface EmotionsMap {
   [key: string]: EmotionEvent;
 }
 
+interface InworldHistoryProps<InworldPacketT, HistoryItemT> {
+  extension?: Extension<InworldPacketT, HistoryItemT>;
+}
+
 export class InworldHistory<
   InworldPacketT extends InworldPacket = InworldPacket,
+  HistoryItemT extends HistoryItem = HistoryItem,
 > {
   private history: HistoryItem[] = [];
   private queue: HistoryItem[] = [];
   private emotions: EmotionsMap = {};
+  private extension: Extension<InworldPacketT, HistoryItemT>;
+
+  constructor(props?: InworldHistoryProps<InworldPacketT, HistoryItemT>) {
+    if (props?.extension) {
+      this.extension = props.extension;
+    }
+  }
 
   addOrUpdate({
     characters,
@@ -134,10 +146,13 @@ export class InworldHistory<
         return item.id === chatItem?.id;
       });
 
-      if (currentHistoryIndex >= 0 && chatItem) {
-        this.history[currentHistoryIndex] = chatItem;
+      const item =
+        this.extension?.onNewHistoryItem?.(packet, chatItem) || chatItem;
+
+      if (currentHistoryIndex >= 0) {
+        this.history[currentHistoryIndex] = item;
       } else {
-        this.history = [...this.history, chatItem!];
+        this.history = [...this.history, item!];
       }
     }
 

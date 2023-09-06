@@ -1,5 +1,6 @@
 import { CapabilitiesRequest } from '../proto/world-engine.pb';
 import { Capabilities } from '../src/common/data_structures';
+import { HistoryItem } from '../src/components/history';
 import { InworldPacket } from '../src/entities/inworld_packet.entity';
 
 export interface ExtendedCapabilities extends Capabilities {
@@ -21,3 +22,5 @@ export interface MutationEvent {
 export interface ExtendedInworldPacket extends InworldPacket {
   mutation: MutationEvent;
 }
+
+export type ExtendedHistoryItem = HistoryItem & { mutation: MutationEvent };
