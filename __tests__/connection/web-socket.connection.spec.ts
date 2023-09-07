@@ -138,9 +138,15 @@ describe('open', () => {
 });
 
 describe('write', () => {
+  const afterWriting = jest.fn();
+  const beforeWriting = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   test('should write to active connection', async () => {
-    const afterWriting = jest.fn();
-    const beforeWriting = jest.fn();
+    let protoPacket: ProtoPacket;
 
     ws.open({ session, convertPacketFromProto });
 
@@ -149,13 +155,20 @@ describe('write', () => {
     ws.write({
       afterWriting,
       beforeWriting,
-      getPacket: () => textMessage,
+      getPacket: () => {
+        protoPacket = eventFactory.text(v4());
+        return protoPacket;
+      },
     });
 
-    await expect(server).toReceiveMessage(textMessage);
+    await expect(server).toReceiveMessage(protoPacket);
+
+    const inworldPacket = convertPacketFromProto(protoPacket);
 
     expect(afterWriting).toHaveBeenCalledTimes(1);
+    expect(afterWriting).toHaveBeenCalledWith(inworldPacket);
     expect(beforeWriting).toHaveBeenCalledTimes(1);
+    expect(beforeWriting).toHaveBeenCalledWith(inworldPacket);
   });
 
   test('should write when connection become active', async () => {
