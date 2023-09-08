@@ -3,6 +3,7 @@
 ### Added
 
 - Allow to extend history item
+- Add `correlationId` to text, custom and cancel response packets
 
 ### Removed
 
