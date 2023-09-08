@@ -32,7 +32,7 @@ import { InworldPacket } from '../entities/inworld_packet.entity';
 import { EventFactory } from '../factories/event';
 import { WorldEngineService } from './pb/world_engine.service';
 
-interface ConnectionProps<InworldPacketT> {
+interface ConnectionProps<InworldPacketT, HistoryItemT> {
   name?: string;
   user?: User;
   client?: ClientRequest;
@@ -46,13 +46,14 @@ interface ConnectionProps<InworldPacketT> {
   grpcAudioPlayer: GrpcAudioPlayback;
   webRtcLoopbackBiDiSession: GrpcWebRtcLoopbackBiDiSession;
   generateSessionToken: GenerateSessionTokenFn;
-  extension?: Extension<InworldPacketT>;
+  extension?: Extension<InworldPacketT, HistoryItemT>;
 }
 
 const TIME_DIFF_MS = 50 * 60 * 1000; // 5 minutes
 
 export class ConnectionService<
   InworldPacketT extends InworldPacket = InworldPacket,
+  HistoryItemT extends HistoryItem = HistoryItem,
 > {
   private player = Player.getInstance();
   private state: ConnectionState = ConnectionState.INACTIVE;
@@ -61,7 +62,7 @@ export class ConnectionService<
   private scene: LoadSceneResponse;
   private session: SessionToken;
   private connection: Connection<InworldPacketT>;
-  private connectionProps: ConnectionProps<InworldPacketT>;
+  private connectionProps: ConnectionProps<InworldPacketT, HistoryItemT>;
 
   private characters: Array<Character> = [];
 
@@ -76,11 +77,15 @@ export class ConnectionService<
   private onReady: (() => Awaitable<void>) | undefined;
 
   private cancelReponses: CancelResponses = {};
-  private history = new InworldHistory<InworldPacketT>();
-  private extension: Extension<InworldPacketT>;
+  private history: InworldHistory;
+  private extension: Extension<InworldPacketT, HistoryItemT>;
 
-  constructor(props?: ConnectionProps<InworldPacketT>) {
-    this.connectionProps = props || ({} as ConnectionProps<InworldPacketT>);
+  constructor(props?: ConnectionProps<InworldPacketT, HistoryItemT>) {
+    this.connectionProps =
+      props || ({} as ConnectionProps<InworldPacketT, HistoryItemT>);
+    this.history = new InworldHistory<InworldPacketT>({
+      extension: this.connectionProps.extension,
+    });
 
     this.initializeHandlers();
     this.initializeConnection();

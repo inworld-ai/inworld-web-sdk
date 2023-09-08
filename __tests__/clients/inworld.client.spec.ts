@@ -2,15 +2,10 @@ import '../mocks/window.mock';
 
 import { InworldClient } from '../../src/clients/inworld.client';
 import { ConnectionService } from '../../src/services/connection.service';
-import {
-  ExtendedCapabilities,
-  ExtendedInworldPacket,
-} from '../data_structures';
+import { ExtendedInworldPacket } from '../data_structures';
 import {
   capabilitiesProps,
   client,
-  extendedCapabilitiesProps,
-  extendedCapabilitiesRequestProps,
   extension,
   generateSessionToken,
   phrases,
@@ -144,14 +139,8 @@ describe('extension', () => {
   });
 
   test('should extend capabilities and packets', () => {
-    const inworldClient = new InworldClient<
-      ExtendedCapabilities,
-      ExtendedInworldPacket
-    >()
+    const inworldClient = new InworldClient<ExtendedInworldPacket>()
       .setScene(SCENE)
-      .setConfiguration({
-        capabilities: extendedCapabilitiesProps,
-      })
       .setExtension(extension);
 
     inworldClient.build();
@@ -159,10 +148,7 @@ describe('extension', () => {
     expect(ConnectionService).toHaveBeenCalledTimes(1);
     expect(ConnectionService).toHaveBeenCalledWith(
       expect.objectContaining({
-        config: {
-          connection: expect.anything(),
-          capabilities: extendedCapabilitiesRequestProps,
-        },
+        config: expect.anything(),
         extension,
       }),
     );

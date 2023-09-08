@@ -41,7 +41,6 @@ describe('event types', () => {
     const chunk = v4();
     const event = factory.dataChunk(chunk, DataChunkDataType.AUDIO);
 
-    expect(event).toHaveProperty('packetId');
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.dataChunk).toEqual({
@@ -49,101 +48,129 @@ describe('event types', () => {
       type: DataChunkDataType.AUDIO,
     });
     expect(event.routing.target.name).toEqual(character.id);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.correlationId).toBeUndefined();
   });
 
   test('should generate audio session start', () => {
     const event = factory.audioSessionStart();
 
-    expect(event).toHaveProperty('packetId');
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.control).toEqual({
       action: ControlEventAction.AUDIO_SESSION_START,
     });
     expect(event.routing.target.name).toEqual(character.id);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.correlationId).toBeUndefined();
   });
 
   test('should generate audio session end', () => {
     const event = factory.audioSessionEnd();
 
-    expect(event).toHaveProperty('packetId');
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.control).toEqual({
       action: ControlEventAction.AUDIO_SESSION_END,
     });
     expect(event.routing.target.name).toEqual(character.id);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.correlationId).toBeUndefined();
   });
 
   test('should generate tts playback start', () => {
     const event = factory.ttsPlaybackStart();
 
-    expect(event).toHaveProperty('packetId');
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.control).toEqual({
       action: ControlEventAction.TTS_PLAYBACK_START,
     });
     expect(event.routing.target.name).toEqual(character.id);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.correlationId).toBeUndefined();
   });
 
   test('should generate tts playback end', () => {
     const event = factory.ttsPlaybackEnd();
 
-    expect(event).toHaveProperty('packetId');
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.control).toEqual({
       action: ControlEventAction.TTS_PLAYBACK_END,
     });
     expect(event.routing.target.name).toEqual(character.id);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.correlationId).toBeUndefined();
   });
 
   test('should generate tts playback mute', () => {
     const event = factory.ttsPlaybackMute(true);
 
-    expect(event).toHaveProperty('packetId');
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.control).toEqual({
       action: ControlEventAction.TTS_PLAYBACK_MUTE,
     });
     expect(event.routing.target.name).toEqual(character.id);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.correlationId).toBeUndefined();
   });
 
   test('should generate tts playback unmute', () => {
     const event = factory.ttsPlaybackMute(false);
 
-    expect(event).toHaveProperty('packetId');
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.control).toEqual({
       action: ControlEventAction.TTS_PLAYBACK_UNMUTE,
     });
     expect(event.routing.target.name).toEqual(character.id);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.correlationId).toBeUndefined();
   });
 
   test('should generate text event', () => {
     const text = v4();
     const event = factory.text(text);
 
-    expect(event).toHaveProperty('packetId');
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.text.text).toEqual(text);
     expect(event.routing.target.name).toEqual(character.id);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId).toHaveProperty('interactionId');
+    expect(event.packetId).toHaveProperty('utteranceId');
+    expect(event.packetId).toHaveProperty('correlationId');
   });
 
   test('should generate trigger event without parameters', () => {
     const name = v4();
     const event = factory.trigger(name);
 
-    expect(event).toHaveProperty('packetId');
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.custom.name).toEqual(name);
     expect(event.custom.parameters).toEqual(undefined);
     expect(event.routing.target.name).toEqual(character.id);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId).toHaveProperty('interactionId');
+    expect(event.packetId).toHaveProperty('utteranceId');
+    expect(event.packetId).toHaveProperty('correlationId');
   });
 
   test('should generate trigger event with parameters', () => {
@@ -151,12 +178,15 @@ describe('event types', () => {
     const parameters = [{ name: v4(), value: v4() }];
     const event = factory.trigger(name, parameters);
 
-    expect(event).toHaveProperty('packetId');
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.custom.name).toEqual(name);
     expect(event.custom.parameters).toEqual(parameters);
     expect(event.routing.target.name).toEqual(character.id);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId).toHaveProperty('interactionId');
+    expect(event.packetId).toHaveProperty('utteranceId');
+    expect(event.packetId).toHaveProperty('correlationId');
   });
 
   test('should generate cancel response event', () => {
@@ -164,15 +194,17 @@ describe('event types', () => {
     const utteranceId = [v4()];
     const event = factory.cancelResponse({ interactionId, utteranceId });
 
-    expect(event).toHaveProperty('packetId');
     expect(event).toHaveProperty('routing');
-    expect(event).toHaveProperty('timestamp');
     expect(event).toHaveProperty('timestamp');
     expect(event.mutation.cancelResponses).toEqual({
       interactionId,
       utteranceId,
     });
     expect(event.routing.target.name).toEqual(character.id);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId).toHaveProperty('correlationId');
   });
 
   test('should not use character id if character is not set', () => {
