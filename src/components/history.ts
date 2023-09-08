@@ -146,8 +146,7 @@ export class InworldHistory<
         return item.id === chatItem?.id;
       });
 
-      const item =
-        this.extension?.onNewHistoryItem?.(packet, chatItem) || chatItem;
+      const item = this.extension?.historyItem?.(packet, chatItem) || chatItem;
 
       if (currentHistoryIndex >= 0) {
         this.history[currentHistoryIndex] = item;

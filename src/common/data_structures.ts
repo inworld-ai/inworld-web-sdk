@@ -109,8 +109,5 @@ export interface Extension<InworldPacketT, HistoryItemT> {
   convertPacketFromProto?: (proto: ProtoPacket) => InworldPacketT;
   beforeLoadScene?: (request: LoadSceneRequest) => LoadSceneRequest;
   afterLoadScene?: (res: LoadSceneResponse) => void;
-  onNewHistoryItem?: (
-    packet: InworldPacketT,
-    historyItem: HistoryItem,
-  ) => HistoryItemT;
+  historyItem?: (packet: InworldPacketT, item: HistoryItem) => HistoryItemT;
 }

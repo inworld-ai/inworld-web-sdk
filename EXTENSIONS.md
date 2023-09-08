@@ -77,7 +77,7 @@ Here are several ways to enhance the functionality of the Inworld AI Web SDK:
       },
       mutation: {
         regenerateResponse: {
-          interactionId: interactionId ?? this.connection.uuid(),
+          interactionId: interactionId ?? uuid(),
         },
       },
     };
@@ -124,7 +124,7 @@ Here are several ways to enhance the functionality of the Inworld AI Web SDK:
     .setScene(sceneName)
     ...
     .setExtension({
-      onNewHistoryItem: (
+      historyItem: (
         packet: ExtendedInworldPacket,
         item: HistoryItem,
       ) => ({
