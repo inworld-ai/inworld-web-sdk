@@ -4,6 +4,7 @@
 
 - Allow to extend history item
 - Add `correlationId` to text, custom and cancel response packets
+- Wrap narrated actions with asterisks
 
 ### Removed
 

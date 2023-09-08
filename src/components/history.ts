@@ -279,10 +279,14 @@ export class InworldHistory<
             this.emotions[item.interactionId]?.behavior?.code || '';
           const emotion = emotionCode ? `(${emotionCode}) ` : '';
 
+          const text =
+            item.type === CHAT_HISTORY_TYPE.NARRATED_ACTION
+              ? `*${item.text}*`
+              : item.text;
           transcript +=
             characterLastSpeaking && isCharacter
               ? item.text
-              : `${prefix}${givenName}: ${emotion}${item.text}`;
+              : `${prefix}${givenName}: ${emotion}${text}`;
           characterLastSpeaking = isCharacter;
           break;
         case CHAT_HISTORY_TYPE.TRIGGER_EVENT:
