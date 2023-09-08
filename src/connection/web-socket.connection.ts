@@ -104,7 +104,7 @@ export class WebSocketConnection<
     // So put packets to queue and send them `onReady` event.
     if (this.isActive()) {
       const packet = item.getPacket();
-      const inworldPacket = this.convertPacketFromProto(item.getPacket());
+      const inworldPacket = this.convertPacketFromProto(packet);
       await item.beforeWriting?.(inworldPacket);
       this.ws.send(JSON.stringify(packet));
       item.afterWriting?.(inworldPacket);
