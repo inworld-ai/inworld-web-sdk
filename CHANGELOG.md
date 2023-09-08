@@ -1,3 +1,13 @@
+## [Unreleased]
+
+### Added
+
+- Allow to extend history item
+
+### Removed
+
+- Remove excess extended capabilities generic type
+
 ## [1.5.3] - 2023-08-30
 
 ### Fixed

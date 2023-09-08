@@ -12,23 +12,28 @@ import {
   SessionToken,
   User,
 } from '../../common/data_structures';
+import { HistoryItem } from '../../components/history';
 import { SessionContinuation } from '../../entities/continuation/session_continuation.entity';
+import { InworldPacket } from '../../entities/inworld_packet.entity';
 import { PbService } from './pb.service';
 
 const INWORLD_USER_ID = 'inworldUserId';
 
-export interface LoadSceneProps<InworldPacketT> {
+export interface LoadSceneProps<InworldPacketT, HistoryItemT> {
   name: string;
   client?: ClientRequest;
   user?: User;
   config: InternalClientConfiguration;
   session: SessionToken;
   sessionContinuation?: SessionContinuation;
-  extension?: Extension<InworldPacketT>;
+  extension?: Extension<InworldPacketT, HistoryItemT>;
 }
 
-export class WorldEngineService<InworldPacketT> extends PbService {
-  async loadScene(props: LoadSceneProps<InworldPacketT>) {
+export class WorldEngineService<
+  InworldPacketT extends InworldPacket = InworldPacket,
+  HistoryItemT extends HistoryItem = HistoryItem,
+> extends PbService {
+  async loadScene(props: LoadSceneProps<InworldPacketT, HistoryItemT>) {
     const req = this.buildRequest(props);
     const finalReq = props.extension?.beforeLoadScene?.(req) ?? req;
 
@@ -45,7 +50,7 @@ export class WorldEngineService<InworldPacketT> extends PbService {
   }
 
   private buildRequest(
-    props: LoadSceneProps<InworldPacketT>,
+    props: LoadSceneProps<InworldPacketT, HistoryItemT>,
   ): LoadSceneRequest {
     const { client, config, name, sessionContinuation, user = {} } = props;
     const { id, fullName, profile } = user;

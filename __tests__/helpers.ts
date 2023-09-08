@@ -20,11 +20,7 @@ import {
   PreviousDialog,
 } from '../src/entities/continuation/previous_dialog.entity';
 import { InworldPacket, PacketId } from '../src/entities/inworld_packet.entity';
-import {
-  ExtendedCapabilities,
-  ExtendedCapabilitiesRequest,
-  ExtendedInworldPacket,
-} from './data_structures';
+import { ExtendedHistoryItem, ExtendedInworldPacket } from './data_structures';
 
 const inOneHours = new Date();
 inOneHours.setHours(inOneHours.getHours() + 1);
@@ -87,25 +83,6 @@ export const capabilitiesProps: Capabilities = {
   turnBasedStt: true,
 };
 
-export const extendedCapabilitiesProps: ExtendedCapabilities = {
-  ...capabilitiesProps,
-  regenerateResponse: true,
-};
-
-export const extendedCapabilitiesRequestProps: ExtendedCapabilitiesRequest = {
-  audio: true,
-  continuation: true,
-  emotions: true,
-  interruptions: true,
-  phonemeInfo: true,
-  silenceEvents: true,
-  narratedActions: true,
-  text: true,
-  triggers: true,
-  turnBasedStt: true,
-  regenerateResponse: true,
-};
-
 export const user: User = {
   fullName: 'Full Name',
   id: 'id',
@@ -136,11 +113,20 @@ export const convertPacketFromProto = (proto: ProtoPacket) => {
   return packet;
 };
 
-export const extension: Extension<ExtendedInworldPacket> = {
-  convertPacketFromProto,
-  afterLoadScene: jest.fn(),
-  beforeLoadScene: jest.fn((req: LoadSceneRequest) => req),
-};
+const beforeLoadScene = (req: LoadSceneRequest) => ({
+  ...req,
+  capabilities: {
+    ...req.capabilities,
+    regenerateResponse: true,
+  },
+});
+
+export const extension: Extension<ExtendedInworldPacket, ExtendedHistoryItem> =
+  {
+    convertPacketFromProto,
+    afterLoadScene: jest.fn(),
+    beforeLoadScene: jest.fn().mockImplementation(beforeLoadScene),
+  };
 
 export const phrases = [
   {
