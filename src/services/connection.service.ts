@@ -146,6 +146,16 @@ export class ConnectionService<
     return this.characters;
   }
 
+  async getCurrentCharacter() {
+    await this.getCharactersList();
+
+    return this.getEventFactory().getCurrentCharacter();
+  }
+
+  async setCurrentCharacter(character: Character) {
+    return this.getEventFactory().setCurrentCharacter(character);
+  }
+
   async open() {
     try {
       await this.loadScene();
@@ -217,8 +227,33 @@ export class ConnectionService<
     );
 
     if (!this.getEventFactory().getCurrentCharacter() && this.characters[0]) {
-      this.getEventFactory().setCurrentCharacter(this.characters[0]);
+      this.setCurrentCharacter(this.characters[0]);
     }
+  }
+
+  async getSessionToken() {
+    let sessionToken = this.session || ({} as SessionToken);
+
+    const { sessionId, expirationTime } = sessionToken;
+
+    // Generate new session token is it's empty or expired
+    if (
+      !expirationTime ||
+      new Date(expirationTime).getTime() - new Date().getTime() <= TIME_DIFF_MS
+    ) {
+      this.state = ConnectionState.LOADING;
+      sessionToken = await this.connectionProps.generateSessionToken();
+
+      // Reuse session id to keep context of previous conversation
+      if (sessionId) {
+        sessionToken = {
+          ...this.session,
+          sessionId,
+        };
+      }
+    }
+
+    return sessionToken;
   }
 
   private async write(getPacket: () => ProtoPacket) {
@@ -270,28 +305,10 @@ export class ConnectionService<
   private async loadScene() {
     if (this.state === ConnectionState.LOADING) return;
 
-    const { client, generateSessionToken, name, user } = this.connectionProps;
+    const { client, name, user } = this.connectionProps;
 
     try {
-      const { sessionId, expirationTime } = this.session || {};
-
-      // Generate new session token is it's empty or expired
-      if (
-        !expirationTime ||
-        new Date(expirationTime).getTime() - new Date().getTime() <=
-          TIME_DIFF_MS
-      ) {
-        this.state = ConnectionState.LOADING;
-        this.session = await generateSessionToken();
-
-        // Reuse session id to keep context of previous conversation
-        if (sessionId) {
-          this.session = {
-            ...this.session,
-            sessionId,
-          };
-        }
-      }
+      this.session = await this.getSessionToken();
 
       const engineService = new WorldEngineService<InworldPacketT>();
 

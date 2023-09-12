@@ -78,9 +78,11 @@ export class InworldConnectionService<
   }
 
   async getCurrentCharacter() {
-    await this.connection.getCharactersList();
+    return this.connection.getCurrentCharacter();
+  }
 
-    return this.connection.getEventFactory().getCurrentCharacter();
+  setCurrentCharacter(character: Character) {
+    return this.connection.setCurrentCharacter(character);
   }
 
   getHistory() {
@@ -93,10 +95,6 @@ export class InworldConnectionService<
 
   getTranscript() {
     return this.connection.getTranscript();
-  }
-
-  setCurrentCharacter(character: Character) {
-    return this.connection.getEventFactory().setCurrentCharacter(character);
   }
 
   async sendText(text: string) {

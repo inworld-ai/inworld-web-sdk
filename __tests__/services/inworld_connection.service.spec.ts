@@ -123,8 +123,8 @@ describe('character', () => {
 
   test('should return current character', async () => {
     const getCurrentCharacter = jest
-      .spyOn(eventFactory, 'getCurrentCharacter')
-      .mockImplementationOnce(() => characters[0]);
+      .spyOn(ConnectionService.prototype, 'getCurrentCharacter')
+      .mockImplementation(() => Promise.resolve(characters[0]));
 
     const result = await service.getCurrentCharacter();
 
@@ -133,7 +133,10 @@ describe('character', () => {
   });
 
   test('should set current character', async () => {
-    const setCurrentCharacter = jest.spyOn(eventFactory, 'setCurrentCharacter');
+    const setCurrentCharacter = jest.spyOn(
+      ConnectionService.prototype,
+      'setCurrentCharacter',
+    );
 
     service.setCurrentCharacter(characters[0]);
 
