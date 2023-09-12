@@ -59,6 +59,11 @@ import {
   TriggerEvent,
   TriggerParameter,
 } from './entities/inworld_packet.entity';
+import {
+  DislikeType,
+  FeedbackDislikeProps,
+  FeedbackLikeProps,
+} from './services/feedback.service';
 import { InworldConnectionService } from './services/inworld_connection.service';
 
 export {
@@ -74,12 +79,15 @@ export {
   ConnectionConfig,
   DialogParticipant,
   DialogPhrase,
+  DislikeType,
   EmotionBehavior,
   EmotionBehaviorCode,
   EmotionEvent,
   EmotionStrength,
   EmotionStrengthCode,
   Extension,
+  FeedbackDislikeProps,
+  FeedbackLikeProps,
   HistoryInteractionEnd,
   HistoryItem,
   HistoryItemActor,

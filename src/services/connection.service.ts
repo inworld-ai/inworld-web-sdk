@@ -140,6 +140,10 @@ export class ConnectionService<
     return this.history.getTranscript(this.connectionProps.user);
   }
 
+  getConfig() {
+    return this.connectionProps.config;
+  }
+
   async getCharactersList() {
     await this.loadScene();
 

@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Added
+
+- Allow to send interaction feedback
+
 ## [1.6.2] - 2023-09-20
 
 ### Added
