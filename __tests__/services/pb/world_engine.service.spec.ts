@@ -22,7 +22,6 @@ describe('load scene', () => {
   let client: WorldEngineService<InworldPacket>;
   let mockLoadScene: jest.Mock;
   const capabilities: CapabilitiesRequest = {
-    animations: true,
     emotions: true,
   };
 
@@ -66,7 +65,6 @@ describe('load scene', () => {
     expect(loadedAgents[0].agentId).toEqual(agents[0].agentId);
     expect(loadedAgents[1].agentId).toEqual(agents[1].agentId);
     expect(callCapabilities.emotions).toEqual(true);
-    expect(callCapabilities.animations).toEqual(true);
     expect(mockLoadScene.mock.calls[0][0].client.id).toEqual(CLIENT_ID);
   });
 
