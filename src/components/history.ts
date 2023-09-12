@@ -91,7 +91,8 @@ export class InworldHistory<
     packet,
     outgoing,
   }: InworldHistoryAddProps<InworldPacketT>) {
-    let chatItem: HistoryItem | undefined;
+    let historyItem: HistoryItem | undefined;
+    let queueItem: HistoryItem | undefined;
 
     const utteranceId = packet.packetId?.utteranceId;
     const interactionId = packet.packetId?.interactionId;
@@ -110,9 +111,9 @@ export class InworldHistory<
       };
 
       if (grpcAudioPlayer.hasPacketInQueue({ utteranceId })) {
-        this.queue = [...this.queue, actorItem];
+        queueItem = actorItem;
       } else {
-        chatItem = actorItem;
+        historyItem = actorItem;
       }
     } else if (packet.isNarratedAction()) {
       const actionItem = {
@@ -124,29 +125,29 @@ export class InworldHistory<
         grpcAudioPlayer.isCurrentPacket({ interactionId }) ||
         !grpcAudioPlayer.hasPacketInQueue({ interactionId })
       ) {
-        chatItem = actionItem;
+        historyItem = actionItem;
       } else {
-        this.queue = [...this.queue, actionItem];
+        queueItem = actionItem;
       }
     } else if (packet.isTrigger()) {
-      chatItem = this.combineTriggerItem(packet, outgoing);
+      historyItem = this.combineTriggerItem(packet, outgoing);
     } else if (packet.isInteractionEnd()) {
       const controlItem: HistoryInteractionEnd =
         this.combineInteractionEndItem(packet);
 
       if (grpcAudioPlayer.hasPacketInQueue({ interactionId })) {
-        this.queue = [...this.queue, controlItem];
+        queueItem = controlItem;
       } else {
-        chatItem = controlItem;
+        historyItem = controlItem;
       }
     }
 
-    if (chatItem) {
+    if (historyItem) {
       const currentHistoryIndex = this.history.findIndex((item) => {
-        return item.id === chatItem?.id;
+        return item.id === historyItem?.id;
       });
 
-      const item = this.extension?.historyItem?.(packet, chatItem) || chatItem;
+      const item = this.convertToExtendedType(packet, historyItem);
 
       if (currentHistoryIndex >= 0) {
         this.history[currentHistoryIndex] = item;
@@ -155,7 +156,14 @@ export class InworldHistory<
       }
     }
 
-    return !!chatItem;
+    if (queueItem) {
+      this.queue = [
+        ...this.queue,
+        this.convertToExtendedType(packet, queueItem),
+      ];
+    }
+
+    return !!historyItem;
   }
 
   update(packet: InworldPacketT) {
@@ -365,5 +373,9 @@ export class InworldHistory<
       source: packet.routing?.source,
       type: CHAT_HISTORY_TYPE.INTERACTION_END,
     };
+  }
+
+  private convertToExtendedType(packet: InworldPacketT, item: HistoryItem) {
+    return this.extension?.historyItem?.(packet, item) || item;
   }
 }
