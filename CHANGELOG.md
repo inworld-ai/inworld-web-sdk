@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+
+- Include overlooked calls to the `historyItem` method for queued packets
+
 ## [1.6.0] - 2023-09-08
 
 ### Added
