@@ -93,6 +93,11 @@ export const SessionContinuation = () => {
                   checked={val}
                   onChange={async (_, checked) => {
                     setValue('continuation.enabled', checked);
+                    setValue(
+                      'continuation.previousDialog',
+                      checked ? defaultValue : '',
+                    );
+
                     saveConfiguration(getValues());
                   }}
                 />
