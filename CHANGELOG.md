@@ -1,8 +1,25 @@
+## [1.6.0] - 2023-09-08
+
+### Added
+
+- Allow to extend history item
+- Add `correlationId` to text, custom and cancel response packets
+- Wrap narrated actions with asterisks
+
+### Removed
+
+- Remove excess extended capabilities generic type
+
+### Fixed
+
+- Generate proto packet just once to dispatching it to the WebSocket connection
+
 ## [1.5.3] - 2023-08-30
 
 ### Fixed
 
 - Ensure `beforeLoadScene` and `afterLoadScene` are present before call them
+
 ## [1.5.2] - 2023-08-29
 
 ### Added

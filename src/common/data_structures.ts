@@ -4,6 +4,7 @@ import {
   LoadSceneRequest,
   LoadSceneResponse,
 } from '../../proto/world-engine.pb';
+import { HistoryItem } from '../components/history';
 import { AdditionalPhonemeInfo } from '../entities/inworld_packet.entity';
 
 export interface Capabilities {
@@ -62,9 +63,9 @@ export interface ConnectionConfig {
   disconnectTimeout?: number;
   gateway?: Gateway;
 }
-export interface ClientConfiguration<CapabilitiesT> {
+export interface ClientConfiguration {
   connection?: ConnectionConfig;
-  capabilities?: CapabilitiesT;
+  capabilities?: Capabilities;
   audioPlayback?: AudioPlaybackConfig;
 }
 
@@ -104,13 +105,9 @@ export enum AudioSessionState {
   END = 'END',
 }
 
-export type ExtensionLoadSceneProps = Omit<
-  LoadSceneRequest,
-  'name' | 'capabilities' | 'user' | 'client'
->;
-
-export interface Extension<InworldPacketT> {
+export interface Extension<InworldPacketT, HistoryItemT> {
   convertPacketFromProto?: (proto: ProtoPacket) => InworldPacketT;
   beforeLoadScene?: (request: LoadSceneRequest) => LoadSceneRequest;
   afterLoadScene?: (res: LoadSceneResponse) => void;
+  historyItem?: (packet: InworldPacketT, item: HistoryItem) => HistoryItemT;
 }

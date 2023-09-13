@@ -45,6 +45,8 @@ jobs:
       - name: Bump version
         run: |
           yarn release:bump ${{ inputs.increment }} --ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish
         run: yarn release:publish
         env:

@@ -27,13 +27,13 @@ import { ConnectionService } from '../services/connection.service';
 import { InworldConnectionService } from '../services/inworld_connection.service';
 
 export class InworldClient<
-  CapabilitiesT extends Capabilities = Capabilities,
   InworldPacketT extends InworldPacket = InworldPacket,
+  HistoryItemT extends HistoryItem = HistoryItem,
 > {
   private user: User;
   private scene: string = '';
   private client: Client;
-  private config: ClientConfiguration<CapabilitiesT> = {};
+  private config: ClientConfiguration = {};
   private sessionContinuation: SessionContinuation;
 
   private generateSessionToken: GenerateSessionTokenFn;
@@ -55,7 +55,7 @@ export class InworldClient<
     | undefined;
   private onStopPlaying: (() => Awaitable<void>) | undefined;
 
-  private extension: Extension<InworldPacketT>;
+  private extension: Extension<InworldPacketT, HistoryItemT>;
 
   setUser(user: User) {
     this.user = user;
@@ -77,7 +77,7 @@ export class InworldClient<
     return this;
   }
 
-  setConfiguration(config: ClientConfiguration<CapabilitiesT>) {
+  setConfiguration(config: ClientConfiguration) {
     this.config = config;
 
     return this;
@@ -113,7 +113,7 @@ export class InworldClient<
     return this;
   }
 
-  setOnHistoryChange(fn?: (history: HistoryItem[]) => Awaitable<void>) {
+  setOnHistoryChange(fn?: (history: HistoryItemT[]) => Awaitable<void>) {
     this.onHistoryChange = fn;
 
     return this;
@@ -143,7 +143,7 @@ export class InworldClient<
     return this;
   }
 
-  setExtension(extension: Extension<InworldPacketT>) {
+  setExtension(extension: Extension<InworldPacketT, HistoryItemT>) {
     this.extension = extension;
 
     return this;
@@ -205,11 +205,11 @@ export class InworldClient<
         ...connection,
         gateway: this.ensureGateway(GRPC_HOSTNAME, gateway),
       },
-      capabilities: this.buildCapabilities(capabilities as CapabilitiesT),
+      capabilities: this.buildCapabilities(capabilities),
     };
   }
 
-  private buildCapabilities(capabilities: CapabilitiesT): CapabilitiesRequest {
+  private buildCapabilities(capabilities: Capabilities): CapabilitiesRequest {
     const {
       audio = true,
       continuation = false,
@@ -219,7 +219,6 @@ export class InworldClient<
       turnBasedStt = false,
       phonemes: phonemeInfo = false,
       silence: silenceEvents = false,
-      ...restCapabilities
     } = capabilities;
 
     return {
@@ -233,7 +232,6 @@ export class InworldClient<
       text: true,
       triggers: true,
       turnBasedStt,
-      ...restCapabilities,
     };
   }
 
