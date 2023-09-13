@@ -34,7 +34,7 @@ import {
   get as getConfiguration,
   save as saveConfiguration,
 } from './app/helpers/configuration';
-import { toInt } from './app/helpers/transform';
+import { JSONToPreviousDialog, toInt } from './app/helpers/transform';
 import {
   BODY_TEXTURE_TYPE,
   CHAT_VIEW,
@@ -85,6 +85,9 @@ function App() {
 
     const duration = toInt(form.audio.stopDuration ?? 0);
     const ticks = toInt(form.audio.stopTicks ?? 0);
+    const previousDialog = form.continuation?.enabled
+      ? JSONToPreviousDialog(form.continuation.previousDialog!)
+      : [];
 
     const service = new InworldService({
       onHistoryChange,
@@ -92,8 +95,10 @@ function App() {
         ...(form.chatView !== CHAT_VIEW.TEXT && { phonemes: true }),
         ...(form.chatView === CHAT_VIEW.TEXT && { interruptions: true }),
         emotions: true,
+        continuation: true,
         narratedActions: true,
       },
+      ...(previousDialog.length && { continuation: { previousDialog } }),
       ...(duration &&
         ticks && {
           audioPlayback: {

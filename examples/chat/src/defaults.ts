@@ -1,3 +1,5 @@
+import { DialogParticipant } from '@inworld/web-sdk';
+
 import { CHAT_VIEW } from './app/types';
 import { Config } from './config';
 
@@ -6,6 +8,19 @@ export const configuration = {
   chatView: CHAT_VIEW.TEXT,
   scene: { name: Config.INWORLD_SCENE },
   player: { name: 'Participant' },
+  continuation: {
+    enabled: false,
+    previousDialog: JSON.stringify([
+      {
+        talker: DialogParticipant.PLAYER,
+        phrase: 'Hi!',
+      },
+      {
+        talker: DialogParticipant.CHARACTER,
+        phrase: 'Hi! Nice to meet you.',
+      },
+    ]),
+  },
 };
 
 export const DEFAULT_RPM_AVATAR =
