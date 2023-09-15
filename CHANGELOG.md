@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+
+- Include the correlationId in both the fromProto conversion method and the associated historical items
+
 ## [1.6.1] - 2023-09-13
 
 ### Fixed
