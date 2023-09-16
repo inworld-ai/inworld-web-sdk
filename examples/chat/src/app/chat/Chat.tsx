@@ -129,6 +129,7 @@ export function Chat(props: ChatProps) {
       }}
     >
       <History
+        connection={connection}
         history={chatHistory}
         chatView={props.chatView}
         emotions={props.emotions}

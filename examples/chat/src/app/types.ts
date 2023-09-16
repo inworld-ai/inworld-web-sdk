@@ -1,4 +1,4 @@
-import { EmotionEvent } from '@inworld/web-sdk';
+import { DislikeType, EmotionEvent } from '@inworld/web-sdk';
 
 export enum CHAT_VIEW {
   TEXT = 'Text',
@@ -95,4 +95,13 @@ export enum VISEME_TYPES {
   I = 'I',
   O = 'O',
   U = 'U',
+}
+
+export type Feedback = {
+  isLike: boolean;
+  type?: DislikeType;
+};
+
+export interface FeedbackMap {
+  [interactionId: string]: Feedback;
 }
