@@ -8,7 +8,6 @@ import {
   DataChunkDataType,
   InworldPacket as ProtoPacket,
 } from '../../proto/packets.pb';
-import { SessionToken } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
 import {
   CHAT_HISTORY_TYPE,
@@ -19,6 +18,7 @@ import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playbac
 import { GrpcWebRtcLoopbackBiDiSession } from '../../src/components/sound/grpc_web_rtc_loopback_bidi.session';
 import { WebSocketConnection } from '../../src/connection/web-socket.connection';
 import { InworldPacket } from '../../src/entities/inworld_packet.entity';
+import { SessionToken } from '../../src/entities/session_token.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
 import { StateSerializationService } from '../../src/services/pb/state_serialization.service';
@@ -159,13 +159,20 @@ describe('history', () => {
 });
 
 describe('getSessionState', () => {
-  const generateSessionToken = jest.fn(() => Promise.resolve(session));
-  const connection = new ConnectionService({
-    name: SCENE,
-    onError,
-    grpcAudioPlayer,
-    generateSessionToken,
-    webRtcLoopbackBiDiSession,
+  let connection: ConnectionService;
+  let generateSessionToken: jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    generateSessionToken = jest.fn(() => Promise.resolve(session));
+    connection = new ConnectionService({
+      name: SCENE,
+      onError,
+      grpcAudioPlayer,
+      generateSessionToken,
+      webRtcLoopbackBiDiSession,
+    });
   });
 
   test('should get state', async () => {

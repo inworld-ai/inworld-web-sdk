@@ -1,9 +1,7 @@
 import { StateSerialization } from '../../../proto/state_serialization.pb';
 import { SCENE_PATTERN } from '../../common/constants';
-import {
-  InternalClientConfiguration,
-  SessionToken,
-} from '../../common/data_structures';
+import { InternalClientConfiguration } from '../../common/data_structures';
+import { SessionToken } from '../../entities/session_token.entity';
 import { PbService } from './pb.service';
 
 export interface getSessionStateProps {

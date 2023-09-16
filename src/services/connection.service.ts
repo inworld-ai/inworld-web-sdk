@@ -10,7 +10,6 @@ import {
   Extension,
   GenerateSessionTokenFn,
   InternalClientConfiguration,
-  SessionToken,
   User,
 } from '../common/data_structures';
 import {
@@ -28,6 +27,7 @@ import {
 import { Character } from '../entities/character.entity';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../entities/inworld_packet.entity';
+import { SessionToken } from '../entities/session_token.entity';
 import { EventFactory } from '../factories/event';
 import { StateSerializationService } from './pb/state_serialization.service';
 import { WorldEngineService } from './pb/world_engine.service';
@@ -48,8 +48,6 @@ interface ConnectionProps<InworldPacketT, HistoryItemT> {
   generateSessionToken: GenerateSessionTokenFn;
   extension?: Extension<InworldPacketT, HistoryItemT>;
 }
-
-const TIME_DIFF_MS = 50 * 60 * 1000; // 5 minutes
 
 export class ConnectionService<
   InworldPacketT extends InworldPacket = InworldPacket,
@@ -72,6 +70,7 @@ export class ConnectionService<
   private eventFactory = new EventFactory();
 
   private stateService = new StateSerializationService();
+  private engineService = new WorldEngineService<InworldPacketT>();
 
   private onDisconnect: (() => Awaitable<void>) | undefined;
   private onError: (err: Event | Error) => Awaitable<void>;
@@ -105,7 +104,7 @@ export class ConnectionService<
   async getSessionState() {
     try {
       const { config, name: scene } = this.connectionProps;
-      const session = await this.getSessionToken();
+      const session = await this.ensureSessionToken();
       const proto = await this.stateService.getSessionState({
         config,
         scene,
@@ -292,12 +291,14 @@ export class ConnectionService<
     const { name, client, user } = this.connectionProps;
 
     try {
-      this.session = await this.getSessionToken();
-
-      const engineService = new WorldEngineService<InworldPacketT>();
+      await this.ensureSessionToken({
+        beforeLoading: () => {
+          this.state = ConnectionState.LOADING;
+        },
+      });
 
       if (!this.scene) {
-        this.scene = await engineService.loadScene({
+        this.scene = await this.engineService.loadScene({
           config: this.connectionProps.config,
           session: this.session,
           sessionContinuation: this.connectionProps.sessionContinuation,
@@ -320,18 +321,13 @@ export class ConnectionService<
     }
   }
 
-  private async getSessionToken() {
-    let sessionToken = this.session || ({} as SessionToken);
-
-    const { sessionId, expirationTime } = sessionToken;
-
+  async ensureSessionToken(props?: { beforeLoading: () => void }) {
     // Generate new session token is it's empty or expired
-    if (
-      !expirationTime ||
-      new Date(expirationTime).getTime() - new Date().getTime() <= TIME_DIFF_MS
-    ) {
-      this.state = ConnectionState.LOADING;
-      sessionToken = await this.connectionProps.generateSessionToken();
+    if (!this.session || SessionToken.isExpired(this.session)) {
+      const { sessionId } = this.session || {};
+
+      props?.beforeLoading?.();
+      let sessionToken = await this.connectionProps.generateSessionToken();
 
       // Reuse session id to keep context of previous conversation
       if (sessionId) {
@@ -340,9 +336,11 @@ export class ConnectionService<
           sessionId,
         };
       }
+
+      this.session = sessionToken;
     }
 
-    return sessionToken;
+    return this.session;
   }
 
   private scheduleDisconnect() {
