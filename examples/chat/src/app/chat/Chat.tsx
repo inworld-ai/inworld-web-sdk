@@ -186,6 +186,7 @@ export function Chat(props: ChatProps) {
       }}
     >
       <History
+        connection={connection}
         history={chatHistory}
         characters={props.characters}
         chatView={props.chatView}

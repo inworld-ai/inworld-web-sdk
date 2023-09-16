@@ -1,4 +1,4 @@
-import { EmotionEvent } from '@inworld/web-core';
+import { EmotionEvent, Feedback } from '@inworld/web-core';
 
 export enum CHAT_VIEW {
   TEXT = 'Text',
@@ -98,4 +98,8 @@ export enum VISEME_TYPES {
   I = 'I',
   O = 'O',
   U = 'U',
+}
+
+export interface FeedbackMap {
+  [interactionId: string]: Feedback;
 }

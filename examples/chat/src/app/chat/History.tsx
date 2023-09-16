@@ -2,18 +2,20 @@ import {
   Actor,
   Character,
   CHAT_HISTORY_TYPE,
+  DislikeType,
   HistoryItem,
   HistoryItemActor,
   HistoryItemNarratedAction,
   HistoryItemTriggerEvent,
+  InworldConnectionService,
 } from '@inworld/web-core';
-import { Box, Fade, Stack, Typography } from '@mui/material';
+import { Box, Fade, Stack } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { CircularRpmAvatar } from '../components/CircularRpmAvatar';
 import { getEmoji } from '../helpers/emoji';
 import { dateWithMilliseconds } from '../helpers/transform';
-import { CHAT_VIEW, EmotionsMap } from '../types';
+import { CHAT_VIEW, EmotionsMap, FeedbackMap } from '../types';
 import {
   HistoryAction,
   HistoryActor,
@@ -22,6 +24,7 @@ import {
   HistoryMessageGroup,
   HistoryStyled,
 } from './Chat.styled';
+import { FeedbackMenu } from './FeedbackMenu';
 import { Typing } from './Typing';
 
 interface HistoryProps {
@@ -30,6 +33,7 @@ interface HistoryProps {
   history: HistoryItem[];
   emotions: EmotionsMap;
   onInteractionEnd: (value: boolean) => void;
+  connection: InworldConnectionService;
 }
 
 type CombinedHistoryItem = {
@@ -44,14 +48,59 @@ type CombinedHistoryItem = {
 };
 
 export const History = (props: HistoryProps) => {
-  const { chatView, history } = props;
+  const { chatView, connection, history } = props;
 
   const ref = useRef<HTMLDivElement>(null);
 
   const [combinedChatHistory, setCombinedChatHistory] = useState<
     CombinedHistoryItem[]
   >([]);
+  const [feedbacks, setFeedbacks] = useState<FeedbackMap>({});
   const [isInteractionEnd, setIsInteractionEnd] = useState<boolean>(true);
+
+  const handleLike = React.useCallback(
+    async (interactionId: string) => {
+      return connection.feedback
+        .like({
+          interactionId,
+        })
+        .then((feedback) =>
+          setFeedbacks({
+            ...feedbacks,
+            [interactionId]: feedback,
+          }),
+        );
+    },
+    [connection.feedback, feedbacks],
+  );
+
+  const handleDislike = React.useCallback(
+    async (interactionId: string, type: DislikeType) => {
+      return connection.feedback
+        .dislike({
+          interactionId,
+          types: [type],
+        })
+        .then((feedback) =>
+          setFeedbacks({
+            ...feedbacks,
+            [interactionId]: feedback,
+          }),
+        );
+    },
+    [connection.feedback, feedbacks],
+  );
+
+  const handleUndo = React.useCallback(
+    async (interactionId: string, name: string) => {
+      return connection.feedback.undo(name).then(() => {
+        const newFeedbacks = { ...feedbacks };
+        delete newFeedbacks[interactionId];
+        setFeedbacks(newFeedbacks);
+      });
+    },
+    [connection.feedback, feedbacks],
+  );
 
   useEffect(() => {
     // scroll chat down on history change
@@ -191,7 +240,6 @@ export const History = (props: HistoryProps) => {
               >
                 <HistoryActor
                   className="chat__bubble"
-                  title={title}
                   key={index}
                   data-id={message.id}
                 >
@@ -224,13 +272,24 @@ export const History = (props: HistoryProps) => {
                           {emoji}
                         </Box>
                       )}
-                      <Typography>
-                        {messages.map((m) => (
-                          <React.Fragment key={m.id}>
-                            {getContent(m)}{' '}
-                          </React.Fragment>
-                        ))}
-                      </Typography>
+                      <Box>
+                        <span title={title}>
+                          {messages.map((m) => (
+                            <React.Fragment key={m.id}>
+                              {getContent(m)}
+                            </React.Fragment>
+                          ))}
+                        </span>
+                        {item.source.isCharacter && (
+                          <FeedbackMenu
+                            feedback={feedbacks[item.interactionId!]}
+                            interactionId={item.interactionId!}
+                            handleLike={handleLike}
+                            handleDislike={handleDislike}
+                            handleUndo={handleUndo}
+                          />
+                        )}
+                      </Box>
                     </HistoryItemMessageActor>
                   </Stack>
                 </HistoryActor>
