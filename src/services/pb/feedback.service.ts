@@ -1,8 +1,6 @@
 import { Feedback, InteractionFeedback } from '../../../proto/feedback.pb';
-import {
-  InternalClientConfiguration,
-  SessionToken,
-} from '../../common/data_structures';
+import { InternalClientConfiguration } from '../../common/data_structures';
+import { SessionToken } from '../../entities/session_token.entity';
 import { PbService } from './pb.service';
 
 export interface createInteractionFeedbackProps {

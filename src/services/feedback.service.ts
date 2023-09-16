@@ -57,7 +57,7 @@ export class FeedbackService<
   private async send(props: SendFeedbackProps) {
     const characterId =
       props.characterId ?? (await this.connection.getCurrentCharacter()).id;
-    const sessionToken = await this.connection.getSessionToken();
+    const session = await this.connection.ensureSessionToken();
     const interactionFeedback = {
       ...(props.isLike
         ? { isLike: true }
@@ -73,7 +73,7 @@ export class FeedbackService<
       characterId,
       interactionFeedback,
       interactionId: props.interactionId,
-      session: sessionToken,
+      session,
     });
   }
 

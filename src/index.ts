@@ -13,7 +13,6 @@ import {
   ClientConfiguration,
   ConnectionConfig,
   Extension,
-  SessionToken,
   StopAudioPlayback,
   User,
   UserProfile,
@@ -59,6 +58,7 @@ import {
   TriggerEvent,
   TriggerParameter,
 } from './entities/inworld_packet.entity';
+import { SessionToken } from './entities/session_token.entity';
 import {
   DislikeType,
   FeedbackDislikeProps,

@@ -6,6 +6,7 @@ import {
 } from '../../proto/world-engine.pb';
 import { HistoryItem } from '../components/history';
 import { AdditionalPhonemeInfo } from '../entities/inworld_packet.entity';
+import { SessionToken } from '../entities/session_token.entity';
 
 export interface Capabilities {
   audio?: boolean;
@@ -35,13 +36,6 @@ export interface User {
 
 export interface Client {
   id?: string;
-}
-
-export interface SessionToken {
-  token: string;
-  type: string;
-  expirationTime: string;
-  sessionId: string;
 }
 
 export interface Gateway {

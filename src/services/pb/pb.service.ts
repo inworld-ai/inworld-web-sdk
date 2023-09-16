@@ -1,8 +1,6 @@
 import * as fm from '../../../proto/fetch.pb';
-import {
-  InternalClientConfiguration,
-  SessionToken,
-} from '../../common/data_structures';
+import { InternalClientConfiguration } from '../../common/data_structures';
+import { SessionToken } from '../../entities/session_token.entity';
 
 export type PbFunc<P, R> = (req: P, initReq?: fm.InitReq) => Promise<R>;
 

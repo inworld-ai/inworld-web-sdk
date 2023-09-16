@@ -9,7 +9,6 @@ import {
   Capabilities,
   Client,
   Extension,
-  SessionToken,
   User,
 } from '../src/common/data_structures';
 import { protoTimestamp } from '../src/common/helpers';
@@ -20,6 +19,7 @@ import {
   PreviousDialog,
 } from '../src/entities/continuation/previous_dialog.entity';
 import { InworldPacket, PacketId } from '../src/entities/inworld_packet.entity';
+import { SessionToken } from '../src/entities/session_token.entity';
 import { ExtendedHistoryItem, ExtendedInworldPacket } from './data_structures';
 
 const inOneHours = new Date();
