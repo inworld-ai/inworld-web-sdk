@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Added
+
+- Allow to use async `onDisconnect` and `onError`
+
 ### Fixed
 
 - Include the correlationId in both the fromProto conversion method and the associated historical items
