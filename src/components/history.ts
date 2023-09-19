@@ -38,12 +38,14 @@ export interface HistoryItemActor extends HistoryItemBase {
   emotions?: EmotionEvent;
   isRecognizing?: boolean;
   character?: Character;
+  correlationId?: string;
 }
 
 export interface HistoryItemTriggerEvent extends HistoryItemBase {
   type: CHAT_HISTORY_TYPE.TRIGGER_EVENT;
   name: string;
   outgoing?: boolean;
+  correlationId?: string;
 }
 
 export interface HistoryInteractionEnd extends HistoryItemBase {
@@ -312,12 +314,14 @@ export class InworldHistory<
     const source = packet.routing?.source;
     const utteranceId = packet.packetId?.utteranceId;
     const interactionId = packet.packetId?.interactionId;
+    const correlationId = packet.packetId?.correlationId;
 
     return {
       id: utteranceId,
       isRecognizing: !packet.text.final,
       type: CHAT_HISTORY_TYPE.ACTOR,
       text: packet.text.text,
+      correlationId,
       date,
       interactionId,
       source,
@@ -348,11 +352,13 @@ export class InworldHistory<
     const source = packet.routing?.source;
     const utteranceId = packet.packetId?.utteranceId;
     const interactionId = packet.packetId?.interactionId;
+    const correlationId = packet.packetId?.correlationId;
 
     return {
       id: utteranceId,
       type: CHAT_HISTORY_TYPE.TRIGGER_EVENT,
       name: packet.trigger.name,
+      correlationId,
       date,
       interactionId,
       outgoing,

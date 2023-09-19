@@ -438,6 +438,7 @@ describe('send', () => {
           {
             id: textEvent.packetId.utteranceId,
             character: undefined,
+            correlationId: textEvent.packetId.correlationId,
             date: new Date(textEvent.timestamp),
             interactionId: textEvent.packetId.interactionId,
             isRecognizing: false,
