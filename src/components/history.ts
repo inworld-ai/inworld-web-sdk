@@ -7,6 +7,7 @@ import {
   Actor,
   EmotionEvent,
   InworldPacket,
+  TriggerParameter,
 } from '../entities/inworld_packet.entity';
 import { GrpcAudioPlayback } from './sound/grpc_audio.playback';
 
@@ -44,6 +45,7 @@ export interface HistoryItemActor extends HistoryItemBase {
 export interface HistoryItemTriggerEvent extends HistoryItemBase {
   type: CHAT_HISTORY_TYPE.TRIGGER_EVENT;
   name: string;
+  parameters: TriggerParameter[];
   outgoing?: boolean;
   correlationId?: string;
 }
@@ -359,6 +361,7 @@ export class InworldHistory<
       type: CHAT_HISTORY_TYPE.TRIGGER_EVENT,
       name: packet.trigger.name,
       correlationId,
+      parameters: packet.trigger.parameters,
       date,
       interactionId,
       outgoing,
