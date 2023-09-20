@@ -105,13 +105,12 @@ export class ConnectionService<
     try {
       const { config, name: scene } = this.connectionProps;
       const session = await this.ensureSessionToken();
-      const proto = await this.stateService.getSessionState({
+
+      return this.stateService.getSessionState({
         config,
         scene,
         session,
       });
-
-      return proto.state;
     } catch (err) {
       this.onError(err);
     }

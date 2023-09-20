@@ -4,8 +4,9 @@ import {
   StateSerialization,
 } from '../../../proto/state_serialization.pb';
 import { CapabilitiesRequest } from '../../../proto/world-engine.pb';
+import { protoTimestamp } from '../../../src/common/helpers';
 import { StateSerializationService } from '../../../src/services/pb/state_serialization.service';
-import { previousState, SCENE, session } from '../../helpers';
+import { previousStateUint8Array, SCENE, session } from '../../helpers';
 
 describe('getSessionState', () => {
   let service: StateSerializationService;
@@ -19,12 +20,15 @@ describe('getSessionState', () => {
   });
 
   test('should return session state', async () => {
-    const state = { state: previousState };
+    const expected = {
+      state: previousStateUint8Array,
+      creationTime: protoTimestamp(),
+    };
 
     const getSessionState = jest.fn(
       (_req: GetSessionStateRequest, _initReq?: fm.InitReq) => {
         expect(_initReq.pathPrefix).toEqual('https://examples.com');
-        return Promise.resolve(state);
+        return Promise.resolve(expected);
       },
     );
 
@@ -42,6 +46,6 @@ describe('getSessionState', () => {
     });
 
     expect(getSessionState).toHaveBeenCalledTimes(1);
-    expect(result).toEqual(state);
+    expect(result).toEqual(expected);
   });
 });

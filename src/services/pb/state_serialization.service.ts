@@ -10,6 +10,11 @@ export interface getSessionStateProps {
   scene: string;
 }
 
+export interface SessionState {
+  state: string;
+  creationTime: string;
+}
+
 export class StateSerializationService extends PbService {
   public async getSessionState(props: getSessionStateProps) {
     const { config, session, scene } = props;
@@ -17,8 +22,18 @@ export class StateSerializationService extends PbService {
     const workspace = SCENE_PATTERN.exec(scene)[1];
     const name = `workspaces/${workspace}/sessions/${session.sessionId}`;
 
-    return this.request(config, session, StateSerialization.GetSessionState, {
-      name,
-    });
+    const res = await this.request(
+      config,
+      session,
+      StateSerialization.GetSessionState,
+      {
+        name,
+      },
+    );
+
+    return {
+      state: res.state.toString(),
+      creationTime: res.creationTime.toString(),
+    } as SessionState;
   }
 }

@@ -60,6 +60,7 @@ import {
   TriggerParameter,
 } from './entities/inworld_packet.entity';
 import { InworldConnectionService } from './services/inworld_connection.service';
+import { SessionState } from './services/pb/state_serialization.service';
 
 export {
   Actor,
@@ -95,6 +96,7 @@ export {
   Routing,
   SessionContinuation,
   SessionContinuationProps,
+  SessionState,
   SessionToken,
   StopAudioPlayback,
   TextEvent,

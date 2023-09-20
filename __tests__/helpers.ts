@@ -144,4 +144,5 @@ export const phrases: DialogPhrase[] = [
   },
 ];
 export const previousDialog = new PreviousDialog(phrases);
-export const previousState = new Uint8Array(32);
+export const previousState = v4();
+export const previousStateUint8Array = previousState as unknown as Uint8Array;

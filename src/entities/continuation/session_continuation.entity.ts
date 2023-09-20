@@ -2,12 +2,12 @@ import { DialogPhrase, PreviousDialog } from './previous_dialog.entity';
 
 export interface SessionContinuationProps {
   previousDialog?: DialogPhrase[];
-  previousState?: Uint8Array;
+  previousState?: string;
 }
 
 export class SessionContinuation {
   readonly previousDialog: PreviousDialog | undefined;
-  readonly previousState: Uint8Array | undefined;
+  readonly previousState: string | undefined;
 
   constructor(props: SessionContinuationProps) {
     if (props.previousDialog) {

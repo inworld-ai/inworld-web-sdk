@@ -21,7 +21,10 @@ import { InworldPacket } from '../../src/entities/inworld_packet.entity';
 import { SessionToken } from '../../src/entities/session_token.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
-import { StateSerializationService } from '../../src/services/pb/state_serialization.service';
+import {
+  SessionState,
+  StateSerializationService,
+} from '../../src/services/pb/state_serialization.service';
 import { WorldEngineService } from '../../src/services/pb/world_engine.service';
 import {
   capabilitiesProps,
@@ -176,15 +179,19 @@ describe('getSessionState', () => {
   });
 
   test('should get state', async () => {
+    const expected: SessionState = {
+      state: previousState,
+      creationTime: protoTimestamp(),
+    };
     const getSessionState = jest
       .spyOn(StateSerializationService.prototype, 'getSessionState')
-      .mockImplementationOnce(() => Promise.resolve({ state: previousState }));
+      .mockImplementationOnce(() => Promise.resolve(expected));
 
     const result = await connection.getSessionState();
 
     expect(generateSessionToken).toHaveBeenCalledTimes(1);
     expect(getSessionState).toHaveBeenCalledTimes(1);
-    expect(result).toEqual(previousState);
+    expect(result).toEqual(expected);
   });
 
   test('should catch error and pass it to handler', async () => {

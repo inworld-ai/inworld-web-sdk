@@ -87,7 +87,9 @@ export class WorldEngineService<
       ...((previousDialog || previousState) && {
         sessionContinuation: {
           ...(previousDialog && { previousDialog: previousDialog.toProto() }),
-          ...(previousState && { previousState }),
+          ...(previousState && {
+            previousState: previousState as unknown as Uint8Array,
+          }),
         },
       }),
     };
