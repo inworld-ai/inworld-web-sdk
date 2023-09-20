@@ -12,7 +12,6 @@ import {
   InternalClientConfiguration,
   SessionToken,
   User,
-  VoidFn,
 } from '../common/data_structures';
 import {
   CHAT_HISTORY_TYPE,
@@ -39,9 +38,9 @@ interface ConnectionProps<InworldPacketT, HistoryItemT> {
   config?: InternalClientConfiguration;
   sessionContinuation?: SessionContinuation;
   onReady?: () => Awaitable<void>;
-  onError?: (err: Event | Error) => void;
+  onError?: (err: Event | Error) => Awaitable<void>;
   onMessage?: (packet: InworldPacketT) => Awaitable<void>;
-  onDisconnect?: VoidFn;
+  onDisconnect?: () => Awaitable<void>;
   onHistoryChange?: (history: HistoryItem[]) => Awaitable<void>;
   grpcAudioPlayer: GrpcAudioPlayback;
   webRtcLoopbackBiDiSession: GrpcWebRtcLoopbackBiDiSession;
@@ -71,8 +70,8 @@ export class ConnectionService<
 
   private eventFactory = new EventFactory();
 
-  private onDisconnect: VoidFn;
-  private onError: (err: Event | Error) => void;
+  private onDisconnect: (() => Awaitable<void>) | undefined;
+  private onError: (err: Event | Error) => Awaitable<void>;
   private onMessage: ((packet: ProtoPacket) => Awaitable<void>) | undefined;
   private onReady: (() => Awaitable<void>) | undefined;
 
@@ -357,10 +356,10 @@ export class ConnectionService<
       onReady?.();
     };
 
-    this.onDisconnect = () => {
+    this.onDisconnect = async () => {
       this.state = ConnectionState.INACTIVE;
       this.audioSessionAction = AudioSessionState.UNKNOWN;
-      onDisconnect?.();
+      await onDisconnect?.();
     };
 
     this.onError = onError ?? ((event: Event | Error) => console.error(event));

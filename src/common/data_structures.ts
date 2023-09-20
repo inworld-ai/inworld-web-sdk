@@ -85,7 +85,6 @@ export interface CancelResponsesProps {
 }
 
 export type Awaitable<T> = T | PromiseLike<T>;
-export type VoidFn = () => void;
 export type GenerateSessionTokenFn = () => Promise<SessionToken>;
 export type OnPhomeneFn =
   | ((phonemeData: AdditionalPhonemeInfo[]) => void)
