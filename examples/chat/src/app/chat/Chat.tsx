@@ -58,16 +58,17 @@ export function Chat(props: ChatProps) {
   }, [connection, chatHistory]);
 
   const handleClearStateClick = useCallback(() => {
-    localStorage.removeItem('inworldSessionState');
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
     setConfirmText('Session state successfully cleared from local storage');
     setConfirmOpen(true);
+    LOCAL_STORAGE_KEY;
   }, []);
 
   const handleSaveStateClick = useCallback(async () => {
     const sessionState = await connection.getSessionState();
 
     if (sessionState?.state) {
-      localStorage.setItem('inworldSessionState', sessionState.state);
+      localStorage.setItem(LOCAL_STORAGE_KEY, sessionState.state);
       setConfirmText('Session state successfully saved to local storage');
       setConfirmOpen(true);
     } else {
