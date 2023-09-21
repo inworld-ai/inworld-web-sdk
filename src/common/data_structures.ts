@@ -11,7 +11,6 @@ import { SessionToken } from '../entities/session_token.entity';
 export interface Capabilities {
   audio?: boolean;
   emotions?: boolean;
-  continuation?: boolean;
   interruptions?: boolean;
   narratedActions?: boolean;
   phonemes?: boolean;

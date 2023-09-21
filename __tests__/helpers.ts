@@ -75,7 +75,6 @@ export const generateSessionToken = () => Promise.resolve(session);
 
 export const capabilitiesProps: Capabilities = {
   audio: true,
-  continuation: true,
   emotions: true,
   interruptions: true,
   phonemes: true,

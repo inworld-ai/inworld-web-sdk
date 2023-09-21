@@ -211,7 +211,6 @@ export class InworldClient<
   private buildCapabilities(capabilities: Capabilities): CapabilitiesRequest {
     const {
       audio = true,
-      continuation = false,
       emotions = false,
       interruptions = false,
       narratedActions = false,
@@ -222,7 +221,6 @@ export class InworldClient<
 
     return {
       audio,
-      continuation,
       emotions,
       interruptions,
       narratedActions,
