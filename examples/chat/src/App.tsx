@@ -58,6 +58,8 @@ function App() {
   const [character, setCharacter] = useState<Character>();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [chatHistory, setChatHistory] = useState<HistoryItem[]>([]);
+  const [prevChatHistory, setPrevChatHistory] = useState<HistoryItem[]>([]);
+  const [prevTranscripts, setPrevTranscripts] = useState<string[]>([]);
   const [chatting, setChatting] = useState(false);
   const [chatView, setChatView] = useState(CHAT_VIEW.TEXT);
   const [initialized, setInitialized] = useState(false);
@@ -80,7 +82,14 @@ function App() {
   const openConnection = useCallback(
     async (previousState?: string) => {
       const form = formMethods.getValues();
+      const currentTranscript = connection?.getTranscript() || '';
 
+      setPrevTranscripts([
+        ...prevTranscripts,
+        ...(currentTranscript ? [currentTranscript] : []),
+      ]);
+      setPrevChatHistory([...prevChatHistory, ...chatHistory]);
+      setChatHistory([]);
       setChatting(true);
       setChatView(form.chatView!);
 
@@ -149,7 +158,14 @@ function App() {
       setCharacter(character);
       setCharacters(characters);
     },
-    [formMethods, onHistoryChange],
+    [
+      chatHistory,
+      connection,
+      formMethods,
+      onHistoryChange,
+      prevChatHistory,
+      prevTranscripts,
+    ],
   );
 
   const stopChatting = useCallback(async () => {
@@ -163,6 +179,7 @@ function App() {
 
     // Clear collections
     setChatHistory([]);
+    setPrevChatHistory([]);
 
     // Close connection and clear connection data
     connection?.close();
@@ -262,7 +279,8 @@ function App() {
             </SimulatorHeader>
             <Chat
               chatView={chatView}
-              chatHistory={chatHistory}
+              chatHistory={[...prevChatHistory, ...chatHistory]}
+              prevTranscripts={prevTranscripts}
               connection={connection!}
               emotions={emotions}
               onRestore={openConnection}

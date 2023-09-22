@@ -4,13 +4,12 @@ import { IconButton, InputAdornment, TextField, Tooltip } from '@mui/material';
 import { Box } from '@mui/system';
 import { useCallback, useState } from 'react';
 
+import { INWORLD_SESSION_STATE_KEY } from '../../defaults';
 import { CHAT_VIEW, EmotionsMap } from '../types';
 import { ActionsStyled, RecordIcon } from './Chat.styled';
 import { ConfirmedDialog } from './ConfirmedDialog';
 import { History } from './History';
 import { SessionActions } from './SessionActions';
-
-const LOCAL_STORAGE_KEY = 'inworldSessionState';
 
 interface ChatProps {
   chatView: CHAT_VIEW;
@@ -18,6 +17,7 @@ interface ChatProps {
   connection: InworldConnectionService;
   emotions: EmotionsMap;
   onRestore: (state: string) => Promise<void>;
+  prevTranscripts: string[];
 }
 
 export function Chat(props: ChatProps) {
@@ -41,10 +41,12 @@ export function Chat(props: ChatProps) {
     [],
   );
 
-  const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
+  const savedState = localStorage.getItem(INWORLD_SESSION_STATE_KEY);
 
   const handleCopyClick = useCallback(async () => {
-    const history = connection.getTranscript();
+    const history = [...props.prevTranscripts, connection.getTranscript()].join(
+      '\n',
+    );
 
     if (navigator.clipboard) {
       navigator.clipboard.writeText(history).then(() => {
@@ -55,37 +57,39 @@ export function Chat(props: ChatProps) {
     }
 
     setConfirmOpen(true);
-  }, [connection, chatHistory]);
+  }, [connection, chatHistory, props.prevTranscripts]);
 
   const handleClearStateClick = useCallback(() => {
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    localStorage.removeItem(INWORLD_SESSION_STATE_KEY);
     setConfirmText('Session state successfully cleared from local storage');
     setConfirmOpen(true);
-    LOCAL_STORAGE_KEY;
+    INWORLD_SESSION_STATE_KEY;
   }, []);
 
   const handleSaveStateClick = useCallback(async () => {
     const sessionState = await connection.getSessionState();
 
     if (sessionState?.state) {
-      localStorage.setItem(LOCAL_STORAGE_KEY, sessionState.state);
-      setConfirmText('Session state successfully saved to local storage');
-      setConfirmOpen(true);
+      localStorage.setItem(INWORLD_SESSION_STATE_KEY, sessionState.state);
+      setConfirmText(
+        'Session state successfully saved to local storage. Now you can restore it us the "Restore" button',
+      );
     } else {
       setConfirmText('Session state could not be saved. Try again');
-      setConfirmOpen(true);
     }
+
+    setConfirmOpen(true);
   }, [connection]);
 
-  const handleRestoreStateClick = useCallback(() => {
+  const handleRestoreStateClick = useCallback(async () => {
     if (savedState) {
-      props.onRestore(savedState);
+      await props.onRestore(savedState);
       setConfirmText('Session state successfully restored from local storage');
-      setConfirmOpen(true);
     } else {
       setConfirmText('Session state could not be restored. Try again');
-      setConfirmOpen(true);
     }
+
+    setConfirmOpen(true);
   }, [props.onRestore, savedState]);
 
   const handleMutePlayback = useCallback(() => {

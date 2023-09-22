@@ -62,7 +62,10 @@ export const SessionActions = (props: SessionActionsProps) => {
             <Tooltip title="Save" placement="top">
               <span>
                 <IconButton
-                  onClick={props.onSave}
+                  onClick={() => {
+                    props.onSave();
+                    onCloseSettings();
+                  }}
                   disabled={props.saveDisabled}
                 >
                   <Save fontSize="small" />
@@ -72,7 +75,10 @@ export const SessionActions = (props: SessionActionsProps) => {
             <Tooltip title="Restore" placement="top">
               <span>
                 <IconButton
-                  onClick={props.onRestore}
+                  onClick={() => {
+                    props.onRestore();
+                    onCloseSettings();
+                  }}
                   disabled={props.restoreDisabled}
                 >
                   <Restore fontSize="small" />
@@ -82,7 +88,10 @@ export const SessionActions = (props: SessionActionsProps) => {
             <Tooltip title="Clear" placement="top">
               <span>
                 <IconButton
-                  onClick={props.onClear}
+                  onClick={() => {
+                    props.onClear();
+                    onCloseSettings();
+                  }}
                   disabled={props.clearDisabled}
                 >
                   <Delete fontSize="small" />
