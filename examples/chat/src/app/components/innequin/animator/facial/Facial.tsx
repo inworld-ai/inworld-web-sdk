@@ -42,16 +42,16 @@ export function Facial(props: FacialProps) {
               '_' +
               MATERIAL_TYPES.FEATURE
           ]!.getTextureColor()!;
-        (
-          props.modelMeshes[valueFaceType]?.material as MeshPhysicalMaterial
-        ).alphaMap =
-          props.facialMaterials[
-            emotionRef.current +
-              '_' +
-              valueFaceType +
-              '_' +
-              MATERIAL_TYPES.FEATURE
-          ]!.getTextureAlpha()!;
+        // (
+        //   props.modelMeshes[valueFaceType]?.material as MeshPhysicalMaterial
+        // ).alphaMap =
+        //   props.facialMaterials[
+        //     emotionRef.current +
+        //       '_' +
+        //       valueFaceType +
+        //       '_' +
+        //       MATERIAL_TYPES.FEATURE
+        //   ]!.getTextureAlpha()!;
         (
           props.modelMeshes[valueFaceType]?.material as MeshPhysicalMaterial
         ).needsUpdate = true;

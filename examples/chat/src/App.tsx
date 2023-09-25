@@ -16,11 +16,11 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { Chat } from './app/chat/Chat';
 import { Avatar } from './app/components/3dAvatar/Avatar';
 import { CircularRpmAvatar } from './app/components/CircularRpmAvatar';
-import ControlBar from './app/components/ControlBar';
 import {
   AnimationFiles,
   AnimationSequence,
 } from './app/components/innequin/data/animations';
+import ControlBar from './app/components/innequin/debug/ControlBar';
 import { Innequin } from './app/components/innequin/Innequin';
 import { Layout } from './app/components/Layout';
 import {
@@ -35,12 +35,7 @@ import {
   save as saveConfiguration,
 } from './app/helpers/configuration';
 import { toInt } from './app/helpers/transform';
-import {
-  BODY_TEXTURE_TYPE,
-  CHAT_VIEW,
-  ConfigurationSession,
-  EmotionsMap,
-} from './app/types';
+import { CHAT_VIEW, ConfigurationSession, EmotionsMap } from './app/types';
 import { Config } from './config';
 import * as defaults from './defaults';
 
@@ -53,7 +48,7 @@ interface CurrentContext {
 function App() {
   const formMethods = useForm<ConfigurationSession>({ mode: 'onChange' });
 
-  const [bodyTexture, setBodyTexture] = useState(BODY_TEXTURE_TYPE.WOOD1);
+  const [bodyTexture, setBodyTexture] = useState(Config.DEFAULT_SKIN);
   const [connection, setConnection] = useState<InworldConnectionService>();
   const [character, setCharacter] = useState<Character>();
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -124,6 +119,7 @@ function App() {
         }
       },
     });
+    console.log('Loading Character');
     const characters = await service.connection.getCharacters();
     const character = characters.find(
       (c: Character) => c.resourceName === form.character?.name,
@@ -186,7 +182,7 @@ function App() {
     <>
       {character ? (
         <MainWrapper>
-          {false && (
+          {true && (
             <Box
               sx={{
                 borderRadius: '1.75rem',
@@ -196,11 +192,7 @@ function App() {
                 height: '50%',
               }}
             >
-              <ControlBar
-                bodyTexture={bodyTexture}
-                setBodyTexture={setBodyTexture}
-                visible={true}
-              />
+              <ControlBar setBodyTexture={setBodyTexture} visible={true} />
             </Box>
           )}
           <ChatWrapper>

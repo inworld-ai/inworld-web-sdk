@@ -1,5 +1,8 @@
 import { EMOTIONS_FACE } from '../../data/types';
 
+// This maps the full list of emotions to the ones currently supported for
+// Innequin's facial expressions
+
 export const BehaviorToFacial: { [key: string]: EMOTIONS_FACE } = {
   NEUTRAL: EMOTIONS_FACE.NEUTRAL,
   DISGUST: EMOTIONS_FACE.ANGRY,

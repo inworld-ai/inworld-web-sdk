@@ -1,5 +1,8 @@
 import { EMOTIONS } from '../data/types';
 
+// This maps the full list of emotions to the ones currently supported for
+// Innequin's body expressions
+
 export const BehaviorToBody: { [key: string]: EMOTIONS } = {
   NEUTRAL: EMOTIONS.NEUTRAL,
   DISGUST: EMOTIONS.ANGRY,

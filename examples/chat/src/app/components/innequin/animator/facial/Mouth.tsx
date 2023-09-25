@@ -5,7 +5,12 @@ import { MeshPhysicalMaterial, SkinnedMesh } from 'three';
 
 import { Visemes } from '../../../../../data/visemes';
 import { VISEME_TYPES } from '../../../../types';
-import { EMOTIONS_FACE, FACE_TYPES, MATERIAL_TYPES } from '../../data/types';
+import {
+  EMOTIONS_FACE,
+  FACE_TEXTURE_TYPES,
+  FACE_TYPES,
+  MATERIAL_TYPES,
+} from '../../data/types';
 import { FaceMaterialLoader } from '../../loaders/FaceMaterialLoader';
 import { getVisemeData } from './PhonemesToViseme';
 
@@ -23,6 +28,25 @@ interface MouthProps {
 let visemeOffsetS = 0;
 let phonemeData: AdditionalPhonemeInfo[] = [];
 
+// Gets the id of the image place on the spritesheet for the viseme
+function getSpriteIDFromViseme(viseme: string) {
+  return Object.values(VISEME_TYPES)
+    .sort(function (a, b) {
+      return a.toLowerCase().localeCompare(b.toLowerCase());
+    })
+    .indexOf(viseme as VISEME_TYPES);
+}
+
+// Generates the X and Y offset position for the spritesheet based on viseme
+function getSpriteCoordFromViseme(viseme: string) {
+  const spriteId = getSpriteIDFromViseme(viseme);
+  const gridCount = Math.ceil(Math.sqrt(Object.keys(VISEME_TYPES).length));
+  const offsetFactor = 1 / gridCount;
+  const offsetX = (spriteId % gridCount) * offsetFactor;
+  const offsetY = Math.floor(spriteId / gridCount) * offsetFactor;
+  return { x: offsetX, y: offsetY };
+}
+
 export function Mouth(props: MouthProps) {
   const lastViseme = useRef(0);
 
@@ -35,20 +59,14 @@ export function Mouth(props: MouthProps) {
         props.facialMaterials[
           props.emotionRef.current +
             '_' +
-            FACE_TYPES.MOUTH +
+            FACE_TEXTURE_TYPES.VISEMES +
             '_' +
-            MATERIAL_TYPES.FEATURE
+            MATERIAL_TYPES.VISEME
         ]!.getTextureColor()!;
+      const offsets = getSpriteCoordFromViseme('sil');
       (
         props.modelMeshes[FACE_TYPES.MOUTH]?.material as MeshPhysicalMaterial
-      ).alphaMap =
-        props.facialMaterials[
-          props.emotionRef.current +
-            '_' +
-            FACE_TYPES.MOUTH +
-            '_' +
-            MATERIAL_TYPES.FEATURE
-        ]!.getTextureAlpha()!;
+      ).map?.offset.set(offsets.x, offsets.y);
       (
         props.modelMeshes[FACE_TYPES.MOUTH]?.material as MeshPhysicalMaterial
       ).needsUpdate = true;
@@ -78,28 +96,10 @@ export function Mouth(props: MouthProps) {
       if (!data) {
         visemeOffsetS = 0;
         phonemeData = [];
-
-        // Reset face to neutral when talking is done
+        const offsets = getSpriteCoordFromViseme('sil');
         (
           props.modelMeshes[FACE_TYPES.MOUTH]?.material as MeshPhysicalMaterial
-        ).map =
-          props.facialMaterials[
-            props.emotionRef.current +
-              '_' +
-              VISEME_TYPES.SIL +
-              '_' +
-              MATERIAL_TYPES.VISEME
-          ]!.getTextureColor()!;
-        (
-          props.modelMeshes[FACE_TYPES.MOUTH]?.material as MeshPhysicalMaterial
-        ).alphaMap =
-          props.facialMaterials[
-            props.emotionRef.current +
-              '_' +
-              VISEME_TYPES.SIL +
-              '_' +
-              MATERIAL_TYPES.VISEME
-          ]!.getTextureAlpha()!;
+        ).map?.offset.set(offsets.x, offsets.y);
         (
           props.modelMeshes[FACE_TYPES.MOUTH]?.material as MeshPhysicalMaterial
         ).needsUpdate = true;
@@ -110,26 +110,10 @@ export function Mouth(props: MouthProps) {
       // Project the Viseme texture
       if (Visemes[data] && lastViseme.current != data) {
         lastViseme.current = data;
+        const offsets = getSpriteCoordFromViseme(Visemes[data]);
         (
           props.modelMeshes[FACE_TYPES.MOUTH]?.material as MeshPhysicalMaterial
-        ).map =
-          props.facialMaterials[
-            props.emotionRef.current +
-              '_' +
-              Visemes[data] +
-              '_' +
-              MATERIAL_TYPES.VISEME
-          ]!.getTextureColor()!;
-        (
-          props.modelMeshes[FACE_TYPES.MOUTH]?.material as MeshPhysicalMaterial
-        ).alphaMap =
-          props.facialMaterials[
-            props.emotionRef.current +
-              '_' +
-              Visemes[data] +
-              '_' +
-              MATERIAL_TYPES.VISEME
-          ]!.getTextureAlpha()!;
+        ).map?.offset.set(offsets.x, offsets.y);
         (
           props.modelMeshes[FACE_TYPES.MOUTH]?.material as MeshPhysicalMaterial
         ).needsUpdate = true;

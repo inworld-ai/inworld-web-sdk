@@ -10,6 +10,7 @@ export type Configuration = {
   ANIMATIONS_URI: string;
   CAMERA_SETTINGS: ConfigurationCamera;
   DEFAULT_ANIMATION: string;
+  DEFAULT_SKIN: string;
   DRACO_COMPRESSION_URI: string;
   GENERATE_TOKEN_URL: string;
   IMAGES_BODY_URI: string;
@@ -61,18 +62,20 @@ export interface EmotionsMap {
   [key: string]: EmotionEvent;
 }
 
-export enum BODY_TEXTURE_TYPE {
-  BRONZE = 'BRONZE',
-  CAMO = 'CAMO',
-  DOTS = 'DOTS',
-  SKITZ = 'SKITZ',
-  WOOD0 = 'WOOD0',
-  WOOD1 = 'WOOD1',
-  WOOD2 = 'WOOD2',
-  WOOD3 = 'WOOD3',
-  WOOD4 = 'WOOD4',
-}
+// export enum BODY_TEXTURE_TYPE {
+//   BRONZE = 'BRONZE',
+//   CAMO = 'CAMO',
+//   DOTS = 'DOTS',
+//   SKITZ = 'SKITZ',
+//   WOOD0 = 'WOOD0',
+//   WOOD1 = 'WOOD1',
+//   WOOD2 = 'WOOD2',
+//   WOOD3 = 'WOOD3',
+//   WOOD4 = 'WOOD4',
+// }
 
+// Sorted by viseme id order.
+// Viseme spritesheet order is by alphabetical case-insensitive.
 export enum VISEME_TYPES {
   SIL = 'sil',
   PP = 'PP',

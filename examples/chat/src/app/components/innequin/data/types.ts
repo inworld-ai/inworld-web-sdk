@@ -11,12 +11,37 @@ export type AnimationGesture = {
   name: string;
 };
 
+export type Asset = {
+  name: string;
+  type: ASSET_TYPE;
+  enabled: boolean;
+};
+
+export type MESH_TYPE_ID = {
+  meshName: string;
+  meshType: MESH_TYPES;
+};
+
+export type Skin = {
+  name: string;
+  fileBaseColor: string;
+  fileMetallic: string;
+  fileNormals: string;
+  fileRoughnesss: string;
+};
+
 export enum ANIMATION_TYPE {
   IDLE = 'idle',
   GESTURE = 'gesture',
   INTRO = 'intro',
   OUTRO = 'outro',
   HELLO = 'hello',
+}
+
+export enum ASSET_TYPE {
+  HAT = 'hat',
+  HEAD = 'head',
+  WINGS = 'wings',
 }
 
 export enum EMOTIONS {
@@ -55,6 +80,7 @@ export enum FACE_TEXTURE_TYPES {
   EYE_BLINK = 'eye_blink',
   MOUTH = 'mouth',
   NOSE = 'nose',
+  VISEMES = 'visemes',
 }
 
 export enum MATERIAL_TYPES {

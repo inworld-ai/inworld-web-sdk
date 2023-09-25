@@ -5,9 +5,9 @@ import { AnimationClip, MeshPhysicalMaterial, SkinnedMesh } from 'three';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
-import { BODY_TEXTURE_TYPE, VISEME_TYPES } from '../../types';
 import { Config } from './../../../config';
 import { Animator } from './animator/Animator';
+import { MESH_IDS } from './data/ids';
 import {
   ANIMATION_TYPE,
   AnimationFile,
@@ -22,10 +22,11 @@ import { AnimationsLoader } from './loaders/AnimationsLoader';
 import { BodyMaterialLoader } from './loaders/BodyMaterialLoader';
 import { FaceMaterialLoader } from './loaders/FaceMaterialLoader';
 import { MaterialsLoader } from './loaders/MaterialsLoader';
+import { AssetManager } from './managers/AssetManager';
 
 interface ModelProps {
   modelURI: string;
-  bodyTexture: BODY_TEXTURE_TYPE;
+  bodyTexture: string;
   animationFiles: AnimationFile[];
   animationSequence: string[];
   onLoad?: () => void;
@@ -73,6 +74,10 @@ export function Model(props: ModelProps) {
     [key: string]: FaceMaterialLoader | null;
   }>({});
 
+  const [modelMaterials, setModelMaterials] = useState<{
+    [key: string]: MeshPhysicalMaterial;
+  }>({});
+
   const [modelMeshes, setModelMeshes] = useState<{
     [key: string]: SkinnedMesh | null;
   }>({});
@@ -82,37 +87,216 @@ export function Model(props: ModelProps) {
     if (!isModelLoaded && modelData) {
       console.log('Model Loaded');
       modelRef.current = modelData;
+      const loadingModelMaterials = { ...modelMaterials };
       const loadingModelMeshes = { ...modelMeshes };
-      const skeleton = modelData.scene.children[0].children.find(
-        (item) => item.name === 'skeleton',
-      );
-      console.log(`Mesh Count`, modelData.scene.children[0].children);
-      loadingModelMeshes[MESH_TYPES.BROW] = skeleton?.children.find(
-        (item) => item.name === 'faceLayer_brows_geo',
-      ) as SkinnedMesh;
-      loadingModelMeshes[MESH_TYPES.EYE] = skeleton?.children.find(
-        (item) => item.name === 'faceLayer_eyes_geo',
-      ) as SkinnedMesh;
-      loadingModelMeshes[MESH_TYPES.MOUTH] = skeleton?.children.find(
-        (item) => item.name === 'faceLayer_mouth_geo',
-      ) as SkinnedMesh;
-      loadingModelMeshes[MESH_TYPES.NOSE] = skeleton?.children.find(
-        (item) => item.name === 'faceLayer_nose_geo',
-      ) as SkinnedMesh;
-      loadingModelMeshes[MESH_TYPES.BODY_ARMS] = skeleton?.children.find(
-        (item) => item.name === 'Mannequin_Arms',
-      ) as SkinnedMesh;
-      loadingModelMeshes[MESH_TYPES.BODY_HEAD] = skeleton?.children.find(
-        (item) => item.name === 'Mannequin_Head_03',
-      ) as SkinnedMesh;
-      loadingModelMeshes[MESH_TYPES.BODY_LEGS] = skeleton?.children.find(
-        (item) => item.name === 'Mannequin_Legs',
-      ) as SkinnedMesh;
-      loadingModelMeshes[MESH_TYPES.BODY_TORSO] = skeleton?.children.find(
-        (item) => item.name === 'Mannequin_Body',
-      ) as SkinnedMesh;
+      let skeleton: SkinnedMesh | undefined;
+      modelData.scene.traverse((child) => {
+        if (child.name === 'skeleton') {
+          skeleton = child as SkinnedMesh;
+        }
+      });
+
+      if (!skeleton)
+        throw new Error('Error base skeleton mesh not found in model');
+
+      skeleton?.traverse((child) => {
+        function addChild(mesh: SkinnedMesh, type: MESH_TYPES) {
+          if (
+            mesh.material &&
+            (mesh.material as MeshPhysicalMaterial).name ===
+              'T_pose_model_Mannequin_body'
+          )
+            loadingModelMaterials[type] = mesh.material as MeshPhysicalMaterial;
+          else {
+            mesh.traverse((subMesh) => {
+              if (
+                (subMesh as SkinnedMesh).material &&
+                ((subMesh as SkinnedMesh).material as MeshPhysicalMaterial)
+                  .name === 'T_pose_model_Mannequin_body'
+              ) {
+                loadingModelMaterials[type] = (subMesh as SkinnedMesh)
+                  .material as MeshPhysicalMaterial;
+              }
+            });
+          }
+          loadingModelMeshes[type] = mesh;
+        }
+
+        for (let i = 0; i < MESH_IDS.length; i++) {
+          if (child.name == MESH_IDS[i].meshName) {
+            addChild(child as SkinnedMesh, MESH_IDS[i].meshType);
+          }
+        }
+
+        // if (child.name == 'faceLayer_brows_geo') {
+        //   addChildren(child as SkinnedMesh, MESH_TYPES.BROW);
+        // }
+        // if (child.name == 'faceLayer_eyes_geo') {
+        //   addChildren(child as SkinnedMesh, MESH_TYPES.EYE);
+        // }
+        // if (child.name == 'faceLayer_mouth_geo') {
+        //   addChildren(child as SkinnedMesh, MESH_TYPES.MOUTH);
+        // }
+        // if (child.name == 'faceLayer_nose_geo') {
+        //   addChildren(child as SkinnedMesh, MESH_TYPES.NOSE);
+        // }
+        // if (child.name == 'Mannequin_Arms') {
+        //   addChildren(child as SkinnedMesh, MESH_TYPES.BODY_ARMS);
+        // }
+        // if (child.name == 'Mannequin_Head_04') {
+        //   addChildren(child as SkinnedMesh, MESH_TYPES.BODY_HEAD);
+        // }
+        // if (child.name == 'Mannequin_Legs') {
+        //   addChildren(child as SkinnedMesh, MESH_TYPES.BODY_LEGS);
+        // }
+        // if (child.name == 'Mannequin_Body') {
+        //   addChildren(child as SkinnedMesh, MESH_TYPES.BODY_TORSO);
+        // }
+        // if (child.name == 'faceLayer_eyes_geo') {
+        //   loadingModelMaterials[MESH_TYPES.EYE] = (child as SkinnedMesh)
+        //     .material as MeshPhysicalMaterial;
+        //   loadingModelMeshes[MESH_TYPES.EYE] = child as SkinnedMesh;
+        // }
+        // if (child.name == 'faceLayer_mouth_geo') {
+        //   loadingModelMaterials[MESH_TYPES.MOUTH] = (child as SkinnedMesh)
+        //     .material as MeshPhysicalMaterial;
+        //   loadingModelMeshes[MESH_TYPES.MOUTH] = child as SkinnedMesh;
+        // }
+        // if (child.name == 'faceLayer_nose_geo') {
+        //   loadingModelMaterials[MESH_TYPES.NOSE] = (child as SkinnedMesh)
+        //     .material as MeshPhysicalMaterial;
+        //   loadingModelMeshes[MESH_TYPES.NOSE] = child as SkinnedMesh;
+        // }
+        // if (child.name == 'Mannequin_Arms') {
+        //   (child as SkinnedMesh).traverse((subMesh) => {
+        //     if (
+        //       (subMesh as SkinnedMesh).material &&
+        //       ((subMesh as SkinnedMesh).material as MeshPhysicalMaterial)
+        //         .name === 'T_pose_model_Mannequin_body'
+        //     ) {
+        //       loadingModelMaterials[MESH_TYPES.BODY_ARMS] = (
+        //         subMesh as SkinnedMesh
+        //       ).material as MeshPhysicalMaterial;
+        //     }
+        //   });
+        //   loadingModelMeshes[MESH_TYPES.BODY_ARMS] = child as SkinnedMesh;
+        // }
+
+        // if (child.name == 'Mannequin_Head_04') {
+        //   loadingModelMaterials[MESH_TYPES.BODY_HEAD] = (child as SkinnedMesh)
+        //     .material as MeshPhysicalMaterial;
+        //   loadingModelMeshes[MESH_TYPES.BODY_HEAD] = child as SkinnedMesh;
+        // }
+        // if (child.name == 'Mannequin_Legs') {
+        //   (child as SkinnedMesh).traverse((subMesh) => {
+        //     if (
+        //       (subMesh as SkinnedMesh).material &&
+        //       ((subMesh as SkinnedMesh).material as MeshPhysicalMaterial)
+        //         .name === 'T_pose_model_Mannequin_body'
+        //     ) {
+        //       loadingModelMaterials[MESH_TYPES.BODY_LEGS] = (
+        //         subMesh as SkinnedMesh
+        //       ).material as MeshPhysicalMaterial;
+        //     }
+        //   });
+        //   loadingModelMeshes[MESH_TYPES.BODY_LEGS] = child as SkinnedMesh;
+        // }
+        // if (child.name == 'Mannequin_Body') {
+        //   loadingModelMaterials[MESH_TYPES.BODY_TORSO] = (child as SkinnedMesh)
+        //     .material as MeshPhysicalMaterial;
+        //   loadingModelMeshes[MESH_TYPES.BODY_TORSO] = child as SkinnedMesh;
+        // }
+      });
+
+      // // Brow
+      // loadingModelMaterials[MESH_TYPES.BROW] = (
+      //   skeleton?.children.find(
+      //     (item) => item.name === 'faceLayer_brows_geo',
+      //   ) as SkinnedMesh
+      // ).material as MeshPhysicalMaterial;
+      // loadingModelMeshes[MESH_TYPES.BROW] = skeleton?.children.find(
+      //   (item) => item.name === 'faceLayer_brows_geo',
+      // ) as SkinnedMesh;
+      // // Eye
+      // loadingModelMaterials[MESH_TYPES.EYE] = (
+      //   skeleton?.children.find(
+      //     (item) => item.name === 'faceLayer_eyes_geo',
+      //   ) as SkinnedMesh
+      // ).material as MeshPhysicalMaterial;
+      // loadingModelMeshes[MESH_TYPES.EYE] = skeleton?.children.find(
+      //   (item) => item.name === 'faceLayer_eyes_geo',
+      // ) as SkinnedMesh;
+      // // Mouth
+      // loadingModelMaterials[MESH_TYPES.MOUTH] = (
+      //   skeleton?.children.find(
+      //     (item) => item.name === 'faceLayer_mouth_geo',
+      //   ) as SkinnedMesh
+      // ).material as MeshPhysicalMaterial;
+      // loadingModelMeshes[MESH_TYPES.MOUTH] = skeleton?.children.find(
+      //   (item) => item.name === 'faceLayer_mouth_geo',
+      // ) as SkinnedMesh;
+      // // Nose
+      // loadingModelMaterials[MESH_TYPES.NOSE] = (
+      //   skeleton?.children.find(
+      //     (item) => item.name === 'faceLayer_nose_geo',
+      //   ) as SkinnedMesh
+      // ).material as MeshPhysicalMaterial;
+      // loadingModelMeshes[MESH_TYPES.NOSE] = skeleton?.children.find(
+      //   (item) => item.name === 'faceLayer_nose_geo',
+      // ) as SkinnedMesh;
+
+      // Arms
+
+      // console.log(
+      //   'Arms',
+      //   skeleton?.children.find(
+      //     (item) => item.name === 'Mannequin_Arms',
+      //   ) as SkinnedMesh,
+      // );
+      // loadingModelMaterials[MESH_TYPES.BODY_ARMS] = (
+      //   (
+      //     skeleton?.children.find(
+      //       (item) => item.name === 'Mannequin_Arms',
+      //     ) as SkinnedMesh
+      //   ).getObjectByName('T_pose_model_Mannequin_body') as SkinnedMesh
+      // ).material as MeshPhysicalMaterial;
+      // loadingModelMeshes[MESH_TYPES.BODY_ARMS] = skeleton?.children.find(
+      //   (item) => item.name === 'Mannequin_Arms',
+      // ) as SkinnedMesh;
+      // // Head
+      // loadingModelMaterials[MESH_TYPES.BODY_HEAD] = (
+      //   skeleton?.children.find(
+      //     (item) => item.name === 'Mannequin_Head_04',
+      //   ) as SkinnedMesh
+      // ).material as MeshPhysicalMaterial;
+      // loadingModelMeshes[MESH_TYPES.BODY_HEAD] = skeleton?.children.find(
+      //   (item) => item.name === 'Mannequin_Head_04',
+      // ) as SkinnedMesh;
+      // Legs
+      // loadingModelMaterials[MESH_TYPES.BODY_LEGS] = (
+      //   (
+      //     skeleton?.children.find(
+      //       (item) => item.name === 'Mannequin_Legs',
+      //     ) as SkinnedMesh
+      //   ).getObjectByName('T_pose_model_Mannequin_body') as SkinnedMesh
+      // ).material as MeshPhysicalMaterial;
+      // loadingModelMeshes[MESH_TYPES.BODY_LEGS] = skeleton?.children.find(
+      //   (item) => item.name === 'Mannequin_Legs',
+      // ) as SkinnedMesh;
+      // // Body
+      // loadingModelMaterials[MESH_TYPES.BODY_TORSO] = (
+      //   skeleton?.children.find(
+      //     (item) => item.name === 'Mannequin_Body',
+      //   ) as SkinnedMesh
+      // ).material as MeshPhysicalMaterial;
+      // loadingModelMeshes[MESH_TYPES.BODY_TORSO] = skeleton?.children.find(
+      //   (item) => item.name === 'Mannequin_Body',
+      // ) as SkinnedMesh;
+
+      AssetManager.updateDisplayList(modelData);
       props.setLoadProgress(33);
       props.setLoadProgressTotal(66);
+      setModelMaterials(loadingModelMaterials);
       setModelMeshes(loadingModelMeshes);
       setIsModelLoaded(true);
     }
@@ -211,29 +395,16 @@ export function Model(props: ModelProps) {
               '_' +
               valueFaceType +
               '_' +
-              MATERIAL_TYPES.FEATURE
+              (valueFaceType !== FACE_TEXTURE_TYPES.VISEMES
+                ? MATERIAL_TYPES.FEATURE
+                : MATERIAL_TYPES.VISEME)
           ] = new FaceMaterialLoader(
             valueEmotionType,
             valueFaceType,
-            MATERIAL_TYPES.FEATURE,
+            valueFaceType !== FACE_TEXTURE_TYPES.VISEMES
+              ? MATERIAL_TYPES.FEATURE
+              : MATERIAL_TYPES.VISEME,
           );
-          if (valueFaceType == FACE_TEXTURE_TYPES.MOUTH) {
-            Object.values(VISEME_TYPES).forEach((valueVisemeType) => {
-              // console.log('Loading: ' + valueEmotionType + " " + valueVisemeType);
-              loadingFacialMaterials[
-                valueEmotionType +
-                  '_' +
-                  valueVisemeType +
-                  '_' +
-                  MATERIAL_TYPES.VISEME
-              ] = new FaceMaterialLoader(
-                valueEmotionType,
-                valueFaceType,
-                MATERIAL_TYPES.VISEME,
-                valueVisemeType,
-              );
-            });
-          }
         });
       });
       setFacialMaterials(loadingFacialMaterials);
@@ -307,7 +478,9 @@ export function Model(props: ModelProps) {
     if (!isReady) return;
     console.log('handleOnChangeBodyTexture');
     if (!(props.bodyTexture in bodyMaterials)) {
-      console.log('handleOnChangeBodyTexture material is not loaded');
+      console.log(
+        `handleOnChangeBodyTexture material ${props.bodyTexture} is not loaded`,
+      );
       setBodyMaterialLoading(true);
       const loadedBodyMaterials = { ...bodyMaterials };
       loadedBodyMaterials[props.bodyTexture] = new BodyMaterialLoader(
@@ -319,7 +492,9 @@ export function Model(props: ModelProps) {
         setBodyMaterialLoading(false),
       );
     } else {
-      console.log('handleOnChangeBodyTexture material is loaded');
+      console.log(
+        `handleOnChangeBodyTexture material ${props.bodyTexture} is loaded`,
+      );
       handleUpdateBodyTexture();
     }
   }, [props.bodyTexture, bodyMaterials, isReady]);
@@ -335,28 +510,119 @@ export function Model(props: ModelProps) {
   // Handles updating the body texture.
   const handleUpdateBodyTexture = useCallback(() => {
     if (!isReady) return;
-    console.log('handleUpdateBodyTexture');
-    (modelMeshes[MESH_TYPES.BODY_ARMS]?.material as MeshPhysicalMaterial).map =
-      bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
-    (
-      modelMeshes[MESH_TYPES.BODY_ARMS]?.material as MeshPhysicalMaterial
-    ).normalMap = bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
-    (modelMeshes[MESH_TYPES.BODY_HEAD]?.material as MeshPhysicalMaterial).map =
-      bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
-    (
-      modelMeshes[MESH_TYPES.BODY_HEAD]?.material as MeshPhysicalMaterial
-    ).normalMap = bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
-    (modelMeshes[MESH_TYPES.BODY_LEGS]?.material as MeshPhysicalMaterial).map =
-      bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
-    (
-      modelMeshes[MESH_TYPES.BODY_LEGS]?.material as MeshPhysicalMaterial
-    ).normalMap = bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
-    (modelMeshes[MESH_TYPES.BODY_TORSO]?.material as MeshPhysicalMaterial).map =
-      bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
-    (
-      modelMeshes[MESH_TYPES.BODY_TORSO]?.material as MeshPhysicalMaterial
-    ).normalMap = bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
-  }, [props.bodyTexture, bodyMaterials, isReady, modelMeshes]);
+
+    const bodyMatIDs: MESH_TYPES[] = [
+      MESH_TYPES.BODY_ARMS,
+      MESH_TYPES.BODY_HEAD,
+      MESH_TYPES.BODY_LEGS,
+      MESH_TYPES.BODY_TORSO,
+    ];
+
+    for (let i = 0; i < bodyMatIDs.length; i++) {
+      modelMaterials[bodyMatIDs[i]].map =
+        bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
+      modelMaterials[bodyMatIDs[i]].normalMap =
+        bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
+    }
+
+    // modelMaterials[MESH_TYPES.BODY_ARMS].map =
+    //   bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
+    // modelMaterials[MESH_TYPES.BODY_ARMS].normalMap =
+    //   bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
+
+    // modelMaterials[MESH_TYPES.BODY_HEAD].map =
+    //   bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
+    // modelMaterials[MESH_TYPES.BODY_HEAD].normalMap =
+    //   bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
+
+    // modelMaterials[MESH_TYPES.BODY_LEGS].map =
+    //   bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
+    // modelMaterials[MESH_TYPES.BODY_LEGS].normalMap =
+    //   bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
+
+    // modelMaterials[MESH_TYPES.BODY_TORSO].map =
+    //   bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
+    // modelMaterials[MESH_TYPES.BODY_TORSO].normalMap =
+    //   bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
+
+    // modelSkeleton?.traverse((child) => {
+    //   if (
+    //     (child as SkinnedMesh).material &&
+    //     ((child as SkinnedMesh).material as MeshPhysicalMaterial).name ==
+    //       'T_pose_model_Mannequin_body'
+    //   ) {
+    //     ((child as SkinnedMesh).material as MeshPhysicalMaterial).map =
+    //       bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
+
+    //     ((child as SkinnedMesh).material as MeshPhysicalMaterial).normalMap =
+    //       bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
+    //   }
+    // });
+
+    // const skeleton = modelData.scene.children[0].children.find(
+    //   (item) => item.name === 'skeleton',
+    // );
+
+    // const material_body = modelData.scene.children[0].getObjectByName(
+    //   'T_pose_model_Mannequin_body',
+    // );
+
+    // console.log('material_body', material_body);
+
+    // const material_joints = modelData.scene.children[0].getObjectByName(
+    //   'T_pose_model_Mannequin_joints',
+    // );
+
+    // if (!material_body) throw new Error('Material Body is not found');
+
+    // modelMeshes[MESH_TYPES.BODY_ARMS]?.traverse((child) => {
+    //   if ((child as THREE.Mesh).isMesh) {
+    //     console.log('Mesh Iteration:', child.name);
+    //   }
+    // });
+
+    // (
+    //   (
+    //     modelMeshes[MESH_TYPES.BODY_ARMS]?.children.find(
+    //       (child) => child.material.name === 'T_pose_model_Mannequin_body',
+    //     ) as SkinnedMesh
+    //   ).material as MeshPhysicalMaterial
+    // ).map = bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
+
+    // (
+    //   (
+    //     modelMeshes[MESH_TYPES.BODY_ARMS]?.children.find(
+    //       (child) => child.material.name === 'T_pose_model_Mannequin_body',
+    //     ) as SkinnedMesh
+    //   ).material as MeshPhysicalMaterial
+    // ).map = bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
+    // (
+    //   (modelMeshes[MESH_TYPES.BODY_ARMS]?.children[0] as SkinnedMesh)
+    //     .material as MeshPhysicalMaterial
+    // ).map = bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
+    // (
+    //   (modelMeshes[MESH_TYPES.BODY_ARMS]?.children[0] as SkinnedMesh)
+    //     .material as MeshPhysicalMaterial
+    // ).normalMap = bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
+    // (modelMeshes[MESH_TYPES.BODY_HEAD]?.material as MeshPhysicalMaterial).map =
+    //   bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
+    // (
+    //   modelMeshes[MESH_TYPES.BODY_HEAD]?.material as MeshPhysicalMaterial
+    // ).normalMap = bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
+    // (
+    //   (modelMeshes[MESH_TYPES.BODY_LEGS]?.children[0] as SkinnedMesh)
+    //     ?.material as MeshPhysicalMaterial
+    // ).map = bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
+    // (
+    //   (modelMeshes[MESH_TYPES.BODY_LEGS]?.children[0] as SkinnedMesh)
+    //     ?.material as MeshPhysicalMaterial
+    // ).normalMap = bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
+    // (modelMeshes[MESH_TYPES.BODY_TORSO]?.material as MeshPhysicalMaterial).map =
+    //   bodyMaterials[props.bodyTexture]!.getTextureColor()!.clone();
+    // (
+    //   modelMeshes[MESH_TYPES.BODY_TORSO]?.material as MeshPhysicalMaterial
+    // ).normalMap = bodyMaterials[props.bodyTexture]!.getTextureNormal()!.clone();
+  }, [props.bodyTexture, bodyMaterials, isReady, modelMaterials, modelMeshes]);
 
   return (
     <>

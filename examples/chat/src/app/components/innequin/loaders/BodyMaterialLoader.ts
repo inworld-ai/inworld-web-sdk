@@ -1,30 +1,32 @@
 /* eslint-disable */
-import { Texture, SRGBColorSpace } from 'three';
+import { Texture } from 'three';
+import { SRGBColorSpace } from 'three';
 
 import { Config } from '../../../../config';
 import { TextureFileLoader } from './TextureFileLoader';
-import { BODY_TEXTURE_TYPE } from '../../../types';
 import { MATERIAL_TYPES, TEXTURE_TYPES } from '../data/types';
 
-// File constants
-const PREFIX: string = 'Mannequin_';
-const COLOR: string = '.BaseColor';
-const NORMAL: string = '.Normal';
-const EXT: string = '.jpg';
+import { Skins } from '../data/skins';
+import { Skin } from '../data/types';
 
 export class BodyMaterialLoader {
   callback?: Function;
   isLoaded: Boolean = false;
-  bodyTextureType: BODY_TEXTURE_TYPE;
+  bodyTextureName: string;
   materialType: MATERIAL_TYPES;
+  skin: Skin | undefined;
   textureFileLoaderColor: TextureFileLoader;
   textureFileLoaderNormal: TextureFileLoader;
 
   constructor(
-    bodyTextureType: BODY_TEXTURE_TYPE,
+    bodyTextureName: string,
     materialType: MATERIAL_TYPES,
   ) {
-    this.bodyTextureType = bodyTextureType;
+    this.bodyTextureName = bodyTextureName;
+    this.skin = Skins.find((skin) => skin.name == this.bodyTextureName);
+    if (!this.skin) {
+      throw new Error(`BodyMaterialLoader Error: Skin name ${this.bodyTextureName} not found in Skins data.`);
+    }
     this.materialType = materialType;
     this.textureFileLoaderColor = new TextureFileLoader(
       this._generateFileURI(TEXTURE_TYPES.COLOR),
@@ -36,14 +38,14 @@ export class BodyMaterialLoader {
   }
 
   private _generateFileURI(textureType: TEXTURE_TYPES): string {
-    let fileURI = Config.IMAGES_BODY_URI + PREFIX + this.bodyTextureType;
+    let fileURI = Config.IMAGES_BODY_URI;
 
     if (textureType === TEXTURE_TYPES.COLOR) {
-      fileURI += COLOR + EXT;
+      fileURI += this.skin?.fileBaseColor;
     }
 
     if (textureType === TEXTURE_TYPES.NORMAL) {
-      fileURI += NORMAL + EXT;
+      fileURI += this.skin?.fileNormals;
     }
     return fileURI;
   }
@@ -67,6 +69,7 @@ export class BodyMaterialLoader {
       this.textureFileLoaderNormal.isLoaded &&
       this.textureFileLoaderColor.isLoaded
     ) {
+      this.getTextureColor()!.colorSpace = SRGBColorSpace;
       this.isLoaded = true;
       this.callback!();
     }

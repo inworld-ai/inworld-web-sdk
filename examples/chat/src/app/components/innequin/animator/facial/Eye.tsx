@@ -43,16 +43,16 @@ export function Eye(props: EyeProps) {
             '_' +
             MATERIAL_TYPES.FEATURE
         ]!.getTextureColor()!;
-      (
-        props.modelMeshes[FACE_TYPES.EYE]?.material as MeshPhysicalMaterial
-      ).alphaMap =
-        props.facialMaterials[
-          props.emotionRef.current +
-            '_' +
-            eyeFaceType +
-            '_' +
-            MATERIAL_TYPES.FEATURE
-        ]!.getTextureAlpha()!;
+      // (
+      //   props.modelMeshes[FACE_TYPES.EYE]?.material as MeshPhysicalMaterial
+      // ).alphaMap =
+      //   props.facialMaterials[
+      //     props.emotionRef.current +
+      //       '_' +
+      //       eyeFaceType +
+      //       '_' +
+      //       MATERIAL_TYPES.FEATURE
+      //   ]!.getTextureAlpha()!;
       (
         props.modelMeshes[FACE_TYPES.EYE]?.material as MeshPhysicalMaterial
       ).needsUpdate = true;

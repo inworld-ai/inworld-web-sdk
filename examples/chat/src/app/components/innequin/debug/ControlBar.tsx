@@ -1,9 +1,8 @@
 import { Button, Divider, Stack } from '@mui/material';
 
-import { BODY_TEXTURE_TYPE } from '../types';
+import { Skins } from '../data/skins';
 
 interface ControlBarProps {
-  bodyTexture: BODY_TEXTURE_TYPE;
   setBodyTexture: Function;
   visible: boolean;
 }
@@ -49,60 +48,17 @@ export default function ControlBar(props: ControlBarProps) {
           spacing={1}
         >
           <p>Body Skin</p>
-          <Button
-            variant="outlined"
-            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.BRONZE)}
-          >
-            Bronze
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.CAMO)}
-          >
-            Camo
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.DOTS)}
-          >
-            Dots
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.SKITZ)}
-          >
-            Skitz
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.WOOD0)}
-          >
-            Wood0
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.WOOD1)}
-          >
-            Wood1
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.WOOD2)}
-          >
-            Wood2
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.WOOD3)}
-          >
-            Wood3
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={() => props.setBodyTexture(BODY_TEXTURE_TYPE.WOOD4)}
-          >
-            Wood4
-          </Button>
+          {Skins.map((skin) => {
+            return (
+              <Button
+                key={skin.name}
+                variant="outlined"
+                onClick={() => props.setBodyTexture(skin.name)}
+              >
+                {skin.name}
+              </Button>
+            );
+          })}
         </Stack>
       </Stack>
     </>

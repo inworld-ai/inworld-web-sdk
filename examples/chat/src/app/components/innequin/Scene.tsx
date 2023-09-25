@@ -5,14 +5,13 @@ import { Suspense, useEffect, useState } from 'react';
 import { PerspectiveCamera, Vector3 } from 'three';
 
 import { Config } from '../../../config';
-import { BODY_TEXTURE_TYPE } from '../../types';
 import { Skeleton } from '../skeleton/Skeleton';
 import { AnimationFile } from './data/types';
 import { Model } from './Model';
 
 interface SceneProps {
   modelURI: string;
-  bodyTexture: BODY_TEXTURE_TYPE;
+  bodyTexture: string;
   animationFiles: AnimationFile[];
   animationSequence: string[];
   phonemes: AdditionalPhonemeInfo[];

@@ -1,14 +1,13 @@
 import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
 import { Box, Divider, Stack } from '@mui/material';
 
-import { BODY_TEXTURE_TYPE } from '../../types';
 import { AnimationFile } from './data/types';
 import Scene from './Scene';
 
 interface InnequinProps {
   animationFiles: AnimationFile[];
   animationSequence: string[];
-  bodyTexture: BODY_TEXTURE_TYPE;
+  bodyTexture: string;
   emotionEvent?: EmotionEvent;
   phonemes: AdditionalPhonemeInfo[];
   visible: boolean;
