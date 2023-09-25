@@ -1,3 +1,36 @@
+## [1.6.2] - 2023-09-20
+
+### Added
+
+- Allow to use async `onDisconnect` and `onError`
+
+### Fixed
+
+- Include the correlationId in both the fromProto conversion method and the associated historical items
+- Include overlooked trigger parameters to corresponding history item
+
+## [1.6.1] - 2023-09-13
+
+### Fixed
+
+- Include overlooked calls to the `historyItem` method for queued packets
+
+## [1.6.0] - 2023-09-08
+
+### Added
+
+- Allow to extend history item
+- Add `correlationId` to text, custom and cancel response packets
+- Wrap narrated actions with asterisks
+
+### Removed
+
+- Remove excess extended capabilities generic type
+
+### Fixed
+
+- Generate proto packet just once to dispatching it to the WebSocket connection
+
 ## [1.5.3] - 2023-08-30
 
 ### Fixed

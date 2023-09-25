@@ -1,12 +1,13 @@
 import { v4 } from 'uuid';
 
 import { DEFAULT_USER_NAME } from '../common/constants';
-import { User } from '../common/data_structures';
+import { Extension, User } from '../common/data_structures';
 import { Character } from '../entities/character.entity';
 import {
   Actor,
   EmotionEvent,
   InworldPacket,
+  TriggerParameter,
 } from '../entities/inworld_packet.entity';
 import { GrpcAudioPlayback } from './sound/grpc_audio.playback';
 
@@ -38,12 +39,15 @@ export interface HistoryItemActor extends HistoryItemBase {
   emotions?: EmotionEvent;
   isRecognizing?: boolean;
   character?: Character;
+  correlationId?: string;
 }
 
 export interface HistoryItemTriggerEvent extends HistoryItemBase {
   type: CHAT_HISTORY_TYPE.TRIGGER_EVENT;
   name: string;
+  parameters: TriggerParameter[];
   outgoing?: boolean;
+  correlationId?: string;
 }
 
 export interface HistoryInteractionEnd extends HistoryItemBase {
@@ -66,12 +70,24 @@ interface EmotionsMap {
   [key: string]: EmotionEvent;
 }
 
+interface InworldHistoryProps<InworldPacketT, HistoryItemT> {
+  extension?: Extension<InworldPacketT, HistoryItemT>;
+}
+
 export class InworldHistory<
   InworldPacketT extends InworldPacket = InworldPacket,
+  HistoryItemT extends HistoryItem = HistoryItem,
 > {
   private history: HistoryItem[] = [];
   private queue: HistoryItem[] = [];
   private emotions: EmotionsMap = {};
+  private extension: Extension<InworldPacketT, HistoryItemT>;
+
+  constructor(props?: InworldHistoryProps<InworldPacketT, HistoryItemT>) {
+    if (props?.extension) {
+      this.extension = props.extension;
+    }
+  }
 
   addOrUpdate({
     characters,
@@ -79,7 +95,8 @@ export class InworldHistory<
     packet,
     outgoing,
   }: InworldHistoryAddProps<InworldPacketT>) {
-    let chatItem: HistoryItem | undefined;
+    let historyItem: HistoryItem | undefined;
+    let queueItem: HistoryItem | undefined;
 
     const utteranceId = packet.packetId?.utteranceId;
     const interactionId = packet.packetId?.interactionId;
@@ -98,9 +115,9 @@ export class InworldHistory<
       };
 
       if (grpcAudioPlayer.hasPacketInQueue({ utteranceId })) {
-        this.queue = [...this.queue, actorItem];
+        queueItem = actorItem;
       } else {
-        chatItem = actorItem;
+        historyItem = actorItem;
       }
     } else if (packet.isNarratedAction()) {
       const actionItem = {
@@ -112,36 +129,45 @@ export class InworldHistory<
         grpcAudioPlayer.isCurrentPacket({ interactionId }) ||
         !grpcAudioPlayer.hasPacketInQueue({ interactionId })
       ) {
-        chatItem = actionItem;
+        historyItem = actionItem;
       } else {
-        this.queue = [...this.queue, actionItem];
+        queueItem = actionItem;
       }
     } else if (packet.isTrigger()) {
-      chatItem = this.combineTriggerItem(packet, outgoing);
+      historyItem = this.combineTriggerItem(packet, outgoing);
     } else if (packet.isInteractionEnd()) {
       const controlItem: HistoryInteractionEnd =
         this.combineInteractionEndItem(packet);
 
       if (grpcAudioPlayer.hasPacketInQueue({ interactionId })) {
-        this.queue = [...this.queue, controlItem];
+        queueItem = controlItem;
       } else {
-        chatItem = controlItem;
+        historyItem = controlItem;
       }
     }
 
-    if (chatItem) {
+    if (historyItem) {
       const currentHistoryIndex = this.history.findIndex((item) => {
-        return item.id === chatItem?.id;
+        return item.id === historyItem?.id;
       });
 
-      if (currentHistoryIndex >= 0 && chatItem) {
-        this.history[currentHistoryIndex] = chatItem;
+      const item = this.convertToExtendedType(packet, historyItem);
+
+      if (currentHistoryIndex >= 0) {
+        this.history[currentHistoryIndex] = item;
       } else {
-        this.history = [...this.history, chatItem!];
+        this.history = [...this.history, item!];
       }
     }
 
-    return !!chatItem;
+    if (queueItem) {
+      this.queue = [
+        ...this.queue,
+        this.convertToExtendedType(packet, queueItem),
+      ];
+    }
+
+    return !!historyItem;
   }
 
   update(packet: InworldPacketT) {
@@ -265,10 +291,14 @@ export class InworldHistory<
             this.emotions[item.interactionId]?.behavior?.code || '';
           const emotion = emotionCode ? `(${emotionCode}) ` : '';
 
+          const text =
+            item.type === CHAT_HISTORY_TYPE.NARRATED_ACTION
+              ? `*${item.text}*`
+              : item.text;
           transcript +=
             characterLastSpeaking && isCharacter
               ? item.text
-              : `${prefix}${givenName}: ${emotion}${item.text}`;
+              : `${prefix}${givenName}: ${emotion}${text}`;
           characterLastSpeaking = isCharacter;
           break;
         case CHAT_HISTORY_TYPE.TRIGGER_EVENT:
@@ -286,12 +316,14 @@ export class InworldHistory<
     const source = packet.routing?.source;
     const utteranceId = packet.packetId?.utteranceId;
     const interactionId = packet.packetId?.interactionId;
+    const correlationId = packet.packetId?.correlationId;
 
     return {
       id: utteranceId,
       isRecognizing: !packet.text.final,
       type: CHAT_HISTORY_TYPE.ACTOR,
       text: packet.text.text,
+      correlationId,
       date,
       interactionId,
       source,
@@ -322,11 +354,14 @@ export class InworldHistory<
     const source = packet.routing?.source;
     const utteranceId = packet.packetId?.utteranceId;
     const interactionId = packet.packetId?.interactionId;
+    const correlationId = packet.packetId?.correlationId;
 
     return {
       id: utteranceId,
       type: CHAT_HISTORY_TYPE.TRIGGER_EVENT,
       name: packet.trigger.name,
+      correlationId,
+      parameters: packet.trigger.parameters,
       date,
       interactionId,
       outgoing,
@@ -347,5 +382,9 @@ export class InworldHistory<
       source: packet.routing?.source,
       type: CHAT_HISTORY_TYPE.INTERACTION_END,
     };
+  }
+
+  private convertToExtendedType(packet: InworldPacketT, item: HistoryItem) {
+    return this.extension?.historyItem?.(packet, item) || item;
   }
 }

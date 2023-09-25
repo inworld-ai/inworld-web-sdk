@@ -72,7 +72,7 @@ export class EventFactory {
 
   text(text: string): ProtoPacket {
     return {
-      ...this.baseProtoPacket(),
+      ...this.baseProtoPacket({ correlationId: true }),
       text: {
         sourceType: TextEventSourceType.TYPED_IN,
         text,
@@ -83,7 +83,7 @@ export class EventFactory {
 
   trigger(name: string, parameters: TriggerParameter[] = []): ProtoPacket {
     return {
-      ...this.baseProtoPacket(),
+      ...this.baseProtoPacket({ correlationId: true }),
       custom: {
         name,
         ...(parameters.length && { parameters }),
@@ -93,17 +93,26 @@ export class EventFactory {
 
   cancelResponse(cancelResponses?: CancelResponsesProps): ProtoPacket {
     return {
-      ...this.baseProtoPacket({ utteranceId: false, interactionId: false }),
+      ...this.baseProtoPacket({
+        utteranceId: false,
+        interactionId: false,
+        correlationId: true,
+      }),
       mutation: { cancelResponses },
     };
   }
 
-  baseProtoPacket(props?: { utteranceId?: boolean; interactionId?: boolean }) {
+  baseProtoPacket(props?: {
+    utteranceId?: boolean;
+    interactionId?: boolean;
+    correlationId?: boolean;
+  }) {
     return {
       packetId: {
         packetId: v4(),
         ...((props?.utteranceId ?? true) && { utteranceId: v4() }),
         ...((props?.interactionId ?? true) && { interactionId: v4() }),
+        ...(props?.correlationId && { correlationId: v4() }),
       },
       timestamp: protoTimestamp(),
       routing: this.routing(),

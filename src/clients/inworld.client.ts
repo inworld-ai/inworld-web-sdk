@@ -11,7 +11,6 @@ import {
   InternalClientConfiguration,
   OnPhomeneFn,
   User,
-  VoidFn,
 } from '../common/data_structures';
 import { HistoryItem } from '../components/history';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
@@ -27,19 +26,19 @@ import { ConnectionService } from '../services/connection.service';
 import { InworldConnectionService } from '../services/inworld_connection.service';
 
 export class InworldClient<
-  CapabilitiesT extends Capabilities = Capabilities,
   InworldPacketT extends InworldPacket = InworldPacket,
+  HistoryItemT extends HistoryItem = HistoryItem,
 > {
   private user: User;
   private scene: string = '';
   private client: Client;
-  private config: ClientConfiguration<CapabilitiesT> = {};
+  private config: ClientConfiguration = {};
   private sessionContinuation: SessionContinuation;
 
   private generateSessionToken: GenerateSessionTokenFn;
 
-  private onDisconnect: VoidFn | undefined;
-  private onError: ((err: Event | Error) => void) | undefined;
+  private onDisconnect: () => Awaitable<void> | undefined;
+  private onError: ((err: Event | Error) => Awaitable<void>) | undefined;
   private onMessage: ((message: InworldPacketT) => Awaitable<void>) | undefined;
   private onReady: (() => Awaitable<void>) | undefined;
   private onHistoryChange:
@@ -55,7 +54,7 @@ export class InworldClient<
     | undefined;
   private onStopPlaying: (() => Awaitable<void>) | undefined;
 
-  private extension: Extension<InworldPacketT>;
+  private extension: Extension<InworldPacketT, HistoryItemT>;
 
   setUser(user: User) {
     this.user = user;
@@ -77,7 +76,7 @@ export class InworldClient<
     return this;
   }
 
-  setConfiguration(config: ClientConfiguration<CapabilitiesT>) {
+  setConfiguration(config: ClientConfiguration) {
     this.config = config;
 
     return this;
@@ -89,13 +88,13 @@ export class InworldClient<
     return this;
   }
 
-  setOnDisconnect(fn?: VoidFn) {
+  setOnDisconnect(fn?: () => Awaitable<void>) {
     this.onDisconnect = fn;
 
     return this;
   }
 
-  setOnError(fn?: (err: Error) => void) {
+  setOnError(fn?: (err: Error) => Awaitable<void>) {
     this.onError = fn;
 
     return this;
@@ -113,7 +112,7 @@ export class InworldClient<
     return this;
   }
 
-  setOnHistoryChange(fn?: (history: HistoryItem[]) => Awaitable<void>) {
+  setOnHistoryChange(fn?: (history: HistoryItemT[]) => Awaitable<void>) {
     this.onHistoryChange = fn;
 
     return this;
@@ -143,7 +142,7 @@ export class InworldClient<
     return this;
   }
 
-  setExtension(extension: Extension<InworldPacketT>) {
+  setExtension(extension: Extension<InworldPacketT, HistoryItemT>) {
     this.extension = extension;
 
     return this;
@@ -205,11 +204,11 @@ export class InworldClient<
         ...connection,
         gateway: this.ensureGateway(GRPC_HOSTNAME, gateway),
       },
-      capabilities: this.buildCapabilities(capabilities as CapabilitiesT),
+      capabilities: this.buildCapabilities(capabilities),
     };
   }
 
-  private buildCapabilities(capabilities: CapabilitiesT): CapabilitiesRequest {
+  private buildCapabilities(capabilities: Capabilities): CapabilitiesRequest {
     const {
       audio = true,
       continuation = false,
@@ -219,7 +218,6 @@ export class InworldClient<
       turnBasedStt = false,
       phonemes: phonemeInfo = false,
       silence: silenceEvents = false,
-      ...restCapabilities
     } = capabilities;
 
     return {
@@ -233,7 +231,6 @@ export class InworldClient<
       text: true,
       triggers: true,
       turnBasedStt,
-      ...restCapabilities,
     };
   }
 

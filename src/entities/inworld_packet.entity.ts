@@ -48,6 +48,7 @@ export interface PacketId {
   packetId: string;
   utteranceId: string;
   interactionId: string;
+  correlationId?: string;
 }
 
 export interface EmotionEvent {
@@ -249,6 +250,7 @@ export class InworldPacket {
         packetId: packetId.packetId,
         utteranceId: packetId.utteranceId,
         interactionId: packetId.interactionId,
+        correlationId: packetId.correlationId,
       },
       routing: {
         source: {

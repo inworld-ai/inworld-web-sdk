@@ -39,6 +39,7 @@ export type ConfigurationSession = {
   scene?: ConfigurationScene;
   player?: ConfigurationPlayer;
   chatView?: CHAT_VIEW;
+  continuation?: Continuation;
 };
 
 export type ConfigurationCharacter = {
@@ -56,6 +57,11 @@ export type ConfigurationPlayer = {
 export type ConfigurationAudio = {
   stopDuration?: number;
   stopTicks?: number;
+};
+
+export type Continuation = {
+  enabled?: boolean;
+  previousDialog?: string;
 };
 
 export interface EmotionsMap {

@@ -6,6 +6,7 @@ import {
   InworldClient,
   InworldConnectionService,
   InworldPacket,
+  SessionContinuationProps,
 } from '@inworld/web-sdk';
 
 import { Config } from '../config';
@@ -13,6 +14,7 @@ import { Config } from '../config';
 interface InworldServiceProps {
   audioPlayback?: AudioPlaybackConfig;
   capabilities: Capabilities;
+  continuation?: SessionContinuationProps;
   sceneName: string;
   playerName: string;
   onReady: () => void;
@@ -40,6 +42,10 @@ export class InworldService {
       .setOnPhoneme(props.onPhoneme)
       .setOnHistoryChange(props.onHistoryChange)
       .setOnDisconnect(props.onDisconnect);
+
+    if (props.continuation) {
+      client.setSessionContinuation(props.continuation);
+    }
 
     this.connection = client.build();
   }

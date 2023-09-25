@@ -12,7 +12,6 @@ import {
   InternalClientConfiguration,
   SessionToken,
   User,
-  VoidFn,
 } from '../common/data_structures';
 import {
   CHAT_HISTORY_TYPE,
@@ -32,27 +31,28 @@ import { InworldPacket } from '../entities/inworld_packet.entity';
 import { EventFactory } from '../factories/event';
 import { WorldEngineService } from './pb/world_engine.service';
 
-interface ConnectionProps<InworldPacketT> {
+interface ConnectionProps<InworldPacketT, HistoryItemT> {
   name?: string;
   user?: User;
   client?: ClientRequest;
   config?: InternalClientConfiguration;
   sessionContinuation?: SessionContinuation;
   onReady?: () => Awaitable<void>;
-  onError?: (err: Event | Error) => void;
+  onError?: (err: Event | Error) => Awaitable<void>;
   onMessage?: (packet: InworldPacketT) => Awaitable<void>;
-  onDisconnect?: VoidFn;
+  onDisconnect?: () => Awaitable<void>;
   onHistoryChange?: (history: HistoryItem[]) => Awaitable<void>;
   grpcAudioPlayer: GrpcAudioPlayback;
   webRtcLoopbackBiDiSession: GrpcWebRtcLoopbackBiDiSession;
   generateSessionToken: GenerateSessionTokenFn;
-  extension?: Extension<InworldPacketT>;
+  extension?: Extension<InworldPacketT, HistoryItemT>;
 }
 
 const TIME_DIFF_MS = 50 * 60 * 1000; // 5 minutes
 
 export class ConnectionService<
   InworldPacketT extends InworldPacket = InworldPacket,
+  HistoryItemT extends HistoryItem = HistoryItem,
 > {
   private player = Player.getInstance();
   private state: ConnectionState = ConnectionState.INACTIVE;
@@ -61,7 +61,7 @@ export class ConnectionService<
   private scene: LoadSceneResponse;
   private session: SessionToken;
   private connection: Connection<InworldPacketT>;
-  private connectionProps: ConnectionProps<InworldPacketT>;
+  private connectionProps: ConnectionProps<InworldPacketT, HistoryItemT>;
 
   private characters: Array<Character> = [];
 
@@ -70,17 +70,21 @@ export class ConnectionService<
 
   private eventFactory = new EventFactory();
 
-  private onDisconnect: VoidFn;
-  private onError: (err: Event | Error) => void;
+  private onDisconnect: (() => Awaitable<void>) | undefined;
+  private onError: (err: Event | Error) => Awaitable<void>;
   private onMessage: ((packet: ProtoPacket) => Awaitable<void>) | undefined;
   private onReady: (() => Awaitable<void>) | undefined;
 
   private cancelReponses: CancelResponses = {};
-  private history = new InworldHistory<InworldPacketT>();
-  private extension: Extension<InworldPacketT>;
+  private history: InworldHistory;
+  private extension: Extension<InworldPacketT, HistoryItemT>;
 
-  constructor(props?: ConnectionProps<InworldPacketT>) {
-    this.connectionProps = props || ({} as ConnectionProps<InworldPacketT>);
+  constructor(props?: ConnectionProps<InworldPacketT, HistoryItemT>) {
+    this.connectionProps =
+      props || ({} as ConnectionProps<InworldPacketT, HistoryItemT>);
+    this.history = new InworldHistory<InworldPacketT>({
+      extension: this.connectionProps.extension,
+    });
 
     this.initializeHandlers();
     this.initializeConnection();
@@ -352,10 +356,10 @@ export class ConnectionService<
       onReady?.();
     };
 
-    this.onDisconnect = () => {
+    this.onDisconnect = async () => {
       this.state = ConnectionState.INACTIVE;
       this.audioSessionAction = AudioSessionState.UNKNOWN;
-      onDisconnect?.();
+      await onDisconnect?.();
     };
 
     this.onError = onError ?? ((event: Event | Error) => console.error(event));

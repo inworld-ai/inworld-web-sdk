@@ -55,7 +55,7 @@ const triggerPacket = new InworldPacket({
   packetId,
   routing,
   date,
-  trigger: { name: v4() },
+  trigger: { name: v4(), parameters: [{ name: v4(), value: v4() }] },
   type: InworldPacketType.TRIGGER,
 });
 const narracterActionPacket = new InworldPacket({
@@ -464,7 +464,7 @@ describe('text', () => {
       test('should return transcript', () => {
         const history = createHistoryWithPacket(narracterActionPacket);
 
-        const expected = `User: ${narracterActionPacket.narratedAction.text}`;
+        const expected = `User: *${narracterActionPacket.narratedAction.text}*`;
         const transcript = history.getTranscript();
 
         expect(transcript).toEqual(expected);
