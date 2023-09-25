@@ -35,7 +35,6 @@ export class AnimationsLoader {
           ((this.total - this.count) / this.total),
       ) + this.startProgress;
     this.updateProgress(progress);
-    // console.log("AnimationsLoader: " + this.count);
     if (this.count == 0) {
       this.callback();
     }

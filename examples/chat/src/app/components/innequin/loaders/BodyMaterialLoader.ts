@@ -18,14 +18,13 @@ export class BodyMaterialLoader {
   textureFileLoaderColor: TextureFileLoader;
   textureFileLoaderNormal: TextureFileLoader;
 
-  constructor(
-    bodyTextureName: string,
-    materialType: MATERIAL_TYPES,
-  ) {
+  constructor(bodyTextureName: string, materialType: MATERIAL_TYPES) {
     this.bodyTextureName = bodyTextureName;
     this.skin = Skins.find((skin) => skin.name == this.bodyTextureName);
     if (!this.skin) {
-      throw new Error(`BodyMaterialLoader Error: Skin name ${this.bodyTextureName} not found in Skins data.`);
+      throw new Error(
+        `BodyMaterialLoader Error: Skin name ${this.bodyTextureName} not found in Skins data.`,
+      );
     }
     this.materialType = materialType;
     this.textureFileLoaderColor = new TextureFileLoader(

@@ -35,7 +35,6 @@ export class MaterialsLoader {
           ((this.total - this.count) / this.total),
       ) + this.startProgress;
     this.updateProgress(progress);
-    // console.log("MaterialsLoader: " + this.count);
     if (this.count == 0) {
       this.callback();
     }

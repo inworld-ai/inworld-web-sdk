@@ -284,8 +284,6 @@ export function Animator(props: AnimatorProps) {
     if (props.isReady) {
       if (animationMixer instanceof AnimationMixer) {
         animationMixer.update(clockRef.current.getDelta());
-        // This is needed due to a bug in Three.js around combining a GLB model and GLB animation file that both have a 90* offset.
-        // props.model.rotation.set(0, 0, 0);
       }
       if (phonemeData.length > 0) {
         talkingCurrentTime += delta;

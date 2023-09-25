@@ -12,7 +12,7 @@ import {
 } from '../data/types';
 
 // This file manages the loading of the facial materials for emotion and speaking animations.
-// There is an unused property called Alpha within this class that was apart of the original animation 
+// There is an unused property called Alpha within this class that was apart of the original animation
 
 // File constants
 const EXT: string = '.png';
@@ -39,9 +39,7 @@ export class FaceMaterialLoader {
     this.onLoad = this.onLoad.bind(this);
   }
 
-  private _generateFileURI(
-    textureType: TEXTURE_TYPES,
-  ): string {
+  private _generateFileURI(textureType: TEXTURE_TYPES): string {
     let fileURI = Config.IMAGES_FACIAL_URI;
 
     if (
@@ -72,9 +70,7 @@ export class FaceMaterialLoader {
   }
 
   private onLoad() {
-    if (
-      this.textureFileLoaderColor.isLoaded
-    ) {
+    if (this.textureFileLoaderColor.isLoaded) {
       if (this.materialType === MATERIAL_TYPES.VISEME) {
         this.textureFileLoaderColor.texture?.repeat.set(0.25, 0.25);
       }
