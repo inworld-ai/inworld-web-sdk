@@ -1,3 +1,14 @@
+## [1.6.2] - 2023-09-20
+
+### Added
+
+- Allow to use async `onDisconnect` and `onError`
+
+### Fixed
+
+- Include the correlationId in both the fromProto conversion method and the associated historical items
+- Include overlooked trigger parameters to corresponding history item
+
 ## [1.6.1] - 2023-09-13
 
 ### Fixed

@@ -11,7 +11,6 @@ import {
   InternalClientConfiguration,
   OnPhomeneFn,
   User,
-  VoidFn,
 } from '../common/data_structures';
 import { HistoryItem } from '../components/history';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
@@ -38,8 +37,8 @@ export class InworldClient<
 
   private generateSessionToken: GenerateSessionTokenFn;
 
-  private onDisconnect: VoidFn | undefined;
-  private onError: ((err: Event | Error) => void) | undefined;
+  private onDisconnect: () => Awaitable<void> | undefined;
+  private onError: ((err: Event | Error) => Awaitable<void>) | undefined;
   private onMessage: ((message: InworldPacketT) => Awaitable<void>) | undefined;
   private onReady: (() => Awaitable<void>) | undefined;
   private onHistoryChange:
@@ -89,13 +88,13 @@ export class InworldClient<
     return this;
   }
 
-  setOnDisconnect(fn?: VoidFn) {
+  setOnDisconnect(fn?: () => Awaitable<void>) {
     this.onDisconnect = fn;
 
     return this;
   }
 
-  setOnError(fn?: (err: Error) => void) {
+  setOnError(fn?: (err: Error) => Awaitable<void>) {
     this.onError = fn;
 
     return this;

@@ -3,7 +3,6 @@ import {
   Awaitable,
   InternalClientConfiguration,
   SessionToken,
-  VoidFn,
 } from '../common/data_structures';
 import { InworldPacket } from '../entities/inworld_packet.entity';
 
@@ -12,16 +11,16 @@ const SESSION_PATH = '/v1/session/default';
 interface SessionProps {
   config: InternalClientConfiguration;
   session: SessionToken;
-  onDisconnect?: VoidFn;
-  onError?: (err: Event | Error) => void;
+  onDisconnect?: () => Awaitable<void>;
+  onError?: (err: Event | Error) => Awaitable<void>;
   onMessage?: (packet: ProtoPacket) => Awaitable<void>;
-  onReady?: VoidFn;
+  onReady?: () => Awaitable<void>;
 }
 interface ConnectionProps {
   config?: InternalClientConfiguration;
-  onDisconnect?: VoidFn;
+  onDisconnect?: () => Awaitable<void>;
   onReady?: () => Awaitable<void>;
-  onError?: (err: Event | Error) => void;
+  onError?: (err: Event | Error) => Awaitable<void>;
   onMessage?: (packet: ProtoPacket) => Awaitable<void>;
 }
 
