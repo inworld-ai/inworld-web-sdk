@@ -29,6 +29,7 @@ import { WorldEngineService } from '../../src/services/pb/world_engine.service';
 import {
   capabilitiesProps,
   convertAgentsToCharacters,
+  convertPacketFromProto,
   createAgent,
   generateSessionToken,
   SCENE,
@@ -356,6 +357,44 @@ describe('open manually', () => {
     await connection.openManually();
 
     expect(open).toHaveBeenCalledTimes(1);
+  });
+
+  test('should add previous state packets to history', async () => {
+    jest
+      .spyOn(WorldEngineService.prototype, 'loadScene')
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ...scene,
+          previousState: {
+            stateHolders: [
+              {
+                packets: [incomingTextEvent],
+              },
+            ],
+          },
+        }),
+      );
+
+    connection = new ConnectionService({
+      name: SCENE,
+      config: {
+        connection: { autoReconnect: false, gateway: { hostname: '' } },
+        capabilities: capabilitiesProps,
+        history: { previousState: true },
+      },
+      user,
+      onError,
+      onMessage,
+      onDisconnect,
+      onHistoryChange: (history: HistoryItem[]) => {
+        expect(history).toEqual([convertPacketFromProto(incomingTextEvent)]);
+      },
+      grpcAudioPlayer,
+      generateSessionToken,
+      webRtcLoopbackBiDiSession,
+    });
+
+    await connection.openManually();
   });
 });
 
