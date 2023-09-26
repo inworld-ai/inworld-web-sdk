@@ -135,6 +135,31 @@ describe('open', () => {
 
     expect(onDisconnect).toHaveBeenCalledTimes(1);
   });
+
+  test('should send packet propagated to open call before sending other ones', async () => {
+    const ws = new WebSocketConnection({
+      config: {
+        connection: { gateway: { hostname: HOSTNAME } },
+        capabilities: capabilitiesProps,
+      },
+    });
+    const muteEvent = eventFactory.ttsPlaybackMute(true);
+
+    ws.open({
+      session,
+      convertPacketFromProto,
+      packets: [{ getPacket: () => muteEvent }],
+    });
+
+    ws.write({
+      getPacket: () => textMessage,
+    });
+
+    await server.connected;
+
+    await expect(server).toReceiveMessage(muteEvent);
+    await expect(server).toReceiveMessage(textMessage);
+  });
 });
 
 describe('write', () => {
