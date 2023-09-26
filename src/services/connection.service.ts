@@ -11,6 +11,7 @@ import {
   GenerateSessionTokenFn,
   InternalClientConfiguration,
   SessionToken,
+  TtsPlaybackAction,
   User,
 } from '../common/data_structures';
 import {
@@ -23,6 +24,7 @@ import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_
 import { Player } from '../components/sound/player';
 import {
   Connection,
+  QueueItem,
   WebSocketConnection,
 } from '../connection/web-socket.connection';
 import { Character } from '../entities/character.entity';
@@ -57,6 +59,7 @@ export class ConnectionService<
   private player = Player.getInstance();
   private state: ConnectionState = ConnectionState.INACTIVE;
   private audioSessionAction = AudioSessionState.UNKNOWN;
+  private ttsPlaybackAction = TtsPlaybackAction.UNKNOWN;
 
   private scene: LoadSceneResponse;
   private session: SessionToken;
@@ -153,9 +156,12 @@ export class ConnectionService<
       if (this.state === ConnectionState.LOADED) {
         this.state = ConnectionState.ACTIVATING;
 
+        const packets = this.getPacketsToSentOnOpen();
+
         await this.connection.open({
           session: this.session,
           convertPacketFromProto: this.extension.convertPacketFromProto,
+          ...(packets.length && { packets }),
         });
 
         this.scheduleDisconnect();
@@ -185,6 +191,14 @@ export class ConnectionService<
 
   getAudioSessionAction() {
     return this.audioSessionAction;
+  }
+
+  setTtsPlaybackAction(action: TtsPlaybackAction) {
+    this.ttsPlaybackAction = action;
+  }
+
+  getTtsPlaybackAction() {
+    return this.ttsPlaybackAction;
   }
 
   async interrupt() {
@@ -533,5 +547,19 @@ export class ConnectionService<
     });
 
     this.intervals = [];
+  }
+
+  private getPacketsToSentOnOpen() {
+    const packets: QueueItem<InworldPacketT>[] = [];
+
+    if (this.isAutoReconnected()) {
+      if (this.getTtsPlaybackAction() === TtsPlaybackAction.MUTE) {
+        packets.push({
+          getPacket: () => this.getEventFactory().ttsPlaybackMute(true),
+        });
+      }
+    }
+
+    return packets;
   }
 }

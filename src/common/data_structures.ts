@@ -104,6 +104,12 @@ export enum AudioSessionState {
   END = 'END',
 }
 
+export enum TtsPlaybackAction {
+  UNKNOWN = 'UNKNOWN',
+  MUTE = 'MUTE',
+  UNMUTE = 'UNMUTE',
+}
+
 export interface Extension<InworldPacketT, HistoryItemT> {
   convertPacketFromProto?: (proto: ProtoPacket) => InworldPacketT;
   beforeLoadScene?: (request: LoadSceneRequest) => LoadSceneRequest;
