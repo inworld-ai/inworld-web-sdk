@@ -1,5 +1,8 @@
 import { InworldPacket as ProtoPacket } from '../../proto/packets.pb';
-import { LoadSceneResponseAgent } from '../../proto/world-engine.pb';
+import {
+  LoadSceneResponseAgent,
+  PreviousState,
+} from '../../proto/world-engine.pb';
 import { ClientRequest, LoadSceneResponse } from '../../proto/world-engine.pb';
 import {
   AudioSessionState,
@@ -320,6 +323,10 @@ export class ConnectionService<
           client,
         });
 
+        if (this.connectionProps?.config.history?.previousState) {
+          this.setPreviousState(this.scene?.previousState);
+        }
+
         await this.loadCharactersList();
       }
 
@@ -341,6 +348,24 @@ export class ConnectionService<
         this.connectionProps.config.connection.disconnectTimeout,
       );
     }
+  }
+
+  private setPreviousState(previousState: PreviousState) {
+    const { stateHolders = [] } = previousState || {};
+
+    stateHolders.forEach((stateHolder) => {
+      stateHolder.packets?.forEach((packet) =>
+        this.history.addOrUpdate({
+          grpcAudioPlayer: this.connectionProps.grpcAudioPlayer,
+          characters: this.characters,
+          packet: this.extension.convertPacketFromProto(packet),
+        }),
+      );
+
+      if (stateHolders.length) {
+        this.connectionProps.onHistoryChange?.(this.getHistory());
+      }
+    });
   }
 
   private cancelScheduler() {

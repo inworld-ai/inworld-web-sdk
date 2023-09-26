@@ -63,16 +63,22 @@ export interface ConnectionConfig {
   disconnectTimeout?: number;
   gateway?: Gateway;
 }
+
+export interface HistoryConfig {
+  previousState?: boolean;
+}
 export interface ClientConfiguration {
   connection?: ConnectionConfig;
   capabilities?: Capabilities;
   audioPlayback?: AudioPlaybackConfig;
+  history?: HistoryConfig;
 }
 
 export interface InternalClientConfiguration {
   connection?: ConnectionConfig;
   capabilities: CapabilitiesRequest;
   audioPlayback?: AudioPlaybackConfig;
+  history?: HistoryConfig;
 }
 
 export interface CancelResponses {

@@ -34,6 +34,7 @@ describe('should finish with success', () => {
       .setConfiguration({
         capabilities: capabilitiesProps,
         audioPlayback: { stop: { duration: 1000, ticks: 30 } },
+        history: { previousState: true },
       })
       .setUser(user)
       .setClient(client)
