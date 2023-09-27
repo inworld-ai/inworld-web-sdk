@@ -1,3 +1,13 @@
+## [Unreleased]
+
+### Added
+
+- Allow to add previous state packets to history
+
+### Fixed
+
+- Send a `MUTE` event when auto-reconnecting prior to transmitting any other packets, provided that a `MUTE` event was sent prior to the disconnection
+
 ## [1.6.2] - 2023-09-20
 
 ### Added

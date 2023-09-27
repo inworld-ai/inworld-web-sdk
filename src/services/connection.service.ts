@@ -1,5 +1,8 @@
 import { InworldPacket as ProtoPacket } from '../../proto/packets.pb';
-import { LoadSceneResponseAgent } from '../../proto/world-engine.pb';
+import {
+  LoadSceneResponseAgent,
+  PreviousState,
+} from '../../proto/world-engine.pb';
 import { ClientRequest, LoadSceneResponse } from '../../proto/world-engine.pb';
 import {
   AudioSessionState,
@@ -11,6 +14,7 @@ import {
   GenerateSessionTokenFn,
   InternalClientConfiguration,
   SessionToken,
+  TtsPlaybackAction,
   User,
 } from '../common/data_structures';
 import {
@@ -23,6 +27,7 @@ import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_
 import { Player } from '../components/sound/player';
 import {
   Connection,
+  QueueItem,
   WebSocketConnection,
 } from '../connection/web-socket.connection';
 import { Character } from '../entities/character.entity';
@@ -57,6 +62,7 @@ export class ConnectionService<
   private player = Player.getInstance();
   private state: ConnectionState = ConnectionState.INACTIVE;
   private audioSessionAction = AudioSessionState.UNKNOWN;
+  private ttsPlaybackAction = TtsPlaybackAction.UNKNOWN;
 
   private scene: LoadSceneResponse;
   private session: SessionToken;
@@ -153,9 +159,12 @@ export class ConnectionService<
       if (this.state === ConnectionState.LOADED) {
         this.state = ConnectionState.ACTIVATING;
 
+        const packets = this.getPacketsToSentOnOpen();
+
         await this.connection.open({
           session: this.session,
           convertPacketFromProto: this.extension.convertPacketFromProto,
+          ...(packets.length && { packets }),
         });
 
         this.scheduleDisconnect();
@@ -185,6 +194,14 @@ export class ConnectionService<
 
   getAudioSessionAction() {
     return this.audioSessionAction;
+  }
+
+  setTtsPlaybackAction(action: TtsPlaybackAction) {
+    this.ttsPlaybackAction = action;
+  }
+
+  getTtsPlaybackAction() {
+    return this.ttsPlaybackAction;
   }
 
   async interrupt() {
@@ -306,6 +323,10 @@ export class ConnectionService<
           client,
         });
 
+        if (this.connectionProps?.config.history?.previousState) {
+          this.setPreviousState(this.scene?.previousState);
+        }
+
         await this.loadCharactersList();
       }
 
@@ -327,6 +348,24 @@ export class ConnectionService<
         this.connectionProps.config.connection.disconnectTimeout,
       );
     }
+  }
+
+  private setPreviousState(previousState: PreviousState) {
+    const { stateHolders = [] } = previousState || {};
+
+    stateHolders.forEach((stateHolder) => {
+      stateHolder.packets?.forEach((packet) =>
+        this.history.addOrUpdate({
+          grpcAudioPlayer: this.connectionProps.grpcAudioPlayer,
+          characters: this.characters,
+          packet: this.extension.convertPacketFromProto(packet),
+        }),
+      );
+
+      if (stateHolders.length) {
+        this.connectionProps.onHistoryChange?.(this.getHistory());
+      }
+    });
   }
 
   private cancelScheduler() {
@@ -533,5 +572,19 @@ export class ConnectionService<
     });
 
     this.intervals = [];
+  }
+
+  private getPacketsToSentOnOpen() {
+    const packets: QueueItem<InworldPacketT>[] = [];
+
+    if (this.isAutoReconnected()) {
+      if (this.getTtsPlaybackAction() === TtsPlaybackAction.MUTE) {
+        packets.push({
+          getPacket: () => this.getEventFactory().ttsPlaybackMute(true),
+        });
+      }
+    }
+
+    return packets;
   }
 }
