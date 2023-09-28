@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Added
+
+- Expose `interactionId` and `utteranceId` of interrupted packets
+
 ## [1.7.0] - 2023-09-27
 
 ### Added

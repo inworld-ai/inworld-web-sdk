@@ -46,6 +46,7 @@ interface ConnectionProps<InworldPacketT, HistoryItemT> {
   onError?: (err: Event | Error) => Awaitable<void>;
   onMessage?: (packet: InworldPacketT) => Awaitable<void>;
   onDisconnect?: () => Awaitable<void>;
+  onInterruption?: (props: CancelResponsesProps) => Awaitable<void>;
   onHistoryChange?: (history: HistoryItem[]) => Awaitable<void>;
   grpcAudioPlayer: GrpcAudioPlayback;
   webRtcLoopbackBiDiSession: GrpcWebRtcLoopbackBiDiSession;
@@ -523,10 +524,14 @@ export class ConnectionService<
         [cancelReponses.interactionId]: true,
       };
 
-      this.history.filter({
+      const interruptionData = {
         utteranceId: cancelReponses.utteranceId ?? [],
         interactionId: cancelReponses.interactionId,
-      });
+      };
+
+      this.connectionProps.onInterruption?.(interruptionData);
+
+      this.history.filter(interruptionData);
     }
   }
 

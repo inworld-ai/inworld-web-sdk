@@ -25,6 +25,7 @@ describe('should finish with success', () => {
   const onAfterPlaying = jest.fn();
   const onBeforePlaying = jest.fn();
   const onHistoryChange = jest.fn();
+  const onInterruption = jest.fn();
   const onPhoneme = jest.fn();
 
   beforeEach(() => {
@@ -47,6 +48,7 @@ describe('should finish with success', () => {
       .setOnError(onError)
       .setOnReady(onReady)
       .setOnHistoryChange(onHistoryChange)
+      .setOnInterruption(onInterruption)
       .setOnPhoneme(onPhoneme)
       .setSessionContinuation({ previousDialog: phrases });
   });
