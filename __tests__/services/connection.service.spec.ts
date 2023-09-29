@@ -41,6 +41,7 @@ import {
 const onError = jest.fn();
 const onMessage = jest.fn();
 const onDisconnect = jest.fn();
+const onInterruption = jest.fn();
 const agents = [createAgent(), createAgent()];
 const characters = convertAgentsToCharacters(agents);
 const scene = { agents };
@@ -423,6 +424,7 @@ describe('send', () => {
       onError,
       onMessage,
       onDisconnect,
+      onInterruption,
       onHistoryChange,
       grpcAudioPlayer,
       generateSessionToken,
@@ -519,6 +521,8 @@ describe('send', () => {
   });
 
   test('should interrupt on text sending', async () => {
+    const interactionId = v4();
+    const utteranceId = v4();
     const write = jest
       .spyOn(WebSocketConnection.prototype, 'write')
       .mockImplementation(writeMock);
@@ -536,8 +540,8 @@ describe('send', () => {
           ...audioEvent,
           packetId: {
             packetId: audioEvent.packetId.packetId,
-            interactionId: v4(),
-            utteranceId: v4(),
+            interactionId,
+            utteranceId,
           },
         }),
       ]);
@@ -547,6 +551,11 @@ describe('send', () => {
     expect(open).toHaveBeenCalledTimes(1);
     expect(write).toHaveBeenCalledTimes(2);
     expect(cancelResponse).toHaveBeenCalledTimes(1);
+    expect(onInterruption).toHaveBeenCalledTimes(1);
+    expect(onInterruption).toHaveBeenCalledWith({
+      interactionId,
+      utteranceId: [utteranceId],
+    });
   });
 
   test('should add playback mute event to queue in case of auto reconnect', async () => {
@@ -638,6 +647,7 @@ describe('onMessage', () => {
       onError,
       onMessage,
       onDisconnect,
+      onInterruption,
       grpcAudioPlayer,
       generateSessionToken,
       webRtcLoopbackBiDiSession,

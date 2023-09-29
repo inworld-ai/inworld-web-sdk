@@ -1,3 +1,4 @@
+import { CancelResponses } from '../../proto/packets.pb';
 import { CapabilitiesRequest } from '../../proto/world-engine.pb';
 import { GRPC_HOSTNAME } from '../common/constants';
 import {
@@ -43,6 +44,9 @@ export class InworldClient<
   private onReady: (() => Awaitable<void>) | undefined;
   private onHistoryChange:
     | ((history: HistoryItem[]) => Awaitable<void>)
+    | undefined;
+  private onInterruption:
+    | ((props: CancelResponses) => Awaitable<void>)
     | undefined;
   private onPhoneme: OnPhomeneFn;
 
@@ -118,6 +122,12 @@ export class InworldClient<
     return this;
   }
 
+  setOnInterruption(fn?: (props: CancelResponses) => Awaitable<void>) {
+    this.onInterruption = fn;
+
+    return this;
+  }
+
   setOnPhoneme(fn?: OnPhomeneFn) {
     this.onPhoneme = fn;
 
@@ -181,6 +191,7 @@ export class InworldClient<
       onMessage: this.onMessage,
       onHistoryChange: this.onHistoryChange,
       onDisconnect: this.onDisconnect,
+      onInterruption: this.onInterruption,
       generateSessionToken: this.generateSessionToken,
       sessionContinuation: this.sessionContinuation,
       extension: this.extension,
