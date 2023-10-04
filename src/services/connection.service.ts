@@ -13,7 +13,6 @@ import {
   Extension,
   GenerateSessionTokenFn,
   InternalClientConfiguration,
-  SessionToken,
   TtsPlaybackAction,
   User,
 } from '../common/data_structures';
@@ -33,7 +32,9 @@ import {
 import { Character } from '../entities/character.entity';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../entities/inworld_packet.entity';
+import { SessionToken } from '../entities/session_token.entity';
 import { EventFactory } from '../factories/event';
+import { StateSerializationService } from './pb/state_serialization.service';
 import { WorldEngineService } from './pb/world_engine.service';
 
 interface ConnectionProps<InworldPacketT, HistoryItemT> {
@@ -53,8 +54,6 @@ interface ConnectionProps<InworldPacketT, HistoryItemT> {
   generateSessionToken: GenerateSessionTokenFn;
   extension?: Extension<InworldPacketT, HistoryItemT>;
 }
-
-const TIME_DIFF_MS = 50 * 60 * 1000; // 5 minutes
 
 export class ConnectionService<
   InworldPacketT extends InworldPacket = InworldPacket,
@@ -76,6 +75,9 @@ export class ConnectionService<
   private disconnectTimeoutId: NodeJS.Timeout;
 
   private eventFactory = new EventFactory();
+
+  private stateService = new StateSerializationService();
+  private engineService = new WorldEngineService<InworldPacketT>();
 
   private onDisconnect: (() => Awaitable<void>) | undefined;
   private onError: (err: Event | Error) => Awaitable<void>;
@@ -104,6 +106,21 @@ export class ConnectionService<
 
   isAutoReconnected() {
     return this.connectionProps.config?.connection?.autoReconnect ?? true;
+  }
+
+  async getSessionState() {
+    try {
+      const { config, name: scene } = this.connectionProps;
+      const session = await this.ensureSessionToken();
+
+      return this.stateService.getSessionState({
+        config,
+        scene,
+        session,
+      });
+    } catch (err) {
+      this.onError(err);
+    }
   }
 
   async openManually() {
@@ -288,33 +305,17 @@ export class ConnectionService<
   private async loadScene() {
     if (this.state === ConnectionState.LOADING) return;
 
-    const { client, generateSessionToken, name, user } = this.connectionProps;
+    const { name, client, user } = this.connectionProps;
 
     try {
-      const { sessionId, expirationTime } = this.session || {};
-
-      // Generate new session token is it's empty or expired
-      if (
-        !expirationTime ||
-        new Date(expirationTime).getTime() - new Date().getTime() <=
-          TIME_DIFF_MS
-      ) {
-        this.state = ConnectionState.LOADING;
-        this.session = await generateSessionToken();
-
-        // Reuse session id to keep context of previous conversation
-        if (sessionId) {
-          this.session = {
-            ...this.session,
-            sessionId,
-          };
-        }
-      }
-
-      const engineService = new WorldEngineService<InworldPacketT>();
+      await this.ensureSessionToken({
+        beforeLoading: () => {
+          this.state = ConnectionState.LOADING;
+        },
+      });
 
       if (!this.scene) {
-        this.scene = await engineService.loadScene({
+        this.scene = await this.engineService.loadScene({
           config: this.connectionProps.config,
           session: this.session,
           sessionContinuation: this.connectionProps.sessionContinuation,
@@ -339,6 +340,28 @@ export class ConnectionService<
     } catch (err) {
       this.onError(err);
     }
+  }
+
+  async ensureSessionToken(props?: { beforeLoading: () => void }) {
+    // Generate new session token is it's empty or expired
+    if (!this.session || SessionToken.isExpired(this.session)) {
+      const { sessionId } = this.session || {};
+
+      props?.beforeLoading?.();
+      let sessionToken = await this.connectionProps.generateSessionToken();
+
+      // Reuse session id to keep context of previous conversation
+      if (sessionId) {
+        sessionToken = {
+          ...this.session,
+          sessionId,
+        };
+      }
+
+      this.session = sessionToken;
+    }
+
+    return this.session;
   }
 
   private scheduleDisconnect() {

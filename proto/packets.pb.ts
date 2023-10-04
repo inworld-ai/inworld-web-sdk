@@ -83,9 +83,15 @@ export enum EmotionEventStrength {
 export enum DataChunkDataType {
   UNSPECIFIED = "UNSPECIFIED",
   AUDIO = "AUDIO",
-  ANIMATION = "ANIMATION",
   SILENCE = "SILENCE",
   STATE = "STATE",
+}
+
+export enum DataChunkAudioFormat {
+  UNSPECIFIED_AUDIO_FORMAT = "UNSPECIFIED_AUDIO_FORMAT",
+  AUDIO_MP3 = "AUDIO_MP3",
+  AUDIO_PCM_16000 = "AUDIO_PCM_16000",
+  AUDIO_PCM_22050 = "AUDIO_PCM_22050",
 }
 
 export type Actor = {
@@ -115,10 +121,16 @@ type BaseInworldPacket = {
 export type InworldPacket = BaseInworldPacket
   & OneOf<{ text: TextEvent; control: ControlEvent; audioChunk: AudioChunk; custom: CustomEvent; cancelResponses: CancelResponsesEvent; emotion: EmotionEvent; dataChunk: DataChunk; action: ActionEvent; mutation: MutationEvent; loadSceneOutput: LoadSceneOutputEvent; debugInfo: DebugInfoEvent }>
 
+export type TextEventModelInfo = {
+  service?: string
+  model?: string
+}
+
 export type TextEvent = {
   text?: string
   sourceType?: TextEventSourceType
   final?: boolean
+  modelInfo?: TextEventModelInfo
 }
 
 export type ControlEvent = {
@@ -160,6 +172,7 @@ export type EmotionEvent = {
 type BaseDataChunk = {
   type?: DataChunkDataType
   additionalPhonemeInfo?: AdditionalPhonemeInfo[]
+  audioFormat?: DataChunkAudioFormat
 }
 
 export type DataChunk = BaseDataChunk
@@ -200,7 +213,7 @@ type BaseMutationEvent = {
 }
 
 export type MutationEvent = BaseMutationEvent
-  & OneOf<{ cancelResponses: CancelResponses; regenerateResponse: RegenerateResponse; applyResponse: ApplyResponse; loadScene: LoadScene }>
+  & OneOf<{ cancelResponses: CancelResponses; regenerateResponse: RegenerateResponse; applyResponse: ApplyResponse; loadScene: LoadScene; modifyExactResponse: ModifyExactResponse }>
 
 export type CancelResponses = {
   interactionId?: string
@@ -217,6 +230,11 @@ export type ApplyResponse = {
 
 export type LoadScene = {
   name?: string
+}
+
+export type ModifyExactResponse = {
+  interactionId?: string
+  exactText?: string
 }
 
 export type LoadSceneOutputEventAgent = {

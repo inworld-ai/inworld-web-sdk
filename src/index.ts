@@ -13,7 +13,6 @@ import {
   ClientConfiguration,
   ConnectionConfig,
   Extension,
-  SessionToken,
   StopAudioPlayback,
   User,
   UserProfile,
@@ -41,11 +40,11 @@ import {
 import {
   EmotionBehavior,
   EmotionBehaviorCode,
-} from './entities/emotion-behavior.entity';
+} from './entities/emotion_behavior.entity';
 import {
   EmotionStrength,
   EmotionStrengthCode,
-} from './entities/emotion-strength.entity';
+} from './entities/emotion_strength.entity';
 import {
   Actor,
   AdditionalPhonemeInfo,
@@ -59,7 +58,9 @@ import {
   TriggerEvent,
   TriggerParameter,
 } from './entities/inworld_packet.entity';
+import { SessionToken } from './entities/session_token.entity';
 import { InworldConnectionService } from './services/inworld_connection.service';
+import { SessionState } from './services/pb/state_serialization.service';
 
 export {
   Actor,
@@ -95,6 +96,7 @@ export {
   Routing,
   SessionContinuation,
   SessionContinuationProps,
+  SessionState,
   SessionToken,
   StopAudioPlayback,
   TextEvent,

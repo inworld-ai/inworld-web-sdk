@@ -94,6 +94,22 @@ test('close', () => {
   expect(close).toHaveBeenCalledTimes(1);
 });
 
+test('should get session state', async () => {
+  const service = new InworldConnectionService({
+    connection,
+    grpcAudioPlayer,
+    grpcAudioRecorder,
+    webRtcLoopbackBiDiSession,
+  });
+  const getSessionState = jest
+    .spyOn(ConnectionService.prototype, 'getSessionState')
+    .mockImplementationOnce(jest.fn());
+
+  await service.getSessionState();
+
+  expect(getSessionState).toHaveBeenCalledTimes(1);
+});
+
 describe('character', () => {
   let service: InworldConnectionService;
 

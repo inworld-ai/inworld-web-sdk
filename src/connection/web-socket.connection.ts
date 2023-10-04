@@ -2,9 +2,9 @@ import { InworldPacket as ProtoPacket } from '../../proto/packets.pb';
 import {
   Awaitable,
   InternalClientConfiguration,
-  SessionToken,
 } from '../common/data_structures';
 import { InworldPacket } from '../entities/inworld_packet.entity';
+import { SessionToken } from '../entities/session_token.entity';
 
 const SESSION_PATH = '/v1/session/default';
 

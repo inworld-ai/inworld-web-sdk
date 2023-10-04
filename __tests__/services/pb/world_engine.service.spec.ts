@@ -5,12 +5,15 @@ import {
   WorldEngine,
 } from '../../../proto/world-engine.pb';
 import { CLIENT_ID } from '../../../src/common/constants';
+import { SessionContinuation } from '../../../src/entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../../../src/entities/inworld_packet.entity';
 import { WorldEngineService } from '../../../src/services/pb/world_engine.service';
 import {
   createAgent,
   extension,
+  phrases,
   previousDialog,
+  previousState,
   SCENE,
   session,
   user,
@@ -22,7 +25,6 @@ describe('load scene', () => {
   let client: WorldEngineService<InworldPacket>;
   let mockLoadScene: jest.Mock;
   const capabilities: CapabilitiesRequest = {
-    animations: true,
     emotions: true,
   };
 
@@ -66,7 +68,6 @@ describe('load scene', () => {
     expect(loadedAgents[0].agentId).toEqual(agents[0].agentId);
     expect(loadedAgents[1].agentId).toEqual(agents[1].agentId);
     expect(callCapabilities.emotions).toEqual(true);
-    expect(callCapabilities.animations).toEqual(true);
     expect(mockLoadScene.mock.calls[0][0].client.id).toEqual(CLIENT_ID);
   });
 
@@ -206,13 +207,32 @@ describe('load scene', () => {
       },
       name: SCENE,
       session,
-      sessionContinuation: { previousDialog },
+      sessionContinuation: new SessionContinuation({ previousDialog: phrases }),
       user,
     });
 
     expect(
       mockLoadScene.mock.calls[0][0].sessionContinuation.previousDialog,
     ).toEqual(previousDialog.toProto());
+  });
+
+  test('should send previous state', async () => {
+    await client.loadScene({
+      config: {
+        capabilities,
+        connection: {
+          gateway: { hostname: 'examples.com', ssl: true },
+        },
+      },
+      name: SCENE,
+      session,
+      sessionContinuation: new SessionContinuation({ previousState }),
+      user,
+    });
+
+    expect(
+      mockLoadScene.mock.calls[0][0].sessionContinuation.previousState,
+    ).toEqual(previousState);
   });
 
   test('should call extention functions', async () => {

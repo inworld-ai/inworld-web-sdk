@@ -12,11 +12,11 @@ import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playbac
 import {
   EmotionBehavior,
   EmotionBehaviorCode,
-} from '../../src/entities/emotion-behavior.entity';
+} from '../../src/entities/emotion_behavior.entity';
 import {
   EmotionStrength,
   EmotionStrengthCode,
-} from '../../src/entities/emotion-strength.entity';
+} from '../../src/entities/emotion_strength.entity';
 import {
   InworlControlType,
   InworldPacket,

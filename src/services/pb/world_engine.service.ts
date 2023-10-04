@@ -9,12 +9,12 @@ import { CLIENT_ID } from '../../common/constants';
 import {
   Extension,
   InternalClientConfiguration,
-  SessionToken,
   User,
 } from '../../common/data_structures';
 import { HistoryItem } from '../../components/history';
 import { SessionContinuation } from '../../entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../../entities/inworld_packet.entity';
+import { SessionToken } from '../../entities/session_token.entity';
 import { PbService } from './pb.service';
 
 const INWORLD_USER_ID = 'inworldUserId';
@@ -52,7 +52,16 @@ export class WorldEngineService<
   private buildRequest(
     props: LoadSceneProps<InworldPacketT, HistoryItemT>,
   ): LoadSceneRequest {
-    const { client, config, name, sessionContinuation, user = {} } = props;
+    const {
+      client,
+      config,
+      name,
+      sessionContinuation: {
+        previousDialog,
+        previousState,
+      } = {} as SessionContinuation,
+      user = {},
+    } = props;
     const { id, fullName, profile } = user;
 
     return {
@@ -75,9 +84,12 @@ export class WorldEngineService<
           },
         },
       }),
-      ...(sessionContinuation?.previousDialog && {
+      ...((previousDialog || previousState) && {
         sessionContinuation: {
-          previousDialog: sessionContinuation.previousDialog.toProto(),
+          ...(previousDialog && { previousDialog: previousDialog.toProto() }),
+          ...(previousState && {
+            previousState: previousState as unknown as Uint8Array,
+          }),
         },
       }),
     };

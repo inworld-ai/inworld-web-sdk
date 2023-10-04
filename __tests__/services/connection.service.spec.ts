@@ -9,10 +9,7 @@ import {
   DataChunkDataType,
   InworldPacket as ProtoPacket,
 } from '../../proto/packets.pb';
-import {
-  SessionToken,
-  TtsPlaybackAction,
-} from '../../src/common/data_structures';
+import { TtsPlaybackAction } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
 import {
   CHAT_HISTORY_TYPE,
@@ -23,8 +20,13 @@ import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playbac
 import { GrpcWebRtcLoopbackBiDiSession } from '../../src/components/sound/grpc_web_rtc_loopback_bidi.session';
 import { WebSocketConnection } from '../../src/connection/web-socket.connection';
 import { InworldPacket } from '../../src/entities/inworld_packet.entity';
+import { SessionToken } from '../../src/entities/session_token.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
+import {
+  SessionState,
+  StateSerializationService,
+} from '../../src/services/pb/state_serialization.service';
 import { WorldEngineService } from '../../src/services/pb/world_engine.service';
 import {
   capabilitiesProps,
@@ -32,6 +34,7 @@ import {
   convertPacketFromProto,
   createAgent,
   generateSessionToken,
+  previousState,
   SCENE,
   session,
   user,
@@ -159,6 +162,56 @@ describe('history', () => {
 
     expect(getTranscript).toHaveBeenCalledTimes(1);
     expect(transcript).toEqual(result);
+  });
+});
+
+describe('getSessionState', () => {
+  let connection: ConnectionService;
+  let generateSessionToken: jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    generateSessionToken = jest.fn(() => Promise.resolve(session));
+    connection = new ConnectionService({
+      name: SCENE,
+      onError,
+      grpcAudioPlayer,
+      generateSessionToken,
+      webRtcLoopbackBiDiSession,
+    });
+  });
+
+  test('should get state', async () => {
+    const expected: SessionState = {
+      state: previousState,
+      creationTime: protoTimestamp(),
+    };
+    const getSessionState = jest
+      .spyOn(StateSerializationService.prototype, 'getSessionState')
+      .mockImplementationOnce(() => Promise.resolve(expected));
+
+    const result = await connection.getSessionState();
+
+    expect(generateSessionToken).toHaveBeenCalledTimes(1);
+    expect(getSessionState).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(expected);
+  });
+
+  test('should catch error and pass it to handler', async () => {
+    const err = new Error();
+    const getSessionState = jest
+      .spyOn(StateSerializationService.prototype, 'getSessionState')
+      .mockImplementationOnce(() => {
+        throw err;
+      });
+
+    await connection.getSessionState();
+
+    expect(generateSessionToken).toHaveBeenCalledTimes(1);
+    expect(getSessionState).toHaveBeenCalledTimes(1);
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError).toHaveBeenCalledWith(err);
   });
 });
 

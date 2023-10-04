@@ -95,7 +95,6 @@ function App() {
         ...(form.chatView !== CHAT_VIEW.TEXT && { phonemes: true }),
         ...(form.chatView === CHAT_VIEW.TEXT && { interruptions: true }),
         emotions: true,
-        continuation: true,
         narratedActions: true,
       },
       ...(previousDialog.length && { continuation: { previousDialog } }),

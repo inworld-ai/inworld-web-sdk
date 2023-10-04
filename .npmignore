@@ -18,3 +18,4 @@ jest.config.json
 TESTME.md
 RELEASEME.md
 EXTENSIONS.md
+*.log

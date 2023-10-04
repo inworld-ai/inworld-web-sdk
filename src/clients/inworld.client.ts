@@ -1,6 +1,6 @@
 import { CancelResponses } from '../../proto/packets.pb';
 import { CapabilitiesRequest } from '../../proto/world-engine.pb';
-import { GRPC_HOSTNAME } from '../common/constants';
+import { GRPC_HOSTNAME, SCENE_PATTERN } from '../common/constants';
 import {
   Awaitable,
   Capabilities,
@@ -222,7 +222,6 @@ export class InworldClient<
   private buildCapabilities(capabilities: Capabilities): CapabilitiesRequest {
     const {
       audio = true,
-      continuation = false,
       emotions = false,
       interruptions = false,
       narratedActions = false,
@@ -233,7 +232,6 @@ export class InworldClient<
 
     return {
       audio,
-      continuation,
       emotions,
       interruptions,
       narratedActions,
@@ -255,6 +253,10 @@ export class InworldClient<
   private validate() {
     if (!this.scene) {
       throw Error('Scene name is required');
+    }
+
+    if (!SCENE_PATTERN.test(this.scene)) {
+      throw Error('Scene name has wrong format');
     }
 
     const { audioPlayback } = this.config;

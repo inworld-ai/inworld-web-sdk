@@ -9,7 +9,6 @@ import {
   Capabilities,
   Client,
   Extension,
-  SessionToken,
   User,
 } from '../src/common/data_structures';
 import { protoTimestamp } from '../src/common/helpers';
@@ -17,15 +16,17 @@ import { QueueItem } from '../src/connection/web-socket.connection';
 import { Character } from '../src/entities/character.entity';
 import {
   DialogParticipant,
+  DialogPhrase,
   PreviousDialog,
 } from '../src/entities/continuation/previous_dialog.entity';
 import { InworldPacket, PacketId } from '../src/entities/inworld_packet.entity';
+import { SessionToken } from '../src/entities/session_token.entity';
 import { ExtendedHistoryItem, ExtendedInworldPacket } from './data_structures';
 
 const inOneHours = new Date();
 inOneHours.setHours(inOneHours.getHours() + 1);
 
-export const SCENE = v4();
+export const SCENE = `workspaces/${v4()}/characters/${v4()}`;
 
 export const createCharacter = () =>
   new Character({
@@ -74,7 +75,6 @@ export const generateSessionToken = () => Promise.resolve(session);
 
 export const capabilitiesProps: Capabilities = {
   audio: true,
-  continuation: true,
   emotions: true,
   interruptions: true,
   phonemes: true,
@@ -128,7 +128,7 @@ export const extension: Extension<ExtendedInworldPacket, ExtendedHistoryItem> =
     beforeLoadScene: jest.fn().mockImplementation(beforeLoadScene),
   };
 
-export const phrases = [
+export const phrases: DialogPhrase[] = [
   {
     talker: DialogParticipant.CHARACTER,
     phrase: v4(),
@@ -143,3 +143,5 @@ export const phrases = [
   },
 ];
 export const previousDialog = new PreviousDialog(phrases);
+export const previousState = v4();
+export const previousStateUint8Array = previousState as unknown as Uint8Array;
