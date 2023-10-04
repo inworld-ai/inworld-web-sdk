@@ -6,6 +6,22 @@
 - Allow to get the conversation state
 - Allow to propagate previous conversation state to new connection
 
+## [1.8.0] - 2023-09-29
+
+### Added
+
+- Expose `interactionId` and `utteranceId` of interrupted packets
+
+## [1.7.0] - 2023-09-27
+
+### Added
+
+- Allow to add previous state packets to history
+
+### Fixed
+
+- Send a `MUTE` event when auto-reconnecting prior to transmitting any other packets, provided that a `MUTE` event was sent prior to the disconnection
+
 ## [1.6.2] - 2023-09-20
 
 ### Added

@@ -27,6 +27,7 @@ interface ConnectionProps {
 interface OpenConnectionProps<InworldPacketT> {
   session: SessionToken;
   convertPacketFromProto: (proto: ProtoPacket) => InworldPacketT;
+  packets?: QueueItem<InworldPacketT>[];
 }
 
 export interface QueueItem<InworldPacketT> {
@@ -61,10 +62,15 @@ export class WebSocketConnection<
 
   async open({
     session,
+    packets,
     convertPacketFromProto,
   }: OpenConnectionProps<InworldPacketT>) {
     const { config, onError, onDisconnect, onMessage, onReady } =
       this.connectionProps;
+
+    if (packets?.length) {
+      this.packetQueue = [...packets, ...this.packetQueue];
+    }
 
     this.convertPacketFromProto = convertPacketFromProto;
     this.ws = this.createWebSocket({

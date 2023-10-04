@@ -5,6 +5,7 @@ import {
 import {
   AudioSessionState,
   CancelResponsesProps,
+  TtsPlaybackAction,
 } from '../common/data_structures';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
@@ -162,6 +163,10 @@ export class InworldConnectionService<
   }
 
   async sendTTSPlaybackMute(isMuted: boolean) {
+    this.connection.setTtsPlaybackAction(
+      isMuted ? TtsPlaybackAction.MUTE : TtsPlaybackAction.UNMUTE,
+    );
+
     return this.connection.send(() =>
       this.connection.getEventFactory().ttsPlaybackMute(isMuted),
     );

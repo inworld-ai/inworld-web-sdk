@@ -28,6 +28,7 @@ describe('should finish with success', () => {
   const onAfterPlaying = jest.fn();
   const onBeforePlaying = jest.fn();
   const onHistoryChange = jest.fn();
+  const onInterruption = jest.fn();
   const onPhoneme = jest.fn();
 
   beforeEach(() => {
@@ -37,6 +38,7 @@ describe('should finish with success', () => {
       .setConfiguration({
         capabilities: capabilitiesProps,
         audioPlayback: { stop: { duration: 1000, ticks: 30 } },
+        history: { previousState: true },
       })
       .setUser(user)
       .setClient(client)
@@ -49,6 +51,7 @@ describe('should finish with success', () => {
       .setOnError(onError)
       .setOnReady(onReady)
       .setOnHistoryChange(onHistoryChange)
+      .setOnInterruption(onInterruption)
       .setOnPhoneme(onPhoneme)
       .setSessionContinuation({ previousState, previousDialog: phrases });
   });
