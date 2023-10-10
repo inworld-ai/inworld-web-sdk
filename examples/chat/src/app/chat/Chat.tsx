@@ -1,33 +1,38 @@
 import { HistoryItem, InworldConnectionService } from '@inworld/web-sdk';
 import { CopyAll, Mic, Send, VolumeOff, VolumeUp } from '@mui/icons-material';
-import { IconButton, InputAdornment, TextField } from '@mui/material';
+import { IconButton, InputAdornment, TextField, Tooltip } from '@mui/material';
 import { Box } from '@mui/system';
 import { useCallback, useState } from 'react';
 
+import { INWORLD_SESSION_STATE_KEY } from '../../defaults';
 import { CHAT_VIEW, EmotionsMap } from '../types';
 import { ActionsStyled, RecordIcon } from './Chat.styled';
-import { CopyConfirmedDialog } from './CopyConfirmedDialog';
+import { ConfirmedDialog } from './ConfirmedDialog';
 import { History } from './History';
+import { SessionActions } from './SessionActions';
 
 interface ChatProps {
   chatView: CHAT_VIEW;
   chatHistory: HistoryItem[];
   connection: InworldConnectionService;
   emotions: EmotionsMap;
+  onRestore: (state: string) => Promise<void>;
+  prevTranscripts: string[];
 }
 
 export function Chat(props: ChatProps) {
   const { chatHistory, connection } = props;
 
   const [text, setText] = useState('');
-  const [copyDestination, setCopyDestination] = useState('');
-  const [copyConfirmOpen, setCopyConfirmOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaybackMuted, setIsPlaybackMuted] = useState(
     connection.player.getMute() ?? false,
   );
   const [hasPlayedWorkaroundSound, setHasPlayedWorkaroundSound] =
     useState(false);
+  const [isInteractionEnd, setIsInteractionEnd] = useState<boolean>(false);
 
   const handleTextChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,19 +41,56 @@ export function Chat(props: ChatProps) {
     [],
   );
 
+  const savedState = localStorage.getItem(INWORLD_SESSION_STATE_KEY);
+
   const handleCopyClick = useCallback(async () => {
-    const history = connection.getTranscript();
+    const history = [...props.prevTranscripts, connection.getTranscript()].join(
+      '\n',
+    );
 
     if (navigator.clipboard) {
       navigator.clipboard.writeText(history).then(() => {
-        setCopyDestination('clipboard');
+        setConfirmText('Transcript successfully copied to clipboard');
       });
     } else {
-      setCopyDestination('console');
+      setConfirmText('Transcript successfully copied to console');
     }
 
-    setCopyConfirmOpen(true);
-  }, [connection, chatHistory]);
+    setConfirmOpen(true);
+  }, [connection, chatHistory, props.prevTranscripts]);
+
+  const handleClearStateClick = useCallback(() => {
+    localStorage.removeItem(INWORLD_SESSION_STATE_KEY);
+    setConfirmText('Session state successfully cleared from local storage');
+    setConfirmOpen(true);
+    INWORLD_SESSION_STATE_KEY;
+  }, []);
+
+  const handleSaveStateClick = useCallback(async () => {
+    const sessionState = await connection.getSessionState();
+
+    if (sessionState?.state) {
+      localStorage.setItem(INWORLD_SESSION_STATE_KEY, sessionState.state);
+      setConfirmText(
+        'Session state successfully saved to local storage. Now you can restore it us the "Restore" button',
+      );
+    } else {
+      setConfirmText('Session state could not be saved. Try again');
+    }
+
+    setConfirmOpen(true);
+  }, [connection]);
+
+  const handleRestoreStateClick = useCallback(async () => {
+    if (savedState) {
+      await props.onRestore(savedState);
+      setConfirmText('Session state successfully restored from local storage');
+    } else {
+      setConfirmText('Session state could not be restored. Try again');
+    }
+
+    setConfirmOpen(true);
+  }, [props.onRestore, savedState]);
 
   const handleMutePlayback = useCallback(() => {
     connection.recorder.initPlayback();
@@ -132,6 +174,7 @@ export function Chat(props: ChatProps) {
         history={chatHistory}
         chatView={props.chatView}
         emotions={props.emotions}
+        onInteractionEnd={setIsInteractionEnd}
       />
       <ActionsStyled>
         <TextField
@@ -156,27 +199,45 @@ export function Chat(props: ChatProps) {
             disableUnderline: true,
           }}
         />
-        <IconButton onClick={handleMutePlayback}>
-          {isPlaybackMuted ? (
-            <VolumeOff fontSize="small" />
-          ) : (
-            <VolumeUp fontSize="small" />
-          )}
-        </IconButton>
-        <IconButton
-          onClick={handleSpeakClick}
-          sx={{ height: '3rem', width: '3rem', backgroundColor: '#F1F5F9' }}
+        <Tooltip title={isPlaybackMuted ? 'Unmute' : 'Mute'} placement="top">
+          <IconButton onClick={handleMutePlayback}>
+            {isPlaybackMuted ? (
+              <VolumeOff fontSize="small" />
+            ) : (
+              <VolumeUp fontSize="small" />
+            )}
+          </IconButton>
+        </Tooltip>
+        <Tooltip
+          title={isRecording ? 'Stop speaking' : 'Start speaking'}
+          placement="top"
         >
-          {isRecording ? <RecordIcon /> : <Mic />}
-        </IconButton>
-        <IconButton onClick={handleCopyClick}>
-          <CopyAll fontSize="small" />
-        </IconButton>
+          <IconButton
+            onClick={handleSpeakClick}
+            sx={{ height: '3rem', width: '3rem', backgroundColor: '#F1F5F9' }}
+          >
+            {isRecording ? <RecordIcon /> : <Mic />}
+          </IconButton>
+        </Tooltip>
+        <SessionActions
+          onClear={() => handleClearStateClick()}
+          onSave={handleSaveStateClick}
+          onRestore={handleRestoreStateClick}
+          clearDisabled={!savedState}
+          saveDisabled={!chatHistory.length || !isInteractionEnd}
+          restoreDisabled={!savedState}
+        />
+        <Tooltip title="Copy transcript" placement="top">
+          <IconButton onClick={handleCopyClick}>
+            <CopyAll fontSize="small" />
+          </IconButton>
+        </Tooltip>
       </ActionsStyled>
-      <CopyConfirmedDialog
-        copyConfirmOpen={copyConfirmOpen}
-        copyDestination={copyDestination}
-        setCopyConfirmOpen={setCopyConfirmOpen}
+      <ConfirmedDialog
+        open={confirmOpen}
+        text={confirmText}
+        alert={confirmText.includes('could not') ? 'error' : 'success'}
+        setOpen={setConfirmOpen}
       />
     </Box>
   );

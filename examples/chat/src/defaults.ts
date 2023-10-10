@@ -25,3 +25,5 @@ export const configuration = {
 
 export const DEFAULT_RPM_AVATAR =
   'https://assets.inworld.ai/models/Default.glb';
+
+export const INWORLD_SESSION_STATE_KEY = 'inworldSessionState';

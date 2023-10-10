@@ -58,6 +58,8 @@ function App() {
   const [character, setCharacter] = useState<Character>();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [chatHistory, setChatHistory] = useState<HistoryItem[]>([]);
+  const [prevChatHistory, setPrevChatHistory] = useState<HistoryItem[]>([]);
+  const [prevTranscripts, setPrevTranscripts] = useState<string[]>([]);
   const [chatting, setChatting] = useState(false);
   const [chatView, setChatView] = useState(CHAT_VIEW.TEXT);
   const [initialized, setInitialized] = useState(false);
@@ -77,76 +79,94 @@ function App() {
     setChatHistory(history);
   }, []);
 
-  const openConnection = useCallback(async () => {
-    const form = formMethods.getValues();
+  const openConnection = useCallback(
+    async (previousState?: string) => {
+      const form = formMethods.getValues();
+      const currentTranscript = connection?.getTranscript() || '';
 
-    setChatting(true);
-    setChatView(form.chatView!);
+      setPrevTranscripts([
+        ...prevTranscripts,
+        ...(currentTranscript ? [currentTranscript] : []),
+      ]);
+      setPrevChatHistory([...prevChatHistory, ...chatHistory]);
+      setChatHistory([]);
+      setChatting(true);
+      setChatView(form.chatView!);
 
-    const duration = toInt(form.audio.stopDuration ?? 0);
-    const ticks = toInt(form.audio.stopTicks ?? 0);
-    const previousDialog = form.continuation?.enabled
-      ? JSONToPreviousDialog(form.continuation.previousDialog!)
-      : [];
+      const duration = toInt(form.audio.stopDuration ?? 0);
+      const ticks = toInt(form.audio.stopTicks ?? 0);
+      const previousDialog = form.continuation?.enabled
+        ? JSONToPreviousDialog(form.continuation.previousDialog!)
+        : [];
 
-    const service = new InworldService({
+      const service = new InworldService({
+        onHistoryChange,
+        capabilities: {
+          ...(form.chatView !== CHAT_VIEW.TEXT && { phonemes: true }),
+          ...(form.chatView === CHAT_VIEW.TEXT && { interruptions: true }),
+          emotions: true,
+          narratedActions: true,
+        },
+        ...(previousDialog.length && { continuation: { previousDialog } }),
+        ...(previousState && { continuation: { previousState } }),
+        ...(duration &&
+          ticks && {
+            audioPlayback: {
+              stop: { duration, ticks },
+            },
+          }),
+        sceneName: form.scene?.name!,
+        playerName: form.player?.name!,
+        onPhoneme: (phonemes: AdditionalPhonemeInfo[]) => {
+          setPhonemes(phonemes);
+        },
+        onReady: async () => {
+          console.log('Ready!');
+        },
+        onDisconnect: () => {
+          console.log('Disconnect!');
+        },
+        onMessage: (inworldPacket: InworldPacket) => {
+          if (
+            inworldPacket.isEmotion() &&
+            inworldPacket.packetId?.interactionId
+          ) {
+            setEmotionEvent(inworldPacket.emotions);
+            setEmotions((currentState) => ({
+              ...currentState,
+              [inworldPacket.packetId.interactionId]: inworldPacket.emotions,
+            }));
+          }
+        },
+      });
+      const characters = await service.connection.getCharacters();
+      const character = characters.find(
+        (c: Character) => c.resourceName === form.character?.name,
+      );
+
+      if (character) {
+        service.connection.setCurrentCharacter(character);
+
+        const assets = character?.assets;
+        const rpmImageUri = assets?.rpmImageUriPortrait;
+        const avatarImg = assets?.avatarImg;
+        setAvatar(avatarImg || rpmImageUri || '');
+      }
+
+      setConnection(service.connection);
+
+      setCharacter(character);
+      setCharacters(characters);
+    },
+    [
+      chatHistory,
+      connection,
+      formMethods,
       onHistoryChange,
-      capabilities: {
-        ...(form.chatView !== CHAT_VIEW.TEXT && { phonemes: true }),
-        ...(form.chatView === CHAT_VIEW.TEXT && { interruptions: true }),
-        emotions: true,
-        narratedActions: true,
-      },
-      ...(previousDialog.length && { continuation: { previousDialog } }),
-      ...(duration &&
-        ticks && {
-          audioPlayback: {
-            stop: { duration, ticks },
-          },
-        }),
-      sceneName: form.scene?.name!,
-      playerName: form.player?.name!,
-      onPhoneme: (phonemes: AdditionalPhonemeInfo[]) => {
-        setPhonemes(phonemes);
-      },
-      onReady: async () => {
-        console.log('Ready!');
-      },
-      onDisconnect: () => {
-        console.log('Disconnect!');
-      },
-      onMessage: (inworldPacket: InworldPacket) => {
-        if (
-          inworldPacket.isEmotion() &&
-          inworldPacket.packetId?.interactionId
-        ) {
-          setEmotionEvent(inworldPacket.emotions);
-          setEmotions((currentState) => ({
-            ...currentState,
-            [inworldPacket.packetId.interactionId]: inworldPacket.emotions,
-          }));
-        }
-      },
-    });
-    const characters = await service.connection.getCharacters();
-    const character = characters.find(
-      (c: Character) => c.resourceName === form.character?.name,
-    );
-
-    if (character) {
-      service.connection.setCurrentCharacter(character);
-
-      const assets = character?.assets;
-      const rpmImageUri = assets?.rpmImageUriPortrait;
-      const avatarImg = assets?.avatarImg;
-      setAvatar(avatarImg || rpmImageUri || '');
-    }
-
-    setConnection(service.connection);
-
-    setCharacter(character);
-    setCharacters(characters);
-  }, [formMethods, onHistoryChange]);
+      prevChatHistory,
+      prevTranscripts,
+    ],
+  );
 
   const stopChatting = useCallback(async () => {
     // Disable flags
@@ -159,6 +179,7 @@ function App() {
 
     // Clear collections
     setChatHistory([]);
+    setPrevChatHistory([]);
 
     // Close connection and clear connection data
     connection?.close();
@@ -258,9 +279,11 @@ function App() {
             </SimulatorHeader>
             <Chat
               chatView={chatView}
-              chatHistory={chatHistory}
+              chatHistory={[...prevChatHistory, ...chatHistory]}
+              prevTranscripts={prevTranscripts}
               connection={connection!}
               emotions={emotions}
+              onRestore={openConnection}
             />
           </ChatWrapper>
         </MainWrapper>
@@ -272,7 +295,7 @@ function App() {
     <ConfigView
       chatView={formMethods.watch('chatView')}
       canStart={formMethods.formState.isValid}
-      onStart={openConnection}
+      onStart={() => openConnection()}
       onResetForm={resetForm}
     />
   );
