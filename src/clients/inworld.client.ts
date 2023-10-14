@@ -213,7 +213,7 @@ export class InworldClient<
       ...restConfig,
       connection: {
         ...connection,
-        gateway: this.ensureGateway(GRPC_HOSTNAME, gateway),
+        gateway: this.ensureGateway(gateway),
       },
       capabilities: this.buildCapabilities(capabilities),
     };
@@ -243,9 +243,9 @@ export class InworldClient<
     };
   }
 
-  private ensureGateway(hostname: string, gateway?: Gateway): Gateway {
+  private ensureGateway(gateway?: Gateway): Gateway {
     return {
-      hostname: gateway?.hostname ?? hostname,
+      hostname: gateway?.hostname ?? GRPC_HOSTNAME,
       ssl: gateway?.ssl ?? true,
     };
   }
@@ -261,7 +261,7 @@ export class InworldClient<
 
     const { audioPlayback } = this.config;
 
-    if (audioPlayback) {
+    if (audioPlayback?.stop) {
       if (!isNaturalNumber(audioPlayback.stop.duration)) {
         throw Error(
           'Stop duration for audio playback should be a natural number',

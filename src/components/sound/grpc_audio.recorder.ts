@@ -53,7 +53,7 @@ export class GrpcAudioRecorder {
     this.processor.connect(context.destination);
     this.processor.onaudioprocess = this.onAudioProcess;
     this.interval = setInterval(
-      this.intervalFunction,
+      () => this.intervalFunction(this.listener),
       GrpcAudioRecorder.INTERVAL_TIMEOUT_MS,
     );
   }
@@ -77,7 +77,7 @@ export class GrpcAudioRecorder {
     this.recordingLength += GrpcAudioRecorder.BUFFER_SIZE_BYTES;
   };
 
-  private intervalFunction = () => {
+  private intervalFunction = (listener: (base64AudioChunk: string) => void) => {
     const PCM32fSamples = this.mergeBuffers(
       this.leftChannel,
       this.recordingLength,
@@ -92,10 +92,7 @@ export class GrpcAudioRecorder {
       (k) => 32767 * Math.min(1, k),
     );
 
-    if (!this.listener) {
-      return;
-    }
-    this.listener(this.arrayBufferToBase64(PCM16iSamples.buffer));
+    listener(this.arrayBufferToBase64(PCM16iSamples.buffer));
   };
 
   private arrayBufferToBase64(buffer: ArrayBuffer) {

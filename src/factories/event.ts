@@ -14,9 +14,9 @@ import { Character } from '../entities/character.entity';
 import { TriggerParameter } from '../entities/inworld_packet.entity';
 
 export class EventFactory {
-  private character: Character = null;
+  private character: Character | null = null;
 
-  getCurrentCharacter(): Character {
+  getCurrentCharacter() {
     return this.character;
   }
 
@@ -86,7 +86,7 @@ export class EventFactory {
       ...this.baseProtoPacket({ correlationId: true }),
       custom: {
         name,
-        ...(parameters.length && { parameters }),
+        parameters: parameters.length ? parameters : undefined,
       },
     };
   }
@@ -102,17 +102,21 @@ export class EventFactory {
     };
   }
 
-  baseProtoPacket(props?: {
+  baseProtoPacket({
+    utteranceId = true,
+    interactionId = true,
+    correlationId,
+  }: {
     utteranceId?: boolean;
     interactionId?: boolean;
     correlationId?: boolean;
-  }) {
+  } = {}) {
     return {
       packetId: {
         packetId: v4(),
-        ...((props?.utteranceId ?? true) && { utteranceId: v4() }),
-        ...((props?.interactionId ?? true) && { interactionId: v4() }),
-        ...(props?.correlationId && { correlationId: v4() }),
+        ...(utteranceId && { utteranceId: v4() }),
+        ...(interactionId && { interactionId: v4() }),
+        ...(correlationId && { correlationId: v4() }),
       },
       timestamp: protoTimestamp(),
       routing: this.routing(),

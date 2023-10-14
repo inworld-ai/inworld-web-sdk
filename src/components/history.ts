@@ -81,7 +81,7 @@ export class InworldHistory<
   private history: HistoryItem[] = [];
   private queue: HistoryItem[] = [];
   private emotions: EmotionsMap = {};
-  private extension: Extension<InworldPacketT, HistoryItemT>;
+  private extension: Extension<InworldPacketT, HistoryItemT> | undefined;
 
   constructor(props?: InworldHistoryProps<InworldPacketT, HistoryItemT>) {
     if (props?.extension) {
@@ -98,12 +98,12 @@ export class InworldHistory<
     let historyItem: HistoryItem | undefined;
     let queueItem: HistoryItem | undefined;
 
-    const utteranceId = packet.packetId?.utteranceId;
-    const interactionId = packet.packetId?.interactionId;
+    const utteranceId = packet.packetId.utteranceId;
+    const interactionId = packet.packetId.interactionId;
 
-    const id = packet.routing?.source?.isCharacter
-      ? packet.routing?.source?.name
-      : packet.routing?.target?.name;
+    const id = packet.routing.source.isCharacter
+      ? packet.routing.source.name
+      : packet.routing.target.name;
     const character = characters.find((x) => x.id === id);
 
     if (packet.isEmotion()) {
@@ -148,7 +148,7 @@ export class InworldHistory<
 
     if (historyItem) {
       const currentHistoryIndex = this.history.findIndex((item) => {
-        return item.id === historyItem?.id;
+        return item.id === historyItem.id;
       });
 
       const item = this.convertToExtendedType(packet, historyItem);
@@ -173,7 +173,7 @@ export class InworldHistory<
   update(packet: InworldPacketT) {
     if (packet.isText()) {
       const currentHistoryIndex = this.history.findIndex(
-        (item) => item.id === packet.packetId?.utteranceId,
+        (item) => item.id === packet.packetId.utteranceId,
       );
 
       if (currentHistoryIndex >= 0) {
@@ -284,9 +284,7 @@ export class InworldHistory<
         case CHAT_HISTORY_TYPE.ACTOR:
         case CHAT_HISTORY_TYPE.NARRATED_ACTION:
           const isCharacter = item.source.isCharacter;
-          const givenName = isCharacter
-            ? item.character?.displayName
-            : userName;
+          const givenName = isCharacter ? item.character.displayName : userName;
           const emotionCode =
             this.emotions[item.interactionId]?.behavior?.code || '';
           const emotion = emotionCode ? `(${emotionCode}) ` : '';
@@ -313,10 +311,10 @@ export class InworldHistory<
 
   private combineTextItem(packet: InworldPacketT): HistoryItemActor {
     const date = new Date(packet.date);
-    const source = packet.routing?.source;
-    const utteranceId = packet.packetId?.utteranceId;
-    const interactionId = packet.packetId?.interactionId;
-    const correlationId = packet.packetId?.correlationId;
+    const source = packet.routing.source;
+    const utteranceId = packet.packetId.utteranceId;
+    const interactionId = packet.packetId.interactionId;
+    const correlationId = packet.packetId.correlationId;
 
     return {
       id: utteranceId,
@@ -334,13 +332,13 @@ export class InworldHistory<
     packet: InworldPacketT,
   ): HistoryItemNarratedAction {
     const date = new Date(packet.date);
-    const interactionId = packet.packetId?.interactionId;
+    const interactionId = packet.packetId.interactionId;
 
     return {
       id: v4(),
       date,
       interactionId,
-      source: packet.routing?.source,
+      source: packet.routing.source,
       type: CHAT_HISTORY_TYPE.NARRATED_ACTION,
       text: packet.narratedAction.text,
     };
@@ -351,10 +349,10 @@ export class InworldHistory<
     outgoing?: boolean,
   ): HistoryItemTriggerEvent {
     const date = new Date(packet.date);
-    const source = packet.routing?.source;
-    const utteranceId = packet.packetId?.utteranceId;
-    const interactionId = packet.packetId?.interactionId;
-    const correlationId = packet.packetId?.correlationId;
+    const source = packet.routing.source;
+    const utteranceId = packet.packetId.utteranceId;
+    const interactionId = packet.packetId.interactionId;
+    const correlationId = packet.packetId.correlationId;
 
     return {
       id: utteranceId,
@@ -373,13 +371,13 @@ export class InworldHistory<
     packet: InworldPacketT,
   ): HistoryInteractionEnd {
     const date = new Date(packet.date);
-    const interactionId = packet.packetId?.interactionId;
+    const interactionId = packet.packetId.interactionId;
 
     return {
       id: v4(),
       date,
       interactionId,
-      source: packet.routing?.source,
+      source: packet.routing.source,
       type: CHAT_HISTORY_TYPE.INTERACTION_END,
     };
   }

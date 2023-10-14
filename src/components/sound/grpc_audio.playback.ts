@@ -71,7 +71,7 @@ export class GrpcAudioPlayback<
 
   addToQueue(item: AudioQueueItem<InworldPacketT>): void {
     this.audioQueue.push(item);
-    if (!this.isPlaying) {
+    if (!this.getIsActive()) {
       this.playQueue();
     }
   }
@@ -113,6 +113,7 @@ export class GrpcAudioPlayback<
     utteranceId?: string;
   }): boolean {
     const { interactionId, utteranceId } = props;
+
     return !!this.audioQueue.find((item: AudioQueueItem<InworldPacketT>) => {
       let result = true;
       const packetId = item.packet.packetId;
@@ -167,6 +168,10 @@ export class GrpcAudioPlayback<
     return this.adjustVolume(mute ? 0 : 1);
   }
 
+  getVolume() {
+    return this.gainNode.gain.value;
+  }
+
   async stop() {
     if (this.audioBufferSourceNode) {
       this.audioBufferSourceNode.onended = null;
@@ -202,7 +207,7 @@ export class GrpcAudioPlayback<
       this.audioBufferSourceNode.disconnect();
     }
 
-    if (!this.muted) {
+    if (!this.getMute()) {
       this.gainNode.gain.value = 1;
     }
 
@@ -262,19 +267,21 @@ export class GrpcAudioPlayback<
 
     this.clearSourceNode();
 
-    this.getSourceNode().buffer = audioBuffer;
+    if (this.currentItem) {
+      this.getSourceNode().buffer = audioBuffer;
 
-    if (packet.isAudio()) {
-      if (packet.audio.additionalPhonemeInfo) {
-        this.onPhoneme?.(packet.audio.additionalPhonemeInfo);
+      if (packet.isAudio()) {
+        if (packet.audio.additionalPhonemeInfo) {
+          this.onPhoneme?.(packet.audio.additionalPhonemeInfo);
+        }
+
+        this.currentItem.packet.audio.durationMs = audioBuffer.duration * 1000;
       }
 
-      this.currentItem.packet.audio.durationMs = audioBuffer.duration * 1000;
+      this.getSourceNode().start();
+      this.onBeforePlaying?.(this.currentItem.packet);
+      this.currentItem.onBeforePlaying?.(this.currentItem.packet);
     }
-
-    this.getSourceNode().start();
-    this.onBeforePlaying?.(this.currentItem.packet);
-    this.currentItem.onBeforePlaying?.(this.currentItem.packet);
   };
 
   private adjustVolume(newVolume: number): Promise<void> {

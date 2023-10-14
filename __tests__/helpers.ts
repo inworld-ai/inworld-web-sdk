@@ -145,3 +145,18 @@ export const phrases: DialogPhrase[] = [
 export const previousDialog = new PreviousDialog(phrases);
 export const previousState = v4();
 export const previousStateUint8Array = previousState as unknown as Uint8Array;
+
+export const setNavigatorProperty = (key: string, value: any) => {
+  Object.defineProperty(navigator, key, {
+    value,
+    configurable: true,
+  });
+};
+
+export const setTimeoutMock = (callback: any) => {
+  if (typeof callback === 'function') {
+    callback();
+  }
+
+  return { hasRef: () => false } as NodeJS.Timeout;
+};
