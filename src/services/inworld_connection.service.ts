@@ -70,8 +70,11 @@ export class InworldConnectionService<
     return this.connection.openManually();
   }
 
-  close() {
+  async close() {
     this.connection.close();
+    this.recorder.stop();
+    await this.player.stop();
+    this.player.clear();
   }
 
   isActive() {
