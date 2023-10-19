@@ -79,7 +79,7 @@ test('should return active state', () => {
   expect(service.isActive()).toEqual(true);
 });
 
-test('close', () => {
+test('close', async () => {
   const service = new InworldConnectionService({
     connection,
     grpcAudioPlayer,
@@ -89,9 +89,19 @@ test('close', () => {
   const close = jest
     .spyOn(connection, 'close')
     .mockImplementationOnce(jest.fn());
-  service.close();
+  const playerStop = jest
+    .spyOn(GrpcAudioPlayback.prototype, 'stop')
+    .mockImplementationOnce(jest.fn());
+
+  const recorderStop = jest
+    .spyOn(GrpcAudioRecorder.prototype, 'stopConvertion')
+    .mockImplementationOnce(jest.fn());
+
+  await service.close();
 
   expect(close).toHaveBeenCalledTimes(1);
+  expect(playerStop).toHaveBeenCalledTimes(1);
+  expect(recorderStop).toHaveBeenCalledTimes(1);
 });
 
 test('should get session state', async () => {

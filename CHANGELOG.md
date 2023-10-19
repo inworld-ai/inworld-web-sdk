@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+
+- Stop playing and recording sound on connection manual closing
+
 ## [1.9.0] - 2023-10-04
 
 ### Added
