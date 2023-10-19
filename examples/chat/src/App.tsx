@@ -172,11 +172,6 @@ function App() {
     // Disable flags
     setChatting(false);
 
-    // Stop audio playing and capturing
-    connection?.player?.stop();
-    connection?.player?.clear();
-    connection?.recorder?.stop();
-
     // Clear collections
     setChatHistory([]);
     setPrevChatHistory([]);
