@@ -2,9 +2,9 @@
 import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
 import { useFrame, useLoader } from '@react-three/fiber';
 import { Suspense, useEffect, useRef, useState } from 'react';
-import { MathUtils } from 'three';
-import { SkinnedMesh } from 'three';
+import { MathUtils, Mesh, SkinnedMesh } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+
 import { Animation } from './Animation';
 
 interface ModelProps {
@@ -30,17 +30,22 @@ export function Model(props: ModelProps) {
 
   useEffect(() => {
     if (modelData) {
-      console.log('modelData', modelData);
-      const mesh = modelData.children[0].children[1] as SkinnedMesh;
-      setSknnedMesh(mesh);
-      // iterate through blendshape names in order to find the beginning of the
-      // viseme sequence (viseme_sil + 14 next)
-      for (let i = 0; i < mesh.userData.targetNames.length; i++) {
-        if (mesh.userData.targetNames[i] === EYES_CLOSED) {
-          setEyesClosedIndex(i);
-          break;
+      modelData.traverse((child) => {
+        if (child instanceof Mesh) {
+          if (child.name === 'Wolf3D_Avatar') {
+            // const mesh = modelData.children[0].children[0] as SkinnedMesh;
+            setSknnedMesh(child as SkinnedMesh);
+            // iterate through blendshape names in order to find the beginning of the
+            // viseme sequence (viseme_sil + 14 next)
+            for (let i = 0; i < child.userData.targetNames.length; i++) {
+              if (child.userData.targetNames[i] === EYES_CLOSED) {
+                setEyesClosedIndex(i);
+                break;
+              }
+            }
+          }
         }
-      }
+      });
     }
   }, [modelData]);
   useEffect(() => {
