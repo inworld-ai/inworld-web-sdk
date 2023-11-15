@@ -17,6 +17,6 @@ export type SessionState = {
 
 export class StateSerialization {
   static GetSessionState(req: GetSessionStateRequest, initReq?: fm.InitReq): Promise<SessionState> {
-    return fm.fetchReq<GetSessionStateRequest, SessionState>(`/v1/${req["name"]}/state?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetSessionStateRequest, SessionState>(`/v1/${req["nameworkspacessessions"]}/state?${fm.renderURLSearchParams(req, ["nameworkspacessessions"])}`, {...initReq, method: "GET"})
   }
 }
