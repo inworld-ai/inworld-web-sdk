@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Added
+
+- Improve client request format
+
 ### Fixed
 
 - Improve test coverage
