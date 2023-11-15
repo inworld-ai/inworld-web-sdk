@@ -2,6 +2,7 @@ import '../mocks/window.mock';
 
 import { v4 } from 'uuid';
 
+import { Extension } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
 import {
   CHAT_HISTORY_TYPE,
@@ -23,6 +24,7 @@ import {
   InworldPacketType,
   Routing,
 } from '../../src/entities/inworld_packet.entity';
+import { ExtendedHistoryItem } from '../data_structures';
 import { createCharacter, getPacketId, user } from '../helpers';
 
 const characters = [createCharacter(), createCharacter()];
@@ -102,8 +104,11 @@ const incomingTextPacket = new InworldPacket({
   type: InworldPacketType.TEXT,
 });
 
-const createHistoryWithPacket = (packet: InworldPacket) => {
-  const history = new InworldHistory();
+const createHistoryWithPacket = (
+  packet: InworldPacket,
+  extension?: Extension<InworldPacket, ExtendedHistoryItem>,
+) => {
+  const history = new InworldHistory(extension ? { extension } : undefined);
 
   history.addOrUpdate({ characters, grpcAudioPlayer, packet });
 
@@ -171,6 +176,15 @@ describe('text', () => {
       expect(secondItem.text).not.toEqual(firstItem.text);
       expect(secondItem.text).toEqual(text);
       expect(history.get().length).toEqual(1);
+    });
+
+    test('should convert packet to extended one', () => {
+      const historyItem = jest.fn();
+      const history = createHistoryWithPacket(textPacket, { historyItem });
+      const item = history.get()[0] as HistoryItemActor;
+
+      expect(history.get().length).toEqual(1);
+      expect(item.character.id).toEqual(characters[0].id);
     });
   });
 

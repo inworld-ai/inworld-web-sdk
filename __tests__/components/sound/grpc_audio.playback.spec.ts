@@ -33,6 +33,10 @@ test('should set mute player as true', () => {
   expect(playback.getMute()).toEqual(true);
 });
 
+test('should get mute player as false by default', () => {
+  expect(playback.getMute()).toEqual(false);
+});
+
 describe('isActive', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -67,6 +71,7 @@ describe('hasPacketInQueue', () => {
   });
 
   test('should be false if packet is not in queue for interactionId only provided', () => {
+    jest.spyOn(playback, 'getIsActive').mockReturnValue(true);
     playback.addToQueue({
       packet: audioEvent,
     });
@@ -74,6 +79,7 @@ describe('hasPacketInQueue', () => {
   });
 
   test('should be false if packet is not in queue for utteranceId only provided', () => {
+    jest.spyOn(playback, 'getIsActive').mockReturnValue(true);
     playback.addToQueue({
       packet: audioEvent,
     });
@@ -81,6 +87,7 @@ describe('hasPacketInQueue', () => {
   });
 
   test('should be true if packet is in queue', () => {
+    jest.spyOn(playback, 'getIsActive').mockReturnValue(true);
     playback.addToQueue({
       packet: audioEvent,
     });
@@ -93,6 +100,12 @@ describe('hasPacketInQueue', () => {
         interactionId: audioEvent.packetId.interactionId,
       }),
     ).toEqual(true);
+  });
+});
+
+describe('getCurrentPacket', () => {
+  test('should be null for empty queue', () => {
+    expect(playback.getCurrentPacket()).toBeUndefined();
   });
 });
 
@@ -153,5 +166,38 @@ describe('excludeCurrentInteractionPackets', () => {
         audioEvent.packetId.interactionId,
       ).length,
     ).toEqual(0);
+  });
+});
+
+describe('stop', () => {
+  test('should stop playback', async () => {
+    expect(playback.getVolume()).toEqual(1);
+
+    playback.addToQueue({
+      packet: audioEvent,
+    });
+
+    await playback.stop();
+
+    expect(playback.getVolume()).toEqual(1);
+  });
+});
+
+describe('stopForInteraction', () => {
+  test('should stop playback on interruption', async () => {
+    jest
+      .spyOn(GrpcAudioPlayback.prototype, 'isCurrentPacket')
+      .mockReturnValue(false);
+    const stop = jest
+      .spyOn(GrpcAudioPlayback.prototype, 'stop')
+      .mockImplementationOnce(jest.fn());
+
+    playback.addToQueue({
+      packet: audioEvent,
+    });
+
+    await playback.stopForInteraction(audioEvent.packetId.interactionId);
+
+    expect(stop).toHaveBeenCalledTimes(1);
   });
 });

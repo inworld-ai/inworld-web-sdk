@@ -27,6 +27,8 @@ import {
   extension,
   generateSessionToken,
   getPacketId,
+  setNavigatorProperty,
+  setTimeoutMock,
   writeMock,
 } from '../helpers';
 
@@ -502,5 +504,70 @@ describe('send', () => {
     expect(open).toHaveBeenCalledTimes(0);
     expect(write).toHaveBeenCalledTimes(1);
     expect(packet).toHaveProperty('mutation', mutation);
+  });
+});
+
+describe('listener', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    setNavigatorProperty('mediaDevices', {
+      getUserMedia: jest.fn(() => new MediaStream()),
+    });
+
+    jest
+      .spyOn(HTMLMediaElement.prototype, 'play')
+      .mockImplementation(jest.fn());
+    jest.spyOn(global, 'setInterval').mockImplementationOnce(setTimeoutMock);
+  });
+
+  test('should send audio session start af first for inactive connection', async () => {
+    jest
+      .spyOn(ConnectionService.prototype, 'isActive')
+      .mockImplementationOnce(() => false);
+
+    const sendAudioSessionStart = jest
+      .spyOn(InworldConnectionService.prototype, 'sendAudioSessionStart')
+      .mockImplementationOnce(jest.fn());
+    const sendAudio = jest
+      .spyOn(InworldConnectionService.prototype, 'sendAudio')
+      .mockImplementationOnce(jest.fn());
+
+    const service = new InworldConnectionService({
+      connection,
+      grpcAudioPlayer,
+      grpcAudioRecorder,
+      webRtcLoopbackBiDiSession,
+    });
+
+    await service.recorder.start();
+
+    expect(sendAudioSessionStart).toHaveBeenCalledTimes(1);
+    expect(sendAudio).toHaveBeenCalledTimes(1);
+  });
+
+  test('should send audio session start af first for inactive connection', async () => {
+    jest
+      .spyOn(ConnectionService.prototype, 'isActive')
+      .mockImplementationOnce(() => true);
+
+    const sendAudioSessionStart = jest
+      .spyOn(InworldConnectionService.prototype, 'sendAudioSessionStart')
+      .mockImplementationOnce(jest.fn());
+    const sendAudio = jest
+      .spyOn(InworldConnectionService.prototype, 'sendAudio')
+      .mockImplementationOnce(jest.fn());
+
+    const service = new InworldConnectionService({
+      connection,
+      grpcAudioPlayer,
+      grpcAudioRecorder,
+      webRtcLoopbackBiDiSession,
+    });
+
+    await service.recorder.start();
+
+    expect(sendAudioSessionStart).toHaveBeenCalledTimes(0);
+    expect(sendAudio).toHaveBeenCalledTimes(1);
   });
 });

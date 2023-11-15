@@ -84,7 +84,7 @@ export class ConnectionService<
   private onMessage: ((packet: ProtoPacket) => Awaitable<void>) | undefined;
   private onReady: (() => Awaitable<void>) | undefined;
 
-  private cancelReponses: CancelResponses = {};
+  private cancelResponses: CancelResponses = {};
   private history: InworldHistory;
   private extension: Extension<InworldPacketT, HistoryItemT>;
 
@@ -231,10 +231,6 @@ export class ConnectionService<
   }
 
   private async loadCharactersList() {
-    if (!this.scene) {
-      await this.loadScene();
-    }
-
     this.characters = (this.scene?.agents || [])?.map(
       (agent: LoadSceneResponseAgent) =>
         new Character({
@@ -437,20 +433,12 @@ export class ConnectionService<
       if (
         inworldPacket.isText() &&
         !inworldPacket.routing.source.isPlayer &&
-        this.cancelReponses[interactionId]
+        this.cancelResponses[interactionId]
       ) {
-        // Try to find and update packet that is already displayed in history.
-        const updated = this.updatePacketInHistory(inworldPacket);
-
-        if (updated) {
-          // Pass packet to external callback.
-          onMessage?.(inworldPacket);
-        } else {
-          this.sendCancelResponses({
-            interactionId,
-            utteranceId: [packet.packetId.utteranceId],
-          });
-        }
+        this.sendCancelResponses({
+          interactionId,
+          utteranceId: [packet.packetId.utteranceId],
+        });
 
         return;
       }
@@ -462,7 +450,7 @@ export class ConnectionService<
 
       // Play audio or silence.
       if (inworldPacket.isAudio() || inworldPacket.isSilence()) {
-        if (!this.cancelReponses[interactionId]) {
+        if (!this.cancelResponses[interactionId]) {
           grpcAudioPlayer.addToQueue({
             packet: inworldPacket,
             onBeforePlaying: (packet: InworldPacketT) => {
@@ -484,7 +472,7 @@ export class ConnectionService<
 
       // Delete info about cancel responses on interaction end.
       if (inworldPacket.isInteractionEnd()) {
-        delete this.cancelReponses[interactionId];
+        delete this.cancelResponses[interactionId];
       }
 
       // Add packet to history.
@@ -538,18 +526,18 @@ export class ConnectionService<
     }
   }
 
-  private sendCancelResponses(cancelReponses: CancelResponsesProps) {
-    if (cancelReponses.interactionId) {
-      this.send(() => this.getEventFactory().cancelResponse(cancelReponses));
+  private sendCancelResponses(cancelResponses: CancelResponsesProps) {
+    if (cancelResponses.interactionId) {
+      this.send(() => this.getEventFactory().cancelResponse(cancelResponses));
 
-      this.cancelReponses = {
-        ...this.cancelReponses,
-        [cancelReponses.interactionId]: true,
+      this.cancelResponses = {
+        ...this.cancelResponses,
+        [cancelResponses.interactionId]: true,
       };
 
       const interruptionData = {
-        utteranceId: cancelReponses.utteranceId ?? [],
-        interactionId: cancelReponses.interactionId,
+        utteranceId: cancelResponses.utteranceId ?? [],
+        interactionId: cancelResponses.interactionId,
       };
 
       this.connectionProps.onInterruption?.(interruptionData);
@@ -568,16 +556,6 @@ export class ConnectionService<
     if (changed) {
       this.connectionProps.onHistoryChange?.(this.getHistory());
     }
-  }
-
-  private updatePacketInHistory(packet: InworldPacketT) {
-    const changed = this.history.update(packet);
-
-    if (changed) {
-      this.connectionProps.onHistoryChange?.(this.getHistory());
-    }
-
-    return changed;
   }
 
   private displayPlacketInHistory(

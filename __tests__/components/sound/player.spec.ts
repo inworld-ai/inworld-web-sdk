@@ -18,6 +18,7 @@ describe('work with player', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetModules();
 
     player = Player.getInstance();
   });
@@ -32,6 +33,31 @@ describe('work with player', () => {
     player.setStream(stream);
 
     expect(play).toHaveBeenCalledTimes(1);
+  });
+
+  test('should set track on provided stream', () => {
+    const stream = new MediaStream();
+    const track = new MediaStreamTrack();
+
+    jest
+      .spyOn(HTMLAudioElement.prototype, 'play')
+      .mockImplementationOnce(jest.fn());
+
+    const addTrack = jest.spyOn(stream, 'addTrack');
+
+    player.setStream(stream);
+    player.setTrack(track);
+
+    expect(addTrack.mock.calls.length).toEqual(1);
+  });
+
+  test('should set track on default stream', () => {
+    const { Player } = require('../../../src/components/sound/player');
+
+    const player = Player.getInstance();
+    const track = new MediaStreamTrack();
+
+    player.setTrack(track);
   });
 
   test('shoud play workaround sound', () => {
