@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+
+- Improve test coverage
+
 ## [1.9.1] - 2023-10-19
 
 ### Fixed
