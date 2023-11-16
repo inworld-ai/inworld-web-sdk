@@ -12,13 +12,15 @@
     "moduleResolution": "node",
     "noImplicitAny": true,
     "outDir": "build",
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "target": "es5",
     "types": ["jest", "node"],
   },
   "include": [
     "src/**/*",
-    "proto/**/*"
+    "proto/**/*",
+    "./package.json"
   ],
   "exclude": [
     "node_modules"

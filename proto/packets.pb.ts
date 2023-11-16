@@ -4,9 +4,11 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
+import * as AiInworldEngineConfigurationConfiguration from "./configuration.pb"
 import * as GoogleProtobufDuration from "./google/protobuf/duration.pb"
 import * as GoogleProtobufStruct from "./google/protobuf/struct.pb"
 import * as GoogleProtobufTimestamp from "./google/protobuf/timestamp.pb"
+import * as AiInworldLanguage_codesLanguage_codes from "./language_codes.pb"
 
 type Absent<T, K extends keyof T> = { [k in Exclude<keyof T, K>]?: undefined };
 type OneOf<T> =
@@ -28,6 +30,7 @@ export enum ActorType {
   UNKNOWN = "UNKNOWN",
   PLAYER = "PLAYER",
   AGENT = "AGENT",
+  WORLD = "WORLD",
 }
 
 export enum TextEventSourceType {
@@ -94,6 +97,12 @@ export enum DataChunkAudioFormat {
   AUDIO_PCM_22050 = "AUDIO_PCM_22050",
 }
 
+export enum ContinuationContinuationType {
+  CONTINUATION_TYPE_UNKNOWN = "CONTINUATION_TYPE_UNKNOWN",
+  CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE = "CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE",
+  CONTINUATION_TYPE_DIALOG_HISTORY = "CONTINUATION_TYPE_DIALOG_HISTORY",
+}
+
 export type Actor = {
   type?: ActorType
   name?: string
@@ -119,7 +128,7 @@ type BaseInworldPacket = {
 }
 
 export type InworldPacket = BaseInworldPacket
-  & OneOf<{ text: TextEvent; control: ControlEvent; audioChunk: AudioChunk; custom: CustomEvent; cancelResponses: CancelResponsesEvent; emotion: EmotionEvent; dataChunk: DataChunk; action: ActionEvent; mutation: MutationEvent; loadSceneOutput: LoadSceneOutputEvent; debugInfo: DebugInfoEvent }>
+  & OneOf<{ text: TextEvent; control: ControlEvent; audioChunk: AudioChunk; custom: CustomEvent; cancelResponses: CancelResponsesEvent; emotion: EmotionEvent; dataChunk: DataChunk; action: ActionEvent; mutation: MutationEvent; loadSceneOutput: LoadSceneOutputEvent; debugInfo: DebugInfoEvent; sessionControl: SessionControlEvent; sessionControlResponse: SessionControlResponseEvent }>
 
 export type TextEventModelInfo = {
   service?: string
@@ -213,7 +222,14 @@ type BaseMutationEvent = {
 }
 
 export type MutationEvent = BaseMutationEvent
-  & OneOf<{ cancelResponses: CancelResponses; regenerateResponse: RegenerateResponse; applyResponse: ApplyResponse; loadScene: LoadScene; modifyExactResponse: ModifyExactResponse }>
+  & OneOf<{ cancelResponses: CancelResponses; regenerateResponse: RegenerateResponse; applyResponse: ApplyResponse; loadScene: LoadScene; modifyExactResponse: ModifyExactResponse; loadCharacters: LoadCharacters }>
+
+
+type BaseSessionControlResponseEvent = {
+}
+
+export type SessionControlResponseEvent = BaseSessionControlResponseEvent
+  & OneOf<{ loadedScene: LoadedScene; loadedCharacters: LoadedCharacters }>
 
 export type CancelResponses = {
   interactionId?: string
@@ -232,6 +248,27 @@ export type LoadScene = {
   name?: string
 }
 
+export type LoadedScene = {
+  agents?: Agent[]
+}
+
+export type LoadCharactersCharacterName = {
+  name?: string
+  languageCode?: AiInworldLanguage_codesLanguage_codes.LanguageCode
+}
+
+export type LoadCharacters = {
+  name?: LoadCharactersCharacterName[]
+}
+
+export type LoadedCharacters = {
+  agents?: Agent[]
+}
+
+export type UnloadCharacters = {
+  agents?: Agent[]
+}
+
 export type ModifyExactResponse = {
   interactionId?: string
   exactText?: string
@@ -247,9 +284,52 @@ export type LoadSceneOutputEvent = {
   agents?: LoadSceneOutputEventAgent[]
 }
 
+export type Agent = {
+  agentId?: string
+  brainName?: string
+  givenName?: string
+}
+
 
 type BaseDebugInfoEvent = {
 }
 
 export type DebugInfoEvent = BaseDebugInfoEvent
   & OneOf<{ relation: RelationInfo }>
+
+
+type BaseSessionControlEvent = {
+}
+
+export type SessionControlEvent = BaseSessionControlEvent
+  & OneOf<{ sessionConfiguration: AiInworldEngineConfigurationConfiguration.SessionConfiguration; userConfiguration: AiInworldEngineConfigurationConfiguration.UserConfiguration; clientConfiguration: AiInworldEngineConfigurationConfiguration.ClientConfiguration; capabilitiesConfiguration: AiInworldEngineConfigurationConfiguration.CapabilitiesConfiguration; continuation: Continuation }>
+
+export type ContinuationContinuationInfo = {
+  passedTime?: GoogleProtobufTimestamp.Timestamp
+}
+
+export type Continuation = {
+  continuationInfo?: ContinuationContinuationInfo
+  continuationType?: ContinuationContinuationType
+  dialogHistory?: DialogHistory
+  externallySavedState?: Uint8Array
+}
+
+export type DialogHistoryHistoryItem = {
+  actor?: Actor
+  text?: string
+}
+
+export type DialogHistory = {
+  history?: DialogHistoryHistoryItem[]
+}
+
+export type RelationsRelation = {
+  type?: string
+  label?: string
+}
+
+export type Relations = {
+  actor?: Actor
+  relations?: RelationsRelation[]
+}

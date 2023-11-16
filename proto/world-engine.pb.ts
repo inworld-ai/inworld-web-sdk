@@ -4,20 +4,13 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
+import * as AiInworldVoicesBase_voice from "./base_voice.pb"
 import * as fm from "./fetch.pb"
 import * as GoogleProtobufEmpty from "./google/protobuf/empty.pb"
 import * as GoogleProtobufTimestamp from "./google/protobuf/timestamp.pb"
+import * as AiInworldLanguage_codesLanguage_codes from "./language_codes.pb"
 import * as AiInworldPacketsPackets from "./packets.pb"
 import * as AiInworldVoicesVoices from "./voices.pb"
-
-type Absent<T, K extends keyof T> = { [k in Exclude<keyof T, K>]?: undefined };
-type OneOf<T> =
-  | { [k in keyof T]?: undefined }
-  | (
-    keyof T extends infer K ?
-      (K extends string & keyof T ? { [k in K]: T[K] } & Absent<T, K>
-        : never)
-    : never);
 
 export enum VoicePreset {
   VOICE_PRESET_UNSPECIFIED = "VOICE_PRESET_UNSPECIFIED",
@@ -63,6 +56,12 @@ export enum PreviousDialogDialogParticipant {
   CHARACTER = "CHARACTER",
 }
 
+export enum PreviousStateStateHolderStateFormat {
+  STATE_FORMAT_UNKNOWN = "STATE_FORMAT_UNKNOWN",
+  STATE_FORMAT_SESSION_BRAIN_STATE = "STATE_FORMAT_SESSION_BRAIN_STATE",
+  STATE_FORMAT_EXTERNAL_BRAIN_STATE = "STATE_FORMAT_EXTERNAL_BRAIN_STATE",
+}
+
 export type CapabilitiesRequest = {
   audio?: boolean
   text?: boolean
@@ -92,35 +91,7 @@ export type UserRequest = {
 export type ClientRequest = {
   id?: string
   version?: string
-}
-
-export type CreateWorldRequestCreateAgentRequest = {
-  brainName?: string
-  languageCode?: string
-  voicePreset?: VoicePreset
-}
-
-export type CreateWorldRequestClientRequest = {
-  id?: string
-  version?: string
-}
-
-export type CreateWorldRequest = {
-  protoWorldName?: string
-  createAgentRequests?: CreateWorldRequestCreateAgentRequest[]
-  capabilities?: CapabilitiesRequest
-  user?: UserRequest
-  client?: CreateWorldRequestClientRequest
-}
-
-export type CreateWorldResponseAgent = {
-  agentId?: string
-  brainName?: string
-}
-
-export type CreateWorldResponse = {
-  agents?: CreateWorldResponseAgent[]
-  key?: string
+  description?: string
 }
 
 export type LoadSceneRequest = {
@@ -177,6 +148,7 @@ export type PreviousStateStateHolder = {
   previousDialog?: PreviousDialog
   packets?: AiInworldPacketsPackets.InworldPacket[]
   relationsToActors?: ActorRelations[]
+  stateFormat?: PreviousStateStateHolderStateFormat
 }
 
 export type PreviousState = {
@@ -222,24 +194,14 @@ export type VoicePreviewResponse = {
 export type ListBaseVoicesRequest = {
   languageCode?: string
   ttsTypes?: AiInworldVoicesVoices.TTSType[]
+  language?: AiInworldLanguage_codesLanguage_codes.LanguageCode
 }
-
-
-type BaseListBaseVoicesResponceBaseVoice = {
-  languageCodes?: string[]
-  name?: string
-  gender?: AiInworldVoicesVoices.Gender
-  naturalSampleRateHertz?: number
-  age?: AiInworldVoicesVoices.Age
-}
-
-export type ListBaseVoicesResponceBaseVoice = BaseListBaseVoicesResponceBaseVoice
-  & OneOf<{ elevenlabsMetadata: AiInworldVoicesVoices.VoiceElevenLabsMetadata }>
 
 export type ListBaseVoicesResponce = {
-  googleVoices?: ListBaseVoicesResponceBaseVoice[]
-  inworldVoices?: ListBaseVoicesResponceBaseVoice[]
-  elevenLabsVoices?: ListBaseVoicesResponceBaseVoice[]
+  googleVoices?: AiInworldVoicesBase_voice.BaseVoice[]
+  inworldVoices?: AiInworldVoicesBase_voice.BaseVoice[]
+  elevenLabsVoices?: AiInworldVoicesBase_voice.BaseVoice[]
+  inworldV2Voices?: AiInworldVoicesBase_voice.BaseVoice[]
 }
 
 export type AccessToken = {
@@ -265,9 +227,6 @@ export type ActorRelations = {
 }
 
 export class WorldEngine {
-  static CreateWorld(req: CreateWorldRequest, initReq?: fm.InitReq): Promise<CreateWorldResponse> {
-    return fm.fetchReq<CreateWorldRequest, CreateWorldResponse>(`/v1/worlds/${req["protoWorldName"]}`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
-  }
   static LoadScene(req: LoadSceneRequest, initReq?: fm.InitReq): Promise<LoadSceneResponse> {
     return fm.fetchReq<LoadSceneRequest, LoadSceneResponse>(`/v1/${req["name"]}:load`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }

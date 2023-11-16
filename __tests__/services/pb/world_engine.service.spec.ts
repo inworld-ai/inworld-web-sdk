@@ -18,6 +18,7 @@ import {
   session,
   user,
 } from '../../helpers';
+const { version } = require('../../../package.json');
 
 const agents = [createAgent(), createAgent()];
 
@@ -73,6 +74,12 @@ describe('load scene', () => {
 
   test('should use provided custom client id', async () => {
     const sceneClient = { id: 'client-id' };
+    const description = [
+      CLIENT_ID,
+      version,
+      navigator.userAgent,
+      sceneClient.id,
+    ];
 
     await client.loadScene({
       config: {
@@ -86,7 +93,34 @@ describe('load scene', () => {
       session,
       user,
     });
-    expect(mockLoadScene.mock.calls[0][0].client).toEqual(sceneClient);
+
+    const actualClient = mockLoadScene.mock.calls[0][0].client;
+
+    expect(actualClient.id).toEqual(CLIENT_ID);
+    expect(actualClient.version).toEqual(version);
+    expect(actualClient.description).toEqual(description.join('; '));
+  });
+
+  test("should not send client id if it's not provided", async () => {
+    const description = [CLIENT_ID, version, navigator.userAgent];
+
+    await client.loadScene({
+      config: {
+        capabilities,
+        connection: {
+          gateway: { hostname: 'examples.com', ssl: true },
+        },
+      },
+      name: SCENE,
+      session,
+      user,
+    });
+
+    const actualClient = mockLoadScene.mock.calls[0][0].client;
+
+    expect(actualClient.id).toEqual(CLIENT_ID);
+    expect(actualClient.version).toEqual(version);
+    expect(actualClient.description).toEqual(description.join('; '));
   });
 
   test("should use default user id if it's not provided", async () => {

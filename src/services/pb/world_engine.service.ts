@@ -17,6 +17,8 @@ import { InworldPacket } from '../../entities/inworld_packet.entity';
 import { SessionToken } from '../../entities/session_token.entity';
 import { PbService } from './pb.service';
 
+const { version } = require('../../../package.json');
+
 const INWORLD_USER_ID = 'inworldUserId';
 
 export interface LoadSceneProps<InworldPacketT, HistoryItemT> {
@@ -53,7 +55,6 @@ export class WorldEngineService<
     props: LoadSceneProps<InworldPacketT, HistoryItemT>,
   ): LoadSceneRequest {
     const {
-      client,
       config,
       name,
       sessionContinuation: {
@@ -65,10 +66,7 @@ export class WorldEngineService<
     const { id, fullName, profile } = user;
 
     return {
-      client: {
-        id: CLIENT_ID,
-        ...client,
-      },
+      client: this.getClient(props),
       name,
       user: {
         id: id ? id : this.getUserId(),
@@ -93,6 +91,20 @@ export class WorldEngineService<
         },
       }),
     };
+  }
+
+  private getClient(props: LoadSceneProps<InworldPacketT, HistoryItemT>) {
+    const description = [CLIENT_ID, version, navigator.userAgent];
+
+    if (props.client?.id) {
+      description.push(props.client.id);
+    }
+
+    return {
+      id: CLIENT_ID,
+      version,
+      description: description.join('; '),
+    } as ClientRequest;
   }
 
   private getUserId() {
