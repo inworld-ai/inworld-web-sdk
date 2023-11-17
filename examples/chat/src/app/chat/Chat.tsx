@@ -20,13 +20,21 @@ interface ChatProps {
   prevTranscripts: string[];
 }
 
+const RECORDING_STATUS = {
+  STARTING: 'STARTING',
+  RECORDING: 'RECORDING',
+  STOPPED: 'STOPPED',
+};
+
 export function Chat(props: ChatProps) {
   const { chatHistory, connection } = props;
 
   const [text, setText] = useState('');
   const [confirmText, setConfirmText] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
+  const [recorderdingStatus, setRecorderdingStatus] = useState(
+    RECORDING_STATUS.STOPPED,
+  );
   const [isPlaybackMuted, setIsPlaybackMuted] = useState(
     connection.player.getMute() ?? false,
   );
@@ -100,16 +108,17 @@ export function Chat(props: ChatProps) {
   }, [connection, isPlaybackMuted]);
 
   const stopRecording = useCallback(() => {
+    setRecorderdingStatus(RECORDING_STATUS.STOPPED);
     connection.recorder.stop();
-    setIsRecording(false);
     connection.sendAudioSessionEnd();
   }, [connection]);
 
   const startRecording = useCallback(async () => {
     try {
+      setRecorderdingStatus(RECORDING_STATUS.STARTING);
       connection.sendAudioSessionStart();
       await connection.recorder.start();
-      setIsRecording(true);
+      setRecorderdingStatus(RECORDING_STATUS.RECORDING);
     } catch (e) {
       console.error(e);
     }
@@ -143,15 +152,15 @@ export function Chat(props: ChatProps) {
   const handleSpeakClick = useCallback(async () => {
     !hasPlayedWorkaroundSound && playWorkaroundSound();
 
-    if (isRecording) {
+    if (recorderdingStatus === RECORDING_STATUS.RECORDING) {
       return stopRecording();
+    } else if (recorderdingStatus === RECORDING_STATUS.STOPPED) {
+      return startRecording();
     }
-
-    return startRecording();
   }, [
     connection,
     hasPlayedWorkaroundSound,
-    isRecording,
+    recorderdingStatus,
     playWorkaroundSound,
     startRecording,
     stopRecording,
@@ -209,15 +218,26 @@ export function Chat(props: ChatProps) {
           </IconButton>
         </Tooltip>
         <Tooltip
-          title={isRecording ? 'Stop speaking' : 'Start speaking'}
+          title={
+            recorderdingStatus === RECORDING_STATUS.STOPPED
+              ? 'Start speaking'
+              : 'Stop speaking'
+          }
           placement="top"
         >
-          <IconButton
-            onClick={handleSpeakClick}
-            sx={{ height: '3rem', width: '3rem', backgroundColor: '#F1F5F9' }}
-          >
-            {isRecording ? <RecordIcon /> : <Mic />}
-          </IconButton>
+          <span>
+            <IconButton
+              disabled={recorderdingStatus === RECORDING_STATUS.STARTING}
+              onClick={handleSpeakClick}
+              sx={{ height: '3rem', width: '3rem', backgroundColor: '#F1F5F9' }}
+            >
+              {recorderdingStatus === RECORDING_STATUS.STOPPED ? (
+                <Mic />
+              ) : (
+                <RecordIcon />
+              )}
+            </IconButton>
+          </span>
         </Tooltip>
         <SessionActions
           onClear={() => handleClearStateClick()}
