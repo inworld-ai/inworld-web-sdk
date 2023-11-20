@@ -1,10 +1,10 @@
 /* eslint-disable */
 import { AdditionalPhonemeInfo } from '@inworld/web-sdk';
-import { useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
+import React, { useEffect, useState } from 'react';
+import { Group, Mesh, SkinnedMesh } from 'three';
+
 import { getVisemeData } from './PhonemDataToVisemeDataConverter';
-import { Group, SkinnedMesh } from 'three';
-import React from 'react';
 
 interface LipSyncProps {
   modelRef: React.MutableRefObject<Group>;
@@ -26,15 +26,22 @@ export function LipSync(props: LipSyncProps) {
   useEffect(() => {
     let modelData = props.modelRef.current;
     if (modelData) {
-      const mesh = modelData.children[0].children[1] as SkinnedMesh;
-
-      setSknnedMesh(mesh);
-      for (let i = 0; i < mesh.userData.targetNames.length; i++) {
-        if (mesh.userData.targetNames[i] === VISEME_SIL_USERDATA_NAME) {
-          setStartingIndex(i);
-          break;
+      modelData.traverse((child) => {
+        if (child instanceof Mesh) {
+          if (child.name === 'Wolf3D_Avatar') {
+            // const mesh = modelData.children[0].children[0] as SkinnedMesh;
+            setSknnedMesh(child as SkinnedMesh);
+            // iterate through blendshape names in order to find the beginning of the
+            // viseme sequence (viseme_sil + 14 next)
+            for (let i = 0; i < child.userData.targetNames.length; i++) {
+              if (child.userData.targetNames[i] === VISEME_SIL_USERDATA_NAME) {
+                setStartingIndex(i);
+                break;
+              }
+            }
+          }
         }
-      }
+      });
     }
   }, [props.modelRef.current]);
 

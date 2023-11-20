@@ -1,0 +1,11 @@
+# Innequin Local Developer
+# Base Asset File Location
+REACT_APP_ANIMATIONS_URI=./assets/models/animations/emotions/
+REACT_APP_IMAGES_FACIAL_URI=./assets/textures/face/emotions/
+REACT_APP_IMAGES_BODY_URI=./assets/textures/body/
+REACT_APP_MODEL_URI=./assets/innequin_v3.glb
+# Support Library Location
+REACT_APP_DRACO_COMPRESSION_URI=/draco-gltf/
+# Innequin Defaults
+REACT_APP_DEFAULT_ANIMATION=Neutral_Hello_Long_01
+REACT_APP_DEFAULT_SKIN=WOOD1
