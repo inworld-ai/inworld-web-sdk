@@ -7,7 +7,7 @@ import {
   InworldPacket as ProtoPacket,
   Routing,
   TextEventSourceType,
-} from '../../proto/packets.pb';
+} from '../../proto/ai/inworld/packets/packets.pb';
 import { CancelResponsesProps } from '../common/data_structures';
 import { protoTimestamp } from '../common/helpers';
 import { Character } from '../entities/character.entity';

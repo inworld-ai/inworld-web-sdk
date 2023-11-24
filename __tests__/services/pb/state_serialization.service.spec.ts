@@ -1,9 +1,9 @@
-import * as fm from '../../../proto/fetch.pb';
 import {
   GetSessionStateRequest,
   StateSerialization,
-} from '../../../proto/state_serialization.pb';
-import { CapabilitiesRequest } from '../../../proto/world-engine.pb';
+} from '../../../proto/ai/inworld/engine/v1/state_serialization.pb';
+import { CapabilitiesRequest } from '../../../proto/ai/inworld/engine/world-engine.pb';
+import * as fm from '../../../proto/fetch.pb';
 import { protoTimestamp } from '../../../src/common/helpers';
 import { StateSerializationService } from '../../../src/services/pb/state_serialization.service';
 import { previousStateUint8Array, SCENE, session } from '../../helpers';

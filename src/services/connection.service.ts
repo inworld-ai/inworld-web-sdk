@@ -1,9 +1,12 @@
-import { InworldPacket as ProtoPacket } from '../../proto/packets.pb';
 import {
   LoadSceneResponseAgent,
   PreviousState,
-} from '../../proto/world-engine.pb';
-import { ClientRequest, LoadSceneResponse } from '../../proto/world-engine.pb';
+} from '../../proto/ai/inworld/engine/world-engine.pb';
+import {
+  ClientRequest,
+  LoadSceneResponse,
+} from '../../proto/ai/inworld/engine/world-engine.pb';
+import { InworldPacket as ProtoPacket } from '../../proto/ai/inworld/packets/packets.pb';
 import {
   AudioSessionState,
   Awaitable,

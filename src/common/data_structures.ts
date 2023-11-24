@@ -1,9 +1,9 @@
-import { InworldPacket as ProtoPacket } from '../../proto/packets.pb';
 import {
   CapabilitiesRequest,
   LoadSceneRequest,
   LoadSceneResponse,
-} from '../../proto/world-engine.pb';
+} from '../../proto/ai/inworld/engine/world-engine.pb';
+import { InworldPacket as ProtoPacket } from '../../proto/ai/inworld/packets/packets.pb';
 import { HistoryItem } from '../components/history';
 import { AdditionalPhonemeInfo } from '../entities/inworld_packet.entity';
 import { SessionToken } from '../entities/session_token.entity';

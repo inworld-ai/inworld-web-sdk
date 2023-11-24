@@ -5,7 +5,7 @@ import {
   ControlEventAction,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
-} from '../../proto/packets.pb';
+} from '../../proto/ai/inworld/packets/packets.pb';
 import { protoTimestamp } from '../../src/common/helpers';
 import { InworldPacket } from '../../src/entities/inworld_packet.entity';
 import { EventFactory } from '../../src/factories/event';

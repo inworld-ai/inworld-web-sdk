@@ -4,13 +4,13 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
-import * as AiInworldVoicesBase_voice from "./base_voice.pb"
-import * as fm from "./fetch.pb"
-import * as GoogleProtobufEmpty from "./google/protobuf/empty.pb"
-import * as GoogleProtobufTimestamp from "./google/protobuf/timestamp.pb"
-import * as AiInworldLanguage_codesLanguage_codes from "./language_codes.pb"
-import * as AiInworldPacketsPackets from "./packets.pb"
-import * as AiInworldVoicesVoices from "./voices.pb"
+import * as fm from "../../../fetch.pb"
+import * as GoogleProtobufEmpty from "../../../google/protobuf/empty.pb"
+import * as GoogleProtobufTimestamp from "../../../google/protobuf/timestamp.pb"
+import * as AiInworldLanguage_codesLanguage_codes from "../language_codes/language_codes.pb"
+import * as AiInworldPacketsPackets from "../packets/packets.pb"
+import * as AiInworldVoicesBase_voice from "../voices/base_voice.pb"
+import * as AiInworldVoicesVoices from "../voices/voices.pb"
 
 export enum VoicePreset {
   VOICE_PRESET_UNSPECIFIED = "VOICE_PRESET_UNSPECIFIED",

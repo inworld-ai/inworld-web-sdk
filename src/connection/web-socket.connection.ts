@@ -1,4 +1,4 @@
-import { InworldPacket as ProtoPacket } from '../../proto/packets.pb';
+import { InworldPacket as ProtoPacket } from '../../proto/ai/inworld/packets/packets.pb';
 import {
   Awaitable,
   InternalClientConfiguration,

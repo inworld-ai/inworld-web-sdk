@@ -5,7 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
 
-import { InworldPacket as ProtoPacket } from '../proto/packets.pb';
+import { InworldPacket as ProtoPacket } from '../proto/ai/inworld/packets/packets.pb';
 import { InworldClient } from './clients/inworld.client';
 import {
   AudioPlaybackConfig,

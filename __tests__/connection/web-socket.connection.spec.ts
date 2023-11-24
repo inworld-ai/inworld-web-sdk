@@ -1,7 +1,7 @@
 import WS from 'jest-websocket-mock';
 import { v4 } from 'uuid';
 
-import { InworldPacket as ProtoPacket } from '../../proto/packets.pb';
+import { InworldPacket as ProtoPacket } from '../../proto/ai/inworld/packets/packets.pb';
 import { WebSocketConnection } from '../../src/connection/web-socket.connection';
 import { EventFactory } from '../../src/factories/event';
 import { capabilitiesProps, convertPacketFromProto, session } from '../helpers';

@@ -1,4 +1,4 @@
-import { StateSerialization } from '../../../proto/state_serialization.pb';
+import { StateSerialization } from '../../../proto/ai/inworld/engine/v1/state_serialization.pb';
 import { SCENE_PATTERN } from '../../common/constants';
 import { InternalClientConfiguration } from '../../common/data_structures';
 import { SessionToken } from '../../entities/session_token.entity';

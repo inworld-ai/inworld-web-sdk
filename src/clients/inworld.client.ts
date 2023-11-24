@@ -1,5 +1,5 @@
-import { CancelResponses } from '../../proto/packets.pb';
-import { CapabilitiesRequest } from '../../proto/world-engine.pb';
+import { CapabilitiesRequest } from '../../proto/ai/inworld/engine/world-engine.pb';
+import { CancelResponses } from '../../proto/ai/inworld/packets/packets.pb';
 import { GRPC_HOSTNAME, SCENE_PATTERN } from '../common/constants';
 import {
   Awaitable,

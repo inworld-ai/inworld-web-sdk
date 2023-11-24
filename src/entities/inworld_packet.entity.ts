@@ -4,7 +4,7 @@ import {
   ControlEventAction,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
-} from '../../proto/packets.pb';
+} from '../../proto/ai/inworld/packets/packets.pb';
 import { EmotionBehavior } from './emotion_behavior.entity';
 import { EmotionStrength } from './emotion_strength.entity';
 
