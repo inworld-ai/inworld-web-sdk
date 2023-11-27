@@ -2,7 +2,7 @@ import '../../mocks/window.mock';
 
 import { v4 } from 'uuid';
 
-import { DataChunkDataType } from '../../../proto/packets.pb';
+import { DataChunkDataType } from '../../../proto/ai/inworld/packets/packets.pb';
 import { GrpcAudioPlayback } from '../../../src/components/sound/grpc_audio.playback';
 import { InworldPacket } from '../../../src/entities/inworld_packet.entity';
 import { getPacketId } from '../../helpers';

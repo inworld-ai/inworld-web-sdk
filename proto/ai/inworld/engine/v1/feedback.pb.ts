@@ -4,8 +4,8 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
-import * as fm from "./fetch.pb"
-import * as GoogleProtobufEmpty from "./google/protobuf/empty.pb"
+import * as fm from "../../../../fetch.pb"
+import * as GoogleProtobufEmpty from "../../../../google/protobuf/empty.pb"
 
 export enum InteractionDislikeType {
   INTERACTION_DISLIKE_TYPE_UNSPECIFIED = "INTERACTION_DISLIKE_TYPE_UNSPECIFIED",
@@ -40,6 +40,6 @@ export class Feedback {
     return fm.fetchReq<CreateInteractionFeedbackRequest, InteractionFeedback>(`/v1/${req["parent"]}/feedback`, {...initReq, method: "POST", body: JSON.stringify(req["interactionFeedback"], fm.replacer)})
   }
   static DeleteInteractionFeedback(req: DeleteInteractionFeedbackRequest, initReq?: fm.InitReq): Promise<GoogleProtobufEmpty.Empty> {
-    return fm.fetchReq<DeleteInteractionFeedbackRequest, GoogleProtobufEmpty.Empty>(`/v1/${req["namefeedback"]}`, {...initReq, method: "DELETE"})
+    return fm.fetchReq<DeleteInteractionFeedbackRequest, GoogleProtobufEmpty.Empty>(`/v1/${req["name"]}`, {...initReq, method: "DELETE"})
   }
 }

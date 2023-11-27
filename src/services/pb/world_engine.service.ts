@@ -4,7 +4,7 @@ import {
   ClientRequest,
   LoadSceneRequest,
   WorldEngine,
-} from '../../../proto/world-engine.pb';
+} from '../../../proto/ai/inworld/engine/world-engine.pb';
 import { CLIENT_ID } from '../../common/constants';
 import {
   Extension,

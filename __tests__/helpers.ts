@@ -1,10 +1,10 @@
 import { v4 } from 'uuid';
 
-import { InworldPacket as ProtoPacket } from '../proto/packets.pb';
 import {
   LoadSceneRequest,
   LoadSceneResponseAgent,
-} from '../proto/world-engine.pb';
+} from '../proto/ai/inworld/engine/world-engine.pb';
+import { InworldPacket as ProtoPacket } from '../proto/ai/inworld/packets/packets.pb';
 import {
   Capabilities,
   Client,

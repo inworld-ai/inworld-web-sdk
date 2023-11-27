@@ -2,7 +2,7 @@ import '../mocks/window.mock';
 
 import { v4 } from 'uuid';
 
-import { DataChunkDataType } from '../../proto/packets.pb';
+import { DataChunkDataType } from '../../proto/ai/inworld/packets/packets.pb';
 import { AudioSessionState } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
 import { InworldHistory } from '../../src/components/history';

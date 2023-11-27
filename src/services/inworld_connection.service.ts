@@ -1,7 +1,7 @@
 import {
   DataChunkDataType,
   InworldPacket as ProtoPacket,
-} from '../../proto/packets.pb';
+} from '../../proto/ai/inworld/packets/packets.pb';
 import {
   AudioSessionState,
   CancelResponsesProps,

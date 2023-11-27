@@ -1,4 +1,4 @@
-import { EmotionEventSpaffCode } from '../../proto/packets.pb';
+import { EmotionEventSpaffCode } from '../../proto/ai/inworld/packets/packets.pb';
 import {
   EmotionBehavior,
   EmotionBehaviorCode,

@@ -1,7 +1,7 @@
 import {
   PreviousDialog as ProtoDialog,
   PreviousDialogDialogParticipant,
-} from '../../../proto/world-engine.pb';
+} from '../../../proto/ai/inworld/engine/world-engine.pb';
 
 export enum DialogParticipant {
   UNKNOWN = 'UNKNOWN',

@@ -8,7 +8,7 @@ import {
   ControlEventAction,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
-} from '../../proto/packets.pb';
+} from '../../proto/ai/inworld/packets/packets.pb';
 import { TtsPlaybackAction } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
 import {

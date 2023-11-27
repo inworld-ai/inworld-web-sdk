@@ -1,6 +1,6 @@
 import deprecate from 'util-deprecate';
 
-import { EmotionEventStrength } from '../../proto/packets.pb';
+import { EmotionEventStrength } from '../../proto/ai/inworld/packets/packets.pb';
 
 export enum EmotionStrengthCode {
   UNSPECIFIED = 'UNSPECIFIED',

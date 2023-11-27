@@ -1,9 +1,9 @@
-import * as fm from '../../../proto/fetch.pb';
 import {
   CapabilitiesRequest,
   LoadSceneRequest,
   WorldEngine,
-} from '../../../proto/world-engine.pb';
+} from '../../../proto/ai/inworld/engine/world-engine.pb';
+import * as fm from '../../../proto/fetch.pb';
 import { CLIENT_ID } from '../../../src/common/constants';
 import { SessionContinuation } from '../../../src/entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../../../src/entities/inworld_packet.entity';

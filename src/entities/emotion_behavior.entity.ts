@@ -1,6 +1,6 @@
 import deprecate from 'util-deprecate';
 
-import { EmotionEventSpaffCode } from '../../proto/packets.pb';
+import { EmotionEventSpaffCode } from '../../proto/ai/inworld/packets/packets.pb';
 
 export enum EmotionBehaviorCode {
   NEUTRAL = 'NEUTRAL',

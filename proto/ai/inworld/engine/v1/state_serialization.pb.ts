@@ -4,8 +4,8 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
-import * as fm from "./fetch.pb"
-import * as GoogleProtobufTimestamp from "./google/protobuf/timestamp.pb"
+import * as fm from "../../../../fetch.pb"
+import * as GoogleProtobufTimestamp from "../../../../google/protobuf/timestamp.pb"
 export type GetSessionStateRequest = {
   name?: string
 }
@@ -17,6 +17,6 @@ export type SessionState = {
 
 export class StateSerialization {
   static GetSessionState(req: GetSessionStateRequest, initReq?: fm.InitReq): Promise<SessionState> {
-    return fm.fetchReq<GetSessionStateRequest, SessionState>(`/v1/${req["nameworkspacessessions"]}/state?${fm.renderURLSearchParams(req, ["nameworkspacessessions"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetSessionStateRequest, SessionState>(`/v1/${req["name"]}/state?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
 }
