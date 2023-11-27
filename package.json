@@ -1,6 +1,6 @@
 {
   "name": "@inworld/web-sdk",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "license": "SEE LICENSE IN LICENSE.md",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
