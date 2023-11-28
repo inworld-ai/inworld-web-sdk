@@ -30,13 +30,13 @@ jobs:
         with:
           ref: main
           ssh-key: ${{ secrets.GH_SERVICE_ACCOUNT_SSH_KEY }}
-      - name: Run build for Web Core
+      - name: Run build
         uses: ./.github/actions/build_package
         with:
           package: ${{ inputs.package }}
       - name: Bump version
         run: |
-          yarn release:bump ${{ inputs.increment }} --ci
+          yarn workspace ${{ inputs.package }} release:bump ${{ inputs.increment }} --ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -48,7 +48,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: main
-      - name: Run build for Web Core
+      - name: Run build
         uses: ./.github/actions/build_package
         with:
           package: ${{ inputs.package }}

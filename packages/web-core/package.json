@@ -24,10 +24,14 @@
     "url": "https://github.com/inworld-ai/inworld-web-sdk.git"
   },
   "scripts": {
-    "build": "tsc -p .",
+    "build": "tsc -p . && shx cp -r ../../LICENSE.md ./",
     "release:pack": "yarn build && yarn pack",
     "release:publish": "yarn build && yarn publish",
     "release:bump": "release-it",
+    "lint:check": "eslint --cache  \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.eslintrc.json",
+    "lint:fix": "yarn run lint:check --fix",
+    "prettier:check": "yarn prettier --check \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
+    "prettier:format": "yarn prettier --write \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
     "test": "jest --no-cache --reporters=default"
   },
   "devDependencies": {
