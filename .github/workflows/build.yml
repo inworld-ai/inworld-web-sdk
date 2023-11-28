@@ -17,4 +17,4 @@ jobs:
         with:
           package: "@inworld/web-core"
       - name: Run tests
-        run: yarn workspace @inworld/web-core test
+        run: yarn test
