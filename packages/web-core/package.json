@@ -1,0 +1,50 @@
+{
+  "name": "@inworld/web-core",
+  "version": "1.9.3",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "main": "build/src/index.js",
+  "types": "build/src/index.d.ts",
+  "keywords": [
+    "inworld",
+    "ai",
+    "asr",
+    "character",
+    "npc",
+    "speech recognition",
+    "text to speech",
+    "tts",
+    "voice"
+  ],
+  "author": {
+    "name": "Theai, Inc.",
+    "url": "https://www.inworld.ai"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/inworld-ai/inworld-web-sdk.git"
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "release:pack": "yarn build && yarn pack",
+    "release:publish": "yarn build && yarn publish",
+    "release:bump": "release-it",
+    "test": "jest --no-cache --reporters=default"
+  },
+  "devDependencies": {
+    "@release-it/keep-a-changelog": "^4.0.0",
+    "@types/defer-promise": "^1.0.0",
+    "@types/js-cookie": "^3.0.2",
+    "@types/util-deprecate": "^1.0.0",
+    "@types/uuid": "^9.0.0",
+    "release-it": "^16.1.4",
+    "ts-loader": "^9.4.1",
+    "typescript": "^4.7.4",
+    "webpack": "^5.74.0"
+  },
+  "dependencies": {
+    "base64-arraybuffer": "^1.0.2",
+    "defer-promise": "^3.0.0",
+    "util-deprecate": "^1.0.2",
+    "uuid": "^9.0.0"
+  }
+}

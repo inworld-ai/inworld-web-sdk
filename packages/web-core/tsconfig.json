@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "rootDirs": ["src"],
-    "declaration": true,
-    "esModuleInterop": true,
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
+    "rootDirs": ["src"],
+    "declaration": true,
+    "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "node",
     "noImplicitAny": true,

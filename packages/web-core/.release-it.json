@@ -1,6 +1,6 @@
 {
   "git": {
-    "commitMessage": "chore: Release v${version}",
+    "commitMessage": "chore: Release Web Core v${version}",
     "requireBranch": "main"
   },
   "github": {

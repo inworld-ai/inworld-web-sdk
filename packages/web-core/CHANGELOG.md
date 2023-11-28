@@ -1,3 +1,8 @@
+## [Unreleased] - 2023-11-27
+
+- Move Web SDK to Web Core
+
+
 ## [1.9.3] - 2023-11-27
 
 ### Added
