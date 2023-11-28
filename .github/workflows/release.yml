@@ -31,7 +31,6 @@ jobs:
           ref: main
           ssh-key: ${{ secrets.GH_SERVICE_ACCOUNT_SSH_KEY }}
       - name: Run build for Web Core
-        if: inputs.package == '@inworld/web-core'
         uses: ./.github/actions/build_package
         with:
           package: ${{ inputs.package }}
@@ -50,7 +49,6 @@ jobs:
         with:
           ref: main
       - name: Run build for Web Core
-        if: inputs.package == '@inworld/web-core'
         uses: ./.github/actions/build_package
         with:
           package: ${{ inputs.package }}
