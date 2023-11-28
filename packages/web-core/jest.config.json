@@ -1,9 +1,10 @@
 {
-  "coveragePathIgnorePatterns": ["/node_modules/", "proto"],
+  "coveragePathIgnorePatterns": ["<rootDir>//node_modules/", "<rootDir>/proto"],
   "modulePathIgnorePatterns": [
-    "__tests__/data_structures.ts",
-    "__tests__/helpers.ts",
-    "__tests__/mocks/"
+    "<rootDir>/__tests__/data_structures.ts",
+    "<rootDir>/__tests__/helpers.ts",
+    "<rootDir>/__tests__/mocks/",
+    "<rootDir>/build/"
   ],
   "preset": "ts-jest",
   "testEnvironment": "jsdom"
