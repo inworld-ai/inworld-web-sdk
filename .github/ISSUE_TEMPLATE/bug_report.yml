@@ -7,11 +7,20 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report!
+  - type: dropdown
+    id: package
+    attributes:
+      label: What Inworld.ai Web SDK package are you using?
+      options:
+        - "@inworld/web-core"
+      default: "@inworld/web-core"
+    validations:
+      required: true
   - type: input
     id: version
     attributes:
       label: Version
-      description: What version of Inworld.ai Web SDK are you running?
+      description: What version of package are you running?
     validations:
       required: true
   - type: textarea

@@ -20,9 +20,11 @@ jobs:
           filters: |
             changed:
               - './**/*.{js,jsx,ts,tsx}'
-      - name: Run build
+      - name: Run Web Core build
         if: steps.changes.outputs.changed == 'true'
         uses: ./.github/actions/build_package
+        with:
+          package: "@inworld/web-core"
       - name: Review source code
         if: steps.changes.outputs.changed == 'true'
         uses: reviewdog/action-eslint@v1
