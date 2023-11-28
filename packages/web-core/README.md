@@ -1,6 +1,6 @@
-# Inworld AI Web SDK
+# Inworld AI Web SDK Core
 
-The **Inworld AI Web SDK** enables Developers to easily integrate AI characters into your browser. 
+The **Inworld AI Web SDK Core** enables Developers to easily integrate AI characters into your browser. 
 
 Please visit our [Web Documentation](https://docs.inworld.ai/docs/tutorial-integrations/web/) page for more details.
 

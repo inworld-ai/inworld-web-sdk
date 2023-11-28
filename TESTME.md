@@ -2,22 +2,28 @@
 
 This document provides information on the testing procedures for the Inworld AI Web SDK.
 
-## Running Unit Tests
+## Running Unit Tests for all packages
 
-Execute the following command to run unit tests:
+Execute the following command to run unit tests for all packages:
 
 ```sh
 yarn test
 ```
 
+Execute the following command to run unit tests for one specific package:
+
+```sh
+yarn workspace @inworld/web-core test
+```
+
 ## Performing Manual Tests
 
-If you need to use changes that have not been published to npm, you can manually link the Inworld package. Follow these steps:
+If you need to use changes that have not been published to npm, you can manually link the Inworld package. For example, follow these steps for `@inworld/web-core`:
 
-1. Navigate to the `inworld-web-sdk/web-core` directory:
+1. Navigate to the package directory and execute:
    
 ```sh
-~/inworld-web-sdk/web-core $ yarn install && yarn build && yarn link
+~/inworld-web-sdk/packages/web-core $ yarn install && yarn build && yarn link
 ```
 
 2. Next, go to your application directory (e.g., `inworld-web-sdk/examples/chat`) and link the `@inworld/web-core` package:
@@ -35,5 +41,5 @@ Manual linking is a useful approach for testing your application during developm
 After creating the archive, you can add it to your application using:
 
 ```sh
-~/inworld-web-sdk/examples/chat $ yarn add ../../web-core/inworld-web-core-test.tgz
+~/inworld-web-sdk/examples/chat $ yarn add ../../packages/web-core/inworld-web-core-test.tgz
 ```

@@ -17,10 +17,12 @@
     "lint:fix": "yarn run lint:check --fix",
     "prettier:check": "yarn prettier --check \"./**/*.{js,jsx,ts,tsx}\" --ignore-path .eslintignore",
     "prettier:format": "yarn prettier --write \"./**/*.{js,jsx,ts,tsx}\" --ignore-path .eslintignore",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "test": "yarn workspace @inworld/web-core test"
   },
   "devDependencies": {
     "husky": "^8.0.3",
+    "@release-it/keep-a-changelog": "^4.0.0",
     "@types/jest": "^29.2.0",
     "@typescript-eslint/eslint-plugin": "^5.30.5",
     "@typescript-eslint/parser": "^5.30.5",
@@ -33,6 +35,10 @@
     "jest-environment-jsdom": "^29.3.1",
     "jest-websocket-mock": "^2.4.0",
     "prettier": "^2.7.1",
-    "ts-jest": "^28.0.7"
+    "release-it": "^16.1.4",
+    "ts-jest": "^28.0.7",
+    "ts-loader": "^9.4.1",
+    "typescript": "^4.7.4",
+    "webpack": "^5.74.0"
   }
 }
