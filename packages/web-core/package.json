@@ -1,0 +1,47 @@
+{
+  "name": "@inworld/web-core",
+  "version": "1.9.3",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "main": "build/src/index.js",
+  "types": "build/src/index.d.ts",
+  "keywords": [
+    "inworld",
+    "ai",
+    "asr",
+    "character",
+    "npc",
+    "speech recognition",
+    "text to speech",
+    "tts",
+    "voice"
+  ],
+  "author": {
+    "name": "Theai, Inc.",
+    "url": "https://www.inworld.ai"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/inworld-ai/inworld-web-sdk.git"
+  },
+  "scripts": {
+    "build": "tsc -p . && shx cp -r ../../LICENSE.md ./",
+    "release:pack": "yarn build && yarn pack",
+    "release:publish": "yarn build && yarn publish",
+    "release:bump": "release-it",
+    "lint:check": "eslint --cache  \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.eslintrc.json",
+    "lint:fix": "yarn run lint:check --fix",
+    "prettier:check": "yarn prettier --check \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
+    "prettier:format": "yarn prettier --write \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
+    "test": "jest --no-cache --reporters=default"
+  },
+  "devDependencies": {
+    "@types/defer-promise": "^1.0.0",
+    "@types/js-cookie": "^3.0.2",
+    "@types/uuid": "^9.0.0"
+  },
+  "dependencies": {
+    "base64-arraybuffer": "^1.0.2",
+    "defer-promise": "^3.0.0",
+    "uuid": "^9.0.0"
+  }
+}

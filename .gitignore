@@ -5,6 +5,7 @@ node_modules
 
 # Development folder for locally hosted assets.
 /examples/chat/public/assets/*
+/packages/*/LICENSE.md
 
 # Mac filesystem
 **/.DS_Store

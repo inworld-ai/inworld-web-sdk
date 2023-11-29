@@ -1,5 +1,6 @@
 coverage
 build
+proto
 node_modules
 .eslintcache
 /examples/chat/public/assets/*

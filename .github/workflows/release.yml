@@ -11,12 +11,18 @@ on:
         - minor
         - major
 
+      package:
+        type: choice
+        description: Select package
+        options:
+        - "@inworld/web-core"
+
 jobs:
   github-release:
     runs-on: ubuntu-latest
     steps:
-      - name: Echo increment
-        run: echo "${{ inputs.increment }}"
+      - name: Echo increment & package
+        run: echo "${{ inputs.increment }}" "${{ inputs.package }}"
       - name: Set git user
         run: git config --global user.email "github-service-account@inworld.ai" &&  git config --global user.name "CI-inworld"
       - name: Checkout source code
@@ -26,9 +32,11 @@ jobs:
           ssh-key: ${{ secrets.GH_SERVICE_ACCOUNT_SSH_KEY }}
       - name: Run build
         uses: ./.github/actions/build_package
+        with:
+          package: ${{ inputs.package }}
       - name: Bump version
         run: |
-          yarn release:bump ${{ inputs.increment }} --ci
+          yarn workspace ${{ inputs.package }} release:bump ${{ inputs.increment }} --ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -42,6 +50,8 @@ jobs:
           ref: main
       - name: Run build
         uses: ./.github/actions/build_package
+        with:
+          package: ${{ inputs.package }}
       - run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
       - name: Publish to npm
         run: yarn release:publish

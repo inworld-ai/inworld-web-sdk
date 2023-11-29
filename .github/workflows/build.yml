@@ -12,7 +12,9 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
-      - name: Run build
+      - name: Run Web Core build
         uses: ./.github/actions/build_package
+        with:
+          package: "@inworld/web-core"
       - name: Run tests
         run: yarn test

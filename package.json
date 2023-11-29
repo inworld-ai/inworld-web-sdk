@@ -1,19 +1,8 @@
 {
   "name": "@inworld/web-sdk",
-  "version": "1.9.3",
-  "license": "SEE LICENSE IN LICENSE.md",
-  "main": "build/src/index.js",
-  "types": "build/src/index.d.ts",
-  "keywords": [
-    "inworld",
-    "ai",
-    "asr",
-    "character",
-    "npc",
-    "speech recognition",
-    "text to speech",
-    "tts",
-    "voice"
+  "private": true,
+  "workspaces": [
+    "packages/*"
   ],
   "author": {
     "name": "Theai, Inc.",
@@ -24,25 +13,16 @@
     "url": "https://github.com/inworld-ai/inworld-web-sdk.git"
   },
   "scripts": {
-    "build": "tsc -p .",
-    "release:pack": "yarn build && yarn pack",
-    "release:publish": "yarn build && yarn publish",
-    "release:bump": "release-it",
-    "test": "jest --no-cache --reporters=default",
-    "test:coverage": "jest --coverage",
-    "lint:check": "eslint --cache  \"./**/*.{js,jsx,ts,tsx}\" --ignore-path .eslintignore",
-    "lint:fix": "yarn run lint:check --fix",
-    "prettier:check": "yarn prettier --check \"./{src,__tests__,examples}/**/*.{js,jsx,ts,tsx}\" --ignore-path .eslintignore",
-    "prettier:format": "yarn prettier --write \"./{src,__tests__,examples}/**/*.{js,jsx,ts,tsx}\" --ignore-path .eslintignore",
-    "prepare": "husky install"
+    "lint:check": "yarn workspaces run lint:check",
+    "lint:fix": "yarn workspaces run lint:fix",
+    "prettier:check": "yarn workspaces run prettier:check",
+    "prettier:format": "yarn workspaces run prettier:format",
+    "prepare": "husky install",
+    "test": "yarn workspaces run test"
   },
   "devDependencies": {
     "@release-it/keep-a-changelog": "^4.0.0",
-    "@types/defer-promise": "^1.0.0",
     "@types/jest": "^29.2.0",
-    "@types/js-cookie": "^3.0.2",
-    "@types/util-deprecate": "^1.0.0",
-    "@types/uuid": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^5.30.5",
     "@typescript-eslint/parser": "^5.30.5",
     "eslint": ">=5.16.0",
@@ -56,15 +36,10 @@
     "jest-websocket-mock": "^2.4.0",
     "prettier": "^2.7.1",
     "release-it": "^16.1.4",
+    "shx": "^0.3.4",
     "ts-jest": "^28.0.7",
     "ts-loader": "^9.4.1",
     "typescript": "^4.7.4",
     "webpack": "^5.74.0"
-  },
-  "dependencies": {
-    "base64-arraybuffer": "^1.0.2",
-    "defer-promise": "^3.0.0",
-    "util-deprecate": "^1.0.2",
-    "uuid": "^9.0.0"
   }
 }
