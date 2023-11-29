@@ -54,7 +54,7 @@ jobs:
           package: ${{ inputs.package }}
       - run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
       - name: Publish to npm
-        run: yarn release:publish
+        run: yarn workspace ${{ inputs.package }} release:publish
 
   release-notification:
     runs-on: [self-hosted, kubernetes, nodocker]
@@ -70,12 +70,19 @@ jobs:
       - name: Extract version
         if: needs.npm-release.result == 'success'
         run: |
-          echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+          echo "version=$(yarn workspace ${{ inputs.package }} get:version)" >> $GITHUB_OUTPUT
         id: extract-version
+      - name: Extract changelog
+        if: needs.npm-release.result == 'success'
+        run: |
+          echo "changelog=yarn workspace ${{ inputs.package }} get:changelog" >> $GITHUB_OUTPUT
+        id: extract-changelog
       - name: Extract release notes
         if: needs.npm-release.result == 'success'
         id: extract-release-notes
         uses: ffurrer2/extract-release-notes@v1
+        with:
+          changelog_file: ${{ steps.extract-changelog.outputs.changelog }}
       - name: Slack Notification
         if: always()
         uses: rtCamp/action-slack-notify@v2
