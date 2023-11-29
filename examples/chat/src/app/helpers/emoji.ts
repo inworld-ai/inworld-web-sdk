@@ -1,4 +1,4 @@
-import { EmotionBehavior } from '@inworld/web-sdk';
+import { EmotionBehavior } from '@inworld/web-core';
 
 export const EMOJIS: { [key: string]: string[] } = {
   AFFECTION: ['🥰', '😊', '😘', '😍', '🤗'],

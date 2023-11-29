@@ -1,4 +1,4 @@
-import { EmotionEvent } from '@inworld/web-sdk';
+import { EmotionEvent } from '@inworld/web-core';
 import { useEffect, useRef, useState } from 'react';
 import { MeshPhysicalMaterial, SkinnedMesh } from 'three';
 

@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { AdditionalPhonemeInfo } from '@inworld/web-sdk';
+import { AdditionalPhonemeInfo } from '@inworld/web-core';
 import { useFrame } from '@react-three/fiber';
 import React, { useEffect, useState } from 'react';
 import { Group, Mesh, SkinnedMesh } from 'three';

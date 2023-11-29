@@ -1,4 +1,4 @@
-import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
+import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-core';
 import { useLoader } from '@react-three/fiber';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { AnimationClip, MeshPhysicalMaterial, SkinnedMesh } from 'three';

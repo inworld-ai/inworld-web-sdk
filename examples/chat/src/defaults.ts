@@ -1,4 +1,4 @@
-import { DialogParticipant } from '@inworld/web-sdk';
+import { DialogParticipant } from '@inworld/web-core';
 
 import { CHAT_VIEW } from './app/types';
 import { Config } from './config';

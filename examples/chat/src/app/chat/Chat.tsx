@@ -1,4 +1,4 @@
-import { HistoryItem, InworldConnectionService } from '@inworld/web-sdk';
+import { HistoryItem, InworldConnectionService } from '@inworld/web-core';
 import { CopyAll, Mic, Send, VolumeOff, VolumeUp } from '@mui/icons-material';
 import { IconButton, InputAdornment, TextField, Tooltip } from '@mui/material';
 import { Box } from '@mui/system';

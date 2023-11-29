@@ -1,4 +1,4 @@
-import { AdditionalPhonemeInfo } from '@inworld/web-sdk';
+import { AdditionalPhonemeInfo } from '@inworld/web-core';
 
 import { phonemeToVisemeMap } from './PhonemesToVisemesMap';
 

@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
+import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-core';
 import { useFrame, useLoader } from '@react-three/fiber';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { MathUtils, Mesh, SkinnedMesh } from 'three';
