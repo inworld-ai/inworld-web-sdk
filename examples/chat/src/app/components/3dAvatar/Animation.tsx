@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
+import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-core';
 import { LipSync } from './Lipsync';
 import {
   AnimationClip,

@@ -5,7 +5,7 @@ import {
   HistoryItemActor,
   HistoryItemNarratedAction,
   HistoryItemTriggerEvent,
-} from '@inworld/web-sdk';
+} from '@inworld/web-core';
 import { Box, Fade, Stack, Typography } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
 

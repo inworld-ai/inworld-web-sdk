@@ -1,4 +1,4 @@
-import { DialogPhrase } from '@inworld/web-sdk';
+import { DialogPhrase } from '@inworld/web-core';
 
 export const dateWithMilliseconds = (date: Date) =>
   `${date.toLocaleString()}.${date.getMilliseconds()}`;

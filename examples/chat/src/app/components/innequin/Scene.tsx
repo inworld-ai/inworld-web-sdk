@@ -1,4 +1,4 @@
-import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
+import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-core';
 import { CircularProgress, LinearProgress, Typography } from '@mui/material';
 import { Canvas } from '@react-three/fiber';
 import { Suspense, useEffect, useState } from 'react';

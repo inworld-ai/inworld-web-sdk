@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
+import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-core';
 import { Suspense, useState } from 'react';
 import { Canvas, Camera } from '@react-three/fiber';
 import { Model } from './Model';

@@ -7,7 +7,7 @@ import {
   HistoryItem,
   InworldConnectionService,
   InworldPacket,
-} from '@inworld/web-sdk';
+} from '@inworld/web-core';
 import { ArrowBackRounded } from '@mui/icons-material';
 import { Box, Button, Grid } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';

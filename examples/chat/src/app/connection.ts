@@ -7,7 +7,7 @@ import {
   InworldConnectionService,
   InworldPacket,
   SessionContinuationProps,
-} from '@inworld/web-sdk';
+} from '@inworld/web-core';
 
 import { Config } from '../config';
 

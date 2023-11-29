@@ -1,4 +1,4 @@
-import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
+import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-core';
 import { Box, Divider, Stack } from '@mui/material';
 
 import { BODY_TEXTURE_TYPE } from '../../types';

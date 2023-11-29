@@ -1,4 +1,4 @@
-import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
+import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-core';
 import { useEffect, useRef } from 'react';
 import { MeshPhysicalMaterial, SkinnedMesh } from 'three';
 

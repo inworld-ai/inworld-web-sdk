@@ -1,4 +1,4 @@
-import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-sdk';
+import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-core';
 import { Box } from '@mui/material';
 
 import InworldChar3D from './InworldChar3D';

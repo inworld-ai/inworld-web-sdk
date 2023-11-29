@@ -1,4 +1,4 @@
-import { EmotionEvent } from '@inworld/web-sdk';
+import { EmotionEvent } from '@inworld/web-core';
 
 export enum CHAT_VIEW {
   TEXT = 'Text',
