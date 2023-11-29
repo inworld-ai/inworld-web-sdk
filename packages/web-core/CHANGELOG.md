@@ -1,4 +1,4 @@
-## [Unreleased]
+## [2.0.0] - 2023-11-29
 
 - Move Web SDK to Web Core
 
