@@ -3,6 +3,10 @@
     "esModuleInterop": true,
     "moduleResolution": "node"
   },
-  "include": ["/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
