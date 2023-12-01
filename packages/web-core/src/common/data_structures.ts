@@ -115,3 +115,8 @@ export interface Extension<InworldPacketT, HistoryItemT> {
   afterLoadScene?: (res: LoadSceneResponse) => void;
   historyItem?: (packet: InworldPacketT, item: HistoryItem) => HistoryItemT;
 }
+
+export interface MediaTrackConstraintsWithSuppress
+  extends MediaTrackConstraints {
+  suppressLocalAudioPlayback?: { ideal: boolean };
+}
