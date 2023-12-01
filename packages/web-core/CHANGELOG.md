@@ -1,6 +1,8 @@
-## [2.0.1] - 2023-12-1
+## [Unreleased]
 
-- Updated typescript to v5
+### Fixed
+
+- Updated typescript to v6
 
 ## [2.0.0] - 2023-11-29
 
