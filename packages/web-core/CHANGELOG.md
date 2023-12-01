@@ -1,7 +1,10 @@
+## [2.0.1] - 2023-12-1
+
+- Updated typescript to v5
+
 ## [2.0.0] - 2023-11-29
 
 - Move Web SDK to Web Core
-
 
 ## [1.9.3] - 2023-11-27
 
