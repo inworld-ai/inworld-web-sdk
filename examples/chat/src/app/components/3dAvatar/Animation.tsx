@@ -1,8 +1,5 @@
 /* eslint-disable */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-core';
-import { LipSync } from './Lipsync';
 import {
   AnimationClip,
   AnimationMixer,
@@ -11,9 +8,14 @@ import {
   LoopPingPong,
   Vector3,
 } from 'three';
+
+import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-core';
+import { useFrame } from '@react-three/fiber';
+
+import { AnimationLoader } from './AnimationLoader';
 import { Facial } from './Facial';
 import { BehaviorToFacial } from './FacialEmotionMap';
-import { AnimationLoader } from './AnimationLoader';
+import { LipSync } from './Lipsync';
 
 interface AnimationProps {
   animations: string[];

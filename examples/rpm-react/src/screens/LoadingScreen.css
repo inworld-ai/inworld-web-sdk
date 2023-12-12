@@ -1,0 +1,29 @@
+.containerLoading {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100vh !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  top: 0;
+  left: 0;
+  position: absolute !important;
+}
+
+.stackLoading {
+  top: calc(50% - 2px);
+  width: 70%;
+  left: 15%;
+  position: relative;
+  z-index: 1000;
+}
+
+.progressLoading {
+  width: 100%;
+}
+
+.stackLoadingLabel p { 
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
