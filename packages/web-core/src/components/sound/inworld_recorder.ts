@@ -1,3 +1,4 @@
+import { MediaTrackConstraintsWithSuppress } from '../../common/data_structures';
 import { GrpcAudioPlayback } from './grpc_audio.playback';
 import { GrpcAudioRecorder } from './grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from './grpc_web_rtc_loopback_bidi.session';
@@ -25,12 +26,13 @@ export class InworldRecorder {
   }
 
   async start() {
+    const audio: MediaTrackConstraintsWithSuppress = {
+      sampleRate: 16000,
+      echoCancellation: { ideal: true },
+      suppressLocalAudioPlayback: { ideal: true },
+    };
     this.recordingStream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        sampleRate: 16000,
-        echoCancellation: { ideal: true },
-        suppressLocalAudioPlayback: { ideal: true },
-      },
+      audio,
       video: false,
     });
 
