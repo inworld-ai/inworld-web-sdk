@@ -46,5 +46,4 @@ export class TextureFileLoader implements IFileLoader {
   private onUpdate(event: ProgressEvent) {
     // console.log('GLTFModelLoader onUpdate', event);
   }
-
 }

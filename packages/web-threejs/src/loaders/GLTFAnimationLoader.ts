@@ -51,17 +51,17 @@ export class GLTFAnimationLoader implements IFileLoader {
     if (model.animations.length !== 1) {
       throw new Error(
         'Error loading animation file ' +
-        this.fileURI +
-        '. Single animation not found.',
+          this.fileURI +
+          '. Single animation not found.',
       );
     }
     if (model.animations[0].name !== this.name) {
       throw new Error(
         'Error loading animation file ' +
-        this.fileURI +
-        '. Animation ' +
-        this.name +
-        ' not found.',
+          this.fileURI +
+          '. Animation ' +
+          this.name +
+          ' not found.',
       );
     }
     this.model = model;
@@ -73,5 +73,4 @@ export class GLTFAnimationLoader implements IFileLoader {
   private onUpdate(event: ProgressEvent) {
     // console.log('GLTFModelLoader onUpdate', event);
   }
-
 }

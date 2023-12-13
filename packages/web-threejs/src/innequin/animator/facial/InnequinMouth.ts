@@ -1,10 +1,12 @@
-import { MeshPhysicalMaterial, SkinnedMesh } from 'three';
-
 import { AdditionalPhonemeInfo } from '@inworld/web-core';
+import { MeshPhysicalMaterial, SkinnedMesh } from 'three';
 
 import { FacialMaterialLoader } from '../../../loaders/FacialMaterialLoader';
 import {
-  EMOTIONS_FACE, FACE_TEXTURE_TYPES, FACE_TYPES, MATERIAL_TYPES
+  EMOTIONS_FACE,
+  FACE_TEXTURE_TYPES,
+  FACE_TYPES,
+  MATERIAL_TYPES,
 } from '../../../types/types';
 import { VISEME_TYPES, Visemes } from '../../../types/Viseme';
 import { getVisemeData } from '../utils/InnequinPhonemesToViseme';
@@ -12,10 +14,6 @@ import { getVisemeData } from '../utils/InnequinPhonemesToViseme';
 export interface InnequinMouthProps {
   facialMaterials: { [key: string]: FacialMaterialLoader | null };
   modelMeshes: { [key: string]: SkinnedMesh | null };
-}
-
-function randomInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 // Gets the id of the image place on the spritesheet for the viseme
@@ -38,7 +36,6 @@ function getSpriteCoordFromViseme(viseme: string) {
 }
 
 export class InnequinMouth {
-
   props: InnequinMouthProps;
   // TODO Following two are not currently used
   emotion: EMOTIONS_FACE;
@@ -54,7 +51,6 @@ export class InnequinMouth {
     this.phonemeData = [];
     this.visemeOffsetS = 0;
     this.updateMouth();
-
   }
 
   setEmotion(emotion: EMOTIONS_FACE) {
@@ -83,10 +79,12 @@ export class InnequinMouth {
         this.phonemeData = [];
         const offsets = getSpriteCoordFromViseme('sil');
         (
-          this.props.modelMeshes[FACE_TYPES.MOUTH]?.material as MeshPhysicalMaterial
+          this.props.modelMeshes[FACE_TYPES.MOUTH]
+            ?.material as MeshPhysicalMaterial
         ).map?.offset.set(offsets.x, offsets.y);
         (
-          this.props.modelMeshes[FACE_TYPES.MOUTH]?.material as MeshPhysicalMaterial
+          this.props.modelMeshes[FACE_TYPES.MOUTH]
+            ?.material as MeshPhysicalMaterial
         ).needsUpdate = true;
 
         return;
@@ -97,10 +95,12 @@ export class InnequinMouth {
         this.lastViseme = data;
         const offsets = getSpriteCoordFromViseme(Visemes[data]);
         (
-          this.props.modelMeshes[FACE_TYPES.MOUTH]?.material as MeshPhysicalMaterial
+          this.props.modelMeshes[FACE_TYPES.MOUTH]
+            ?.material as MeshPhysicalMaterial
         ).map?.offset.set(offsets.x, offsets.y);
         (
-          this.props.modelMeshes[FACE_TYPES.MOUTH]?.material as MeshPhysicalMaterial
+          this.props.modelMeshes[FACE_TYPES.MOUTH]
+            ?.material as MeshPhysicalMaterial
         ).needsUpdate = true;
       }
     }
@@ -112,10 +112,10 @@ export class InnequinMouth {
     ).map =
       this.props.facialMaterials[
         this.emotion.toLowerCase() +
-        '_' +
-        FACE_TEXTURE_TYPES.VISEMES +
-        '_' +
-        MATERIAL_TYPES.VISEME
+          '_' +
+          FACE_TEXTURE_TYPES.VISEMES +
+          '_' +
+          MATERIAL_TYPES.VISEME
       ]!.getTextureColor()!;
     const offsets = getSpriteCoordFromViseme('sil');
     (
@@ -125,6 +125,4 @@ export class InnequinMouth {
       this.props.modelMeshes[FACE_TYPES.MOUTH]?.material as MeshPhysicalMaterial
     ).needsUpdate = true;
   }
-
-
 }

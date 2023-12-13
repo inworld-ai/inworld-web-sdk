@@ -1,6 +1,5 @@
+import { AdditionalPhonemeInfo } from '@inworld/web-core';
 import { Bone, MathUtils, SkinnedMesh } from 'three';
-
-import { AdditionalPhonemeInfo, EmotionBehaviorCode } from '@inworld/web-core';
 
 import { RPMFacialEmotionMap } from '../utils/RPMFacialEmotionMap';
 import { RPMEyes } from './RPMEyes';
@@ -14,7 +13,6 @@ const MORPH_DURATION = 0.25;
 const LERP_FACTOR = 0.25;
 
 export class RPMFacial {
-
   eye: RPMEyes;
   emotion: string;
   emotionOld: string;
@@ -63,7 +61,6 @@ export class RPMFacial {
   }
 
   updateFrame(delta: number) {
-
     // Facial emotional morphing
     if (this.emotion != this.emotionOld) {
       this.morphTime += delta;
@@ -71,22 +68,25 @@ export class RPMFacial {
       if (RPMFacialEmotionMap[this.emotion]) {
         // Reset old emotion
         if (RPMFacialEmotionMap[this.emotionOld]) {
-          for (const [key, value] of Object.entries(
+          for (const [key, _] of Object.entries(
             RPMFacialEmotionMap[this.emotionOld],
           )) {
             const targetVal = RPMFacialEmotionMap[this.emotion][key] ?? 0;
             const targetIndex = this.getMorphIndex(key);
             if (targetIndex != -1) {
-              this.modelMesh.morphTargetInfluences![targetIndex] = MathUtils.lerp(
-                this.modelMesh.morphTargetInfluences![targetIndex],
-                targetVal * 0.01,
-                LERP_FACTOR,
-              );
+              this.modelMesh.morphTargetInfluences![targetIndex] =
+                MathUtils.lerp(
+                  this.modelMesh.morphTargetInfluences![targetIndex],
+                  targetVal * 0.01,
+                  LERP_FACTOR,
+                );
             }
           }
         }
         // Add new emotion
-        for (const [key, value] of Object.entries(RPMFacialEmotionMap[this.emotion])) {
+        for (const [key, value] of Object.entries(
+          RPMFacialEmotionMap[this.emotion],
+        )) {
           const targetIndex = this.getMorphIndex(key);
           if (targetIndex != -1) {
             this.modelMesh.morphTargetInfluences![targetIndex] = MathUtils.lerp(
@@ -105,6 +105,5 @@ export class RPMFacial {
 
     this.eye.updateFrame(delta);
     this.mouth.updateFrame(delta);
-
   }
 }

@@ -1,3 +1,3 @@
 export interface IFileLoader {
-    load: Function;
+  load: Function;
 }

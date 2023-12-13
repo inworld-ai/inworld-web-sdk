@@ -1,9 +1,12 @@
+import { AdditionalPhonemeInfo } from '@inworld/web-core';
 import { MeshPhysicalMaterial, SkinnedMesh } from 'three';
 
-import { AdditionalPhonemeInfo, EmotionEvent } from '@inworld/web-core';
-
 import { FacialMaterialLoader } from '../../../loaders/FacialMaterialLoader';
-import { EMOTIONS_FACE, FACE_TYPES, MATERIAL_TYPES } from '../../../types/types';
+import {
+  EMOTIONS_FACE,
+  FACE_TYPES,
+  MATERIAL_TYPES,
+} from '../../../types/types';
 import { InnequinEyes } from './InnequinEyes';
 import { InnequinMouth } from './InnequinMouth';
 
@@ -21,14 +24,18 @@ export class InnequinFacial {
 
   constructor(props: InnequinFacialProps) {
     this.props = props;
-    this.eye = new InnequinEyes({ facialMaterials: props.facialMaterials, modelMeshes: props.modelMeshes });
-    this.mouth = new InnequinMouth({ facialMaterials: props.facialMaterials, modelMeshes: props.modelMeshes });
+    this.eye = new InnequinEyes({
+      facialMaterials: props.facialMaterials,
+      modelMeshes: props.modelMeshes,
+    });
+    this.mouth = new InnequinMouth({
+      facialMaterials: props.facialMaterials,
+      modelMeshes: props.modelMeshes,
+    });
     this.init();
   }
 
-  init() {
-
-  }
+  init() {}
 
   setEmotion(emotion: EMOTIONS_FACE) {
     this.emotion = emotion;
@@ -44,10 +51,10 @@ export class InnequinFacial {
       ).map =
         this.props.facialMaterials[
           emotion.toLowerCase() +
-          '_' +
-          valueFaceType +
-          '_' +
-          MATERIAL_TYPES.FEATURE
+            '_' +
+            valueFaceType +
+            '_' +
+            MATERIAL_TYPES.FEATURE
         ]!.getTextureColor()!;
       (
         this.props.modelMeshes[valueFaceType]?.material as MeshPhysicalMaterial
@@ -69,5 +76,4 @@ export class InnequinFacial {
       this.mouth.setPhonemes(phonemes);
     }
   }
-
 }

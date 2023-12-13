@@ -34,7 +34,7 @@ export class BatchFileLoader {
     const progress =
       Math.ceil(
         (this.endProgress - this.startProgress) *
-        ((this.total - this.count) / this.total),
+          ((this.total - this.count) / this.total),
       ) + this.startProgress;
     this.updateProgress(progress);
     if (this.count === 0) {

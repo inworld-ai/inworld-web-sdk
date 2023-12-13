@@ -1,7 +1,12 @@
 import { MeshPhysicalMaterial, SkinnedMesh } from 'three';
 
 import { FacialMaterialLoader } from '../../../loaders/FacialMaterialLoader';
-import { EMOTIONS_FACE, EYE_STATES, FACE_TYPES, MATERIAL_TYPES } from '../../../types/types';
+import {
+  EMOTIONS_FACE,
+  EYE_STATES,
+  FACE_TYPES,
+  MATERIAL_TYPES,
+} from '../../../types/types';
 
 export interface InnequinEyesProps {
   facialMaterials: { [key: string]: FacialMaterialLoader | null };
@@ -17,7 +22,6 @@ function randomInt(min: number, max: number): number {
 }
 
 export class InnequinEyes {
-
   blinkTimerDuration: NodeJS.Timeout;
   blinkTimerInterval: NodeJS.Timeout;
   props: InnequinEyesProps;
@@ -35,10 +39,8 @@ export class InnequinEyes {
   }
 
   destructor() {
-    if (this.blinkTimerInterval)
-      clearTimeout(this.blinkTimerInterval);
-    if (this.blinkTimerDuration)
-      clearTimeout(this.blinkTimerDuration);
+    if (this.blinkTimerInterval) clearTimeout(this.blinkTimerInterval);
+    if (this.blinkTimerDuration) clearTimeout(this.blinkTimerDuration);
   }
 
   setEmotion(emotion: EMOTIONS_FACE) {
@@ -85,17 +87,14 @@ export class InnequinEyes {
     ).map =
       this.props.facialMaterials[
         this.emotion.toLowerCase() +
-        '_' +
-        eyeFaceType +
-        '_' +
-        MATERIAL_TYPES.FEATURE
+          '_' +
+          eyeFaceType +
+          '_' +
+          MATERIAL_TYPES.FEATURE
       ]!.getTextureColor()!;
 
     (
       this.props.modelMeshes[FACE_TYPES.EYE]?.material as MeshPhysicalMaterial
     ).needsUpdate = true;
-
   }
-
-
 }

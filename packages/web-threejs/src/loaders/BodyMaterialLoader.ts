@@ -27,12 +27,10 @@ export class BodyMaterialLoader {
     this.skin = props.skin;
     this.materialType = props.materialType;
     this.textureFileLoaderColor = new TextureFileLoader({
-      fileURI:
-        this._generateFileURI(TEXTURE_TYPES.COLOR),
+      fileURI: this._generateFileURI(TEXTURE_TYPES.COLOR),
     });
     this.textureFileLoaderNormal = new TextureFileLoader({
-      fileURI:
-        this._generateFileURI(TEXTURE_TYPES.NORMAL),
+      fileURI: this._generateFileURI(TEXTURE_TYPES.NORMAL),
     });
     this.onLoad = this.onLoad.bind(this);
   }

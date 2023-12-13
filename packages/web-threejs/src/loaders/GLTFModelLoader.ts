@@ -32,7 +32,7 @@ export class GLTFModelLoader implements IFileLoader {
 
   public getGLTF(): GLTF | undefined {
     if (!this.model) {
-      throw new Error("GLTFModelLoader model not loaded");
+      throw new Error('GLTFModelLoader model not loaded');
     }
     return this.model;
   }
@@ -40,19 +40,12 @@ export class GLTFModelLoader implements IFileLoader {
   public load(callback: Function) {
     // console.log('GLTFModelLoader load')
     this.callback = callback;
-    this.loader.load(
-      this.path,
-      this.onLoad,
-      this.onUpdate,
-      this.onError,
-    );
+    this.loader.load(this.path, this.onLoad, this.onUpdate, this.onError);
   }
 
   private onError(error: ErrorEvent) {
     console.log('GLTFModelLoader onError', error);
-    throw new Error(
-      'Error loading file ' + this.path + ' ' + error,
-    );
+    throw new Error('Error loading file ' + this.path + ' ' + error);
   }
 
   private onLoad(model: GLTF) {
@@ -63,7 +56,7 @@ export class GLTFModelLoader implements IFileLoader {
         node.castShadow = true;
         node.receiveShadow = true;
       }
-    })
+    });
     this.isLoaded = true;
     this.callback!();
   }
@@ -71,5 +64,4 @@ export class GLTFModelLoader implements IFileLoader {
   private onUpdate(event: ProgressEvent) {
     // console.log('GLTFModelLoader onUpdate', event);
   }
-
 }

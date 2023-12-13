@@ -1,9 +1,19 @@
-import { AnimationClip, AnimationMixer, Clock, LoopOnce, Object3D, SkinnedMesh } from 'three';
-
 import { AdditionalPhonemeInfo, EmotionBehaviorCode } from '@inworld/web-core';
+import {
+  AnimationClip,
+  AnimationMixer,
+  Clock,
+  LoopOnce,
+  Object3D,
+  SkinnedMesh,
+} from 'three';
 
 import { FacialMaterialLoader } from '../../loaders/FacialMaterialLoader';
-import { ANIMATION_TYPE, AnimationGesture, EMOTIONS_BODY } from '../../types/types';
+import {
+  ANIMATION_TYPE,
+  AnimationGesture,
+  EMOTIONS_BODY,
+} from '../../types/types';
 import { AnimationType } from '../InnequinConfiguration';
 import { InnequinFacial } from './facial/InnequinFacial';
 import { BehaviorToBody } from './utils/InnequinBehaviorToBody';
@@ -18,14 +28,13 @@ export type InnequinAnimatorProps = {
   facialMaterials: { [key: string]: FacialMaterialLoader | null };
   model: Object3D;
   modelMeshes: { [key: string]: SkinnedMesh | null };
-}
+};
 
 const ANIMATION_FADE_TIME_S = 0.25;
 const ANIMATION_GESTURE_DEBOUNCE_MIN_S = 1;
 const ANIMATION_GESTURE_DEBOUNCE_MAX_S = 2;
 
 export class InnequinAnimator {
-
   animations: { [key: string]: AnimationType };
   animationMixer: AnimationMixer;
   animationName: string;
@@ -86,7 +95,7 @@ export class InnequinAnimator {
         this.playIdle.bind(this),
         (this.props.animationClips[this.animationName]!.duration -
           ANIMATION_FADE_TIME_S) *
-        1000,
+          1000,
       );
       this.isPlaying = true;
     }
@@ -104,9 +113,7 @@ export class InnequinAnimator {
         this.gestureDebounce = 1;
       }
       this.animationMixer
-        .clipAction(
-          this.props.animationClips[this.animationName]!,
-        )
+        .clipAction(this.props.animationClips[this.animationName]!)
         .fadeOut(ANIMATION_FADE_TIME_S);
       const animationKeys: string[] = Object.keys(this.animations);
       const newIndex = animationKeys.findIndex(
@@ -136,9 +143,7 @@ export class InnequinAnimator {
         this.gestureDebounce = 1;
       }
       this.animationMixer
-        .clipAction(
-          this.props.animationClips[this.animationName]!,
-        )
+        .clipAction(this.props.animationClips[this.animationName]!)
         .fadeOut(ANIMATION_FADE_TIME_S);
       const animationKeys: string[] = Object.keys(this.animations);
       const newIndex = animationKeys.findIndex(
@@ -157,7 +162,10 @@ export class InnequinAnimator {
       action.play();
       this.emotionStateOld = this.emotionState;
       this.animationName = animationKeys[newIndex];
-      setTimeout(this.playIdle.bind(this), (durTime - ANIMATION_FADE_TIME_S) * 1000);
+      setTimeout(
+        this.playIdle.bind(this),
+        (durTime - ANIMATION_FADE_TIME_S) * 1000,
+      );
     }
   }
 
@@ -173,14 +181,14 @@ export class InnequinAnimator {
         this.gestureDebounce = 1;
       }
       this.animationMixer
-        .clipAction(
-          this.props.animationClips[this.animationName]!,
-        )
+        .clipAction(this.props.animationClips[this.animationName]!)
         .fadeOut(ANIMATION_FADE_TIME_S);
       const animationKeys: string[] = Object.keys(this.animations);
       const newIndex = animationKeys.findIndex(
         (animation) =>
-          animation.toLowerCase().includes(this.emotionStateOld.toLowerCase()) &&
+          animation
+            .toLowerCase()
+            .includes(this.emotionStateOld.toLowerCase()) &&
           animation.toLowerCase().includes(ANIMATION_TYPE.OUTRO),
       );
       const durTime =
@@ -195,9 +203,15 @@ export class InnequinAnimator {
       this.emotionStateOld = this.emotionState;
       this.animationName = animationKeys[newIndex];
       if (this.emotionState === EMOTIONS_BODY.NEUTRAL) {
-        setTimeout(this.playIdle.bind(this), (durTime - ANIMATION_FADE_TIME_S) * 1000);
+        setTimeout(
+          this.playIdle.bind(this),
+          (durTime - ANIMATION_FADE_TIME_S) * 1000,
+        );
       } else {
-        setTimeout(this.playIntro.bind(this), (durTime - ANIMATION_FADE_TIME_S) * 1000);
+        setTimeout(
+          this.playIntro.bind(this),
+          (durTime - ANIMATION_FADE_TIME_S) * 1000,
+        );
       }
     }
   }
@@ -212,15 +226,13 @@ export class InnequinAnimator {
       this.animationState = ANIMATION_TYPE.GESTURE;
       this.gestureDebounce = Math.floor(
         Math.random() *
-        (ANIMATION_GESTURE_DEBOUNCE_MAX_S -
-          ANIMATION_GESTURE_DEBOUNCE_MIN_S +
-          1) +
-        ANIMATION_GESTURE_DEBOUNCE_MIN_S,
+          (ANIMATION_GESTURE_DEBOUNCE_MAX_S -
+            ANIMATION_GESTURE_DEBOUNCE_MIN_S +
+            1) +
+          ANIMATION_GESTURE_DEBOUNCE_MIN_S,
       );
       this.animationMixer
-        .clipAction(
-          this.props.animationClips[this.animationName]!,
-        )
+        .clipAction(this.props.animationClips[this.animationName]!)
         .fadeOut(ANIMATION_FADE_TIME_S);
       const animationKeys: string[] = Object.keys(this.animations);
       const newIndex = animationKeys.findIndex(
@@ -332,16 +344,18 @@ export class InnequinAnimator {
           this.gesture === '' &&
           this.animationState === ANIMATION_TYPE.IDLE &&
           this.talkingCurrentTime > ANIMATION_FADE_TIME_S &&
-          this.talkingCurrentTime < this.phonemeData[this.phonemeData.length - 1].startOffsetS!
+          this.talkingCurrentTime <
+            this.phonemeData[this.phonemeData.length - 1].startOffsetS!
         ) {
           if (this.gestureDebounce === 0) {
             this.randomGesture(
               this.phonemeData[this.phonemeData.length - 1].startOffsetS! -
-              this.talkingCurrentTime,
+                this.talkingCurrentTime,
             );
           }
         } else if (
-          this.talkingCurrentTime > this.phonemeData[this.phonemeData.length - 1].startOffsetS!
+          this.talkingCurrentTime >
+          this.phonemeData[this.phonemeData.length - 1].startOffsetS!
         ) {
           // Reset data if talking time is over the phoneme length
           this.phonemeData = [];
@@ -366,7 +380,4 @@ export class InnequinAnimator {
       this.playGesture();
     }
   }
-
-
-
 }

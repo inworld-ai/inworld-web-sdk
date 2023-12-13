@@ -1,7 +1,12 @@
 /* eslint-disable */
 import { Texture } from 'three';
 
-import { EMOTIONS_FACE, FACE_TEXTURE_TYPES, MATERIAL_TYPES, TEXTURE_TYPES } from '../types/types';
+import {
+  EMOTIONS_FACE,
+  FACE_TEXTURE_TYPES,
+  MATERIAL_TYPES,
+  TEXTURE_TYPES,
+} from '../types/types';
 import { IFileLoader } from './IFileLoader';
 import { TextureFileLoader } from './TextureFileLoader';
 
@@ -34,8 +39,7 @@ export class FacialMaterialLoader implements IFileLoader {
     this.faceType = props.faceType;
     this.materialType = props.materialType;
     this.textureFileLoaderColor = new TextureFileLoader({
-      fileURI:
-        this._generateFileURI(TEXTURE_TYPES.COLOR),
+      fileURI: this._generateFileURI(TEXTURE_TYPES.COLOR),
     });
     this.onLoad = this.onLoad.bind(this);
   }

@@ -9,7 +9,6 @@ const BLINK_SPEED = 1;
 const BLINK_THRESH = 1000;
 
 export class RPMEyes {
-
   elapsdTime: number;
   modelMesh: SkinnedMesh;
   eyesClosedIndex: number;
@@ -33,14 +32,16 @@ export class RPMEyes {
     if (this.modelMesh) {
       this.elapsdTime += delta;
       let eyeClosedVal = MathUtils.clamp(
-        Math.sin(this.elapsdTime * BLINK_SPEED) * BLINK_THRESH - BLINK_THRESH + 1,
+        Math.sin(this.elapsdTime * BLINK_SPEED) * BLINK_THRESH -
+          BLINK_THRESH +
+          1,
         0,
         1,
       );
       if (this.eyesClosedIndex !== -1) {
-        this.modelMesh.morphTargetInfluences![this.eyesClosedIndex] = eyeClosedVal;
+        this.modelMesh.morphTargetInfluences![this.eyesClosedIndex] =
+          eyeClosedVal;
       }
     }
-
   }
-}  
+}

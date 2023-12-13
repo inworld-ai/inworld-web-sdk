@@ -1,7 +1,6 @@
-import { Object3D, Object3DEventMap, SkinnedMesh } from 'three';
-import { GLTF } from 'three-stdlib';
-
 import { AdditionalPhonemeInfo, EmotionBehaviorCode } from '@inworld/web-core';
+import { Object3D, Object3DEventMap } from 'three';
+import { GLTF } from 'three-stdlib';
 
 import { BatchFileLoader } from '../loaders/BatchFileLoader';
 import { GLTFModelLoader } from '../loaders/GLTFModelLoader';
@@ -16,12 +15,11 @@ export type RPMProps = {
   baseURI: string;
   configURI: string;
   dracoURI: string;
-  onLoad: Function,
-  onProgress: Function,
-}
+  onLoad: Function;
+  onProgress: Function;
+};
 
 export class RPM {
-
   animationLoaders: { [key: string]: JSONAnimationLoader };
   animationsTalking: string[];
   animator: RPMAnimator | null;
@@ -62,7 +60,7 @@ export class RPM {
   }
 
   getModel(): Object3D<Object3DEventMap> {
-    return this.getGLTF().scene.getObjectByName("Armature");
+    return this.getGLTF().scene.getObjectByName('Armature');
   }
 
   getScene() {
@@ -71,20 +69,27 @@ export class RPM {
 
   loadAnimations() {
     for (const animationName in this.config.rpm.animations) {
-      const animation: AnimationType = this.config.rpm.animations[animationName];
+      const animation: AnimationType =
+        this.config.rpm.animations[animationName];
       if (animation.type === ANIMATION_TYPE.TALKING) {
         this.animationsTalking.push(animationName);
       }
-      const fileURI: string = this.baseURI + this.config.rpm.baseURIs.ANIMATIONS_JSON + animation.file;
-      this.animationLoaders[animationName] = new JSONAnimationLoader({ fileURI: fileURI });
+      const fileURI: string =
+        this.baseURI +
+        this.config.rpm.baseURIs.ANIMATIONS_JSON +
+        animation.file;
+      this.animationLoaders[animationName] = new JSONAnimationLoader({
+        fileURI: fileURI,
+      });
     }
     const batchLoader = new BatchFileLoader({
       fileLoaders: this.animationLoaders,
       callback: this.onLoadAnimations,
       startProgress: 33,
       endProgress: 66,
-      updateProgress: this.onLoadProgress
+      updateProgress: this.onLoadProgress,
     });
+    batchLoader;
   }
 
   // Loads the config.json file with the animations, assets and skins character data as well as the global paths to asset files.
@@ -94,13 +99,16 @@ export class RPM {
   }
 
   loadModel() {
-    const fileURI: string = this.baseURI + this.config.rpm.baseURIs.MODELS_BODY + this.config.rpm.defaults.MODEL;
+    const fileURI: string =
+      this.baseURI +
+      this.config.rpm.baseURIs.MODELS_BODY +
+      this.config.rpm.defaults.MODEL;
     this.modelFile = new GLTFModelLoader({ path: fileURI });
     this.modelFile.load(this.onLoadModel);
   }
 
   onLoadAnimations() {
-    console.log("RPM - Animations Loaded.");
+    console.log('RPM - Animations Loaded.');
     this.animator = new RPMAnimator({
       animations: this.animationLoaders,
       animationsTalking: this.animationsTalking,
@@ -113,7 +121,7 @@ export class RPM {
 
   onLoadComplete() {
     this.onLoad(this.config);
-    console.log("RPM - Character Loaded.");
+    console.log('RPM - Character Loaded.');
   }
 
   onLoadConfig(config: RPMConfiguration) {
@@ -150,5 +158,4 @@ export class RPM {
       this.animator.updateFrame(delta);
     }
   }
-
 }

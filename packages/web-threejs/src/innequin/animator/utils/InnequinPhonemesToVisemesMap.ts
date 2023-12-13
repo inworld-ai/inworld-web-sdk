@@ -26,7 +26,9 @@ type _Range<T extends number, R extends unknown[]> = R['length'] extends T
   ? R[number]
   : _Range<T, [R['length'], ...R]>;
 
-export const InnequinPhonemesToVisemesMap: { [phoneme: string]: Range<15> | null } = {
+export const InnequinPhonemesToVisemesMap: {
+  [phoneme: string]: Range<15> | null;
+} = {
   // Consonants
   b: 1,
   d: 4,

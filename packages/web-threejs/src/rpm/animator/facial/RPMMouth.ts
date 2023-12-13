@@ -1,6 +1,5 @@
-import { SkinnedMesh } from 'three';
-
 import { AdditionalPhonemeInfo } from '@inworld/web-core';
+import { SkinnedMesh } from 'three';
 
 import { RPMPhonemDataToViseme } from '../utils/RPMPhonemDataToViseme';
 
@@ -12,7 +11,6 @@ const VISEMES_AMOUNT = 15;
 const VISEME_SIL_USERDATA_NAME = 'viseme_sil';
 
 export class RPMMouth {
-
   modelMesh: SkinnedMesh;
   phonemeData: AdditionalPhonemeInfo[] = [];
   startingIndex: number;
@@ -62,6 +60,5 @@ export class RPMMouth {
         }
       }
     }
-  };
-
+  }
 }

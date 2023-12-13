@@ -33,18 +33,24 @@
     "lint:fix": "yarn run lint:check --fix",
     "prettier:check": "yarn prettier --check \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
     "prettier:format": "yarn prettier --write \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
-    "test": "jest --no-cache --reporters=default",
+    "test": "jest --no-cache --reporters=default --passWithNoTests",
     "get:version": "(node -p \"require('./package.json').version\")",
-    "get:changelog": "cat CHANGELOG.md"
+    "get:changelog": "cat CHANGELOG.md",
+    "docs": "npm run docs:clean && npm run docs:generate",
+    "docs:clean": "npx rimraf docs",
+    "docs:generate": "npx typedoc"
   },
   "devDependencies": {
-    "@types/uuid": "^9.0.0",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "@types/three": "^0.157.0",
+    "@types/uuid": "^9.0.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-markdown": "^3.0.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "rimraf": "^5.0.5",
+    "typedoc": "^0.25.4",
+    "typedoc-theme-hierarchy": "^4.1.2",
     "typescript": "^5.2.2",
     "webpack": "^5.74.0"
   },

@@ -1,10 +1,13 @@
-import { AnimationMixer, LoopPingPong, Mesh, Object3D, SkinnedMesh } from 'three';
-
 import { AdditionalPhonemeInfo, EmotionBehaviorCode } from '@inworld/web-core';
+import {
+  AnimationMixer,
+  LoopPingPong,
+  Mesh,
+  Object3D,
+  SkinnedMesh,
+} from 'three';
 
 import { JSONAnimationLoader } from '../../loaders/JSONAnimationLoader';
-import { JSONFileLoader } from '../../loaders/JSONFileLoader';
-import { EMOTIONS_BODY } from '../../types/types';
 import { RPMFacial } from './facial/RPMFacial';
 import { RPMBehaviorToFacial } from './utils/RPMBehaviorToFacial';
 
@@ -14,14 +17,13 @@ export type RPMAnimatorProps = {
   defaultAnimation: string;
   defaultEmotion: EmotionBehaviorCode;
   model: Object3D;
-}
+};
 
 const ANIMATION_FADE_TIME_S = 0.5;
 const AVATAR_MESH_NAME = 'Wolf3D_Avatar';
 const END_TALKING_DEBOUNCE_TIME_MS = 500;
 
 export class RPMAnimator {
-
   animations: { [key: string]: JSONAnimationLoader };
   animationMixer: AnimationMixer;
   animatorReady: boolean;
@@ -61,7 +63,6 @@ export class RPMAnimator {
     this.facial.setEmotion(RPMBehaviorToFacial[this.props.defaultEmotion]);
     setTimeout(this.startIdleAnimation, END_TALKING_DEBOUNCE_TIME_MS);
     this.animatorReady = true;
-
   }
 
   getTalkingClipName() {
@@ -73,7 +74,10 @@ export class RPMAnimator {
   }
 
   playStill(fadeInTime: number) {
-    if (this.talkingCountDown > 0 || this.lastClipName === this.props.defaultAnimation) {
+    if (
+      this.talkingCountDown > 0 ||
+      this.lastClipName === this.props.defaultAnimation
+    ) {
       return;
     }
     if (this.animationMixer) {
@@ -84,14 +88,18 @@ export class RPMAnimator {
       }
       let clipName = this.props.defaultAnimation;
       if (this.animations[clipName].data) {
-        const durationSeconds = this.animations[clipName].animationClip.duration;
+        const durationSeconds =
+          this.animations[clipName].animationClip.duration;
         this.animationMixer
           .clipAction(this.animations[clipName].animationClip)
           .reset()
           .fadeIn(fadeInTime)
           .play();
         this.lastClipName = clipName;
-        this.idleTimeout = setTimeout(this.startIdleAnimation, durationSeconds * 1000);
+        this.idleTimeout = setTimeout(
+          this.startIdleAnimation,
+          durationSeconds * 1000,
+        );
       }
     }
   }
@@ -141,7 +149,6 @@ export class RPMAnimator {
   }
 
   updateFrame(delta: number) {
-
     this.facial.updateFrame(delta);
 
     if (this.animationMixer instanceof AnimationMixer) {
@@ -156,7 +163,5 @@ export class RPMAnimator {
       this.facial.setEmotion(this.props.defaultEmotion);
       setTimeout(this.startIdleAnimation, END_TALKING_DEBOUNCE_TIME_MS);
     }
-
   }
-
 }

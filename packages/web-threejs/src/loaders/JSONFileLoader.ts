@@ -5,7 +5,6 @@ export interface JSONFileLoaderProps {
 }
 
 export class JSONFileLoader implements IFileLoader {
-
   data: any;
   fileURI: string;
 
@@ -16,13 +15,14 @@ export class JSONFileLoader implements IFileLoader {
   async load(onLoad: Function, onError?: Function) {
     try {
       const file = await fetch(this.fileURI);
-      this.data = await file.json()
+      this.data = await file.json();
       onLoad(this.data);
     } catch (e: unknown) {
       if (onError) {
         onError(e);
-      } else { console.error(e); }
+      } else {
+        console.error(e);
+      }
     }
   }
-
 }

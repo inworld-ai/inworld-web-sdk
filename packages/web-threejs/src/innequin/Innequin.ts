@@ -1,9 +1,13 @@
+import { AdditionalPhonemeInfo, EmotionBehaviorCode } from '@inworld/web-core';
 import {
-  AnimationClip, Group, MeshPhysicalMaterial, Object3D, Object3DEventMap, SkinnedMesh
+  AnimationClip,
+  Group,
+  MeshPhysicalMaterial,
+  Object3D,
+  Object3DEventMap,
+  SkinnedMesh,
 } from 'three';
 import { GLTF } from 'three-stdlib';
-
-import { AdditionalPhonemeInfo, EmotionBehaviorCode, EmotionEvent } from '@inworld/web-core';
 
 import { BatchFileLoader } from '../loaders/BatchFileLoader';
 import { BodyMaterialLoader } from '../loaders/BodyMaterialLoader';
@@ -12,8 +16,14 @@ import { GLTFAnimationLoader } from '../loaders/GLTFAnimationLoader';
 import { GLTFModelLoader } from '../loaders/GLTFModelLoader';
 import { JSONFileLoader } from '../loaders/JSONFileLoader';
 import {
-  ANIMATION_TYPE, AnimationGesture, EMOTIONS_FACE, FACE_TEXTURE_TYPES, MATERIAL_TYPES,
-  MESH_TYPE_ID, MESH_TYPES, SkinType
+  ANIMATION_TYPE,
+  AnimationGesture,
+  EMOTIONS_FACE,
+  FACE_TEXTURE_TYPES,
+  MATERIAL_TYPES,
+  MESH_TYPE_ID,
+  MESH_TYPES,
+  SkinType,
 } from '../types/types';
 import { InnequinAnimator } from './animator/InnequinAnimator';
 import { InnequinAssetController } from './controllers/InnequinAssetController';
@@ -24,14 +34,14 @@ export type InnequinProps = {
   configURI: string;
   dracoURI: string;
   skinName?: string;
-  onLoad: (config: InnequinConfiguration) => void,
-  onProgress: Function,
-}
+  onLoad: (config: InnequinConfiguration) => void;
+  onProgress: Function;
+};
 
 // These variables are constants relating to the names within the 3D files
 // They can update occasionally and eventually these names need to be standarized or
 // the names need to be externally passed in via the config variable.
-export const BODY_MATERIAL_NAME = "T_pose_model_Mannequin_body";
+export const BODY_MATERIAL_NAME = 'T_pose_model_Mannequin_body';
 
 export const MESH_IDS: MESH_TYPE_ID[] = [
   { meshName: 'faceLayer_brows_geo', meshType: MESH_TYPES.BROW },
@@ -45,7 +55,6 @@ export const MESH_IDS: MESH_TYPE_ID[] = [
 ];
 
 export class Innequin {
-
   animator: InnequinAnimator | null;
   animationClips: { [key: string]: AnimationClip };
   animationGestures: AnimationGesture[];
@@ -65,7 +74,6 @@ export class Innequin {
   modelMeshes: { [key: string]: SkinnedMesh };
   bodySkinNameInit: string;
   isSkinLoading: boolean;
-
 
   constructor(props: InnequinProps) {
     this.baseURI = props.baseURI;
@@ -104,7 +112,7 @@ export class Innequin {
   }
 
   getModel(): Object3D<Object3DEventMap> {
-    return this.getScene().getObjectByName("Armature");
+    return this.getScene().getObjectByName('Armature');
   }
 
   getScene(): Group<Object3DEventMap> {
@@ -113,18 +121,25 @@ export class Innequin {
 
   loadAnimations() {
     for (const animationName in this.config.innequin.animations) {
-      const animation: AnimationType = this.config.innequin.animations[animationName];
-      const fileURI: string = this.baseURI + this.config.innequin.baseURIs.MODELS_ANIMATIONS_EMOTIONS + animation.file;
-      this.animationLoaders[animationName] =
-        new GLTFAnimationLoader({ name: animationName, fileURI: fileURI });
+      const animation: AnimationType =
+        this.config.innequin.animations[animationName];
+      const fileURI: string =
+        this.baseURI +
+        this.config.innequin.baseURIs.MODELS_ANIMATIONS_EMOTIONS +
+        animation.file;
+      this.animationLoaders[animationName] = new GLTFAnimationLoader({
+        name: animationName,
+        fileURI: fileURI,
+      });
     }
     const batchLoader = new BatchFileLoader({
       fileLoaders: this.animationLoaders,
       callback: this.onLoadAnimations,
       startProgress: 33,
       endProgress: 66,
-      updateProgress: this.onLoadProgress
+      updateProgress: this.onLoadProgress,
     });
+    batchLoader;
   }
 
   // Loads the config.json file with the animations, assets and skins character data as well as the global paths to asset files.
@@ -134,8 +149,14 @@ export class Innequin {
   }
 
   loadModel() {
-    const fileURI: string = this.baseURI + this.config.innequin.baseURIs.MODELS_BODY + this.config.innequin.defaults.MODEL
-    this.modelFile = new GLTFModelLoader({ path: fileURI, dracoPath: this.dracoURI });
+    const fileURI: string =
+      this.baseURI +
+      this.config.innequin.baseURIs.MODELS_BODY +
+      this.config.innequin.defaults.MODEL;
+    this.modelFile = new GLTFModelLoader({
+      path: fileURI,
+      dracoPath: this.dracoURI,
+    });
     this.modelFile.load(this.onLoadModel);
   }
 
@@ -144,19 +165,22 @@ export class Innequin {
       Object.values(FACE_TEXTURE_TYPES).forEach((valueFaceType) => {
         this.facialMaterialLoaders[
           valueEmotionType.toLowerCase() +
-          '_' +
-          valueFaceType +
-          '_' +
-          (valueFaceType !== FACE_TEXTURE_TYPES.VISEMES
-            ? MATERIAL_TYPES.FEATURE
-            : MATERIAL_TYPES.VISEME)
+            '_' +
+            valueFaceType +
+            '_' +
+            (valueFaceType !== FACE_TEXTURE_TYPES.VISEMES
+              ? MATERIAL_TYPES.FEATURE
+              : MATERIAL_TYPES.VISEME)
         ] = new FacialMaterialLoader({
           emotionType: valueEmotionType,
           faceType: valueFaceType,
-          materialType: valueFaceType !== FACE_TEXTURE_TYPES.VISEMES
-            ? MATERIAL_TYPES.FEATURE
-            : MATERIAL_TYPES.VISEME,
-          baseURI: this.baseURI + this.config.innequin.baseURIs.TEXTURES_FACIAL_EMOTIONS
+          materialType:
+            valueFaceType !== FACE_TEXTURE_TYPES.VISEMES
+              ? MATERIAL_TYPES.FEATURE
+              : MATERIAL_TYPES.VISEME,
+          baseURI:
+            this.baseURI +
+            this.config.innequin.baseURIs.TEXTURES_FACIAL_EMOTIONS,
         });
       });
     });
@@ -165,20 +189,23 @@ export class Innequin {
       callback: this.onLoadVismeMaterials,
       startProgress: 66,
       endProgress: 100,
-      updateProgress: this.onLoadProgress
+      updateProgress: this.onLoadProgress,
     });
+    batchLoader;
   }
 
   onLoadAnimations() {
     console.log('Innequin - Animations Loaded.');
     for (const animationName in this.animationLoaders) {
-      const animation: AnimationType = this.config.innequin.animations[animationName];
+      const animation: AnimationType =
+        this.config.innequin.animations[animationName];
       this.animationClips[this.animationLoaders[animationName]!.name] =
         this.animationLoaders[animationName]!.animationClip!;
       if (animation.type === ANIMATION_TYPE.GESTURE) {
         const animationGesture: AnimationGesture = {
           name: this.animationLoaders[animationName]!.name,
-          duration: this.animationLoaders[animationName]!.animationClip!.duration,
+          duration:
+            this.animationLoaders[animationName]!.animationClip!.duration,
           emotion: animation.emotion,
         };
         this.animationGestures.push(animationGesture);
@@ -190,7 +217,7 @@ export class Innequin {
 
   onLoadComplete() {
     this.onLoad(this.config);
-    console.log("Innequin - Character Loaded.");
+    console.log('Innequin - Character Loaded.');
     this.animator.ready();
   }
 
@@ -212,8 +239,7 @@ export class Innequin {
       }
     });
 
-    if (!skeleton)
-      throw new Error('Innequin - Error skeleton not found');
+    if (!skeleton) throw new Error('Innequin - Error skeleton not found');
 
     skeleton.traverse((child) => {
       //console.log('Skeleton:', child.name);
@@ -226,10 +252,12 @@ export class Innequin {
     });
 
     // Hides all the accessories on the model.
-    InnequinAssetController.updateDisplayList(this.getModel() as SkinnedMesh, this.config.innequin.assets);
+    InnequinAssetController.updateDisplayList(
+      this.getModel() as SkinnedMesh,
+      this.config.innequin.assets,
+    );
 
     this.loadAnimations();
-
   }
 
   onLoadProgress(progress: number) {
@@ -257,9 +285,12 @@ export class Innequin {
       defaultAnimation: this.config.innequin.defaults.INTRO_ANIMATION,
       defaultEmotion: this.config.innequin.defaults.EMOTION,
       model: this.getScene(),
-      modelMeshes: this.modelMeshes
+      modelMeshes: this.modelMeshes,
     });
-    if (this.bodySkinNameInit && this.bodySkinNameInit !== this.config.innequin.defaults.SKIN) {
+    if (
+      this.bodySkinNameInit &&
+      this.bodySkinNameInit !== this.config.innequin.defaults.SKIN
+    ) {
       this.setSkin(this.bodySkinNameInit);
     } else {
       this.onLoadComplete();
@@ -282,7 +313,7 @@ export class Innequin {
     if (this.bodySkinName !== skinName && !this.isSkinLoading) {
       console.log('Innequin - Changing skin to:', skinName);
       this.bodySkinName = skinName;
-      if (!(this.bodySkins[this.bodySkinName])) {
+      if (!this.bodySkins[this.bodySkinName]) {
         console.log('-----> Skin not loaded. Loading...');
         this.isSkinLoading = true;
         const skin: SkinType = this.config.innequin.skins[skinName];
@@ -297,11 +328,8 @@ export class Innequin {
           materialType: MATERIAL_TYPES.BODY,
           baseURI: this.baseURI + this.config.innequin.baseURIs.TEXTURES_BODY,
         });
-        this.bodySkins[this.bodySkinName]?.load(() =>
-          this.onLoadSkin(),
-        );
+        this.bodySkins[this.bodySkinName]?.load(() => this.onLoadSkin());
       } else {
-
         console.log('-----> Skin alreaded loaded.');
         this.updateBodySkin();
       }
@@ -334,16 +362,15 @@ export class Innequin {
   addMesh(mesh: SkinnedMesh, type: MESH_TYPES) {
     if (
       mesh.material &&
-      (mesh.material as MeshPhysicalMaterial).name ===
-      BODY_MATERIAL_NAME
+      (mesh.material as MeshPhysicalMaterial).name === BODY_MATERIAL_NAME
     )
       this.modelMaterials[type] = mesh.material as MeshPhysicalMaterial;
     else {
       mesh.traverse((subMesh) => {
         if (
           (subMesh as SkinnedMesh).material &&
-          ((subMesh as SkinnedMesh).material as MeshPhysicalMaterial)
-            .name === BODY_MATERIAL_NAME
+          ((subMesh as SkinnedMesh).material as MeshPhysicalMaterial).name ===
+            BODY_MATERIAL_NAME
         ) {
           this.modelMaterials[type] = (subMesh as SkinnedMesh)
             .material as MeshPhysicalMaterial;
@@ -352,5 +379,4 @@ export class Innequin {
     }
     this.modelMeshes[type] = mesh;
   }
-
 }

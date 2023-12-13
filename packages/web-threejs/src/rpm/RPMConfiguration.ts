@@ -7,27 +7,27 @@ import { ANIMATION_TYPE, EMOTIONS_BODY } from '../types/types';
 
 export type RPMConfiguration = {
   rpm: RPMType;
-}
+};
 
 export type RPMType = {
   baseURIs: BaseURIsType;
   defaults: DefaultsType;
   animations: { [key: string]: AnimationType };
-}
+};
 
 export type AnimationType = {
   emotion: EMOTIONS_BODY;
   type: ANIMATION_TYPE;
   file: string;
-}
+};
 
 export type BaseURIsType = {
   ANIMATIONS_JSON: string;
   MODELS_BODY: string;
-}
+};
 
 export type DefaultsType = {
   EMOTION: EmotionBehaviorCode;
   IDLE_ANIMATION: string;
   MODEL: string;
-}
+};
