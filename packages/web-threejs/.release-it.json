@@ -15,8 +15,7 @@
       "yarn install",
       "yarn build",
       "yarn lint:check",
-      "yarn prettier:check",
-      "yarn test"
+      "yarn prettier:check"
     ]
   },
   "npm": {

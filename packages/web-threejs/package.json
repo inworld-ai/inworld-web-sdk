@@ -33,7 +33,6 @@
     "lint:fix": "yarn run lint:check --fix",
     "prettier:check": "yarn prettier --check \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
     "prettier:format": "yarn prettier --write \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
-    "test": "jest --no-cache --reporters=default --passWithNoTests",
     "get:version": "(node -p \"require('./package.json').version\")",
     "get:changelog": "cat CHANGELOG.md",
     "docs": "npm run docs:clean && npm run docs:generate",
