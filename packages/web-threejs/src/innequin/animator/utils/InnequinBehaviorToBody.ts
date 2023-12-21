@@ -3,7 +3,7 @@ import { EMOTIONS_BODY } from '../../../types/types';
 // This maps the full list of BehaviorCodes to EMOTIONS_BODY, the ones currently supported for
 // Innequin's body expressions
 
-export const BehaviorToBody: { [key: string]: EMOTIONS_BODY } = {
+export const InnequinBehaviorToBody: { [key: string]: EMOTIONS_BODY } = {
   NEUTRAL: EMOTIONS_BODY.NEUTRAL,
   DISGUST: EMOTIONS_BODY.ANGRY,
   CONTEMPT: EMOTIONS_BODY.ANGRY,

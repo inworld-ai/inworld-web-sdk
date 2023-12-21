@@ -37,7 +37,7 @@ export class BatchFileLoader {
           ((this.total - this.count) / this.total),
       ) + this.startProgress;
     this.updateProgress(progress);
-    if (this.count === 0) {
+    if (this.count <= 0) {
       this.callback();
     }
   }

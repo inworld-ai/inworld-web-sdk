@@ -14,19 +14,19 @@ export type RPMAssetsConfiguration = {
   baseURI: string;
   configURI: string;
   dracoURI: string;
-}
+};
 
 export type InworldConfiguration = {
   characterId: string;
   sceneId: string;
   tokenURL: string;
-}
+};
 
 export type Configuration = {
   camera: CameraConfiguration;
   rpm: RPMAssetsConfiguration;
   inworld: InworldConfiguration;
-}
+};
 
 export const config: Configuration = {
   camera: {
@@ -48,7 +48,8 @@ export const config: Configuration = {
   inworld: {
     characterId: process.env.REACT_APP_INWORLD_CHARACTER_ID!,
     sceneId: process.env.REACT_APP_INWORLD_SCENE_ID!,
-    tokenURL: process.env.REACT_APP_INWORLD_GENERATE_TOKEN_URL || 'http://localhost:4000'
+    tokenURL:
+      process.env.REACT_APP_INWORLD_GENERATE_TOKEN_URL ||
+      'http://localhost:4000',
   },
-
-}
+};

@@ -1,4 +1,4 @@
-import React, { useState, SetStateAction, Dispatch } from "react";
+import React, { Dispatch, SetStateAction, useState } from 'react';
 
 interface SystemContextValues {
   loading: boolean;
@@ -11,10 +11,10 @@ interface SystemContextValues {
   setState: Dispatch<SetStateAction<string>> | null;
 }
 
-const STATE_ERROR: string = "state_error";
-const STATE_INIT: string = "state_init";
-const STATE_PAUSED: string = "state_paused";
-const STATE_RUNNING: string = "state_running";
+const STATE_ERROR: string = 'state_error';
+const STATE_INIT: string = 'state_init';
+const STATE_PAUSED: string = 'state_paused';
+const STATE_RUNNING: string = 'state_running';
 
 const SystemContext = React.createContext<SystemContextValues>({
   loading: false,
@@ -29,7 +29,7 @@ const SystemContext = React.createContext<SystemContextValues>({
 
 const useSystem = () => React.useContext(SystemContext);
 
-function SystemProvider({ children, ...props }: any) {
+function SystemProvider({ children }: any) {
   // console.log("SystemProvider Init");
 
   const [loading, setLoading] = useState(true);
@@ -56,10 +56,10 @@ function SystemProvider({ children, ...props }: any) {
 }
 
 export {
-  SystemProvider,
-  useSystem,
   STATE_ERROR,
   STATE_INIT,
   STATE_PAUSED,
   STATE_RUNNING,
+  SystemProvider,
+  useSystem,
 };

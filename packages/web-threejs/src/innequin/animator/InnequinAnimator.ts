@@ -16,8 +16,8 @@ import {
 } from '../../types/types';
 import { AnimationType } from '../InnequinConfiguration';
 import { InnequinFacial } from './facial/InnequinFacial';
-import { BehaviorToBody } from './utils/InnequinBehaviorToBody';
-import { BehaviorToFacial } from './utils/InnequinBehaviorToFacial';
+import { InnequinBehaviorToBody } from './utils/InnequinBehaviorToBody';
+import { InnequinBehaviorToFacial } from './utils/InnequinBehaviorToFacial';
 
 export type InnequinAnimatorProps = {
   animations: { [key: string]: AnimationType | null };
@@ -66,9 +66,9 @@ export class InnequinAnimator {
     this.animationState = ANIMATION_TYPE.HELLO;
     this.animatorReady = false;
     this.clock = new Clock();
-    this.emotion = BehaviorToBody[props.defaultEmotion];
-    this.emotionState = BehaviorToBody[props.defaultEmotion];
-    this.emotionStateOld = BehaviorToBody[props.defaultEmotion];
+    this.emotion = InnequinBehaviorToBody[props.defaultEmotion];
+    this.emotionState = InnequinBehaviorToBody[props.defaultEmotion];
+    this.emotionStateOld = InnequinBehaviorToBody[props.defaultEmotion];
     this.gesture = '';
     this.gestureOld = '';
     this.facial = new InnequinFacial({ ...this.props });
@@ -78,7 +78,7 @@ export class InnequinAnimator {
   }
 
   init() {
-    this.facial.setEmotion(BehaviorToFacial[this.props.defaultEmotion]);
+    this.facial.setEmotion(InnequinBehaviorToFacial[this.props.defaultEmotion]);
     this.animatorReady = true;
   }
 
@@ -302,8 +302,8 @@ export class InnequinAnimator {
 
   setEmotion(emotion: EmotionBehaviorCode) {
     if (this.animatorReady && emotion) {
-      this.emotionState = BehaviorToBody[emotion];
-      this.facial.setEmotion(BehaviorToFacial[emotion]);
+      this.emotionState = InnequinBehaviorToBody[emotion];
+      this.facial.setEmotion(InnequinBehaviorToFacial[emotion]);
       this.updateEmotion();
     }
   }

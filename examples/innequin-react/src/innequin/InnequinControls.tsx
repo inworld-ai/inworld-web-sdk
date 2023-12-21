@@ -1,7 +1,7 @@
 import { EmotionBehaviorCode } from '@inworld/web-core';
 import {
-  BehaviorToBody,
-  BehaviorToFacial,
+  InnequinBehaviorToBody,
+  InnequinBehaviorToFacial,
   SkinType,
 } from '@inworld/web-threejs';
 import { useControls } from 'leva';
@@ -20,8 +20,8 @@ function InnequinControls(props: InnequinControlsProps) {
     if (props.emotion) {
       set({
         Emotion: props.emotion,
-        'Body Emotion': BehaviorToBody[props.emotion],
-        'Facial Emotion': BehaviorToFacial[props.emotion],
+        'Body Emotion': InnequinBehaviorToBody[props.emotion],
+        'Facial Emotion': InnequinBehaviorToFacial[props.emotion],
       });
     }
   }, [props.emotion]);
@@ -36,10 +36,10 @@ function InnequinControls(props: InnequinControlsProps) {
       value: props.emotionInitial,
     },
     'Body Emotion': {
-      value: BehaviorToBody[props.emotionInitial],
+      value: InnequinBehaviorToBody[props.emotionInitial],
     },
     'Facial Emotion': {
-      value: BehaviorToFacial[props.emotionInitial],
+      value: InnequinBehaviorToFacial[props.emotionInitial],
     },
   }));
 

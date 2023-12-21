@@ -7,6 +7,7 @@ import { GLTFModelLoader } from '../loaders/GLTFModelLoader';
 import { JSONAnimationLoader } from '../loaders/JSONAnimationLoader';
 import { JSONFileLoader } from '../loaders/JSONFileLoader';
 import { ANIMATION_TYPE } from '../types/types';
+import { log } from '../utils/Log';
 import { RPMAnimator } from './animator/RPMAnimator';
 import { RPMBehaviorToFacial } from './animator/utils/RPMBehaviorToFacial';
 import { AnimationType, RPMConfiguration } from './RPMConfiguration';
@@ -49,7 +50,7 @@ export class RPM {
   }
 
   init() {
-    console.log('RPM - Loading Character');
+    log('RPM - Loading Character');
     this.loadConfig();
   }
 
@@ -108,7 +109,7 @@ export class RPM {
   }
 
   onLoadAnimations() {
-    console.log('RPM - Animations Loaded.');
+    log('RPM - Animations Loaded.');
     this.animator = new RPMAnimator({
       animations: this.animationLoaders,
       animationsTalking: this.animationsTalking,
@@ -121,23 +122,23 @@ export class RPM {
 
   onLoadComplete() {
     this.onLoad(this.config);
-    console.log('RPM - Character Loaded.');
+    log('RPM - Character Loaded.');
   }
 
   onLoadConfig(config: RPMConfiguration) {
-    console.log('RPM - Config Loaded.');
+    log('RPM - Config Loaded.');
     this.config = config;
     this.configFile = null;
     this.loadModel();
   }
 
   onLoadModel() {
-    console.log('RPM - Model Loaded.');
+    log('RPM - Model Loaded.');
     this.loadAnimations();
   }
 
   onLoadProgress(progress: number) {
-    // console.log('onLoadProgress', progress);
+    log('-----> Loading Progress:', progress);
     this.onProgress(progress);
   }
 

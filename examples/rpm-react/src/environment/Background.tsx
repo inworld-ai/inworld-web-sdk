@@ -1,9 +1,9 @@
-import { Sky } from "@react-three/drei";
-import { useControls } from "leva";
+import { Sky } from '@react-three/drei';
+import { useControls } from 'leva';
 
 function Background() {
   const directionalCtl = useControls(
-    "Background",
+    'Background',
     {
       visible: true,
       distance: 450000,
@@ -11,7 +11,7 @@ function Background() {
       inclination: 0,
       azimuth: 0.25,
     },
-    { collapsed: true }
+    { collapsed: true },
   );
   return <>{directionalCtl.visible && <Sky {...directionalCtl} />}</>;
 }

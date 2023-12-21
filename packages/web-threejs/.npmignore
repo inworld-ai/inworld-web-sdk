@@ -9,4 +9,5 @@ jest.config.json
 */**/yarn.lock
 */**/package-lock.json
 *.log
+/docs
 EXTENSIONS.md

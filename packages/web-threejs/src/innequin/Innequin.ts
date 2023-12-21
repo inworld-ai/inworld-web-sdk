@@ -25,6 +25,7 @@ import {
   MESH_TYPES,
   SkinType,
 } from '../types/types';
+import { log } from '../utils/Log';
 import { InnequinAnimator } from './animator/InnequinAnimator';
 import { InnequinAssetController } from './controllers/InnequinAssetController';
 import { AnimationType, InnequinConfiguration } from './InnequinConfiguration';
@@ -101,7 +102,7 @@ export class Innequin {
   }
 
   init() {
-    console.log('Innequin - Loading Character');
+    log('Innequin - Loading Character');
     this.loadConfig();
   }
 
@@ -195,7 +196,6 @@ export class Innequin {
   }
 
   onLoadAnimations() {
-    console.log('Innequin - Animations Loaded.');
     for (const animationName in this.animationLoaders) {
       const animation: AnimationType =
         this.config.innequin.animations[animationName];
@@ -211,18 +211,18 @@ export class Innequin {
         this.animationGestures.push(animationGesture);
       }
     }
-    // console.log('Animations Loaded');
+    log('Innequin - Animations Loaded.');
     this.loadVismeMaterials();
   }
 
   onLoadComplete() {
     this.onLoad(this.config);
-    console.log('Innequin - Character Loaded.');
+    log('Innequin - Character Loaded.');
     this.animator.ready();
   }
 
   onLoadConfig(config: InnequinConfiguration) {
-    console.log('Innequin - Config Loaded.');
+    log('Innequin - Config Loaded.');
     this.config = config;
     this.configFile = null;
     this.bodySkinName = this.config.innequin.defaults.SKIN;
@@ -242,7 +242,7 @@ export class Innequin {
     if (!skeleton) throw new Error('Innequin - Error skeleton not found');
 
     skeleton.traverse((child) => {
-      //console.log('Skeleton:', child.name);
+      //log('Skeleton:', child.name);
       for (let i = 0; i < MESH_IDS.length; i++) {
         if (child.name === MESH_IDS[i].meshName) {
           this.addMesh(child as SkinnedMesh, MESH_IDS[i].meshType);
@@ -261,12 +261,12 @@ export class Innequin {
   }
 
   onLoadProgress(progress: number) {
-    // console.log('onLoadProgress', progress);
+    log('-----> Loading Progress:', progress);
     this.onProgress(progress);
   }
 
   onLoadSkin() {
-    console.log('-----> Loading Complete.');
+    log('-----> Loading Complete.');
     this.isSkinLoading = false;
     this.updateBodySkin();
     // If this is the pre-load skin change then load complete after.
@@ -276,7 +276,7 @@ export class Innequin {
   }
 
   onLoadVismeMaterials() {
-    console.log('Innequin - Visemes Textures Loaded.');
+    log('Innequin - Visemes Textures Loaded.');
     this.animator = new InnequinAnimator({
       animations: this.config.innequin.animations,
       animationClips: this.animationClips,
@@ -311,10 +311,10 @@ export class Innequin {
 
   setSkin(skinName: string) {
     if (this.bodySkinName !== skinName && !this.isSkinLoading) {
-      console.log('Innequin - Changing skin to:', skinName);
+      log('Innequin - Changing skin to:', skinName);
       this.bodySkinName = skinName;
       if (!this.bodySkins[this.bodySkinName]) {
-        console.log('-----> Skin not loaded. Loading...');
+        log('-----> Skin not loaded. Loading...');
         this.isSkinLoading = true;
         const skin: SkinType = this.config.innequin.skins[skinName];
         if (!skin) {
@@ -330,7 +330,7 @@ export class Innequin {
         });
         this.bodySkins[this.bodySkinName]?.load(() => this.onLoadSkin());
       } else {
-        console.log('-----> Skin alreaded loaded.');
+        log('-----> Skin alreaded loaded.');
         this.updateBodySkin();
       }
     }

@@ -2,10 +2,6 @@ import { AdditionalPhonemeInfo } from '@inworld/web-core';
 
 import { InnequinPhonemesToVisemesMap } from './InnequinPhonemesToVisemesMap';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const SMOOTH_FACTOR_S = 0.15;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const EXPRESSION_FACTOR = 0.5;
 const LAST_PHONEME_DURATION = 1;
 
 export const getVisemeData = function (
@@ -42,12 +38,8 @@ export const getVisemeData = function (
     }
 
     const currentViseme = InnequinPhonemesToVisemesMap[currentPhoneme] ?? -1;
-    // const visemeLength = nextOffset - currentOffset;
-
-    // let visemeValue = 0;
 
     if (offset > currentOffset && offset < nextOffset) {
-      // console.log('currentPhoneme', offset, currentOffset, nextOffset, currentPhoneme, currentViseme);
       return currentViseme;
     }
 

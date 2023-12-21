@@ -1,11 +1,11 @@
-import "./LoadingScreen.css";
+import './LoadingScreen.css';
 
-import { Container, LinearProgress, Stack, Typography } from "@mui/material";
+import { Container, LinearProgress, Stack, Typography } from '@mui/material';
 
-import { useSystem } from "../contexts/SystemProvider";
+import { useSystem } from '../contexts/SystemProvider';
 
 function LoadingScreen() {
-  const { loading, loadingPercent, loadingPercentTotal } = useSystem();
+  const { loadingPercent, loadingPercentTotal } = useSystem();
 
   return (
     <Container className="containerLoading">

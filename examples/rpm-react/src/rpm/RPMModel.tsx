@@ -1,17 +1,12 @@
-import { useControls } from "leva";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { RPM, RPMConfiguration } from '@inworld/web-threejs';
+import { useFrame } from '@react-three/fiber';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { EmotionBehaviorCode } from "@inworld/web-core";
-import { RPM, RPMConfiguration, SkinType } from "@inworld/web-threejs";
-import { useFrame } from "@react-three/fiber";
-
-import { useInworld } from "../contexts/InworldProvider";
-import { useSystem } from "../contexts/SystemProvider";
-import { config } from "../utils/config";
-import RPMControls from "./RPMControls";
+import { useInworld } from '../contexts/InworldProvider';
+import { useSystem } from '../contexts/SystemProvider';
+import { config } from '../utils/config';
 
 function RPMModel() {
-  const [emotion, setEmotion] = useState<EmotionBehaviorCode>(null!);
   const [isLoaded, setIsLoaded] = useState(false);
 
   const rpmRef = useRef<RPM>(null!);
@@ -31,12 +26,6 @@ function RPMModel() {
   }, [isLoaded]);
 
   useEffect(() => {
-    if (emotionEvent) {
-      setEmotion(emotionEvent.behavior.code);
-    }
-  }, [emotionEvent]);
-
-  useEffect(() => {
     if (isLoaded && emotionEvent) {
       rpmRef.current.setEmotion(emotionEvent.behavior.code);
     }
@@ -50,14 +39,14 @@ function RPMModel() {
 
   const onLoadRPM = useCallback(
     (config: RPMConfiguration) => {
-      console.log("RPMModel:", config);
+      console.log('RPMModel:', config);
       if (rpmRef.current && rpmRef.current.getModel()) {
         rpmRef.current.getModel().position.set(0, 0, 0);
         setIsLoaded(true);
         setLoading!(false);
       }
     },
-    [rpmRef.current]
+    [rpmRef.current],
   );
 
   const onProgressRPM = useCallback(
@@ -65,7 +54,7 @@ function RPMModel() {
       // console.log("Scene onProgressRPM", progress);
       if (setLoadingPercent) setLoadingPercent(progress);
     },
-    [setLoadingPercent]
+    [setLoadingPercent],
   );
 
   useFrame((state, delta) => {
@@ -78,7 +67,6 @@ function RPMModel() {
     <>
       {isLoaded && (
         <>
-          <RPMControls emotion={emotion} />
           <primitive
             object={rpmRef.current.getModel()}
             castShadow

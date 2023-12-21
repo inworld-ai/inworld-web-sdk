@@ -1,60 +1,52 @@
-import {
-  AccumulativeShadows,
-  RandomizedLight,
-  useHelper,
-} from "@react-three/drei";
-import { folder, useControls } from "leva";
-import { memo, useRef } from "react";
-import {
-  DirectionalLight,
-  DirectionalLightHelper,
-  DirectionalLightShadow,
-} from "three";
+import { useHelper } from '@react-three/drei';
+import { folder, useControls } from 'leva';
+import { useRef } from 'react';
+import { DirectionalLight, DirectionalLightHelper } from 'three';
 
 function Lighting() {
   const refDirLight = useRef<DirectionalLight>(null!);
 
   const lightCtl = useControls(
-    "Lighting",
+    'Lighting',
     {
       Ambient: folder({
-        ambientVisible: { value: true, label: "Visible" },
-        ambientIntensity: { value: 1, min: 0, max: 5, label: "Intensity" },
+        ambientVisible: { value: true, label: 'Visible' },
+        ambientIntensity: { value: 1, min: 0, max: 5, label: 'Intensity' },
       }),
       Directional: folder({
-        directionalVisible: { value: true, label: "Visible" },
+        directionalVisible: { value: true, label: 'Visible' },
         directionalPosition: {
           value: {
             x: 10,
             y: 10,
             z: 20,
           },
-          label: "Position",
+          label: 'Position',
         },
         directionalIntensity: {
           value: 1,
           min: 0,
           max: 5,
-          label: "Intensity",
+          label: 'Intensity',
         },
-        directionalCastShadow: { value: true, label: "Cast Shadow" },
+        directionalCastShadow: { value: true, label: 'Cast Shadow' },
         Helper: folder(
           {
-            directionalHelperVisible: { value: false, label: "Visible" },
-            directionalHelperColor: { value: "#f00", label: "Color" },
-            directionalHelperSize: { value: 1, min: 0, max: 5, label: "Size" },
+            directionalHelperVisible: { value: false, label: 'Visible' },
+            directionalHelperColor: { value: '#f00', label: 'Color' },
+            directionalHelperSize: { value: 1, min: 0, max: 5, label: 'Size' },
           },
-          { collapsed: true }
+          { collapsed: true },
         ),
       }),
       Hemisphere: folder({
-        hemisphereVisible: { value: true, label: "Visible" },
-        hemisphereColorA: { value: "#fff", label: "Color A" },
-        hemisphereColorB: { value: "#333", label: "Color B" },
-        hemisphereIntensity: { value: 1, min: 0, max: 5, label: "Intensity" },
+        hemisphereVisible: { value: true, label: 'Visible' },
+        hemisphereColorA: { value: '#fff', label: 'Color A' },
+        hemisphereColorB: { value: '#333', label: 'Color B' },
+        hemisphereIntensity: { value: 1, min: 0, max: 5, label: 'Intensity' },
       }),
     },
-    { collapsed: true }
+    { collapsed: true },
   );
 
   // const spotCtl = useControls("Spot Light", {
@@ -83,7 +75,7 @@ function Lighting() {
     lightCtl.directionalHelperVisible ? refDirLight : false,
     DirectionalLightHelper,
     lightCtl.directionalIntensity,
-    lightCtl.directionalHelperColor
+    lightCtl.directionalHelperColor,
   );
 
   // useHelper(

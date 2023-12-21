@@ -1,4 +1,3 @@
-/* eslint-disable */
 export const RPMFacialEmotionMap: { [key: string]: { [key: string]: number } } =
   {
     Neutral: {},
