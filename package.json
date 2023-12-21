@@ -18,7 +18,7 @@
     "prettier:check": "yarn workspaces run prettier:check",
     "prettier:format": "yarn workspaces run prettier:format",
     "prepare": "husky install",
-    "test": "yarn workspace @web-core test"
+    "test": "yarn workspace web-core run test"
   },
   "devDependencies": {
     "@release-it/keep-a-changelog": "^4.0.0",
