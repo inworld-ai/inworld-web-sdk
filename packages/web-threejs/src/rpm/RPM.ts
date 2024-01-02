@@ -10,7 +10,7 @@ import { ANIMATION_TYPE } from '../types/types';
 import { log } from '../utils/Log';
 import { RPMAnimator } from './animator/RPMAnimator';
 import { RPMBehaviorToFacial } from './animator/utils/RPMBehaviorToFacial';
-import { AnimationType, RPMConfiguration } from './RPMConfiguration';
+import { RPMAnimationType, RPMConfiguration } from './RPMConfiguration';
 
 export type RPMProps = {
   baseURI: string;
@@ -70,7 +70,7 @@ export class RPM {
 
   loadAnimations() {
     for (const animationName in this.config.rpm.animations) {
-      const animation: AnimationType =
+      const animation: RPMAnimationType =
         this.config.rpm.animations[animationName];
       if (animation.type === ANIMATION_TYPE.TALKING) {
         this.animationsTalking.push(animationName);
@@ -106,6 +106,11 @@ export class RPM {
       this.config.rpm.defaults.MODEL;
     this.modelFile = new GLTFModelLoader({ path: fileURI });
     this.modelFile.load(this.onLoadModel);
+  }
+
+  playAnimation(animation: string) {
+    if (this.animationLoaders[animation])
+      this.animator.playAnimation(animation);
   }
 
   onLoadAnimations() {

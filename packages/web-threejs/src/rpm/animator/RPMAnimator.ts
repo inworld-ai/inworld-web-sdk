@@ -73,6 +73,23 @@ export class RPMAnimator {
     ];
   }
 
+  playAnimation(animation: string) {
+    if (this.animationMixer) {
+      if (this.lastClipName) {
+        this.animationMixer
+          .clipAction(this.animations[this.lastClipName].animationClip)
+          .fadeOut(ANIMATION_FADE_TIME_S);
+      }
+      this.animationMixer
+        .clipAction(this.animations[animation].animationClip)
+        .reset()
+        .fadeIn(ANIMATION_FADE_TIME_S)
+        .setLoop(LoopPingPong, 20)
+        .play();
+      this.lastClipName = animation;
+    }
+  }
+
   playStill(fadeInTime: number) {
     if (
       this.talkingCountDown > 0 ||

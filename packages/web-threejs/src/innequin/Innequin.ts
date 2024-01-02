@@ -28,7 +28,10 @@ import {
 import { log } from '../utils/Log';
 import { InnequinAnimator } from './animator/InnequinAnimator';
 import { InnequinAssetController } from './controllers/InnequinAssetController';
-import { AnimationType, InnequinConfiguration } from './InnequinConfiguration';
+import {
+  InnequinAnimationType,
+  InnequinConfiguration,
+} from './InnequinConfiguration';
 
 export type InnequinProps = {
   baseURI: string;
@@ -40,7 +43,7 @@ export type InnequinProps = {
 };
 
 // These variables are constants relating to the names within the 3D files
-// They can update occasionally and eventually these names need to be standarized or
+// They can change occasionally and eventually these names will be standarized or
 // the names need to be externally passed in via the config variable.
 export const BODY_MATERIAL_NAME = 'T_pose_model_Mannequin_body';
 
@@ -122,7 +125,7 @@ export class Innequin {
 
   loadAnimations() {
     for (const animationName in this.config.innequin.animations) {
-      const animation: AnimationType =
+      const animation: InnequinAnimationType =
         this.config.innequin.animations[animationName];
       const fileURI: string =
         this.baseURI +
@@ -195,9 +198,15 @@ export class Innequin {
     batchLoader;
   }
 
+  playAnimation(animation: string) {
+    if (this.animationClips[animation]) {
+      this.animator.playAnimation(animation);
+    }
+  }
+
   onLoadAnimations() {
     for (const animationName in this.animationLoaders) {
-      const animation: AnimationType =
+      const animation: InnequinAnimationType =
         this.config.innequin.animations[animationName];
       this.animationClips[this.animationLoaders[animationName]!.name] =
         this.animationLoaders[animationName]!.animationClip!;
@@ -242,7 +251,6 @@ export class Innequin {
     if (!skeleton) throw new Error('Innequin - Error skeleton not found');
 
     skeleton.traverse((child) => {
-      //log('Skeleton:', child.name);
       for (let i = 0; i < MESH_IDS.length; i++) {
         if (child.name === MESH_IDS[i].meshName) {
           this.addMesh(child as SkinnedMesh, MESH_IDS[i].meshType);

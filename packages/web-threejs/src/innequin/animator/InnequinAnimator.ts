@@ -14,13 +14,14 @@ import {
   AnimationGesture,
   EMOTIONS_BODY,
 } from '../../types/types';
-import { AnimationType } from '../InnequinConfiguration';
+import { log } from '../../utils/Log';
+import { InnequinAnimationType } from '../InnequinConfiguration';
 import { InnequinFacial } from './facial/InnequinFacial';
 import { InnequinBehaviorToBody } from './utils/InnequinBehaviorToBody';
 import { InnequinBehaviorToFacial } from './utils/InnequinBehaviorToFacial';
 
 export type InnequinAnimatorProps = {
-  animations: { [key: string]: AnimationType | null };
+  animations: { [key: string]: InnequinAnimationType | null };
   animationClips: { [key: string]: AnimationClip | null };
   animationGestures: AnimationGesture[];
   defaultAnimation: string;
@@ -35,7 +36,7 @@ const ANIMATION_GESTURE_DEBOUNCE_MIN_S = 1;
 const ANIMATION_GESTURE_DEBOUNCE_MAX_S = 2;
 
 export class InnequinAnimator {
-  animations: { [key: string]: AnimationType };
+  animations: { [key: string]: InnequinAnimationType };
   animationMixer: AnimationMixer;
   animationName: string;
   animatorReady: boolean;
@@ -82,8 +83,14 @@ export class InnequinAnimator {
     this.animatorReady = true;
   }
 
+  playAnimation(animation: string) {
+    // console.log('Animator playAnimation:', animation);
+    this.gesture = animation;
+    this.updateGesture();
+  }
+
   playHello() {
-    console.log('Innequin - Playing Hello', this.animationName);
+    log('Innequin - Playing Hello', this.animationName);
     if (this.animationState === ANIMATION_TYPE.HELLO) {
       let action = this.animationMixer.clipAction(
         this.props.animationClips[this.animationName]!,
@@ -102,7 +109,7 @@ export class InnequinAnimator {
   }
 
   playIdle() {
-    console.log('Innequin - Playing Idle:', this.emotionState);
+    log('Innequin - Playing Idle:', this.emotionState);
     if (
       this.isReady &&
       this.animationMixer &&
@@ -137,7 +144,7 @@ export class InnequinAnimator {
       this.animationMixer &&
       this.animationState !== ANIMATION_TYPE.INTRO
     ) {
-      console.log('Innequin - Playing Intro:', this.emotionState);
+      log('Innequin - Playing Intro:', this.emotionState);
       this.animationState = ANIMATION_TYPE.INTRO;
       if (this.gestureDebounce === 0) {
         this.gestureDebounce = 1;
@@ -175,7 +182,7 @@ export class InnequinAnimator {
       this.animationMixer &&
       this.animationState !== ANIMATION_TYPE.OUTRO
     ) {
-      console.log('Innequin - Playing Outro:', this.emotionState);
+      log('Innequin - Playing Outro:', this.emotionState);
       this.animationState = ANIMATION_TYPE.OUTRO;
       if (this.gestureDebounce === 0) {
         this.gestureDebounce = 1;
@@ -217,7 +224,7 @@ export class InnequinAnimator {
   }
 
   playGesture() {
-    console.log('Innequin - Playing Gesture:', this.gesture);
+    log('Innequin - Playing Gesture:', this.gesture);
     if (
       this.isReady &&
       this.animationMixer &&

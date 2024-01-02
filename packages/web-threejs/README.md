@@ -1,11 +1,10 @@
 # Inworld AI Web SDK | Three.js Module
 
-The **Inworld AI Web SDK | Three.js Module** is a Typescript based module for the [Inworld Web SDK](https://github.com/inworld-ai/inworld-web-sdk) designed to allow you to easily integrate Inworld supported 3D characters into your React, Typescript and Javascript based projects. The goal is to simplify the process of loading and adding a Three.js avatar to your web 3D project.
+The **Inworld AI Web SDK | Three.js Module** is a Node.js/Typescript based module for the [Inworld Web SDK](https://github.com/inworld-ai/inworld-web-sdk) designed to simplify the process of loading and adding an Inworld supported 3D avatar to your Three.js project. Currently the module supports Inworld's mascot Innequin and Ready Player Me avatar characters.
 
-Currently the module supports Inworld's Innequin and Ready Player Me avatar characters.
+Example source assets for the model, animations and *textures ( *Innequin Only ), are downloaded separately in the instructions below.
 
-The source assets for the model, animations and *textures ( *Innequin Only ), are downloaded separately in the instructions below.
-
+We recommend you review our React based [Example Projects](#examples) for both [Innequin](https://github.com/inworld-ai/inworld-web-sdk/tree/main/examples/innequin-react) and [Ready Player Me](https://github.com/inworld-ai/inworld-web-sdk/tree/main/examples/rpm-react), as demostrations of how to integrate the avatars into your own projects.
 <br/>
 
 **Innequin:**
@@ -26,7 +25,7 @@ The source assets for the model, animations and *textures ( *Innequin Only ), ar
 - [Asset Loading Process](#loading)
   - [Innequin](#loading-innequin)
   - [RPM](#loading-rpm)
-- [Example Projects](#examples)
+- [Example Projects](#examples)<a id="examples" name="examples"></a>
   - [Innequin React](https://github.com/inworld-ai/inworld-web-sdk/tree/main/examples/innequin-react)
   - [RPM React](https://github.com/inworld-ai/inworld-web-sdk/tree/main/examples/rpm-react)
 
@@ -34,11 +33,11 @@ The source assets for the model, animations and *textures ( *Innequin Only ), ar
 
 ## Installing the Module <a id="installing" name="installing"></a>
 
-- NPM version `npm install @inworld/inworld-web-sdk`
+The following are NPM and Yarn command line
 
-- Yarn version `yarn add @inworld/inworld-web-sdk`
+- NPM version `npm install @inworld/web-threejs`
 
-- Include the library `import { Innequin } from "@inworld/inworld-web-sdk";`
+- Yarn version `yarn add @inworld/web-threejs`
 
 <br/>
 
@@ -89,7 +88,7 @@ Example asset folder structure:
 
 ## Innequin Asset Loading Process <a id="loading-innequin" name="loading-innequin"></a>
 
-The following diagram explains the loading process of the configuration file and assets for Innequin.
+The following diagram explains the loading process of both the configuration file and 3D asset files for a Innequin avatar.
 
 ![Innequin](./imgs/innequin-loading-flow.png 'Innequin')
 
@@ -97,7 +96,7 @@ The following diagram explains the loading process of the configuration file and
 
 ## Ready Player Me Asset Loading Process <a id="loading-rpm" name="loading-rpm"></a>
 
-The following diagram explains the loading process of the configuration file and assets for RPM.
+The following diagram explains the loading process of both the configuration file and 3D asset files for a Ready Player Me avatar.
 
 ![RPM](./imgs/rpm-loading-flow.png 'RPM')
 

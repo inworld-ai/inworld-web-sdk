@@ -17,12 +17,12 @@ export type InnequinConfiguration = {
 export type InnequinType = {
   baseURIs: BaseURIsType;
   defaults: DefaultsType;
-  animations: { [key: string]: AnimationType };
+  animations: { [key: string]: InnequinAnimationType };
   assets: { [key: string]: AssetType };
   skins: { [key: string]: SkinType };
 };
 
-export type AnimationType = {
+export type InnequinAnimationType = {
   emotion: EMOTIONS_BODY;
   type: ANIMATION_TYPE;
   file: string;

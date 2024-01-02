@@ -12,10 +12,10 @@ export type RPMConfiguration = {
 export type RPMType = {
   baseURIs: BaseURIsType;
   defaults: DefaultsType;
-  animations: { [key: string]: AnimationType };
+  animations: { [key: string]: RPMAnimationType };
 };
 
-export type AnimationType = {
+export type RPMAnimationType = {
   emotion: EMOTIONS_BODY;
   type: ANIMATION_TYPE;
   file: string;

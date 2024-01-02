@@ -80,7 +80,7 @@ The following are the list of Environment Variables this project supports:
 | REACT_APP_INNEQUIN_BASE_URI          | String | The prefix/base URI for every asset file loaded.                                                                                                 | Required                                    |
 | REACT_APP_INNEQUIN_CONFIG_URI        | String | The complete URI to the `config.json` file. Here is a sample config [config.json](https://storage.googleapis.com/innequin-assets/v5/config.json) | Required                                    |
 | REACT_APP_DRACO_COMPRESSION_URI      | String | The URI to the folder containing the Draco Compression.                                                                                          | Required, Default: `/draco-gltf/`           |
-| REACT_APP_DEBUG                      | String | String based boolean to determine if debug information should be outputed.                                                                       | Optional, Default: `true`                   |
+| REACT_APP_DEBUG                      | String | String based boolean to determine if debug information should be outputed.                                                                       | Optional, Default: `false`                  |
 
 ## Innequin Asset Loading Process <a id="loading-innequin" name="loading-innequin"></a>
 
