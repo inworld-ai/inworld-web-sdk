@@ -99,6 +99,7 @@ function App() {
         ? JSONToPreviousDialog(form.continuation.previousDialog!)
         : [];
 
+      console.log('Connecting to Inworld Service');
       const service = new InworldService({
         onHistoryChange,
         capabilities: {
@@ -139,6 +140,7 @@ function App() {
           }
         },
       });
+
       const characters = await service.connection.getCharacters();
       const character = characters.find(
         (c: Character) => c.resourceName === form.character?.name,
@@ -151,6 +153,12 @@ function App() {
         const rpmImageUri = assets?.rpmImageUriPortrait;
         const avatarImg = assets?.avatarImg;
         setAvatar(avatarImg || rpmImageUri || '');
+      } else {
+        console.error(
+          'Character not found in scene. Was it added?:',
+          form.character?.name!,
+        );
+        return;
       }
 
       setConnection(service.connection);

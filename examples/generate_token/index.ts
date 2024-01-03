@@ -74,6 +74,7 @@ const app = express();
 app.use(cors());
 
 app.get('/', async (_, res) => {
+  console.log('Generating session key for:', process.env.INWORLD_SCENE);
   const token = await client.generateSessionToken();
 
   res.setHeader('Content-Type', 'application/json');
