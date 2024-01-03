@@ -1,11 +1,24 @@
-coverage
-build
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Dependencies
 node_modules
+
+# Testing
+coverage
+
+# Production
+build
 .eslintcache
 
-# Development folder for locally hosted assets.
-/examples/chat/public/assets/*
+# Development folder for locally hosted assets
+/examples/*/public/assets/*
+
+# License files are copied into package folder upon building
 /packages/*/LICENSE.md
 
 # Mac filesystem
 **/.DS_Store
+
+# Environment Variable FIle
+.env*
+!.env-sample

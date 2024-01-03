@@ -1,0 +1,29 @@
+{
+  "git": {
+    "commitMessage": "chore: @inworld/web-threejs ${version}",
+    "requireBranch": "main",
+    "tagName": "@inworld/web-threejs@${version}",
+    "tagAnnotation": "@inworld/web-threejs ${version}"
+  },
+  "github": {
+    "release": true,
+    "releaseName": "@inworld/web-threejs ${version}"
+  },
+  "hooks": {
+    "before:init": [
+      "git pull",
+      "yarn install",
+      "yarn build",
+      "yarn lint:check",
+      "yarn prettier:check"
+    ]
+  },
+  "npm": {
+    "publish": false
+  },
+  "plugins": {
+    "@release-it/keep-a-changelog": {
+      "filename": "CHANGELOG.md"
+    }
+  }
+}

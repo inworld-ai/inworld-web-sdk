@@ -15,6 +15,10 @@ jobs:
       - name: Run Web Core build
         uses: ./.github/actions/build_package
         with:
-          package: "@inworld/web-core"
+          package: '@inworld/web-core'
+      - name: Run Web Threejs build
+        uses: ./.github/actions/build_package
+        with:
+          package: '@inworld/web-threejs'
       - name: Run tests
         run: yarn test

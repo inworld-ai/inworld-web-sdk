@@ -1,0 +1,52 @@
+.containerChat {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100vh !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  top: 0;
+  left: 0;
+  position: absolute !important;
+}
+  
+.stackChat {
+  top: calc(100% - 120px);
+  width: 70%;
+  left: 15%;
+  height: 60px;
+  position: relative;
+  z-index: 1000;
+}
+
+.chatTextfield {
+  background-color: rgba(255,255,255,0.3);
+  width: 100%;
+  border-color: white !important;
+  color: white !important;
+}
+
+.chatTextfield:active {
+  border-color: white !important;
+}
+
+.chatTextfield .MuiOutlinedInput-notchedOutline {
+  color: black !important;
+  border-color: white !important;
+}
+
+.chatTextfield .MuiOutlinedInput-notchedOutline:focused {
+  color: black !important;
+  border-color: white !important;
+}
+
+.chatButton {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif !important;
+  border-color: white !important;
+  border-radius: 4px !important;
+  color: white !important;
+  background-color: rgba(83, 83, 83, 0.2) !important;
+}
+
+.chatButton:hover {
+  background-color: rgba(83, 83, 83,0.5) !important;
+}

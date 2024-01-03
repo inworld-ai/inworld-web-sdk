@@ -1,0 +1,17 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPointStrategy": "expand",
+  "entryPoints": [
+    "./src/"
+  ],
+  "out": "docs",
+  "plugin": [
+    "typedoc-theme-hierarchy"
+  ],
+  "theme": "hierarchy",
+  "tsconfig": "./tsconfig.json",
+  "name": "Inworld Web SDK - Three.js Module API",
+  "compilerOptions": {
+    "skipLibCheck": true
+  }
+}

@@ -1,0 +1,13 @@
+coverage
+__tests__
+/src
+/proto
+*/**/node_modules/*
+jest.config.json
+/tsconfig.json
+/.release-it.json
+*/**/yarn.lock
+*/**/package-lock.json
+*.log
+/docs
+EXTENSIONS.md

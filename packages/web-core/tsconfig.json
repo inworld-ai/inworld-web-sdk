@@ -5,7 +5,9 @@
       "dom.iterable",
       "esnext"
     ],
-    "rootDirs": ["src"],
+    "rootDirs": [
+      "src"
+    ],
     "declaration": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -15,7 +17,10 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "target": "es5",
-    "types": ["jest", "node"],
+    "types": [
+      "jest",
+      "node"
+    ],
   },
   "include": [
     "src/**/*",

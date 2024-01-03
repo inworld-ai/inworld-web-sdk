@@ -7,15 +7,16 @@ on:
         type: choice
         description: Select increment
         options:
-        - patch
-        - minor
-        - major
+          - patch
+          - minor
+          - major
 
       package:
         type: choice
         description: Select package
         options:
-        - "@inworld/web-core"
+          - '@inworld/web-core'
+          - '@inworld/web-threejs'
 
 jobs:
   github-release:

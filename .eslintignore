@@ -3,6 +3,7 @@ build
 proto
 node_modules
 .eslintcache
-/examples/chat/public/assets/*
+/examples/*/public/assets/*
+/examples/*/public/draco-gltf/*
 **/draco-gltf/*
-/examples/chat/public/draco-gltf/*
+**/docs/*

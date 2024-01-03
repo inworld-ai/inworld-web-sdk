@@ -1,0 +1,50 @@
+.App {
+    text-align: center;
+  }
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+.mainCanvas {
+  top: 0;
+  left: 0;
+  position: absolute !important;
+}
+
+.mainLabel {
+  padding: 0 !important;
+  margin: 0 !important;
+  bottom: 10px;
+  left: 10px;
+  position: fixed !important;
+  max-width: 100% !important;
+  z-index: 10000;
+}
+
+.mainLabel p {
+  font-family: monospace;
+  color: white;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.stackLabel {
+  vertical-align: bottom;
+  align-items: self-end;
+}
+
+.textLabel {
+  vertical-align: bottom;
+}
