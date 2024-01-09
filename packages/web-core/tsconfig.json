@@ -24,10 +24,23 @@
   },
   "include": [
     "src/**/*",
-    "proto/**/*",
-    "./package.json"
+    "proto/**/*"
   ],
   "exclude": [
     "node_modules"
-  ]
+  ],
+  "tsc-alias": {
+    "verbose": true,
+    "resolveFullPaths": true,
+    "replacers": {
+      "jsonReplacer": {
+        "enabled": true,
+        "file": "./replacers/json.cjs"
+      }
+    },
+    "fileExtensions": {
+      "inputGlob": "{js,jsx,mjs,ts,tsx}",
+      "outputCheck": ["json"]
+    }
+  }
 }

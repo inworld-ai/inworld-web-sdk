@@ -1,8 +1,14 @@
+## [Unreleased]
+
+### Fixed
+
+- Use the JS built file instead of the JSON one to determine the current package version
+
 ## [2.0.1] - 2023-12-01
 
 ### Fixed
 
-- Updated typescript to v6
+- Updated typescript to v5
 
 ## [2.0.0] - 2023-11-29
 
