@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Added
+
+- Add `diff` to the `onHistoryChange` callback as the second parameter
+
 ## [2.0.1] - 2023-12-01
 
 ### Fixed
