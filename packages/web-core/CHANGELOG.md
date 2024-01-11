@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Changed
+
+- Update license information
+
 ## [2.0.1] - 2023-12-01
 
 ### Fixed
