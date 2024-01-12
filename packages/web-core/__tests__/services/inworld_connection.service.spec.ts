@@ -406,6 +406,20 @@ describe('send', () => {
     expect(packet.isCancelResponse()).toEqual(true);
   });
 
+  test('should send narrated action', async () => {
+    const write = jest
+      .spyOn(WebSocketConnection.prototype, 'write')
+      .mockImplementationOnce(writeMock);
+
+    const text = v4();
+
+    const packet = await service.sendNarratedAction(text);
+
+    expect(open).toHaveBeenCalledTimes(0);
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(packet?.narratedAction).toHaveProperty('text', text);
+  });
+
   test('should send tts playback end', async () => {
     const write = jest
       .spyOn(WebSocketConnection.prototype, 'write')

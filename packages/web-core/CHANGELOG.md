@@ -8,6 +8,7 @@
 
 ### Added
 
+- Outgoing narrated actions support
 - Add `diff` to the `onHistoryChange` callback as the second parameter
 
 ### Fixed
