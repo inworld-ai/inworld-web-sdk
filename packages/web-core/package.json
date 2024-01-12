@@ -24,7 +24,7 @@
     "url": "https://github.com/inworld-ai/inworld-web-sdk.git"
   },
   "scripts": {
-    "build": "tsc -p . && shx cp -r ../../LICENSE.md ./",
+    "build": "tsc -p . && shx cp -r ../../LICENSE.md ./ && tsc-alias -p tsconfig.json",
     "release:pack": "yarn build && yarn pack",
     "release:publish": "yarn build && yarn publish",
     "release:bump": "release-it",
@@ -39,7 +39,8 @@
   "devDependencies": {
     "@types/defer-promise": "^1.0.0",
     "@types/js-cookie": "^3.0.2",
-    "@types/uuid": "^9.0.0"
+    "@types/uuid": "^9.0.0",
+    "tsc-alias": "^1.8.8"
   },
   "dependencies": {
     "base64-arraybuffer": "^1.0.2",
