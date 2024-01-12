@@ -43,7 +43,7 @@ export class InworldClient<
   private onMessage: ((message: InworldPacketT) => Awaitable<void>) | undefined;
   private onReady: (() => Awaitable<void>) | undefined;
   private onHistoryChange:
-    | ((history: HistoryItem[]) => Awaitable<void>)
+    | ((history: HistoryItem[], diff: HistoryItem[]) => Awaitable<void>)
     | undefined;
   private onInterruption:
     | ((props: CancelResponses) => Awaitable<void>)
@@ -116,7 +116,9 @@ export class InworldClient<
     return this;
   }
 
-  setOnHistoryChange(fn?: (history: HistoryItemT[]) => Awaitable<void>) {
+  setOnHistoryChange(
+    fn?: (history: HistoryItemT[], diff: HistoryItemT[]) => Awaitable<void>,
+  ) {
     this.onHistoryChange = fn;
 
     return this;

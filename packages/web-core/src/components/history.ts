@@ -167,7 +167,7 @@ export class InworldHistory<
       ];
     }
 
-    return !!historyItem;
+    return [historyItem];
   }
 
   update(packet: InworldPacketT) {
@@ -211,7 +211,7 @@ export class InworldHistory<
           );
         }
 
-        return foundActor;
+        return [foundActor];
       case CHAT_HISTORY_TYPE.INTERACTION_END:
         // Find items in current interaction
         const inCurrentInteraction = this.queue.filter(
@@ -227,9 +227,11 @@ export class InworldHistory<
           this.queue = this.queue.filter(
             (item) => item.id !== inCurrentInteraction[0].id,
           );
+
+          return [inCurrentInteraction[0]];
         }
 
-        return onlyInteractionEnd;
+        return [];
       case CHAT_HISTORY_TYPE.NARRATED_ACTION:
         const byCondition = (item: HistoryItem) =>
           item.type === CHAT_HISTORY_TYPE.NARRATED_ACTION &&
@@ -242,7 +244,7 @@ export class InworldHistory<
           this.queue = this.queue.filter((item) => !byCondition(item));
         }
 
-        return !!foundActions.length;
+        return foundActions;
     }
   }
 

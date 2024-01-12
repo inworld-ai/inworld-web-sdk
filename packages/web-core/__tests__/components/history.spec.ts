@@ -136,7 +136,7 @@ describe('text', () => {
       const item = history.get()[0] as HistoryItemActor;
 
       expect(history.get().length).toEqual(1);
-      expect(item.character.id).toEqual(characters[0].id);
+      expect(item.character!.id).toEqual(characters[0].id);
     });
 
     test('should add packet to queue', () => {
@@ -184,7 +184,7 @@ describe('text', () => {
       const item = history.get()[0] as HistoryItemActor;
 
       expect(history.get().length).toEqual(1);
-      expect(item.character.id).toEqual(characters[0].id);
+      expect(item.character!.id).toEqual(characters[0].id);
     });
   });
 

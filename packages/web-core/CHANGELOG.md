@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Added
+
+- Add `diff` to the `onHistoryChange` callback as the second parameter
+
 ### Fixed
 
 - Use the JS built file instead of the JSON one to determine the current package version
