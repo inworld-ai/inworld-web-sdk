@@ -4,11 +4,19 @@
 
 - Add `diff` to the `onHistoryChange` callback as the second parameter
 
+### Fixed
+
+- Use the JS built file instead of the JSON one to determine the current package version
+
+### Changed
+
+- Update license information
+
 ## [2.0.1] - 2023-12-01
 
 ### Fixed
 
-- Updated typescript to v6
+- Updated typescript to v5
 
 ## [2.0.0] - 2023-11-29
 
