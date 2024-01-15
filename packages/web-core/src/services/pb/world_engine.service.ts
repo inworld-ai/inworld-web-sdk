@@ -1,5 +1,6 @@
 import { v4 } from 'uuid';
 
+import { version } from '../../../package.json';
 import {
   ClientRequest,
   LoadSceneRequest,
@@ -16,8 +17,6 @@ import { SessionContinuation } from '../../entities/continuation/session_continu
 import { InworldPacket } from '../../entities/inworld_packet.entity';
 import { SessionToken } from '../../entities/session_token.entity';
 import { PbService } from './pb.service';
-
-const { version } = require('../../../package.json');
 
 const INWORLD_USER_ID = 'inworldUserId';
 
