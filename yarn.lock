@@ -358,6 +358,15 @@
   resolved "https://registry.yarnpkg.com/@iarna/toml/-/toml-2.2.5.tgz#b32366c89b43c6f8cefbdefac778b9c828e3ba8c"
   integrity sha512-trnsAYxU3xnS1gPHPyU961coFyLkh4gAD/0zQ5mymY4yOZ+CYvsPqUbOFSw0aDM4y0tV7tiFxL/1XfXPNC6IPg==
 
+"@inworld/web-core@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@inworld/web-core/-/web-core-2.0.1.tgz#0dba2f5d2e8f63f8b725fec06835c302e7521990"
+  integrity sha512-l16S3Wgj5QDx1pVn0lhv0hM4iyJ04MvRI5taTdWDR9187MQ22mJoiJ/iCfKKX7czZn4+hVGuFOdaACeWEyqgCg==
+  dependencies:
+    base64-arraybuffer "^1.0.2"
+    defer-promise "^3.0.0"
+    uuid "^9.0.0"
+
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
   resolved "https://registry.yarnpkg.com/@isaacs/cliui/-/cliui-8.0.2.tgz#b37667b7bc181c168782259bab42474fbf52b550"
