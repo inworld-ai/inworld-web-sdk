@@ -15,7 +15,7 @@ exports.default = ({ orig }) => {
     if (!created) {
       fs.writeFileSync(
         path.join(__dirname, '..', 'build', newName),
-        `module.exports = ${JSON.stringify({ version: data.version })};`,
+        `export const version = "${data.version}";`,
       );
 
       created = true;

@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+
+- Fix esm package building
+
 ## [2.1.0] - 2024-01-13
 
 ### Added
