@@ -110,7 +110,6 @@ export class InworldHistory<
     const id = packet.routing.source.isCharacter
       ? packet.routing.source.name
       : packet.routing.target.name;
-
     const character = characters.find((x) => x.id === id);
 
     if (packet.isEmotion()) {
