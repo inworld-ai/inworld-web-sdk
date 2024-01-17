@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Added
+
+- Outgoing narrated actions support
+
 ## [2.1.1] - 2024-01-15
 
 ### Fixed
@@ -8,7 +14,6 @@
 
 ### Added
 
-- Outgoing narrated actions support
 - Add `diff` to the `onHistoryChange` callback as the second parameter
 
 ### Fixed
