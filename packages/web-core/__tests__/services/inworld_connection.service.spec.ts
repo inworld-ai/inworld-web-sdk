@@ -1,6 +1,5 @@
 import '../mocks/window.mock';
 
-import { WorldEngineService } from '@inworld/web-core/src/services/pb/world_engine.service';
 import { v4 } from 'uuid';
 
 import { DataChunkDataType } from '../../proto/ai/inworld/packets/packets.pb';
@@ -22,6 +21,7 @@ import {
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
 import { InworldConnectionService } from '../../src/services/inworld_connection.service';
+import { WorldEngineService } from '../../src/services/pb/world_engine.service';
 import { ExtendedInworldPacket } from '../data_structures';
 import {
   convertAgentsToCharacters,
