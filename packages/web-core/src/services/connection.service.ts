@@ -167,7 +167,7 @@ export class ConnectionService<
   }
 
   getTranscript() {
-    return this.history.getTranscript(this.connectionProps.user);
+    return this.history.getTranscript();
   }
 
   async getCharactersList() {
@@ -236,7 +236,7 @@ export class ConnectionService<
     }
   }
 
-  private async loadCharactersList() {
+  private loadCharactersList() {
     this.characters = (this.scene?.agents || [])?.map(
       (agent: LoadSceneResponseAgent) =>
         new Character({
@@ -327,11 +327,11 @@ export class ConnectionService<
           client,
         });
 
-        if (this.connectionProps?.config.history?.previousState) {
+        if (this.connectionProps?.config?.history?.previousState) {
           this.setPreviousState(this.scene?.previousState);
         }
 
-        await this.loadCharactersList();
+        this.loadCharactersList();
       }
 
       if (

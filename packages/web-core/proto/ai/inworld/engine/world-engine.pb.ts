@@ -153,6 +153,7 @@ export type PreviousStateStateHolder = {
 
 export type PreviousState = {
   stateHolders?: PreviousStateStateHolder[]
+  gameSessionId?: string
 }
 
 export type LoadSceneResponseAgentCharacterAssets = {

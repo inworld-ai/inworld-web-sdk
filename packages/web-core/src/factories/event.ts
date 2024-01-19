@@ -102,6 +102,17 @@ export class EventFactory {
     };
   }
 
+  narratedAction(content: string): ProtoPacket {
+    return {
+      ...this.baseProtoPacket({ correlationId: true }),
+      action: {
+        narratedAction: {
+          content,
+        },
+      },
+    };
+  }
+
   baseProtoPacket({
     utteranceId = true,
     interactionId = true,

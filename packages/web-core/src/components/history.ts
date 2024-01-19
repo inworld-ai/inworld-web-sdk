@@ -72,12 +72,14 @@ interface EmotionsMap {
 
 interface InworldHistoryProps<InworldPacketT, HistoryItemT> {
   extension?: Extension<InworldPacketT, HistoryItemT>;
+  user?: User;
 }
 
 export class InworldHistory<
   InworldPacketT extends InworldPacket = InworldPacket,
   HistoryItemT extends HistoryItem = HistoryItem,
 > {
+  private user?: User;
   private history: HistoryItem[] = [];
   private queue: HistoryItem[] = [];
   private emotions: EmotionsMap = {};
@@ -86,6 +88,10 @@ export class InworldHistory<
   constructor(props?: InworldHistoryProps<InworldPacketT, HistoryItemT>) {
     if (props?.extension) {
       this.extension = props.extension;
+    }
+
+    if (props?.user) {
+      this.user = props.user;
     }
   }
 
@@ -120,10 +126,11 @@ export class InworldHistory<
         historyItem = actorItem;
       }
     } else if (packet.isNarratedAction()) {
-      const actionItem = {
-        ...this.combineNarratedActionItem(packet),
+      const actionItem = this.combineNarratedActionItem(
+        packet,
         character,
-      };
+        this.user,
+      );
 
       if (
         grpcAudioPlayer.isCurrentPacket({ interactionId }) ||
@@ -270,12 +277,10 @@ export class InworldHistory<
     this.history = [];
   }
 
-  getTranscript(user?: User): string {
+  getTranscript(): string {
     if (!this.history.length) {
       return '';
     }
-
-    const userName = user?.fullName || DEFAULT_USER_NAME;
 
     let transcript = '';
     let characterLastSpeaking = false;
@@ -286,7 +291,9 @@ export class InworldHistory<
         case CHAT_HISTORY_TYPE.ACTOR:
         case CHAT_HISTORY_TYPE.NARRATED_ACTION:
           const isCharacter = item.source.isCharacter;
-          const givenName = isCharacter ? item.character.displayName : userName;
+          const givenName = isCharacter
+            ? item.character.displayName
+            : this.getUserName(this.user);
           const emotionCode =
             this.emotions[item.interactionId]?.behavior?.code || '';
           const emotion = emotionCode ? `(${emotionCode}) ` : '';
@@ -311,6 +318,10 @@ export class InworldHistory<
     return transcript;
   }
 
+  private getUserName(user?: User) {
+    return user?.fullName || DEFAULT_USER_NAME;
+  }
+
   private combineTextItem(packet: InworldPacketT): HistoryItemActor {
     const date = new Date(packet.date);
     const source = packet.routing.source;
@@ -332,9 +343,16 @@ export class InworldHistory<
 
   private combineNarratedActionItem(
     packet: InworldPacketT,
+    character: Character,
+    user?: User,
   ): HistoryItemNarratedAction {
     const date = new Date(packet.date);
     const interactionId = packet.packetId.interactionId;
+    const text = packet.routing.source.isPlayer
+      ? packet.narratedAction.text
+          .replaceAll('{character}', character.displayName)
+          .replaceAll('{player}', this.getUserName(user))
+      : packet.narratedAction.text;
 
     return {
       id: v4(),
@@ -342,7 +360,7 @@ export class InworldHistory<
       interactionId,
       source: packet.routing.source,
       type: CHAT_HISTORY_TYPE.NARRATED_ACTION,
-      text: packet.narratedAction.text,
+      text,
     };
   }
 

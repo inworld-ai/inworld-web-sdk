@@ -111,6 +111,7 @@ export type Actor = {
 export type Routing = {
   source?: Actor
   target?: Actor
+  targets?: Actor[]
 }
 
 export type PacketId = {
