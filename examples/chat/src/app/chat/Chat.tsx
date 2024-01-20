@@ -47,7 +47,8 @@ export function Chat(props: ChatProps) {
   const [narration, setNarration] = useState('');
   const [confirmText, setConfirmText] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [narratedActionDialogOpen, setNarratedActionDialogOpen] = useState(false);
+  const [narratedActionDialogOpen, setNarratedActionDialogOpen] =
+    useState(false);
   const [recorderdingStatus, setRecorderdingStatus] = useState(
     RECORDING_STATUS.STOPPED,
   );
