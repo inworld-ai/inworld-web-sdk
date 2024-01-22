@@ -1,6 +1,6 @@
 {
   "name": "@inworld/web-core",
-  "version": "2.0.1",
+  "version": "2.2.0",
   "license": "SEE LICENSE IN LICENSE.md",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
@@ -24,7 +24,7 @@
     "url": "https://github.com/inworld-ai/inworld-web-sdk.git"
   },
   "scripts": {
-    "build": "tsc -p . && shx cp -r ../../LICENSE.md ./",
+    "build": "tsc -p . && shx cp -r ../../LICENSE.md ./ && tsc-alias -p tsconfig.json",
     "release:pack": "yarn build && yarn pack",
     "release:publish": "yarn build && yarn publish",
     "release:bump": "release-it",
@@ -33,13 +33,13 @@
     "prettier:check": "yarn prettier --check \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
     "prettier:format": "yarn prettier --write \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
     "test": "jest --no-cache --reporters=default",
-    "get:version": "(node -p \"require('./package.json').version\")",
-    "get:changelog": "cat CHANGELOG.md"
+    "test:coverage": "jest --coverage"
   },
   "devDependencies": {
     "@types/defer-promise": "^1.0.0",
     "@types/js-cookie": "^3.0.2",
-    "@types/uuid": "^9.0.0"
+    "@types/uuid": "^9.0.0",
+    "tsc-alias": "^1.8.8"
   },
   "dependencies": {
     "base64-arraybuffer": "^1.0.2",

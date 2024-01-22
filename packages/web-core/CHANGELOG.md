@@ -1,8 +1,34 @@
+## [2.2.0] - 2024-01-20
+
+### Added
+
+- Outgoing narrated actions support
+
+## [2.1.1] - 2024-01-15
+
+### Fixed
+
+- Fix esm package building
+
+## [2.1.0] - 2024-01-13
+
+### Added
+
+- Add `diff` to the `onHistoryChange` callback as the second parameter
+
+### Fixed
+
+- Use the JS built file instead of the JSON one to determine the current package version
+
+### Changed
+
+- Update license information
+
 ## [2.0.1] - 2023-12-01
 
 ### Fixed
 
-- Updated typescript to v6
+- Updated typescript to v5
 
 ## [2.0.0] - 2023-11-29
 

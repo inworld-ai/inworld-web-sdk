@@ -440,8 +440,11 @@ describe('open manually', () => {
       onError,
       onMessage,
       onDisconnect,
-      onHistoryChange: (history: HistoryItem[]) => {
-        expect(history).toEqual([convertPacketFromProto(incomingTextEvent)]);
+      onHistoryChange: (history: HistoryItem[], diff: HistoryItem[]) => {
+        const result = [convertPacketFromProto(incomingTextEvent)];
+
+        expect(diff).toEqual(result);
+        expect(history).toEqual(result);
       },
       grpcAudioPlayer,
       generateSessionToken,
@@ -592,7 +595,7 @@ describe('send', () => {
         InworldPacket.fromProto({
           ...audioEvent,
           packetId: {
-            packetId: audioEvent.packetId.packetId,
+            packetId: audioEvent.packetId!.packetId,
             interactionId,
             utteranceId,
           },
@@ -807,7 +810,10 @@ describe('onMessage', () => {
       .mockImplementationOnce(() => Promise.resolve(scene));
     jest
       .spyOn(InworldHistory.prototype, 'display')
-      .mockImplementationOnce(() => true);
+      .mockImplementationOnce(() => [{} as HistoryItem, {} as HistoryItem]);
+    jest
+      .spyOn(InworldHistory.prototype, 'addOrUpdate')
+      .mockImplementationOnce(() => []);
 
     await connection.open();
 

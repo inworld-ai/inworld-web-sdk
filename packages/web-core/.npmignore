@@ -2,6 +2,7 @@ coverage
 __tests__
 /src
 /proto
+/replacers
 */**/node_modules/*
 jest.config.json
 /tsconfig.json

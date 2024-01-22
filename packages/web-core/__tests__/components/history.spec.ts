@@ -2,7 +2,7 @@ import '../mocks/window.mock';
 
 import { v4 } from 'uuid';
 
-import { Extension } from '../../src/common/data_structures';
+import { Extension, User } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
 import {
   CHAT_HISTORY_TYPE,
@@ -107,8 +107,12 @@ const incomingTextPacket = new InworldPacket({
 const createHistoryWithPacket = (
   packet: InworldPacket,
   extension?: Extension<InworldPacket, ExtendedHistoryItem>,
+  user?: User,
 ) => {
-  const history = new InworldHistory(extension ? { extension } : undefined);
+  const history = new InworldHistory({
+    ...(extension && { extension }),
+    user,
+  });
 
   history.addOrUpdate({ characters, grpcAudioPlayer, packet });
 
@@ -136,7 +140,7 @@ describe('text', () => {
       const item = history.get()[0] as HistoryItemActor;
 
       expect(history.get().length).toEqual(1);
-      expect(item.character.id).toEqual(characters[0].id);
+      expect(item.character!.id).toEqual(characters[0].id);
     });
 
     test('should add packet to queue', () => {
@@ -184,7 +188,7 @@ describe('text', () => {
       const item = history.get()[0] as HistoryItemActor;
 
       expect(history.get().length).toEqual(1);
-      expect(item.character.id).toEqual(characters[0].id);
+      expect(item.character!.id).toEqual(characters[0].id);
     });
   });
 
@@ -351,7 +355,7 @@ describe('text', () => {
 
     describe('text', () => {
       test('should return transcript for provided user name', () => {
-        const history = createHistoryWithPacket(textPacket);
+        const history = createHistoryWithPacket(textPacket, undefined, user);
 
         history.addOrUpdate({
           characters,
@@ -360,7 +364,7 @@ describe('text', () => {
         });
 
         const expected = `${user.fullName}: ${textPacket.text.text}\n${characters[0].displayName}: ${incomingTextPacket.text.text}`;
-        const transcript = history.getTranscript(user);
+        const transcript = history.getTranscript();
 
         expect(transcript).toEqual(expected);
       });

@@ -7,8 +7,6 @@
  - `release:pack`,
  - `release:publish`,
  - `release:bump`,
- - `get:version`,
- - `get:changelog`,
  - `lint:lint`,
  - `lint:check`,
  - `prettier:check`,

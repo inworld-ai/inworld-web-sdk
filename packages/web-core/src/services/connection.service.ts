@@ -51,7 +51,10 @@ interface ConnectionProps<InworldPacketT, HistoryItemT> {
   onMessage?: (packet: InworldPacketT) => Awaitable<void>;
   onDisconnect?: () => Awaitable<void>;
   onInterruption?: (props: CancelResponsesProps) => Awaitable<void>;
-  onHistoryChange?: (history: HistoryItem[]) => Awaitable<void>;
+  onHistoryChange?: (
+    history: HistoryItem[],
+    diff: HistoryItem[],
+  ) => Awaitable<void>;
   grpcAudioPlayer: GrpcAudioPlayback;
   webRtcLoopbackBiDiSession: GrpcWebRtcLoopbackBiDiSession;
   generateSessionToken: GenerateSessionTokenFn;
@@ -164,7 +167,7 @@ export class ConnectionService<
   }
 
   getTranscript() {
-    return this.history.getTranscript(this.connectionProps.user);
+    return this.history.getTranscript();
   }
 
   async getCharactersList() {
@@ -233,7 +236,7 @@ export class ConnectionService<
     }
   }
 
-  private async loadCharactersList() {
+  private loadCharactersList() {
     this.characters = (this.scene?.agents || [])?.map(
       (agent: LoadSceneResponseAgent) =>
         new Character({
@@ -324,11 +327,11 @@ export class ConnectionService<
           client,
         });
 
-        if (this.connectionProps?.config.history?.previousState) {
+        if (this.connectionProps?.config?.history?.previousState) {
           this.setPreviousState(this.scene?.previousState);
         }
 
-        await this.loadCharactersList();
+        this.loadCharactersList();
       }
 
       if (
@@ -375,7 +378,6 @@ export class ConnectionService<
 
   private setPreviousState(previousState: PreviousState) {
     const { stateHolders = [] } = previousState || {};
-
     stateHolders.forEach((stateHolder) => {
       stateHolder.packets?.forEach((packet) =>
         this.history.addOrUpdate({
@@ -384,11 +386,13 @@ export class ConnectionService<
           packet: this.extension.convertPacketFromProto(packet),
         }),
       );
-
-      if (stateHolders.length) {
-        this.connectionProps.onHistoryChange?.(this.getHistory());
-      }
     });
+
+    const changed = this.history.get();
+
+    if (changed.length) {
+      this.connectionProps.onHistoryChange?.(changed, changed);
+    }
   }
 
   private cancelScheduler() {
@@ -556,8 +560,8 @@ export class ConnectionService<
       packet,
     });
 
-    if (changed) {
-      this.connectionProps.onHistoryChange?.(this.getHistory());
+    if (changed.length) {
+      this.connectionProps.onHistoryChange?.(this.getHistory(), changed);
     }
   }
 
@@ -570,8 +574,8 @@ export class ConnectionService<
   ) {
     const changed = this.history.display(packet, type);
 
-    if (changed) {
-      this.connectionProps.onHistoryChange?.(this.getHistory());
+    if (changed.length) {
+      this.connectionProps.onHistoryChange?.(this.getHistory(), changed);
     }
   }
 

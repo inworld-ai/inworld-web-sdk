@@ -21,9 +21,11 @@ import {
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
 import { InworldConnectionService } from '../../src/services/inworld_connection.service';
+import { WorldEngineService } from '../../src/services/pb/world_engine.service';
 import { ExtendedInworldPacket } from '../data_structures';
 import {
-  createCharacter,
+  convertAgentsToCharacters,
+  createAgent,
   extension,
   generateSessionToken,
   getPacketId,
@@ -32,7 +34,8 @@ import {
   writeMock,
 } from '../helpers';
 
-const characters = [createCharacter(), createCharacter()];
+const agents = [createAgent(), createAgent()];
+const characters = convertAgentsToCharacters(agents);
 const eventFactory = new EventFactory();
 const grpcAudioPlayer = new GrpcAudioPlayback();
 const grpcAudioRecorder = new GrpcAudioRecorder();
@@ -120,54 +123,6 @@ test('should get session state', async () => {
   await service.getSessionState();
 
   expect(getSessionState).toHaveBeenCalledTimes(1);
-});
-
-describe('character', () => {
-  let service: InworldConnectionService;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-
-    jest
-      .spyOn(ConnectionService.prototype, 'getCharactersList')
-      .mockImplementation(() => Promise.resolve(characters));
-    jest
-      .spyOn(ConnectionService.prototype, 'getEventFactory')
-      .mockImplementation(() => eventFactory);
-
-    service = new InworldConnectionService({
-      connection,
-      grpcAudioPlayer,
-      grpcAudioRecorder,
-      webRtcLoopbackBiDiSession,
-    });
-  });
-
-  test('should return characters', async () => {
-    const result = await service.getCharacters();
-
-    expect(result).toEqual(characters);
-  });
-
-  test('should return current character', async () => {
-    const getCurrentCharacter = jest
-      .spyOn(eventFactory, 'getCurrentCharacter')
-      .mockImplementationOnce(() => characters[0]);
-
-    const result = await service.getCurrentCharacter();
-
-    expect(result).toEqual(characters[0]);
-    expect(getCurrentCharacter).toHaveBeenCalledTimes(1);
-  });
-
-  test('should set current character', async () => {
-    const setCurrentCharacter = jest.spyOn(eventFactory, 'setCurrentCharacter');
-
-    service.setCurrentCharacter(characters[0]);
-
-    expect(setCurrentCharacter).toHaveBeenCalledTimes(1);
-    expect(setCurrentCharacter).toHaveBeenCalledWith(characters[0]);
-  });
 });
 
 describe('history', () => {
@@ -406,6 +361,26 @@ describe('send', () => {
     expect(packet.isCancelResponse()).toEqual(true);
   });
 
+  test('should send narrated action', async () => {
+    jest
+      .spyOn(WorldEngineService.prototype, 'loadScene')
+      .mockImplementationOnce(() => Promise.resolve({ agents }));
+    const write = jest
+      .spyOn(WebSocketConnection.prototype, 'write')
+      .mockImplementationOnce(writeMock);
+
+    const text = v4();
+
+    // Initialize characters
+    await service.getCharacters();
+
+    const packet = await service.sendNarratedAction(text);
+
+    expect(open).toHaveBeenCalledTimes(0);
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(packet?.narratedAction).toHaveProperty('text', text);
+  });
+
   test('should send tts playback end', async () => {
     const write = jest
       .spyOn(WebSocketConnection.prototype, 'write')
@@ -504,6 +479,54 @@ describe('send', () => {
     expect(open).toHaveBeenCalledTimes(0);
     expect(write).toHaveBeenCalledTimes(1);
     expect(packet).toHaveProperty('mutation', mutation);
+  });
+});
+
+describe('character', () => {
+  let service: InworldConnectionService;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    jest
+      .spyOn(ConnectionService.prototype, 'getCharactersList')
+      .mockImplementationOnce(() => Promise.resolve(characters));
+    jest
+      .spyOn(ConnectionService.prototype, 'getEventFactory')
+      .mockImplementationOnce(() => eventFactory);
+
+    service = new InworldConnectionService({
+      connection,
+      grpcAudioPlayer,
+      grpcAudioRecorder,
+      webRtcLoopbackBiDiSession,
+    });
+  });
+
+  test('should return characters', async () => {
+    const result = await service.getCharacters();
+
+    expect(result).toEqual(characters);
+  });
+
+  test('should return current character', async () => {
+    const getCurrentCharacter = jest
+      .spyOn(eventFactory, 'getCurrentCharacter')
+      .mockImplementationOnce(() => characters[0]);
+
+    const result = await service.getCurrentCharacter();
+
+    expect(result).toEqual(characters[0]);
+    expect(getCurrentCharacter).toHaveBeenCalledTimes(1);
+  });
+
+  test('should set current character', async () => {
+    const setCurrentCharacter = jest.spyOn(eventFactory, 'setCurrentCharacter');
+
+    service.setCurrentCharacter(characters[0]);
+
+    expect(setCurrentCharacter).toHaveBeenCalledTimes(1);
+    expect(setCurrentCharacter).toHaveBeenCalledWith(characters[0]);
   });
 });
 

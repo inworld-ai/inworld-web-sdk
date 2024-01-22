@@ -207,6 +207,20 @@ describe('event types', () => {
     expect(event.packetId).toHaveProperty('correlationId');
   });
 
+  test('should generate narrated action event', () => {
+    const text = v4();
+    const event = factory.narratedAction(text);
+
+    expect(event).toHaveProperty('routing');
+    expect(event).toHaveProperty('timestamp');
+    expect(event.action?.narratedAction?.content).toEqual(text);
+    expect(event.routing.target.name).toEqual(character.id);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId).toHaveProperty('interactionId');
+    expect(event.packetId).toHaveProperty('utteranceId');
+    expect(event.packetId).toHaveProperty('correlationId');
+  });
+
   test('should not use character id if character is not set', () => {
     factory.setCurrentCharacter(null);
 
