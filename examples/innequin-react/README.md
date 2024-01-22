@@ -9,6 +9,8 @@ This project is designed to be a developer demonstration for:
 - Changing Textures/Assets
 - 3D Environment Configuration
 
+Note: Example source assets for the models, animations and *textures ( *Innequin Only ), are downloaded automatically as apart of the install process.
+
 ![Innequin](./imgs/innequin.png 'Innequin')
 
 <br/>
@@ -26,11 +28,10 @@ This project is designed to be a developer demonstration for:
 
 ## Requirements <a id="req" name="req"></a>
 
-- Node.js
+- GitHub
+- Node.js v18+
 - Yarn
-- [Inworld Innequin Asset Library](https://storage.googleapis.com/innequin-assets/v5/innequin-assets-v5.zip)
-- Innequin default character config file: [config.json](https://storage.googleapis.com/innequin-assets/v5/config.json)
-- Inworld Web SDK [generate_token](https://github.com/inworld-ai/inworld-web-sdk/tree/main/examples/generate_token) example project
+- Inworld Web SDK [generate_token](https://github.com/inworld-ai/inworld-web-sdk/tree/main/examples/generate_token) authenication example project
 
 <br/>
 
@@ -39,19 +40,8 @@ This project is designed to be a developer demonstration for:
 - Run `yarn install` at the command line to install the dependancies.
 - Copy the sample environment file `.env-sample` to `.env` located at the root of this project `cp .env-sample .env`.
 - Open the `.env` file in a text editor and fill in the Inworld Character and Scene ID fields located on your [Inworld Studio](https://studio.inworld.ai/) account. Details on all the fields is located in the [Environment Variables](#env) section.
-- Download and extract the files from [Inworld Innequin Asset Library](https://storage.googleapis.com/innequin-assets/v5/innequin-assets-v5.zip) zip file into the `/public/assets/v5` folder located at the root of this project.
-- Download the default character config file [config.json](https://storage.googleapis.com/innequin-assets/v5/config.json) into the `/public/assets/v5` folder located at the root of this project.
+- Example source assets for the models, animations and *textures ( *Innequin Only ), are downloaded automatically.
 - Install and run the Inworld [generate_token](https://github.com/inworld-ai/inworld-web-sdk/tree/main/examples/generate_token) example project from the Inworld Web SDK
-
-Example asset folder structure:
-
-```
-/public/assets/v5/  - The base folder for all following Innequin assets.
-    images/         - The background images used in our Studio Avatar Creator.
-    models/         - The animation and mesh model files in GLB format.
-    textures/       - The textures used for the mesh and facial animations.
-    config.json     - The file that defines the settings for a Innequin avatar.
-```
 
 <br/>
 

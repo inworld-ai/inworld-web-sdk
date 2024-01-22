@@ -8,6 +8,8 @@ This project is designed to be a developer demonstration for:
 - Inworld Client Management
 - 3D Environment Configuration
 
+Note: Example source assets for the models, animations and *textures ( *Innequin Only ), are downloaded automatically as apart of the install process.
+
 ![Ready Player Me](./imgs/rpm.png 'RPM')
 
 <br/>
@@ -25,11 +27,10 @@ This project is designed to be a developer demonstration for:
 
 ## Requirements <a id="req" name="req"></a>
 
-- Node.js
+- GitHub
+- Node.js v18+
 - Yarn
-- [Inworld RPM Asset Library](https://storage.googleapis.com/innequin-assets/rpm/v1/rpm-assets-v1.zip)
-- Ready Playter Me default character config file: [config.json](https://storage.googleapis.com/innequin-assets/rpm/v1/config.json)
-- Inworld Web SDK [generate_token](https://github.com/inworld-ai/inworld-web-sdk/tree/main/examples/generate_token) example project
+- Inworld Web SDK [generate_token](https://github.com/inworld-ai/inworld-web-sdk/tree/main/examples/generate_token) authenication example project
 
 <br/>
 
@@ -38,8 +39,7 @@ This project is designed to be a developer demonstration for:
 - Run `yarn install` at the command line to install the dependancies.
 - Copy the sample environment file `.env-sample` to `.env` located at the root of this project `cp .env-sample .env`.
 - Open the `.env` file in a text editor and fill in the Inworld Character and Scene ID fields located on your [Inworld Studio](https://studio.inworld.ai/) account. Details on all the fields is located in the [Environment Variables](#env) section.
-- Download and extract the files from the [Inworld RPM Asset Library](https://storage.googleapis.com/innequin-assets/rpm/v1/rpm-assets-v1.zip) zip file into the `/public/assets/v1` folder located at the root of this project.
-- Download the default character config file [config.json](https://storage.googleapis.com/innequin-assets/rpm/v1/config.json) into the `/public/assets/v1` folder located at the root of this project.
+- Example source assets for the models, animations and *textures ( *Innequin Only ), are downloaded automatically.
 - Install and run the Inworld [generate_token](https://github.com/inworld-ai/inworld-web-sdk/tree/main/examples/generate_token) example project from the Inworld Web SDK - Web-Core package.
 
 Example asset folder structure:
