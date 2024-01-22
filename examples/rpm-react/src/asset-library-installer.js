@@ -10,7 +10,7 @@ const { writeFile } = require('fs/promises');
  * @returns {Promise<void>} Promise of the main process
  */
 async function run() {
-  const ASSETS_VERSION = 'v5';
+  const ASSETS_VERSION = 'v1';
   const ASSETS_VERSION_FILENAME = 'version.json';
   const ASSETS_FILE_PATH = './public/assets/';
   const ASSETS_VERSION_FILE_PATH = path.join(
@@ -26,17 +26,16 @@ async function run() {
     ASSETS_FILE_PATH,
     ASSETS_VERSION,
   );
-  const ASSETS_ZIP_FILENAME = `innequin-assets-${ASSETS_VERSION}.zip`;
+  const ASSETS_ZIP_FILENAME = `rpm-assets-${ASSETS_VERSION}.zip`;
   const ASSETS_ZIP_FILE_PATH = path.join(ASSETS_FILE_PATH, ASSETS_ZIP_FILENAME);
-  const ASSETS_ZIP_HOST =
-    'https://storage.googleapis.com/innequin-assets/playground/';
+  const ASSETS_ZIP_HOST = 'https://storage.googleapis.com/innequin-assets/rpm/';
   const ASSETS_ZIP_URL = new nodeUrl.URL(
     ASSETS_ZIP_FILENAME,
     ASSETS_ZIP_HOST,
   ).toString();
   try {
     console.log(
-      'Running Inworld Web Three.js - Innequin Example Assets Installer. Asset Library:',
+      'Running Inworld Web Three.js - Ready Player Me Example Assets Installer. Asset Library:',
       ASSETS_VERSION,
     );
     let pass = false;
