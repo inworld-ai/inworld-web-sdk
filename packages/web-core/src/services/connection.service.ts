@@ -99,6 +99,7 @@ export class ConnectionService<
       props || ({} as ConnectionProps<InworldPacketT, HistoryItemT>);
     this.history = new InworldHistory<InworldPacketT>({
       extension: this.connectionProps.extension,
+      user: this.connectionProps.user,
     });
 
     this.initializeHandlers();

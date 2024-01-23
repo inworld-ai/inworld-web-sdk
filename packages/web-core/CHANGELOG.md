@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+
+- Fix replacing player placeholder for narrated actions inside history
+
 ## [2.2.0] - 2024-01-20
 
 ### Added
