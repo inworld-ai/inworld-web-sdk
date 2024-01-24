@@ -5,6 +5,7 @@ import {
 import {
   AudioSessionState,
   CancelResponsesProps,
+  SendPacketParams,
   TtsPlaybackAction,
 } from '../common/data_structures';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
@@ -51,10 +52,15 @@ export class InworldConnectionService<
           this.connection.isAutoReconnected() &&
           this.connection.getAudioSessionAction() !== AudioSessionState.START
         ) {
-          await this.sendAudioSessionStart();
+          await this.sendAudioSessionStart(
+            this.connection.getAudioSessionParams(),
+          );
         }
 
-        this.sendAudio(base64AudioChunk);
+        this.sendAudio(
+          base64AudioChunk,
+          this.connection.getAudioSessionParams(),
+        );
       },
       grpcAudioPlayer: this.grpcAudioPlayer,
       grpcAudioRecorder: props.grpcAudioRecorder,
@@ -82,11 +88,13 @@ export class InworldConnectionService<
   }
 
   async getCharacters() {
-    return this.connection.getCharactersList();
+    await this.connection.loadCharacters();
+
+    return this.connection.getEventFactory().getCharacters();
   }
 
   async getCurrentCharacter() {
-    await this.connection.getCharactersList();
+    await this.connection.loadCharacters();
 
     return this.connection.getEventFactory().getCurrentCharacter();
   }
@@ -107,83 +115,118 @@ export class InworldConnectionService<
     return this.connection.getEventFactory().setCurrentCharacter(character);
   }
 
-  async sendText(text: string) {
+  async sendText(text: string, params?: SendPacketParams) {
     return this.connection.send(() =>
-      this.connection.getEventFactory().text(text),
+      this.connection.getEventFactory().text(text, params?.characters),
     );
   }
 
-  async sendAudio(chunk: string) {
+  async sendAudio(chunk: string, params?: SendPacketParams) {
     return this.connection.send(() =>
       this.connection
         .getEventFactory()
-        .dataChunk(chunk, DataChunkDataType.AUDIO),
+        .dataChunk(chunk, DataChunkDataType.AUDIO, params?.characters),
     );
   }
 
-  async sendTrigger(name: string, parameters?: TriggerParameter[]) {
-    return this.connection.send(() =>
-      this.connection.getEventFactory().trigger(name, parameters),
-    );
+  async sendTrigger(
+    name: string,
+    parameters?: TriggerParameter[] | SendPacketParams,
+  ) {
+    if (parameters && Array.isArray(parameters)) {
+      // TODO: Remove this deprecation warning in the next major release.
+      console.warn(
+        'Passing parameters as an array is deprecated. Please use an object instead.',
+      );
+
+      return this.connection.send(() =>
+        this.connection.getEventFactory().trigger(name, {
+          parameters,
+        }),
+      );
+    } else if (!parameters || !Array.isArray(parameters)) {
+      const characters =
+        parameters && !Array.isArray(parameters)
+          ? parameters.characters
+          : undefined;
+
+      return this.connection.send(() =>
+        this.connection.getEventFactory().trigger(name, {
+          ...parameters,
+          characters,
+        }),
+      );
+    }
   }
 
-  async sendAudioSessionStart() {
+  async sendAudioSessionStart(params?: SendPacketParams) {
     if (this.connection.getAudioSessionAction() === AudioSessionState.START) {
       throw Error('Audio session is already started');
     }
 
+    this.connection.setAudioSessionParams(params);
     this.connection.setAudioSessionAction(AudioSessionState.START);
 
     return this.connection.send(() =>
-      this.connection.getEventFactory().audioSessionStart(),
+      this.connection.getEventFactory().audioSessionStart(params?.characters),
     );
   }
 
-  async sendAudioSessionEnd() {
+  async sendAudioSessionEnd(params?: SendPacketParams) {
     if (this.connection.getAudioSessionAction() !== AudioSessionState.START) {
       throw Error(
         'Audio session cannot be ended because it has not been started',
       );
     }
 
+    this.connection.setAudioSessionParams();
     this.connection.setAudioSessionAction(AudioSessionState.END);
 
     return this.connection.send(() =>
-      this.connection.getEventFactory().audioSessionEnd(),
+      this.connection.getEventFactory().audioSessionEnd(params?.characters),
     );
   }
 
-  async sendTTSPlaybackStart() {
+  async sendTTSPlaybackStart(params?: SendPacketParams) {
     return this.connection.send(() =>
-      this.connection.getEventFactory().ttsPlaybackStart(),
+      this.connection.getEventFactory().ttsPlaybackStart(params?.characters),
     );
   }
 
-  async sendTTSPlaybackEnd() {
+  async sendTTSPlaybackEnd(params?: SendPacketParams) {
     return this.connection.send(() =>
-      this.connection.getEventFactory().ttsPlaybackEnd(),
+      this.connection.getEventFactory().ttsPlaybackEnd(params?.characters),
     );
   }
 
-  async sendTTSPlaybackMute(isMuted: boolean) {
+  async sendTTSPlaybackMute(isMuted: boolean, params?: SendPacketParams) {
     this.connection.setTtsPlaybackAction(
       isMuted ? TtsPlaybackAction.MUTE : TtsPlaybackAction.UNMUTE,
     );
 
     return this.connection.send(() =>
-      this.connection.getEventFactory().ttsPlaybackMute(isMuted),
+      this.connection
+        .getEventFactory()
+        .ttsPlaybackMute(isMuted, params?.characters),
     );
   }
 
-  async sendCancelResponse(cancelResponses?: CancelResponsesProps) {
+  async sendCancelResponse(
+    cancelResponses?: CancelResponsesProps,
+    params?: SendPacketParams,
+  ) {
     return this.connection.send(() =>
-      this.connection.getEventFactory().cancelResponse(cancelResponses),
+      this.connection
+        .getEventFactory()
+        .cancelResponse(cancelResponses, params?.characters),
     );
   }
 
-  async sendNarratedAction(text: string) {
+  async sendNarratedAction(text: string, params?: SendPacketParams) {
     return this.connection.send(() =>
-      this.connection.getEventFactory().narratedAction(text),
+      this.connection
+        .getEventFactory()
+        .narratedAction(text, params?.characters),
     );
   }
 
@@ -195,7 +238,11 @@ export class InworldConnectionService<
     return this.connection.interrupt();
   }
 
-  baseProtoPacket(props?: { utteranceId?: boolean; interactionId?: boolean }) {
+  baseProtoPacket(props?: {
+    utteranceId?: boolean;
+    interactionId?: boolean;
+    characters?: Character[];
+  }) {
     return this.connection.getEventFactory().baseProtoPacket(props);
   }
 }

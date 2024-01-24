@@ -51,6 +51,7 @@ const scene = { agents };
 const grpcAudioPlayer = new GrpcAudioPlayback();
 const webRtcLoopbackBiDiSession = new GrpcWebRtcLoopbackBiDiSession();
 const eventFactory = new EventFactory();
+eventFactory.setCurrentCharacter(characters[0]);
 
 const textEvent = eventFactory.text(v4());
 const audioEvent = eventFactory.dataChunk(v4(), DataChunkDataType.AUDIO);
@@ -64,20 +65,18 @@ const incomingTextEvent: ProtoPacket = {
       name: v4(),
       type: ActorType.AGENT,
     },
-    target: {
-      name: characters[0].id,
-      type: ActorType.PLAYER,
-    },
+    targets: [
+      {
+        name: characters[0].id,
+        type: ActorType.PLAYER,
+      },
+    ],
   },
   text: {
     text: v4(),
     final: false,
   },
 };
-
-beforeEach(() => {
-  jest.clearAllMocks();
-});
 
 test('should return event factory', () => {
   const connection = new ConnectionService();
@@ -127,8 +126,6 @@ describe('history', () => {
   let connection: ConnectionService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-
     connection = new ConnectionService();
   });
 
@@ -170,8 +167,6 @@ describe('getSessionState', () => {
   let generateSessionToken: jest.Mock;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-
     generateSessionToken = jest.fn(() => Promise.resolve(session));
     connection = new ConnectionService({
       name: SCENE,
@@ -219,8 +214,6 @@ describe('open', () => {
   let connection: ConnectionService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-
     connection = new ConnectionService({
       name: SCENE,
       config: { capabilities: capabilitiesProps },
@@ -241,15 +234,17 @@ describe('open', () => {
     const openSession = jest
       .spyOn(WebSocketConnection.prototype, 'open')
       .mockImplementationOnce(jest.fn());
+    const setCharacters = jest.spyOn(EventFactory.prototype, 'setCharacters');
 
     await connection.open();
 
-    const loaded = await connection.getCharactersList();
+    await connection.loadCharacters();
+    eventFactory.getCharacters();
 
     expect(loadScene).toHaveBeenCalledTimes(1);
     expect(openSession).toHaveBeenCalledTimes(1);
-    expect(loaded[0].id).toBe(characters[0].id);
-    expect(loaded[1].id).toBe(characters[1].id);
+    expect(setCharacters).toHaveBeenCalledTimes(1);
+    expect(setCharacters).toHaveBeenCalledWith(characters);
   });
 
   test('should catch error on load scene and pass it to handler', async () => {
@@ -347,8 +342,6 @@ describe('open manually', () => {
   let connection: ConnectionService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-
     connection = new ConnectionService({
       name: SCENE,
       config: {
@@ -464,8 +457,6 @@ describe('send', () => {
   const onHistoryChange = jest.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
-
     server = new WS(`ws://${HOSTNAME}/v1/session/default`, {
       jsonProtocol: true,
     });
@@ -587,6 +578,9 @@ describe('send', () => {
       .spyOn(WebSocketConnection.prototype, 'open')
       .mockImplementationOnce(jest.fn());
     jest
+      .spyOn(EventFactory.prototype, 'getCurrentCharacter')
+      .mockReturnValueOnce(characters[0]);
+    jest
       .spyOn(WorldEngineService.prototype, 'loadScene')
       .mockImplementationOnce(() => Promise.resolve(scene));
     jest
@@ -687,8 +681,6 @@ describe('onMessage', () => {
   const HOSTNAME = 'localhost:1234';
 
   beforeEach(() => {
-    jest.clearAllMocks();
-
     server = new WS(`ws://${HOSTNAME}/v1/session/default`, {
       jsonProtocol: true,
     });
@@ -823,11 +815,7 @@ describe('onMessage', () => {
   });
 });
 
-describe('getCharactersList', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
+describe('loadCharacters', () => {
   test("should load scene if it's required", async () => {
     const getCurrentCharacter = jest.spyOn(
       EventFactory.prototype,
@@ -855,12 +843,13 @@ describe('getCharactersList', () => {
       .spyOn(WorldEngineService.prototype, 'loadScene')
       .mockImplementationOnce(() => Promise.resolve(scene))
       .mockImplementationOnce(() => Promise.resolve(scene));
+    const setCharacters = jest.spyOn(EventFactory.prototype, 'setCharacters');
 
-    const loadedCharactersFirst = await connection.getCharactersList();
-    const loadedCharactersSecond = await connection.getCharactersList();
+    await connection.loadCharacters();
+    await connection.loadCharacters();
 
-    expect(loadedCharactersFirst).toEqual(characters);
-    expect(loadedCharactersSecond).toEqual(characters);
+    expect(setCharacters).toHaveBeenCalledTimes(1);
+    expect(setCharacters).toHaveBeenCalledWith(characters);
     expect(generateSessionToken).toHaveBeenCalledTimes(1);
     expect(loadScene).toHaveBeenCalledTimes(1);
     expect(setCurrentCharacter).toHaveBeenCalledTimes(1);

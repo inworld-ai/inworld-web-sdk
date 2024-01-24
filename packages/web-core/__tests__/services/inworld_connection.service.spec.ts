@@ -26,6 +26,7 @@ import { ExtendedInworldPacket } from '../data_structures';
 import {
   convertAgentsToCharacters,
   createAgent,
+  createCharacter,
   extension,
   generateSessionToken,
   getPacketId,
@@ -43,14 +44,16 @@ const webRtcLoopbackBiDiSession = new GrpcWebRtcLoopbackBiDiSession();
 const onHistoryChange = jest.fn();
 
 const connection = new ConnectionService({
+  config: {
+    capabilities: {
+      audio: true,
+      emotions: true,
+    },
+  },
   grpcAudioPlayer,
   webRtcLoopbackBiDiSession,
   generateSessionToken,
   onHistoryChange,
-});
-
-beforeEach(() => {
-  jest.clearAllMocks();
 });
 
 test('should open connection', async () => {
@@ -129,8 +132,6 @@ describe('history', () => {
   let service: InworldConnectionService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-
     service = new InworldConnectionService({
       connection,
       grpcAudioPlayer,
@@ -201,284 +202,498 @@ describe('history', () => {
 describe('send', () => {
   let service: InworldConnectionService;
 
+  const character = characters[0];
   const open = jest
     .spyOn(ConnectionService.prototype, 'open')
     .mockImplementationOnce(jest.fn());
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest
-      .spyOn(ConnectionService.prototype, 'isActive')
-      .mockImplementation(() => true);
-    jest
-      .spyOn(ConnectionService.prototype, 'getEventFactory')
-      .mockImplementation(() => eventFactory);
-    jest
-      .spyOn(grpcAudioPlayer, 'excludeCurrentInteractionPackets')
-      .mockImplementation(() => []);
-    service = new InworldConnectionService({
-      connection,
-      grpcAudioPlayer,
-      grpcAudioRecorder,
-      webRtcLoopbackBiDiSession,
+  describe('single characters', () => {
+    beforeEach(() => {
+      jest
+        .spyOn(ConnectionService.prototype, 'isActive')
+        .mockImplementation(() => true);
+      jest
+        .spyOn(ConnectionService.prototype, 'getEventFactory')
+        .mockImplementation(() => eventFactory);
+      jest
+        .spyOn(grpcAudioPlayer, 'excludeCurrentInteractionPackets')
+        .mockImplementation(() => []);
+      service = new InworldConnectionService({
+        connection,
+        grpcAudioPlayer,
+        grpcAudioRecorder,
+        webRtcLoopbackBiDiSession,
+      });
+      eventFactory.setCharacters(characters);
+      eventFactory.setCurrentCharacter(character);
     });
-  });
 
-  test('should send audio', async () => {
-    const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce(writeMock);
+    test('should send audio', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
 
-    const chunk = v4();
+      const chunk = v4();
 
-    const packet = await service.sendAudio(chunk);
+      const packet = await service.sendAudio(chunk);
 
-    expect(open).toHaveBeenCalledTimes(0);
-    expect(write).toHaveBeenCalledTimes(1);
-    expect(packet).toHaveProperty('type', DataChunkDataType.AUDIO);
-    expect(packet.audio).toHaveProperty('chunk', chunk);
-  });
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet).toHaveProperty('type', DataChunkDataType.AUDIO);
+      expect(packet.audio).toHaveProperty('chunk', chunk);
+    });
 
-  test('should send text', async () => {
-    const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce(writeMock);
+    test('should send text', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
 
-    const text = v4();
+      const text = v4();
 
-    const packet = await service.sendText(text);
+      const packet = await service.sendText(text);
 
-    expect(open).toHaveBeenCalledTimes(0);
-    expect(write).toHaveBeenCalledTimes(1);
-    expect(packet.text).toHaveProperty('text', text);
-  });
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet.text).toHaveProperty('text', text);
+    });
 
-  test('should send trigger without parameters', async () => {
-    const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce(writeMock);
+    test('should send trigger without parameters', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
 
-    const name = v4();
+      const name = v4();
 
-    const packet = await service.sendTrigger(name);
+      const packet = await service.sendTrigger(name);
 
-    expect(open).toHaveBeenCalledTimes(0);
-    expect(write).toHaveBeenCalledTimes(1);
-    expect(packet.trigger).toHaveProperty('name', name);
-    expect(packet.trigger).toHaveProperty('parameters', undefined);
-  });
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet.trigger).toHaveProperty('name', name);
+      expect(packet.trigger).toHaveProperty('parameters', undefined);
+    });
 
-  test('should send trigger with parameters', async () => {
-    const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce(writeMock);
+    test('should send trigger with parameters', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+      const warn = jest.spyOn(global.console, 'warn').mockImplementation();
 
-    const name = v4();
-    const parameters = [{ name: v4(), value: v4() }];
+      const name = v4();
+      const parameters = [{ name: v4(), value: v4() }];
 
-    const packet = await service.sendTrigger(name, parameters);
+      const packet = await service.sendTrigger(name, parameters);
 
-    expect(open).toHaveBeenCalledTimes(0);
-    expect(write).toHaveBeenCalledTimes(1);
-    expect(packet.trigger).toHaveProperty('name', name);
-    expect(packet.trigger).toHaveProperty('parameters', parameters);
-  });
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(warn).toBeCalledTimes(1);
+      expect(packet.trigger).toHaveProperty('name', name);
+      expect(packet.trigger).toHaveProperty('parameters', parameters);
+    });
 
-  test('should send audio session start', async () => {
-    jest
-      .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
-      .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
-    const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce(writeMock);
+    test('should send audio session start', async () => {
+      jest
+        .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+        .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
 
-    const packet = await service.sendAudioSessionStart();
+      const packet = await service.sendAudioSessionStart();
 
-    expect(open).toHaveBeenCalledTimes(0);
-    expect(write).toHaveBeenCalledTimes(1);
-    expect(packet.isControl()).toEqual(true);
-  });
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet.isControl()).toEqual(true);
+    });
 
-  test('should throw error if audio session was started twice', async () => {
-    jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce(writeMock);
-    jest
-      .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
-      .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
+    test('should throw error if audio session was started twice', async () => {
+      jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+      jest
+        .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+        .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
 
-    await service.sendAudioSessionStart();
-
-    expect(async () => {
       await service.sendAudioSessionStart();
-    }).rejects.toThrow('Audio session is already started');
-  });
 
-  test('should throw error if audio session was finished twice', async () => {
-    jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce(writeMock);
-    jest
-      .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
-      .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
+      expect(async () => {
+        await service.sendAudioSessionStart();
+      }).rejects.toThrow('Audio session is already started');
+    });
 
-    await service.sendAudioSessionStart();
-    await service.sendAudioSessionEnd();
+    test('should throw error if audio session was finished twice', async () => {
+      jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+      jest
+        .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+        .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
 
-    expect(async () => {
+      await service.sendAudioSessionStart();
       await service.sendAudioSessionEnd();
-    }).rejects.toThrow(
-      'Audio session cannot be ended because it has not been started',
-    );
-  });
 
-  test('should send audio session end', async () => {
-    const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce(writeMock)
-      .mockImplementationOnce(writeMock);
-    jest
-      .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
-      .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
-
-    await service.sendAudioSessionStart();
-    const packet = await service.sendAudioSessionEnd();
-
-    expect(open).toHaveBeenCalledTimes(0);
-    expect(write).toHaveBeenCalledTimes(2);
-    expect(packet.isControl()).toEqual(true);
-  });
-
-  test('should send cancel responses', async () => {
-    const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce(writeMock);
-
-    const packet = await service.sendCancelResponse({ utteranceId: [v4()] });
-
-    expect(open).toHaveBeenCalledTimes(0);
-    expect(write).toHaveBeenCalledTimes(1);
-    expect(packet.isCancelResponse()).toEqual(true);
-  });
-
-  test('should send narrated action', async () => {
-    jest
-      .spyOn(WorldEngineService.prototype, 'loadScene')
-      .mockImplementationOnce(() => Promise.resolve({ agents }));
-    const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce(writeMock);
-
-    const text = v4();
-
-    // Initialize characters
-    await service.getCharacters();
-
-    const packet = await service.sendNarratedAction(text);
-
-    expect(open).toHaveBeenCalledTimes(0);
-    expect(write).toHaveBeenCalledTimes(1);
-    expect(packet?.narratedAction).toHaveProperty('text', text);
-  });
-
-  test('should send tts playback end', async () => {
-    const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce(writeMock);
-
-    const packet = await service.sendTTSPlaybackStart();
-
-    expect(open).toHaveBeenCalledTimes(0);
-    expect(write).toHaveBeenCalledTimes(1);
-    expect(packet.isControl()).toEqual(true);
-    expect(packet.isTTSPlaybackStart()).toEqual(true);
-  });
-
-  test('should send tts playback start', async () => {
-    const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce(writeMock);
-
-    const packet = await service.sendTTSPlaybackEnd();
-
-    expect(open).toHaveBeenCalledTimes(0);
-    expect(write).toHaveBeenCalledTimes(1);
-    expect(packet.isControl()).toEqual(true);
-    expect(packet.isTTSPlaybackEnd()).toEqual(true);
-  });
-
-  test('should send tts playback mute', async () => {
-    const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce(writeMock);
-
-    const packet = await service.sendTTSPlaybackMute(true);
-
-    expect(open).toHaveBeenCalledTimes(0);
-    expect(write).toHaveBeenCalledTimes(1);
-    expect(packet.isControl()).toEqual(true);
-    expect(packet.isTTSPlaybackMute()).toEqual(true);
-  });
-
-  test('should send tts playback unmute', async () => {
-    const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce(writeMock);
-
-    const packet = await service.sendTTSPlaybackMute(false);
-
-    expect(open).toHaveBeenCalledTimes(0);
-    expect(write).toHaveBeenCalledTimes(1);
-    expect(packet.isControl()).toEqual(true);
-    expect(packet.isTTSPlaybackUnmute()).toEqual(true);
-  });
-
-  test('should interrupt', async () => {
-    const interrupt = jest
-      .spyOn(ConnectionService.prototype, 'interrupt')
-      .mockImplementationOnce(jest.fn());
-
-    await service.interrupt();
-
-    expect(interrupt).toHaveBeenCalledTimes(1);
-  });
-
-  test('should send custom packet', async () => {
-    const connection = new ConnectionService<ExtendedInworldPacket>({
-      grpcAudioPlayer,
-      webRtcLoopbackBiDiSession,
-      generateSessionToken,
-      onHistoryChange,
-      extension,
+      expect(async () => {
+        await service.sendAudioSessionEnd();
+      }).rejects.toThrow(
+        'Audio session cannot be ended because it has not been started',
+      );
     });
-    const service = new InworldConnectionService({
-      connection,
-      grpcAudioPlayer,
-      grpcAudioRecorder,
-      webRtcLoopbackBiDiSession,
+
+    test('should send audio session end', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock)
+        .mockImplementationOnce(writeMock);
+      jest
+        .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+        .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
+
+      await service.sendAudioSessionStart();
+      const packet = await service.sendAudioSessionEnd();
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(packet.isControl()).toEqual(true);
     });
-    const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementationOnce(
-        async (item: QueueItem<ExtendedInworldPacket>) => {
-          const packet = extension.convertPacketFromProto(item.getPacket());
-          await item.beforeWriting?.(packet);
-          item.afterWriting?.(packet);
+
+    test('should send cancel responses', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const packet = await service.sendCancelResponse({ utteranceId: [v4()] });
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet.isCancelResponse()).toEqual(true);
+    });
+
+    test('should send narrated action', async () => {
+      jest
+        .spyOn(WorldEngineService.prototype, 'loadScene')
+        .mockImplementationOnce(() => Promise.resolve({ agents }));
+      jest
+        .spyOn(EventFactory.prototype, 'getCharacters')
+        .mockReturnValueOnce(characters);
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const text = v4();
+
+      const packet = await service.sendNarratedAction(text);
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet?.narratedAction).toHaveProperty('text', text);
+    });
+
+    test('should send tts playback end', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const packet = await service.sendTTSPlaybackStart();
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet.isControl()).toEqual(true);
+      expect(packet.isTTSPlaybackStart()).toEqual(true);
+    });
+
+    test('should send tts playback start', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const packet = await service.sendTTSPlaybackEnd();
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet.isControl()).toEqual(true);
+      expect(packet.isTTSPlaybackEnd()).toEqual(true);
+    });
+
+    test('should send tts playback mute', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const packet = await service.sendTTSPlaybackMute(true);
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet.isControl()).toEqual(true);
+      expect(packet.isTTSPlaybackMute()).toEqual(true);
+    });
+
+    test('should send tts playback unmute', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const packet = await service.sendTTSPlaybackMute(false);
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet.isControl()).toEqual(true);
+      expect(packet.isTTSPlaybackUnmute()).toEqual(true);
+    });
+
+    test('should interrupt', async () => {
+      const interrupt = jest
+        .spyOn(ConnectionService.prototype, 'interrupt')
+        .mockImplementationOnce(jest.fn());
+
+      await service.interrupt();
+
+      expect(interrupt).toHaveBeenCalledTimes(1);
+    });
+
+    test('should send custom packet', async () => {
+      const connection = new ConnectionService<ExtendedInworldPacket>({
+        grpcAudioPlayer,
+        webRtcLoopbackBiDiSession,
+        generateSessionToken,
+        onHistoryChange,
+        extension,
+      });
+      const service = new InworldConnectionService({
+        connection,
+        grpcAudioPlayer,
+        grpcAudioRecorder,
+        webRtcLoopbackBiDiSession,
+      });
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(
+          async (item: QueueItem<ExtendedInworldPacket>) => {
+            const packet = extension.convertPacketFromProto(item.getPacket());
+            await item.beforeWriting?.(packet);
+            item.afterWriting?.(packet);
+          },
+        );
+
+      const interactionId = v4();
+      const mutation = { regenerateResponse: { interactionId } };
+      const baseProtoPacket = service.baseProtoPacket();
+      const packet = await service.sendCustomPacket(() => ({
+        ...baseProtoPacket,
+        packetId: { ...baseProtoPacket.packetId, interactionId },
+        mutation,
+      }));
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet).toHaveProperty('mutation', mutation);
+    });
+  });
+
+  describe('multi characters', () => {
+    const externalCharacters = [createCharacter(), createCharacter()];
+
+    beforeEach(() => {
+      jest
+        .spyOn(ConnectionService.prototype, 'isActive')
+        .mockImplementation(() => true);
+      jest
+        .spyOn(ConnectionService.prototype, 'getEventFactory')
+        .mockImplementation(() => eventFactory);
+      jest
+        .spyOn(grpcAudioPlayer, 'excludeCurrentInteractionPackets')
+        .mockImplementation(() => []);
+      service = new InworldConnectionService({
+        connection,
+        grpcAudioPlayer,
+        grpcAudioRecorder,
+        webRtcLoopbackBiDiSession,
+      });
+      eventFactory.setCharacters(characters);
+    });
+
+    test('should send audio', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const chunk = v4();
+
+      const packet = await service.sendAudio(chunk, {
+        characters: externalCharacters,
+      });
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet).toHaveProperty('type', DataChunkDataType.AUDIO);
+      expect(packet.audio).toHaveProperty('chunk', chunk);
+    });
+
+    test('should send text', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const text = v4();
+
+      const packet = await service.sendText(text, {
+        characters: externalCharacters,
+      });
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet.text).toHaveProperty('text', text);
+    });
+
+    test('should send trigger', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const name = v4();
+
+      const packet = await service.sendTrigger(name, {
+        characters: externalCharacters,
+      });
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet.trigger).toHaveProperty('name', name);
+      expect(packet.trigger).toHaveProperty('parameters', undefined);
+    });
+
+    test('should send audio session start', async () => {
+      jest
+        .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+        .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const packet = await service.sendAudioSessionStart({
+        characters: externalCharacters,
+      });
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet.isControl()).toEqual(true);
+    });
+
+    test('should send audio session end', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock)
+        .mockImplementationOnce(writeMock);
+      jest
+        .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+        .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
+
+      await service.sendAudioSessionStart();
+      const packet = await service.sendAudioSessionEnd({
+        characters: externalCharacters,
+      });
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(packet.isControl()).toEqual(true);
+    });
+
+    test('should send cancel responses', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const packet = await service.sendCancelResponse(
+        { utteranceId: [v4()] },
+        {
+          characters: externalCharacters,
         },
       );
 
-    const interactionId = v4();
-    const mutation = { regenerateResponse: { interactionId } };
-    const baseProtoPacket = service.baseProtoPacket();
-    const packet = await service.sendCustomPacket(() => ({
-      ...baseProtoPacket,
-      packetId: { ...baseProtoPacket.packetId, interactionId },
-      mutation,
-    }));
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet.isCancelResponse()).toEqual(true);
+    });
 
-    expect(open).toHaveBeenCalledTimes(0);
-    expect(write).toHaveBeenCalledTimes(1);
-    expect(packet).toHaveProperty('mutation', mutation);
+    test('should send narrated action', async () => {
+      jest
+        .spyOn(WorldEngineService.prototype, 'loadScene')
+        .mockImplementationOnce(() => Promise.resolve({ agents }));
+      jest
+        .spyOn(EventFactory.prototype, 'getCharacters')
+        .mockReturnValueOnce(characters);
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const text = v4();
+
+      const packet = await service.sendNarratedAction(text, {
+        characters: externalCharacters,
+      });
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet?.narratedAction).toHaveProperty('text', text);
+    });
+
+    test('should send tts playback end', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const packet = await service.sendTTSPlaybackStart({
+        characters: externalCharacters,
+      });
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet.isControl()).toEqual(true);
+      expect(packet.isTTSPlaybackStart()).toEqual(true);
+    });
+
+    test('should send tts playback start', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const packet = await service.sendTTSPlaybackEnd({
+        characters: externalCharacters,
+      });
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet.isControl()).toEqual(true);
+      expect(packet.isTTSPlaybackEnd()).toEqual(true);
+    });
+
+    test('should send tts playback mute', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const packet = await service.sendTTSPlaybackMute(true, {
+        characters: externalCharacters,
+      });
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet.isControl()).toEqual(true);
+      expect(packet.isTTSPlaybackMute()).toEqual(true);
+    });
+
+    test('should send tts playback unmute', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const packet = await service.sendTTSPlaybackMute(false, {
+        characters: externalCharacters,
+      });
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet.isControl()).toEqual(true);
+      expect(packet.isTTSPlaybackUnmute()).toEqual(true);
+    });
   });
 });
 
@@ -486,11 +701,6 @@ describe('character', () => {
   let service: InworldConnectionService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-
-    jest
-      .spyOn(ConnectionService.prototype, 'getCharactersList')
-      .mockImplementationOnce(() => Promise.resolve(characters));
     jest
       .spyOn(ConnectionService.prototype, 'getEventFactory')
       .mockImplementationOnce(() => eventFactory);
@@ -532,8 +742,6 @@ describe('character', () => {
 
 describe('listener', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-
     setNavigatorProperty('mediaDevices', {
       getUserMedia: jest.fn(() => new MediaStream()),
     });

@@ -2,10 +2,6 @@ import '../../mocks/window.mock';
 
 import { Player } from '../../../src/components/sound/player';
 
-beforeEach(() => {
-  jest.clearAllMocks();
-});
-
 test('should initialize instance once', () => {
   const player1 = Player.getInstance();
   const player2 = Player.getInstance();
@@ -17,7 +13,6 @@ describe('work with player', () => {
   let player: Player;
 
   beforeEach(() => {
-    jest.clearAllMocks();
     jest.resetModules();
 
     player = Player.getInstance();

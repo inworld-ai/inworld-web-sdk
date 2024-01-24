@@ -239,7 +239,7 @@ export class InworldPacket {
     const packetId = proto.packetId;
     const routing = proto.routing;
     const source = routing.source;
-    const target = routing.target;
+    const target = routing.targets[0];
     const type = this.getType(proto);
     const additionalPhonemeInfo = proto.dataChunk?.additionalPhonemeInfo ?? [];
 
