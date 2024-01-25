@@ -18,6 +18,7 @@ import {
   UserProfile,
   UserProfileField,
 } from './common/data_structures';
+import * as InworldTriggers from './common/inworld_triggers';
 import {
   CHAT_HISTORY_TYPE,
   HistoryInteractionEnd,
@@ -90,6 +91,7 @@ export {
   InworldClient,
   InworldConnectionService,
   InworldPacket,
+  InworldTriggers,
   PacketId,
   PreviousDialog,
   ProtoPacket,
