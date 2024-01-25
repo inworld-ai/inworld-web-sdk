@@ -149,11 +149,13 @@ describe('history', () => {
         isPlayer: true,
         isCharacter: false,
       },
-      target: {
-        name: characters[0].id,
-        isPlayer: false,
-        isCharacter: true,
-      },
+      targets: [
+        {
+          name: characters[0].id,
+          isPlayer: false,
+          isCharacter: true,
+        },
+      ],
     };
     const date = protoTimestamp();
     const packet = new InworldPacket({

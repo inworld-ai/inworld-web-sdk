@@ -35,11 +35,13 @@ const routing: Routing = {
     isPlayer: true,
     isCharacter: false,
   },
-  target: {
-    name: characters[0].id,
-    isPlayer: false,
-    isCharacter: true,
-  },
+  targets: [
+    {
+      name: characters[0].id,
+      isPlayer: false,
+      isCharacter: true,
+    },
+  ],
 };
 const date = protoTimestamp();
 const grpcAudioPlayer = new GrpcAudioPlayback();
@@ -93,8 +95,8 @@ const incomingTextPacket = new InworldPacket({
     interactionId: packetId.interactionId,
   },
   routing: {
-    source: routing.target,
-    target: routing.source,
+    source: routing.targets[0],
+    targets: [routing.source],
   },
   date,
   text: {
@@ -371,8 +373,8 @@ describe('text', () => {
             interactionId: packetId.interactionId,
           },
           routing: {
-            source: routing.target,
-            target: routing.source,
+            source: routing.targets[0],
+            targets: [routing.source],
           },
           date,
           text: {
@@ -387,8 +389,8 @@ describe('text', () => {
             interactionId: packetId.interactionId,
           },
           routing: {
-            source: routing.target,
-            target: routing.source,
+            source: routing.targets[0],
+            targets: [routing.source],
           },
           date,
           text: {
@@ -529,8 +531,8 @@ describe('narrated action', () => {
     const narracterActionPacket = new InworldPacket({
       packetId,
       routing: {
-        source: routing.target,
-        target: routing.source,
+        source: routing.targets[0],
+        targets: [routing.source],
       },
       date,
       narratedAction: { text },

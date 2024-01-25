@@ -58,7 +58,7 @@ export interface EmotionEvent {
 
 export interface Routing {
   source: Actor;
-  target: Actor;
+  targets: Actor[];
 }
 
 export interface Actor {
@@ -239,7 +239,7 @@ export class InworldPacket {
     const packetId = proto.packetId;
     const routing = proto.routing;
     const source = routing.source;
-    const target = routing.targets[0];
+    const targets = routing.targets;
     const type = this.getType(proto);
     const additionalPhonemeInfo = proto.dataChunk?.additionalPhonemeInfo ?? [];
 
@@ -258,11 +258,11 @@ export class InworldPacket {
           isPlayer: source.type === ActorType.PLAYER,
           isCharacter: source.type === ActorType.AGENT,
         },
-        target: {
+        targets: targets.map((target) => ({
           name: target.name,
           isPlayer: target.type === ActorType.PLAYER,
           isCharacter: target.type === ActorType.AGENT,
-        },
+        })),
       },
       ...(type === InworldPacketType.TRIGGER && {
         trigger: {

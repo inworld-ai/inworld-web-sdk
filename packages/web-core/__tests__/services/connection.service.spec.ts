@@ -541,7 +541,7 @@ describe('send', () => {
         expect(history).toEqual([
           {
             id: textEvent.packetId.utteranceId,
-            character: undefined,
+            characters: [],
             correlationId: textEvent.packetId.correlationId,
             date: new Date(textEvent.timestamp),
             interactionId: textEvent.packetId.interactionId,
