@@ -2,6 +2,7 @@ import { EmotionEvent } from '@inworld/web-core';
 
 export enum CHAT_VIEW {
   TEXT = 'Text',
+  MULTI_AGENT_TEXT = 'Text (multi agents)',
   AVATAR = 'Avatar',
   INNEQUIN = 'Innequin',
 }
