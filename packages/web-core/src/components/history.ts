@@ -357,6 +357,7 @@ export class InworldHistory<
     return {
       id: v4(),
       date,
+      character,
       interactionId,
       source: packet.routing.source,
       type: CHAT_HISTORY_TYPE.NARRATED_ACTION,
