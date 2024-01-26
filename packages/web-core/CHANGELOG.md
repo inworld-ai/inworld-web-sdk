@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+
+- Fix copy history transcript action
+
 ## [2.2.1] - 2024-01-23
 
 ### Fixed
