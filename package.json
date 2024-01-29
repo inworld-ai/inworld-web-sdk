@@ -13,10 +13,10 @@
     "url": "https://github.com/inworld-ai/inworld-web-sdk.git"
   },
   "scripts": {
-    "lint:check": "yarn workspaces run lint:check",
-    "lint:fix": "yarn workspaces run lint:fix",
-    "prettier:check": "yarn workspaces run prettier:check",
-    "prettier:format": "yarn workspaces run prettier:format",
+    "lint:check": "yarn workspaces run lint:check && eslint --cache  \"./**/*.{js,jsx,ts,tsx}\" --ignore-path .eslintignore --config .eslintrc.json",
+    "lint:fix": "yarn workspaces run lint:fix && eslint --cache  \"./**/*.{js,jsx,ts,tsx}\" --ignore-path .eslintignore --config .eslintrc.json --fix",
+    "prettier:check": "yarn workspaces run prettier:check && yarn prettier --check \"./examples/**/*.{js,jsx,ts,tsx}\" --ignore-path .eslintignore --config .prettierrc.json",
+    "prettier:format": "yarn workspaces run prettier:format  && yarn prettier --write \"./examples/**/*.{js,jsx,ts,tsx}\" --ignore-path .eslintignore --config .prettierrc.json",
     "prepare": "husky install",
     "test": "yarn workspace @inworld/web-core run test"
   },

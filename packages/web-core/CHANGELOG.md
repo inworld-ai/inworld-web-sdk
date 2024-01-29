@@ -1,3 +1,15 @@
+## [2.2.2] - 2024-01-26
+
+### Fixed
+
+- Fix copy history transcript action
+
+## [2.2.1] - 2024-01-23
+
+### Fixed
+
+- Fix replacing player placeholder for narrated actions inside history
+
 ## [2.2.0] - 2024-01-20
 
 ### Added
