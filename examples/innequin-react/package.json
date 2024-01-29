@@ -46,7 +46,7 @@
   "scripts": {
     "start": "set DISABLE_ESLINT_PLUGIN=true && react-scripts start",
     "build": "set DISABLE_ESLINT_PLUGIN=true && react-scripts build",
-    "postinstall": "node ./src/asset-library-installer.js",
+    "install:assets": "node ./src/asset-library-installer.js",
     "lint:check": "eslint --cache  \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.eslintrc.json",
     "lint:fix": "yarn run lint:check --fix",
     "prettier:check": "yarn prettier --check \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",

@@ -1,9 +1,13 @@
-## [1.0.1] - 2024-01-22
+## [Unreleased]
 
 ### Changed
 
-- Updated README.md documentation for automated assets installation
+- Updated README.md documentation for assets installation process
 - Updated LICENSE.md license information
+
+### Fixed
+
+- Fixed Ready Player Me bug with Three.js r160
 
 ## [1.0.0] - 2023-12-12
 

@@ -8,7 +8,7 @@ This project is designed to be a developer demonstration for:
 - Inworld Client Management
 - 3D Environment Configuration
 
-Note: Example source assets for the models, animations and *textures ( *Innequin Only ), are downloaded automatically as apart of the install process.
+Note: Example source assets for the models, animations and *textures ( *Innequin Only ), are downloaded using `yarn run install:assets` as apart of the install process.
 
 ![Ready Player Me](./imgs/rpm.png 'RPM')
 
@@ -37,9 +37,9 @@ Note: Example source assets for the models, animations and *textures ( *Innequin
 ## Setup <a id="setup" name="setup"></a>
 
 - Run `yarn install` at the command line to install the dependancies.
+- Run `yarn run install:assets` to install the 3D assets. If you wish to manually download them you can find them [here](https://storage.googleapis.com/innequin-assets/rpm/rpm-assets-v1.zip).
 - Copy the sample environment file `.env-sample` to `.env` located at the root of this project `cp .env-sample .env`.
 - Open the `.env` file in a text editor and fill in the Inworld Character and Scene ID fields located on your [Inworld Studio](https://studio.inworld.ai/) account. Details on all the fields is located in the [Environment Variables](#env) section.
-- Example source assets for the models, animations and *textures ( *Innequin Only ), are downloaded automatically.
 - Install and run the Inworld [generate_token](https://github.com/inworld-ai/inworld-web-sdk/tree/main/examples/generate_token) example project from the Inworld Web SDK - Web-Core package.
 
 Example asset folder structure:
