@@ -30,7 +30,6 @@ describe('load scene', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
     client = new WorldEngineService();
     mockLoadScene = jest.fn((_req: LoadSceneRequest, _initReq?: fm.InitReq) => {
       return Promise.resolve({ agents });

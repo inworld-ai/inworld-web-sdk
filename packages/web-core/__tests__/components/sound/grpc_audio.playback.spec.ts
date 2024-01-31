@@ -14,7 +14,7 @@ const audioEvent = InworldPacket.fromProto({
   },
   routing: {
     source: {},
-    target: {},
+    targets: [{}],
   },
   packetId: getPacketId(),
 });
@@ -22,8 +22,6 @@ const audioEvent = InworldPacket.fromProto({
 let playback: GrpcAudioPlayback;
 
 beforeEach(() => {
-  jest.clearAllMocks();
-
   playback = new GrpcAudioPlayback();
 });
 
@@ -38,10 +36,6 @@ test('should get mute player as false by default', () => {
 });
 
 describe('isActive', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   test('should be false by default', () => {
     expect(playback.getIsActive()).toEqual(false);
   });

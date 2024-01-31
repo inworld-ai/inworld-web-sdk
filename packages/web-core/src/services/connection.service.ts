@@ -16,6 +16,7 @@ import {
   Extension,
   GenerateSessionTokenFn,
   InternalClientConfiguration,
+  SendPacketParams,
   TtsPlaybackAction,
   User,
 } from '../common/data_structures';
@@ -68,6 +69,7 @@ export class ConnectionService<
   private player = Player.getInstance();
   private state: ConnectionState = ConnectionState.INACTIVE;
   private audioSessionAction = AudioSessionState.UNKNOWN;
+  private audioSessionParams: SendPacketParams = {};
   private ttsPlaybackAction = TtsPlaybackAction.UNKNOWN;
 
   private scene: LoadSceneResponse;
@@ -171,10 +173,8 @@ export class ConnectionService<
     return this.history.getTranscript();
   }
 
-  async getCharactersList() {
+  async loadCharacters() {
     await this.loadScene();
-
-    return this.characters;
   }
 
   async open() {
@@ -217,8 +217,16 @@ export class ConnectionService<
     this.audioSessionAction = action;
   }
 
+  setAudioSessionParams(params: SendPacketParams = {}) {
+    this.audioSessionParams = params;
+  }
+
   getAudioSessionAction() {
     return this.audioSessionAction;
+  }
+
+  getAudioSessionParams() {
+    return this.audioSessionParams;
   }
 
   setTtsPlaybackAction(action: TtsPlaybackAction) {
@@ -230,15 +238,16 @@ export class ConnectionService<
   }
 
   async interrupt() {
-    const packet = this.connectionProps.grpcAudioPlayer.getCurrentPacket();
+    const packet =
+      this.connectionProps.grpcAudioPlayer.getCurrentPacket() as InworldPacketT;
 
     if (packet) {
-      await this.interruptByInteraction(packet.packetId.interactionId);
+      await this.interruptByPacket(packet);
     }
   }
 
-  private loadCharactersList() {
-    this.characters = (this.scene?.agents || [])?.map(
+  private setCharacterList() {
+    const characters = (this.scene?.agents || [])?.map(
       (agent: LoadSceneResponseAgent) =>
         new Character({
           id: agent.agentId,
@@ -254,9 +263,17 @@ export class ConnectionService<
         }),
     );
 
-    if (!this.getEventFactory().getCurrentCharacter() && this.characters[0]) {
-      this.getEventFactory().setCurrentCharacter(this.characters[0]);
+    const factory = this.getEventFactory();
+
+    if (
+      !this.connectionProps.config.capabilities.multiAgent &&
+      !factory.getCurrentCharacter() &&
+      characters[0]
+    ) {
+      factory.setCurrentCharacter(characters[0]);
     }
+
+    factory.setCharacters(characters);
   }
 
   private async write(getPacket: () => ProtoPacket) {
@@ -292,7 +309,7 @@ export class ConnectionService<
       },
       beforeWriting: async (packet: InworldPacketT) => {
         if (packet.isText()) {
-          await this.interruptByInteraction(packet.packetId.interactionId);
+          await this.interruptByPacket(packet);
         }
       },
     });
@@ -332,7 +349,7 @@ export class ConnectionService<
           this.setPreviousState(this.scene?.previousState);
         }
 
-        this.loadCharactersList();
+        this.setCharacterList();
       }
 
       if (
@@ -383,7 +400,7 @@ export class ConnectionService<
       stateHolder.packets?.forEach((packet) =>
         this.history.addOrUpdate({
           grpcAudioPlayer: this.connectionProps.grpcAudioPlayer,
-          characters: this.characters,
+          characters: this.eventFactory.getCharacters(),
           packet: this.extension.convertPacketFromProto(packet),
         }),
       );
@@ -443,17 +460,24 @@ export class ConnectionService<
         !inworldPacket.routing.source.isPlayer &&
         this.cancelResponses[interactionId]
       ) {
-        this.sendCancelResponses({
-          interactionId,
-          utteranceId: [packet.packetId.utteranceId],
-        });
+        this.sendCancelResponses(
+          {
+            interactionId,
+            utteranceId: [packet.packetId.utteranceId],
+          },
+          [
+            {
+              id: packet.routing.source.name,
+            } as Character,
+          ],
+        );
 
         return;
       }
 
       // Send cancel response event in case of player talking.
       if (inworldPacket.isText() && inworldPacket.routing.source.isPlayer) {
-        await this.interruptByInteraction(inworldPacket.packetId.interactionId);
+        await this.interruptByPacket(inworldPacket);
       }
 
       // Play audio or silence.
@@ -515,28 +539,44 @@ export class ConnectionService<
     };
   }
 
-  private async interruptByInteraction(interactionId: string) {
+  private async interruptByPacket(packet: InworldPacketT) {
     const { grpcAudioPlayer, config } = this.connectionProps;
 
     if (!config?.capabilities.interruptions) return;
 
-    const packets = await grpcAudioPlayer.stopForInteraction(interactionId);
+    const packets = await grpcAudioPlayer.stopForInteraction(
+      packet.packetId.interactionId,
+    );
 
     if (packets.length) {
       const interactionId = packets[0].packetId.interactionId;
+      const characters = packets.map(
+        (packet: InworldPacketT) =>
+          ({
+            id: packet.routing.source.name,
+          } as Character),
+      );
 
-      this.sendCancelResponses({
-        interactionId,
-        utteranceId: packets.map(
-          (packet: InworldPacketT) => packet.packetId.utteranceId,
-        ),
-      });
+      this.sendCancelResponses(
+        {
+          interactionId,
+          utteranceId: packets.map(
+            (packet: InworldPacketT) => packet.packetId.utteranceId,
+          ),
+        },
+        characters,
+      );
     }
   }
 
-  private sendCancelResponses(cancelResponses: CancelResponsesProps) {
+  private sendCancelResponses(
+    cancelResponses: CancelResponsesProps,
+    characters?: Character[],
+  ) {
     if (cancelResponses.interactionId) {
-      this.send(() => this.getEventFactory().cancelResponse(cancelResponses));
+      this.send(() =>
+        this.getEventFactory().cancelResponse(cancelResponses, characters),
+      );
 
       this.cancelResponses = {
         ...this.cancelResponses,
@@ -557,7 +597,7 @@ export class ConnectionService<
   private addPacketToHistory(packet: InworldPacketT) {
     const changed = this.history.addOrUpdate({
       grpcAudioPlayer: this.connectionProps.grpcAudioPlayer,
-      characters: this.characters,
+      characters: this.eventFactory.getCharacters(),
       packet,
     });
 

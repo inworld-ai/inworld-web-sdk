@@ -5,6 +5,7 @@ import {
 } from '../../proto/ai/inworld/engine/world-engine.pb';
 import { InworldPacket as ProtoPacket } from '../../proto/ai/inworld/packets/packets.pb';
 import { HistoryItem } from '../components/history';
+import { Character } from '../entities/character.entity';
 import { AdditionalPhonemeInfo } from '../entities/inworld_packet.entity';
 import { SessionToken } from '../entities/session_token.entity';
 
@@ -12,6 +13,7 @@ export interface Capabilities {
   audio?: boolean;
   emotions?: boolean;
   interruptions?: boolean;
+  multiAgent?: boolean;
   narratedActions?: boolean;
   phonemes?: boolean;
   silence?: boolean;
@@ -60,6 +62,7 @@ export interface ConnectionConfig {
 export interface HistoryConfig {
   previousState?: boolean;
 }
+
 export interface ClientConfiguration {
   connection?: ConnectionConfig;
   capabilities?: Capabilities;
@@ -119,4 +122,8 @@ export interface Extension<InworldPacketT, HistoryItemT> {
 export interface MediaTrackConstraintsWithSuppress
   extends MediaTrackConstraints {
   suppressLocalAudioPlayback?: { ideal: boolean };
+}
+
+export interface SendPacketParams {
+  characters?: Character[];
 }

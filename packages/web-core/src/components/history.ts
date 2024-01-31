@@ -38,7 +38,9 @@ export interface HistoryItemActor extends HistoryItemBase {
   text?: string;
   emotions?: EmotionEvent;
   isRecognizing?: boolean;
+  // TODO: Remove this field in the next major release.
   character?: Character;
+  characters?: Character[];
   correlationId?: string;
 }
 
@@ -57,7 +59,9 @@ export interface HistoryInteractionEnd extends HistoryItemBase {
 export interface HistoryItemNarratedAction extends HistoryItemBase {
   type: CHAT_HISTORY_TYPE.NARRATED_ACTION;
   text?: string;
+  // TODO: Remove this field in the next major release.
   character?: Character;
+  characters?: Character[];
 }
 
 export type HistoryItem =
@@ -107,17 +111,29 @@ export class InworldHistory<
     const utteranceId = packet.packetId.utteranceId;
     const interactionId = packet.packetId.interactionId;
 
-    const id = packet.routing.source.isCharacter
-      ? packet.routing.source.name
-      : packet.routing.target.name;
-    const character = characters.find((x) => x.id === id);
+    const byId = characters.reduce((acc, character) => {
+      acc[character.id] = character;
+      return acc;
+    }, {} as { [key: string]: Character });
+    const itemCharacters = [];
+
+    if (packet.routing.source.isCharacter) {
+      itemCharacters.push(byId[packet.routing.source.name]);
+    } else {
+      itemCharacters.push(
+        ...packet.routing.targets
+          .filter((x) => x.isCharacter && byId[x.name])
+          .map((x) => byId[x.name]),
+      );
+    }
 
     if (packet.isEmotion()) {
       this.emotions[interactionId] = packet.emotions;
     } else if (packet.isText()) {
       const actorItem: HistoryItem = {
         ...this.combineTextItem(packet),
-        character,
+        character: itemCharacters[0],
+        characters: itemCharacters,
       };
 
       if (grpcAudioPlayer.hasPacketInQueue({ utteranceId })) {
@@ -128,7 +144,7 @@ export class InworldHistory<
     } else if (packet.isNarratedAction()) {
       const actionItem = this.combineNarratedActionItem(
         packet,
-        character,
+        itemCharacters,
         this.user,
       );
 
@@ -343,21 +359,22 @@ export class InworldHistory<
 
   private combineNarratedActionItem(
     packet: InworldPacketT,
-    character: Character,
+    characters: Character[],
     user?: User,
   ): HistoryItemNarratedAction {
     const date = new Date(packet.date);
     const interactionId = packet.packetId.interactionId;
     const text = packet.routing.source.isPlayer
       ? packet.narratedAction.text
-          .replaceAll('{character}', character.displayName)
+          .replaceAll('{character}', characters[0].displayName)
           .replaceAll('{player}', this.getUserName(user))
       : packet.narratedAction.text;
 
     return {
       id: v4(),
       date,
-      character,
+      character: characters[0],
+      characters,
       interactionId,
       source: packet.routing.source,
       type: CHAT_HISTORY_TYPE.NARRATED_ACTION,

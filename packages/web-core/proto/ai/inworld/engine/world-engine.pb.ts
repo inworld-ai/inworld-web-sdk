@@ -81,6 +81,7 @@ export type CapabilitiesRequest = {
   relations?: boolean
   debugInfo?: boolean
   ttsMp3?: boolean
+  multiAgent?: boolean
 }
 
 export type UserRequest = {
