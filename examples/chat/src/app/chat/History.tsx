@@ -1,5 +1,6 @@
 import {
   Actor,
+  Character,
   CHAT_HISTORY_TYPE,
   HistoryItem,
   HistoryItemActor,
@@ -9,6 +10,7 @@ import {
 import { Box, Fade, Stack, Typography } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
 
+import { CircularRpmAvatar } from '../components/CircularRpmAvatar';
 import { getEmoji } from '../helpers/emoji';
 import { dateWithMilliseconds } from '../helpers/transform';
 import { CHAT_VIEW, EmotionsMap } from '../types';
@@ -24,6 +26,7 @@ import { Typing } from './Typing';
 
 interface HistoryProps {
   chatView: CHAT_VIEW;
+  characters: Character[];
   history: HistoryItem[];
   emotions: EmotionsMap;
   onInteractionEnd: (value: boolean) => void;
@@ -158,6 +161,9 @@ export const History = (props: HistoryProps) => {
             let messages = item.messages;
             let actorSource = 'AGENT';
             let message = item.messages?.[0];
+            const character = props.characters.find(
+              (c) => c.id === item.source.name,
+            );
 
             const title =
               item.type === CHAT_HISTORY_TYPE.ACTOR ||
@@ -198,6 +204,21 @@ export const History = (props: HistoryProps) => {
                       className="history-actor"
                       key={`PortalSimulatorChatHistoryActor-${index}`}
                     >
+                      <CircularRpmAvatar
+                        key={index}
+                        src={
+                          character?.assets?.rpmImageUriPortrait ??
+                          character?.assets?.avatarImg ??
+                          ''
+                        }
+                        name={character?.displayName}
+                        size="48px"
+                        sx={{
+                          display: ['none', 'flex'],
+                          mr: 1,
+                          float: 'left',
+                        }}
+                      />
                       {emoji && (
                         <Box className="simulator-message__emoji" fontSize={16}>
                           {emoji}
