@@ -5,16 +5,16 @@ export const Config: Configuration = {
     'https://storage.googleapis.com/assets-inworld-ai/models/innequin/v2/models/animations/emotions/',
   DEFAULT_ANIMATION: 'Neutral_Hello_Long_01',
   GENERATE_TOKEN_URL:
-    process.env.REACT_APP_GENERATE_TOKEN_URL || 'http://localhost:4000',
+    import.meta.env.VITE_GENERATE_TOKEN_URL || 'http://localhost:4000',
   IMAGES_BODY_URI:
     'https://storage.googleapis.com/assets-inworld-ai/models/innequin/v2/textures/body/', // ./assets/textures/body/
   IMAGES_FACIAL_URI:
     'https://storage.googleapis.com/assets-inworld-ai/models/innequin/v2/textures/face/emotions/',
-  INWORLD_CHARACTER: process.env.REACT_APP_INWORLD_CHARACTER,
-  INWORLD_SCENE: process.env.REACT_APP_INWORLD_SCENE,
+  INWORLD_CHARACTER: import.meta.env.VITE_INWORLD_CHARACTER,
+  INWORLD_SCENE: import.meta.env.VITE_INWORLD_SCENE,
   MODEL_URI:
     'https://storage.googleapis.com/assets-inworld-ai/models/innequin/v2/models/body/innequin.glb', // ./assets/innequin.glb
-  RPM_AVATAR: process.env.REACT_APP_RPM_AVATAR,
+  RPM_AVATAR: import.meta.env.VITE_RPM_AVATAR,
   DRACO_COMPRESSION_URI:
     'https://storage.googleapis.com/assets-inworld-ai/models/innequin/v2/draco-gltf/',
   CAMERA_SETTINGS: {

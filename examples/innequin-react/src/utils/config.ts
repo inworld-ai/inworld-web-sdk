@@ -41,15 +41,15 @@ export const config: Configuration = {
     far: 1000,
   },
   innequin: {
-    baseURI: process.env.REACT_APP_INNEQUIN_BASE_URI!,
-    configURI: process.env.REACT_APP_INNEQUIN_CONFIG_URI!,
-    dracoURI: process.env.REACT_APP_DRACO_COMPRESSION_URI || '',
+    baseURI: import.meta.env.VITE_INNEQUIN_BASE_URI!,
+    configURI: import.meta.env.VITE_INNEQUIN_CONFIG_URI!,
+    dracoURI: import.meta.env.VITE_DRACO_COMPRESSION_URI || '',
   },
   inworld: {
-    characterId: process.env.REACT_APP_INWORLD_CHARACTER_ID!,
-    sceneId: process.env.REACT_APP_INWORLD_SCENE_ID!,
+    characterId: import.meta.env.VITE_INWORLD_CHARACTER_ID!,
+    sceneId: import.meta.env.VITE_INWORLD_SCENE_ID!,
     tokenURL:
-      process.env.REACT_APP_INWORLD_GENERATE_TOKEN_URL ||
+      import.meta.env.VITE_INWORLD_GENERATE_TOKEN_URL ||
       'http://localhost:4000',
   },
 };

@@ -18,7 +18,7 @@ This folder contains server to **generate token** using API key and **chat** rea
 
 ### Setup value in environment for chat application
 
-Specify REACT_APP_INWORLD_CHARACTER and REACT_APP_INWORLD_SCENE (or fill corresponding fields on application web form after start)
+Specify VITE_INWORLD_CHARACTER and VITE_INWORLD_SCENE (or fill corresponding fields on application web form after start)
 
 ### Install dependencies for both applications
 
