@@ -2,6 +2,7 @@ import { v4 } from 'uuid';
 
 import {
   Actor,
+  ActorType,
   ControlEventAction,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
@@ -25,17 +26,15 @@ test('should set and get character', () => {
   const found = factory.getCurrentCharacter();
 
   expect(found).toEqual(character);
-  expect(found.id).toEqual(character.id);
+  expect(found?.id).toEqual(character.id);
 });
 
 describe('event types', () => {
   const character = createCharacter();
 
   beforeEach(() => {
-    jest.clearAllMocks();
     factory.setCurrentCharacter(character);
   });
-  character;
 
   test('should generate audio event', () => {
     const chunk = v4();
@@ -47,7 +46,7 @@ describe('event types', () => {
       chunk,
       type: DataChunkDataType.AUDIO,
     });
-    expect(event.routing.target.name).toEqual(character.id);
+    expect(event.routing.targets?.[0].name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
     expect(event.packetId?.interactionId).toBeUndefined();
@@ -62,7 +61,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.AUDIO_SESSION_START,
     });
-    expect(event.routing.target.name).toEqual(character.id);
+    expect(event.routing.targets?.[0].name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
     expect(event.packetId?.interactionId).toBeUndefined();
@@ -77,7 +76,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.AUDIO_SESSION_END,
     });
-    expect(event.routing.target.name).toEqual(character.id);
+    expect(event.routing.targets?.[0].name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
     expect(event.packetId?.interactionId).toBeUndefined();
@@ -92,7 +91,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.TTS_PLAYBACK_START,
     });
-    expect(event.routing.target.name).toEqual(character.id);
+    expect(event.routing.targets?.[0].name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
     expect(event.packetId?.interactionId).toBeUndefined();
@@ -107,7 +106,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.TTS_PLAYBACK_END,
     });
-    expect(event.routing.target.name).toEqual(character.id);
+    expect(event.routing.targets?.[0].name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
     expect(event.packetId?.interactionId).toBeUndefined();
@@ -122,7 +121,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.TTS_PLAYBACK_MUTE,
     });
-    expect(event.routing.target.name).toEqual(character.id);
+    expect(event.routing.targets?.[0].name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
     expect(event.packetId?.interactionId).toBeUndefined();
@@ -137,7 +136,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.TTS_PLAYBACK_UNMUTE,
     });
-    expect(event.routing.target.name).toEqual(character.id);
+    expect(event.routing.targets?.[0].name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
     expect(event.packetId?.interactionId).toBeUndefined();
@@ -151,7 +150,7 @@ describe('event types', () => {
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.text.text).toEqual(text);
-    expect(event.routing.target.name).toEqual(character.id);
+    expect(event.routing.targets?.[0].name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId).toHaveProperty('interactionId');
     expect(event.packetId).toHaveProperty('utteranceId');
@@ -166,7 +165,7 @@ describe('event types', () => {
     expect(event).toHaveProperty('timestamp');
     expect(event.custom.name).toEqual(name);
     expect(event.custom.parameters).toEqual(undefined);
-    expect(event.routing.target.name).toEqual(character.id);
+    expect(event.routing.targets?.[0].name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId).toHaveProperty('interactionId');
     expect(event.packetId).toHaveProperty('utteranceId');
@@ -176,13 +175,13 @@ describe('event types', () => {
   test('should generate trigger event with parameters', () => {
     const name = v4();
     const parameters = [{ name: v4(), value: v4() }];
-    const event = factory.trigger(name, parameters);
+    const event = factory.trigger(name, { parameters });
 
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.custom.name).toEqual(name);
     expect(event.custom.parameters).toEqual(parameters);
-    expect(event.routing.target.name).toEqual(character.id);
+    expect(event.routing.targets?.[0].name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId).toHaveProperty('interactionId');
     expect(event.packetId).toHaveProperty('utteranceId');
@@ -200,7 +199,7 @@ describe('event types', () => {
       interactionId,
       utteranceId,
     });
-    expect(event.routing.target.name).toEqual(character.id);
+    expect(event.routing.targets?.[0].name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.interactionId).toBeUndefined();
     expect(event.packetId?.utteranceId).toBeUndefined();
@@ -214,39 +213,27 @@ describe('event types', () => {
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.action?.narratedAction?.content).toEqual(text);
-    expect(event.routing.target.name).toEqual(character.id);
+    expect(event.routing.targets?.[0].name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId).toHaveProperty('interactionId');
     expect(event.packetId).toHaveProperty('utteranceId');
     expect(event.packetId).toHaveProperty('correlationId');
   });
-
-  test('should not use character id if character is not set', () => {
-    factory.setCurrentCharacter(null);
-
-    const interactionId = v4();
-    const utteranceId = [v4()];
-    const event = factory.cancelResponse({ interactionId, utteranceId });
-
-    expect(event).toHaveProperty('packetId');
-    expect(event).toHaveProperty('routing');
-    expect(event).toHaveProperty('timestamp');
-    expect(event).toHaveProperty('timestamp');
-    expect(event.mutation.cancelResponses).toEqual({
-      interactionId,
-      utteranceId,
-    });
-    expect(event.routing.target.name).toEqual(undefined);
-  });
 });
 
 describe('convert packet to external one', () => {
+  const character = createCharacter();
+
+  beforeEach(() => {
+    factory.setCurrentCharacter(character);
+  });
+
   test('audio', () => {
     const packet: ProtoPacket = {
       packetId: { packetId: v4() },
       routing: {
         source: {} as Actor,
-        target: {} as Actor,
+        targets: [{} as Actor],
       },
       dataChunk: {
         additionalPhonemeInfo: [
@@ -283,7 +270,9 @@ describe('convert packet to external one', () => {
 
   test('trigger with parameters', () => {
     const result = InworldPacket.fromProto(
-      factory.trigger(v4(), [{ name: v4(), value: v4() }]),
+      factory.trigger(v4(), {
+        parameters: [{ name: v4(), value: v4() }],
+      }),
     );
 
     expect(result).toBeInstanceOf(InworldPacket);
@@ -295,7 +284,7 @@ describe('convert packet to external one', () => {
       packetId: { packetId: v4() },
       routing: {
         source: {} as Actor,
-        target: {} as Actor,
+        targets: [{} as Actor],
       },
       emotion: {},
       timestamp: protoTimestamp(),
@@ -312,7 +301,7 @@ describe('convert packet to external one', () => {
       packetId: { packetId: v4() },
       routing: {
         source: {} as Actor,
-        target: {} as Actor,
+        targets: [{} as Actor],
       },
       dataChunk: { durationMs: '100', type: DataChunkDataType.SILENCE },
       timestamp: protoTimestamp(),
@@ -329,7 +318,7 @@ describe('convert packet to external one', () => {
       packetId: { packetId: v4() },
       routing: {
         source: {} as Actor,
-        target: {} as Actor,
+        targets: [{} as Actor],
       },
       mutation: { cancelResponses: {} },
       timestamp: protoTimestamp(),
@@ -346,7 +335,7 @@ describe('convert packet to external one', () => {
       packetId: { packetId: v4() },
       routing: {
         source: {} as Actor,
-        target: {} as Actor,
+        targets: [{} as Actor],
       },
       action: {
         narratedAction: {
@@ -366,7 +355,7 @@ describe('convert packet to external one', () => {
       packetId: { packetId: v4() },
       routing: {
         source: {} as Actor,
-        target: {} as Actor,
+        targets: [{} as Actor],
       },
       timestamp: protoTimestamp(),
     };
@@ -391,7 +380,7 @@ describe('convert packet to external one', () => {
         packetId: { packetId: v4() },
         routing: {
           source: {} as Actor,
-          target: {} as Actor,
+          targets: [{} as Actor],
         },
         timestamp: protoTimestamp(today),
       };
@@ -412,7 +401,7 @@ describe('convert packet to external one', () => {
         packetId: { packetId: v4() },
         routing: {
           source: {} as Actor,
-          target: {} as Actor,
+          targets: [{} as Actor],
         },
         timestamp: protoTimestamp(today),
       };
@@ -423,5 +412,62 @@ describe('convert packet to external one', () => {
       expect(result.isControl()).toEqual(true);
       expect(result.isInteractionEnd()).toEqual(false);
     });
+  });
+});
+
+describe('multi characters', () => {
+  const internalCharacters = [createCharacter(), createCharacter()];
+
+  beforeEach(() => {
+    factory.setCharacters(internalCharacters);
+  });
+
+  test('should generate audio event using external characters', () => {
+    const externalCharacters = [createCharacter(), createCharacter()];
+    const targets = externalCharacters.map((c) => ({
+      name: c.id,
+      type: ActorType.AGENT,
+    }));
+
+    const chunk = v4();
+    const event = factory.dataChunk(
+      chunk,
+      DataChunkDataType.AUDIO,
+      externalCharacters,
+    );
+
+    expect(event).toHaveProperty('routing');
+    expect(event).toHaveProperty('timestamp');
+    expect(event.dataChunk).toEqual({
+      chunk,
+      type: DataChunkDataType.AUDIO,
+    });
+    expect(event.routing.targets).toEqual(targets);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.correlationId).toBeUndefined();
+  });
+
+  test('should generate audio event using internal characters', () => {
+    const targets = internalCharacters.map((c) => ({
+      name: c.id,
+      type: ActorType.AGENT,
+    }));
+
+    const chunk = v4();
+    const event = factory.dataChunk(chunk, DataChunkDataType.AUDIO);
+
+    expect(event).toHaveProperty('routing');
+    expect(event).toHaveProperty('timestamp');
+    expect(event.dataChunk).toEqual({
+      chunk,
+      type: DataChunkDataType.AUDIO,
+    });
+    expect(event.routing.targets).toEqual(targets);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.correlationId).toBeUndefined();
   });
 });

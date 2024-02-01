@@ -22,11 +22,13 @@ const routing: Routing = {
     isPlayer: true,
     isCharacter: false,
   },
-  target: {
-    name: v4(),
-    isPlayer: false,
-    isCharacter: true,
-  },
+  targets: [
+    {
+      name: v4(),
+      isPlayer: false,
+      isCharacter: true,
+    },
+  ],
 };
 const date = protoTimestamp();
 

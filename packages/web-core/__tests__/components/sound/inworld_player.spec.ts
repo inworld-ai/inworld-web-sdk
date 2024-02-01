@@ -10,8 +10,6 @@ const grpcAudioPlayer = new GrpcAudioPlayback();
 let player: InworldPlayer;
 
 beforeEach(() => {
-  jest.clearAllMocks();
-
   player = new InworldPlayer({ grpcAudioPlayer });
 });
 

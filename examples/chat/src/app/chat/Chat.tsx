@@ -1,31 +1,23 @@
-import { HistoryItem, InworldConnectionService } from '@inworld/web-core';
 import {
-  AddReaction,
-  CopyAll,
-  Mic,
-  Send,
-  VolumeOff,
-  VolumeUp,
-} from '@mui/icons-material';
-import {
-  Dialog,
-  DialogContent,
-  IconButton,
-  InputAdornment,
-  TextField,
-  Tooltip,
-} from '@mui/material';
+  Character,
+  HistoryItem,
+  InworldConnectionService,
+} from '@inworld/web-core';
+import { CopyAll, Mic, Send, VolumeOff, VolumeUp } from '@mui/icons-material';
+import { IconButton, InputAdornment, TextField, Tooltip } from '@mui/material';
 import { Box } from '@mui/system';
 import { useCallback, useState } from 'react';
 
 import { INWORLD_SESSION_STATE_KEY } from '../../defaults';
 import { CHAT_VIEW, EmotionsMap } from '../types';
+import { AdditionalActions } from './AdditionalActions';
 import { ActionsStyled, RecordIcon } from './Chat.styled';
 import { ConfirmedDialog } from './ConfirmedDialog';
 import { History } from './History';
 import { SessionActions } from './SessionActions';
 
 interface ChatProps {
+  characters: Character[];
   chatView: CHAT_VIEW;
   chatHistory: HistoryItem[];
   connection: InworldConnectionService;
@@ -44,11 +36,8 @@ export function Chat(props: ChatProps) {
   const { chatHistory, connection } = props;
 
   const [text, setText] = useState('');
-  const [narration, setNarration] = useState('');
   const [confirmText, setConfirmText] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [narratedActionDialogOpen, setNarratedActionDialogOpen] =
-    useState(false);
   const [recorderdingStatus, setRecorderdingStatus] = useState(
     RECORDING_STATUS.STOPPED,
   );
@@ -62,13 +51,6 @@ export function Chat(props: ChatProps) {
   const handleTextChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setText(e.target.value);
-    },
-    [],
-  );
-
-  const handleNarrationChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setNarration(e.target.value);
     },
     [],
   );
@@ -124,10 +106,6 @@ export function Chat(props: ChatProps) {
     setConfirmOpen(true);
   }, [props.onRestore, savedState]);
 
-  const handleNarratedActionDialog = useCallback(() => {
-    setNarratedActionDialogOpen(true);
-  }, []);
-
   const handleMutePlayback = useCallback(() => {
     connection.recorder.initPlayback();
     connection.player.mute(!isPlaybackMuted);
@@ -167,17 +145,6 @@ export function Chat(props: ChatProps) {
       setText('');
     }
   }, [connection, hasPlayedWorkaroundSound, playWorkaroundSound, text]);
-
-  const handleSendNarration = useCallback(() => {
-    if (narration) {
-      !hasPlayedWorkaroundSound && playWorkaroundSound();
-
-      connection?.sendNarratedAction(narration);
-
-      setNarration('');
-      setNarratedActionDialogOpen(false);
-    }
-  }, [connection, hasPlayedWorkaroundSound, playWorkaroundSound, narration]);
 
   const handleTextKeyPress = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>, handle: () => void) => {
@@ -220,6 +187,7 @@ export function Chat(props: ChatProps) {
     >
       <History
         history={chatHistory}
+        characters={props.characters}
         chatView={props.chatView}
         emotions={props.emotions}
         onInteractionEnd={setIsInteractionEnd}
@@ -249,11 +217,6 @@ export function Chat(props: ChatProps) {
             disableUnderline: true,
           }}
         />
-        <Tooltip title="Send narrated action" placement="top">
-          <IconButton onClick={handleNarratedActionDialog}>
-            <AddReaction fontSize="small" />
-          </IconButton>
-        </Tooltip>
         <Tooltip title={isPlaybackMuted ? 'Unmute' : 'Mute'} placement="top">
           <IconButton onClick={handleMutePlayback}>
             {isPlaybackMuted ? (
@@ -298,6 +261,13 @@ export function Chat(props: ChatProps) {
             <CopyAll fontSize="small" />
           </IconButton>
         </Tooltip>
+        <AdditionalActions
+          chatView={props.chatView}
+          connection={connection}
+          playWorkaroundSound={() =>
+            !hasPlayedWorkaroundSound && playWorkaroundSound()
+          }
+        />
       </ActionsStyled>
       <ConfirmedDialog
         open={confirmOpen}
@@ -305,36 +275,6 @@ export function Chat(props: ChatProps) {
         alert={confirmText.includes('could not') ? 'error' : 'success'}
         setOpen={setConfirmOpen}
       />
-      <Dialog
-        open={narratedActionDialogOpen}
-        onClose={() => setNarratedActionDialogOpen(false)}
-      >
-        <DialogContent>
-          <Box sx={{ m: 1 }}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Narrated action"
-              onChange={handleNarrationChange}
-              placeholder="Enter action to narrate"
-              InputLabelProps={{ shrink: true }}
-              onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                handleTextKeyPress(e, handleSendNarration)
-              }
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={handleSendNarration}>
-                      <Send />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-                disableUnderline: true,
-              }}
-            />
-          </Box>
-        </DialogContent>
-      </Dialog>
     </Box>
   );
 }

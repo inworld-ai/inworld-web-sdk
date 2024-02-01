@@ -9,8 +9,6 @@ const timeoutMockCalls = (timeout: any) =>
 let recorder: GrpcAudioRecorder;
 
 beforeEach(() => {
-  jest.clearAllMocks();
-
   recorder = new GrpcAudioRecorder();
 });
 

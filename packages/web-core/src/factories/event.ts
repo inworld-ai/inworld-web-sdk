@@ -1,6 +1,7 @@
 import { v4 } from 'uuid';
 
 import {
+  Actor,
   ActorType,
   ControlEventAction,
   DataChunkDataType,
@@ -15,6 +16,7 @@ import { TriggerParameter } from '../entities/inworld_packet.entity';
 
 export class EventFactory {
   private character: Character | null = null;
+  private characters: Character[] = [];
 
   getCurrentCharacter() {
     return this.character;
@@ -24,44 +26,80 @@ export class EventFactory {
     this.character = character;
   }
 
-  dataChunk(chunk: string, type: DataChunkDataType): ProtoPacket {
+  setCharacters(characters: Character[]) {
+    this.characters = characters;
+  }
+
+  getCharacters() {
+    return this.characters;
+  }
+
+  dataChunk(
+    chunk: string,
+    type: DataChunkDataType,
+    characters?: Character[],
+  ): ProtoPacket {
     return {
-      ...this.baseProtoPacket({ utteranceId: false, interactionId: false }),
+      ...this.baseProtoPacket({
+        utteranceId: false,
+        interactionId: false,
+        characters,
+      }),
       dataChunk: { chunk: chunk as unknown as Uint8Array, type },
     };
   }
 
-  audioSessionStart(): ProtoPacket {
+  audioSessionStart(characters?: Character[]): ProtoPacket {
     return {
-      ...this.baseProtoPacket({ utteranceId: false, interactionId: false }),
+      ...this.baseProtoPacket({
+        utteranceId: false,
+        interactionId: false,
+        characters,
+      }),
       control: { action: ControlEventAction.AUDIO_SESSION_START },
     };
   }
 
-  audioSessionEnd(): ProtoPacket {
+  audioSessionEnd(characters?: Character[]): ProtoPacket {
     return {
-      ...this.baseProtoPacket({ utteranceId: false, interactionId: false }),
+      ...this.baseProtoPacket({
+        utteranceId: false,
+        interactionId: false,
+        characters,
+      }),
       control: { action: ControlEventAction.AUDIO_SESSION_END },
     };
   }
 
-  ttsPlaybackStart(): ProtoPacket {
+  ttsPlaybackStart(characters?: Character[]): ProtoPacket {
     return {
-      ...this.baseProtoPacket({ utteranceId: false, interactionId: false }),
+      ...this.baseProtoPacket({
+        utteranceId: false,
+        interactionId: false,
+        characters,
+      }),
       control: { action: ControlEventAction.TTS_PLAYBACK_START },
     };
   }
 
-  ttsPlaybackEnd(): ProtoPacket {
+  ttsPlaybackEnd(characters?: Character[]): ProtoPacket {
     return {
-      ...this.baseProtoPacket({ utteranceId: false, interactionId: false }),
+      ...this.baseProtoPacket({
+        utteranceId: false,
+        interactionId: false,
+        characters,
+      }),
       control: { action: ControlEventAction.TTS_PLAYBACK_END },
     };
   }
 
-  ttsPlaybackMute(isMuted: boolean): ProtoPacket {
+  ttsPlaybackMute(isMuted: boolean, characters?: Character[]): ProtoPacket {
     return {
-      ...this.baseProtoPacket({ utteranceId: false, interactionId: false }),
+      ...this.baseProtoPacket({
+        utteranceId: false,
+        interactionId: false,
+        characters,
+      }),
       control: {
         action: isMuted
           ? ControlEventAction.TTS_PLAYBACK_MUTE
@@ -70,9 +108,9 @@ export class EventFactory {
     };
   }
 
-  text(text: string): ProtoPacket {
+  text(text: string, characters?: Character[]): ProtoPacket {
     return {
-      ...this.baseProtoPacket({ correlationId: true }),
+      ...this.baseProtoPacket({ correlationId: true, characters }),
       text: {
         sourceType: TextEventSourceType.TYPED_IN,
         text,
@@ -81,9 +119,18 @@ export class EventFactory {
     };
   }
 
-  trigger(name: string, parameters: TriggerParameter[] = []): ProtoPacket {
+  trigger(
+    name: string,
+    {
+      parameters = [],
+      characters,
+    }: {
+      parameters?: TriggerParameter[];
+      characters?: Character[];
+    } = {},
+  ): ProtoPacket {
     return {
-      ...this.baseProtoPacket({ correlationId: true }),
+      ...this.baseProtoPacket({ correlationId: true, characters }),
       custom: {
         name,
         parameters: parameters.length ? parameters : undefined,
@@ -91,20 +138,24 @@ export class EventFactory {
     };
   }
 
-  cancelResponse(cancelResponses?: CancelResponsesProps): ProtoPacket {
+  cancelResponse(
+    cancelResponses?: CancelResponsesProps,
+    characters?: Character[],
+  ): ProtoPacket {
     return {
       ...this.baseProtoPacket({
         utteranceId: false,
         interactionId: false,
         correlationId: true,
+        characters,
       }),
       mutation: { cancelResponses },
     };
   }
 
-  narratedAction(content: string): ProtoPacket {
+  narratedAction(content: string, characters?: Character[]): ProtoPacket {
     return {
-      ...this.baseProtoPacket({ correlationId: true }),
+      ...this.baseProtoPacket({ correlationId: true, characters }),
       action: {
         narratedAction: {
           content,
@@ -117,10 +168,12 @@ export class EventFactory {
     utteranceId = true,
     interactionId = true,
     correlationId,
+    characters,
   }: {
     utteranceId?: boolean;
     interactionId?: boolean;
     correlationId?: boolean;
+    characters?: Character[];
   } = {}) {
     return {
       packetId: {
@@ -130,14 +183,25 @@ export class EventFactory {
         ...(correlationId && { correlationId: v4() }),
       },
       timestamp: protoTimestamp(),
-      routing: this.routing(),
+      routing: this.routing(characters),
     };
   }
 
-  private routing(): Routing {
+  private routing(characters?: Character[]): Routing {
+    const targets: Actor[] = [];
+    const currentCharacter = this.getCurrentCharacter();
+
+    if (!!currentCharacter?.id) {
+      targets.push({ type: ActorType.AGENT, name: currentCharacter.id });
+    } else {
+      (characters ?? this.characters).forEach((c) =>
+        targets.push({ type: ActorType.AGENT, name: c.id }),
+      );
+    }
+
     return {
       source: { type: ActorType.PLAYER },
-      target: { type: ActorType.AGENT, name: this.character?.id },
+      targets,
     };
   }
 }

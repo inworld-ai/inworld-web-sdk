@@ -35,11 +35,13 @@ const routing: Routing = {
     isPlayer: true,
     isCharacter: false,
   },
-  target: {
-    name: characters[0].id,
-    isPlayer: false,
-    isCharacter: true,
-  },
+  targets: [
+    {
+      name: characters[0].id,
+      isPlayer: false,
+      isCharacter: true,
+    },
+  ],
 };
 const date = protoTimestamp();
 const grpcAudioPlayer = new GrpcAudioPlayback();
@@ -93,8 +95,8 @@ const incomingTextPacket = new InworldPacket({
     interactionId: packetId.interactionId,
   },
   routing: {
-    source: routing.target,
-    target: routing.source,
+    source: routing.targets[0],
+    targets: [routing.source],
   },
   date,
   text: {
@@ -119,10 +121,6 @@ const createHistoryWithPacket = (
   return history;
 };
 
-beforeEach(() => {
-  jest.clearAllMocks();
-});
-
 test('should be empty by default', () => {
   const history = new InworldHistory();
 
@@ -131,10 +129,6 @@ test('should be empty by default', () => {
 
 describe('text', () => {
   describe('addOrUpdate', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
     test('should add packet to history', () => {
       const history = createHistoryWithPacket(textPacket);
       const item = history.get()[0] as HistoryItemActor;
@@ -193,10 +187,6 @@ describe('text', () => {
   });
 
   describe('display', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
     test('should display packet stored in queue', () => {
       jest
         .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
@@ -213,10 +203,6 @@ describe('text', () => {
   });
 
   describe('update', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
     test('should update exising packet', () => {
       const text = v4();
       const history = createHistoryWithPacket(textPacket);
@@ -272,10 +258,6 @@ describe('text', () => {
   });
 
   describe('filter', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
     test('should filter history', () => {
       const history = createHistoryWithPacket(textPacket);
 
@@ -391,8 +373,8 @@ describe('text', () => {
             interactionId: packetId.interactionId,
           },
           routing: {
-            source: routing.target,
-            target: routing.source,
+            source: routing.targets[0],
+            targets: [routing.source],
           },
           date,
           text: {
@@ -407,8 +389,8 @@ describe('text', () => {
             interactionId: packetId.interactionId,
           },
           routing: {
-            source: routing.target,
-            target: routing.source,
+            source: routing.targets[0],
+            targets: [routing.source],
           },
           date,
           text: {
@@ -521,10 +503,46 @@ describe('trigger', () => {
 });
 
 describe('narrated action', () => {
-  test('should add packet to history', () => {
+  test('should add outgoing packet to history', () => {
     const history = createHistoryWithPacket(narracterActionPacket);
 
     expect(history.get().length).toEqual(1);
+  });
+
+  test('should replace placeholders for outgoing event', () => {
+    const narracterActionPacket = new InworldPacket({
+      packetId,
+      routing,
+      date,
+      narratedAction: { text: '{character} some context {player}.' },
+      type: InworldPacketType.NARRATED_ACTION,
+    });
+
+    const history = createHistoryWithPacket(narracterActionPacket);
+    const result = history.get()[0] as HistoryItemActor;
+
+    expect(result.text).toEqual(
+      `${characters[0].displayName} some context User.`,
+    );
+  });
+
+  test('should replace nothing for incoming event', () => {
+    const text = '{character} some context {player}.';
+    const narracterActionPacket = new InworldPacket({
+      packetId,
+      routing: {
+        source: routing.targets[0],
+        targets: [routing.source],
+      },
+      date,
+      narratedAction: { text },
+      type: InworldPacketType.NARRATED_ACTION,
+    });
+
+    const history = createHistoryWithPacket(narracterActionPacket);
+    const result = history.get()[0] as HistoryItemActor;
+
+    expect(result.text).toEqual(text);
   });
 });
 

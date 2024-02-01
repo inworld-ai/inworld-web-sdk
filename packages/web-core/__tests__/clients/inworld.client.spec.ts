@@ -32,11 +32,13 @@ describe('should finish with success', () => {
   const onPhoneme = jest.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
     inworldClient = new InworldClient()
       .setScene(SCENE)
       .setConfiguration({
-        capabilities: capabilitiesProps,
+        capabilities: {
+          ...capabilitiesProps,
+          multiAgent: true,
+        },
         audioPlayback: { stop: { duration: 1000, ticks: 30 } },
         history: { previousState: true },
       })
@@ -146,10 +148,6 @@ describe('should throw error', () => {
 });
 
 describe('extension', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   test('should extend capabilities and packets', () => {
     const inworldClient = new InworldClient<ExtendedInworldPacket>()
       .setScene(SCENE)

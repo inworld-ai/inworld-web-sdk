@@ -15,7 +15,6 @@ describe('getSessionState', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
     service = new StateSerializationService();
   });
 

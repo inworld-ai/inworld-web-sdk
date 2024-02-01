@@ -32,22 +32,25 @@ export const ConfigView = (props: ConfigViewProps) => {
         <Card sx={{ mb: 2 }}>
           <CardContent>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <CharacterName />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <SceneName />
+              <Grid item xs={12} sm={12}>
+                <ChatView />
               </Grid>
             </Grid>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
-                <PlayerName />
+                {props.chatView === CHAT_VIEW.MULTI_AGENT_TEXT ? (
+                  <SceneName />
+                ) : (
+                  <CharacterName />
+                )}
               </Grid>
               <Grid item xs={12} sm={6}>
-                <ChatView />
+                <PlayerName />
               </Grid>
             </Grid>
-            {props.chatView === CHAT_VIEW.TEXT && (
+            {[CHAT_VIEW.TEXT, CHAT_VIEW.MULTI_AGENT_TEXT].includes(
+              props.chatView!,
+            ) && (
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
                   <Audio />
