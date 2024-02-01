@@ -14,7 +14,7 @@ export type RPMAnimatorProps = {
 };
 
 const ANIMATION_FADE_TIME_S = 0.5;
-const AVATAR_MESH_NAME = 'Wolf3D_Avatar';
+const AVATAR_MESH_NAME = 'Armature';
 const END_TALKING_DEBOUNCE_TIME_MS = 500;
 
 export class RPMAnimator {
@@ -45,12 +45,19 @@ export class RPMAnimator {
   init() {
     if (this.props.model) {
       this.props.model.traverse((child) => {
-        if (child.type === 'SkinnedMesh') {
-          if (child.name === AVATAR_MESH_NAME) {
-            this.modelMesh = child as SkinnedMesh;
-            this.facial = new RPMFacial({ modelMesh: this.modelMesh });
-            this.animationMixer = new AnimationMixer(this.modelMesh);
-          }
+        if (child.type === 'Object3D' && child.name === AVATAR_MESH_NAME) {
+          this.modelMesh = child as SkinnedMesh;
+          this.modelMesh.traverse((subChild) => {
+            if (
+              subChild.name === 'Wolf3D_Head' &&
+              subChild.type === 'SkinnedMesh'
+            ) {
+              this.facial = new RPMFacial({
+                modelMesh: subChild as SkinnedMesh,
+              });
+            }
+          });
+          this.animationMixer = new AnimationMixer(this.modelMesh);
         }
       });
     }

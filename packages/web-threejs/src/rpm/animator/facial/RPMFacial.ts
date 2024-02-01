@@ -1,5 +1,5 @@
 import { AdditionalPhonemeInfo } from '@inworld/web-core';
-import { Bone, MathUtils, SkinnedMesh } from 'three';
+import { MathUtils, SkinnedMesh } from 'three';
 
 import { RPMFacialEmotionMap } from '../utils/RPMFacialEmotionMap';
 import { RPMEyes } from './RPMEyes';
@@ -16,7 +16,6 @@ export class RPMFacial {
   eye: RPMEyes;
   emotion: string;
   emotionOld: string;
-  modelHeadBone: Bone;
   modelMesh: SkinnedMesh;
   morphTime: number;
   mouth: RPMMouth;
@@ -26,11 +25,6 @@ export class RPMFacial {
     this.emotion = 'Neutral';
     this.emotionOld = 'Neutral';
     this.morphTime = 0;
-    this.modelHeadBone = this.modelMesh.getObjectByName('Head') as Bone;
-    // console.log('Finding Head Bone', this.modelMesh);
-    // if (this.modelHeadBone) {
-    //   console.log('Found Head Bone', this.modelHeadBone);
-    // }
     this.eye = new RPMEyes({ modelMesh: this.modelMesh });
     this.mouth = new RPMMouth({ modelMesh: this.modelMesh });
   }
