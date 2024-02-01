@@ -1,11 +1,5 @@
 import { AdditionalPhonemeInfo, EmotionBehaviorCode } from '@inworld/web-core';
-import {
-  AnimationMixer,
-  LoopPingPong,
-  Mesh,
-  Object3D,
-  SkinnedMesh,
-} from 'three';
+import { AnimationMixer, LoopPingPong, Object3D, SkinnedMesh } from 'three';
 
 import { JSONAnimationLoader } from '../../loaders/JSONAnimationLoader';
 import { RPMFacial } from './facial/RPMFacial';
@@ -51,7 +45,7 @@ export class RPMAnimator {
   init() {
     if (this.props.model) {
       this.props.model.traverse((child) => {
-        if (child instanceof Mesh) {
+        if (child.type === 'SkinnedMesh') {
           if (child.name === AVATAR_MESH_NAME) {
             this.modelMesh = child as SkinnedMesh;
             this.facial = new RPMFacial({ modelMesh: this.modelMesh });

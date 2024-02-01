@@ -28,7 +28,7 @@ function InnequinControls(props: InnequinControlsProps) {
 
   const [, set] = useControls('Innequin', () => ({
     Skin: {
-      options: Object.keys(props.skins), // Skins.map((skin) => skin.name)
+      options: Object.keys(props.skins),
       value: props.skinNameInitial,
       onChange: (skinName) => props.onChangeSkin(skinName),
     },

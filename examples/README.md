@@ -3,16 +3,18 @@
 This folder contains server to **generate token** using API key and **chat** react application.
 
 ## Requirements
+
 - Node 16 is recommended for **generate token** application.
 
 ## Installation
 
 ### Setup variables in .env file for generate token application
 
-|Name|Description|Details|
-|--:|--:|--:|
-|INWORLD_KEY|Inworld application key|Get key from [integrations page](https://studio.inworld.ai)|
-|INWORLD_SECRET|Inworld application secret|Get secret from [integrations page](https://studio.inworld.ai)|
+|           Name |                Description |                                                          Details |
+| -------------: | -------------------------: | ---------------------------------------------------------------: |
+|    INWORLD_KEY |    Inworld application key |      Get key from [integrations page](https://studio.inworld.ai) |
+| INWORLD_SECRET | Inworld application secret |   Get secret from [integrations page](https://studio.inworld.ai) |
+|  INWORLD_SCENE |      The Inworld Scene ID. | Get scene id from [integrations page](https://studio.inworld.ai) |
 
 ### Setup value in environment for chat application
 
