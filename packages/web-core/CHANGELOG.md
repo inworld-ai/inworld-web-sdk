@@ -1,3 +1,9 @@
+## [2.3.0] - 2024-01-31
+
+### Added
+
+- Multi characters support
+
 ## [2.2.2] - 2024-01-26
 
 ### Fixed

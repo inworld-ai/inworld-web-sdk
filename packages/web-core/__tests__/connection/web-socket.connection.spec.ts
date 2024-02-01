@@ -4,9 +4,16 @@ import { v4 } from 'uuid';
 import { InworldPacket as ProtoPacket } from '../../proto/ai/inworld/packets/packets.pb';
 import { WebSocketConnection } from '../../src/connection/web-socket.connection';
 import { EventFactory } from '../../src/factories/event';
-import { capabilitiesProps, convertPacketFromProto, session } from '../helpers';
+import {
+  capabilitiesProps,
+  convertPacketFromProto,
+  createCharacter,
+  session,
+} from '../helpers';
 
+const character = createCharacter();
 const eventFactory = new EventFactory();
+eventFactory.setCurrentCharacter(character);
 
 let server: WS;
 let ws: WebSocketConnection;
@@ -19,8 +26,6 @@ const onError = jest.fn();
 const onDisconnect = jest.fn();
 
 beforeEach(() => {
-  jest.clearAllMocks();
-
   server = new WS(`ws://${HOSTNAME}/v1/session/default`, {
     jsonProtocol: true,
   });
@@ -166,10 +171,6 @@ describe('write', () => {
   const afterWriting = jest.fn();
   const beforeWriting = jest.fn();
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   test('should write to active connection', async () => {
     let protoPacket: ProtoPacket;
 
@@ -209,10 +210,6 @@ describe('write', () => {
 });
 
 describe('close', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('should open and close connection', () => {
     test('with Disconnect', async () => {
       ws = new WebSocketConnection({

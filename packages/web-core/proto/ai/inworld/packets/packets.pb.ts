@@ -52,6 +52,9 @@ export enum ControlEventAction {
   TTS_PLAYBACK_UNMUTE = "TTS_PLAYBACK_UNMUTE",
   WARNING = "WARNING",
   SESSION_END = "SESSION_END",
+  CONVERSATION_START = "CONVERSATION_START",
+  CONVERSATION_UPDATE = "CONVERSATION_UPDATE",
+  CONVERSATION_STARTED = "CONVERSATION_STARTED",
 }
 
 export enum EmotionEventSpaffCode {
@@ -119,6 +122,7 @@ export type PacketId = {
   utteranceId?: string
   interactionId?: string
   correlationId?: string
+  conversationId?: string
 }
 
 

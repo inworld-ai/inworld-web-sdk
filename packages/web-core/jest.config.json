@@ -1,4 +1,5 @@
 {
+  "clearMocks": true,
   "coveragePathIgnorePatterns": ["<rootDir>//node_modules/", "<rootDir>/proto"],
   "modulePathIgnorePatterns": [
     "<rootDir>/__tests__/data_structures.ts",

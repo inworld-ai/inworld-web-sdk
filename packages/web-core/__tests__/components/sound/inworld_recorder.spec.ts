@@ -13,8 +13,6 @@ const listener = jest.fn();
 let recorder: InworldRecorder;
 
 beforeEach(() => {
-  jest.clearAllMocks();
-
   setNavigatorProperty('mediaDevices', {});
   setNavigatorProperty('userAgent', '');
 

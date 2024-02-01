@@ -55,7 +55,6 @@ function App() {
 
   const [bodyTexture, setBodyTexture] = useState(BODY_TEXTURE_TYPE.WOOD1);
   const [connection, setConnection] = useState<InworldConnectionService>();
-  const [character, setCharacter] = useState<Character>();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [chatHistory, setChatHistory] = useState<HistoryItem[]>([]);
   const [prevChatHistory, setPrevChatHistory] = useState<HistoryItem[]>([]);
@@ -65,7 +64,7 @@ function App() {
   const [initialized, setInitialized] = useState(false);
   const [phonemes, setPhonemes] = useState<AdditionalPhonemeInfo[]>([]);
   const [emotionEvent, setEmotionEvent] = useState<EmotionEvent>();
-  const [avatar, setAvatar] = useState('');
+  const [avatars, setAvatars] = useState<string[]>([]);
   const [emotions, setEmotions] = useState<EmotionsMap>({});
 
   const stateRef = useRef<CurrentContext>();
@@ -98,14 +97,17 @@ function App() {
       const previousDialog = form.continuation?.enabled
         ? JSONToPreviousDialog(form.continuation.previousDialog!)
         : [];
+      const textMode = [CHAT_VIEW.TEXT, CHAT_VIEW.MULTI_AGENT_TEXT].includes(
+        form.chatView!,
+      );
 
       console.log('Connecting to Inworld Service');
       const service = new InworldService({
         onHistoryChange,
         capabilities: {
-          ...(form.chatView !== CHAT_VIEW.TEXT && { phonemes: true }),
-          ...(form.chatView === CHAT_VIEW.TEXT && { interruptions: true }),
+          ...(textMode ? { interruptions: true } : { phonemes: true }),
           emotions: true,
+          multiAgent: form.chatView === CHAT_VIEW.MULTI_AGENT_TEXT,
           narratedActions: true,
         },
         ...(previousDialog.length && { continuation: { previousDialog } }),
@@ -116,7 +118,10 @@ function App() {
               stop: { duration, ticks },
             },
           }),
-        sceneName: form.scene?.name!,
+        sceneName:
+          form.chatView === CHAT_VIEW.MULTI_AGENT_TEXT
+            ? form.scene?.name!
+            : form.character?.name!,
         playerName: form.player?.name!,
         onPhoneme: (phonemes: AdditionalPhonemeInfo[]) => {
           setPhonemes(phonemes);
@@ -142,28 +147,25 @@ function App() {
       });
 
       const characters = await service.connection.getCharacters();
-      const character = characters.find(
-        (c: Character) => c.resourceName === form.character?.name,
-      );
 
-      if (character) {
-        service.connection.setCurrentCharacter(character);
+      if (characters.length) {
+        console.log('Characters found:', characters);
+        const avatars = characters.map((c: Character) => {
+          const rpmImageUri = c?.assets?.rpmImageUriPortrait;
+          const avatarImg = c?.assets?.avatarImg;
 
-        const assets = character?.assets;
-        const rpmImageUri = assets?.rpmImageUriPortrait;
-        const avatarImg = assets?.avatarImg;
-        setAvatar(avatarImg || rpmImageUri || '');
+          return rpmImageUri || avatarImg || '';
+        });
+        setAvatars(avatars);
       } else {
         console.error(
-          'Character not found in scene. Was it added?:',
-          form.character?.name!,
+          'Character(s) not found. Was them added?:',
+          form.scene?.name! || form.character?.name!,
         );
         return;
       }
 
       setConnection(service.connection);
-
-      setCharacter(character);
       setCharacters(characters);
     },
     [
@@ -187,7 +189,6 @@ function App() {
     // Close connection and clear connection data
     connection?.close();
     setConnection(undefined);
-    setCharacter(undefined);
     setCharacters([]);
   }, [connection]);
 
@@ -212,7 +213,7 @@ function App() {
 
   const content = chatting ? (
     <>
-      {character ? (
+      {characters.length ? (
         <MainWrapper>
           {false && (
             <Box
@@ -239,7 +240,7 @@ function App() {
                 visible={chatView === CHAT_VIEW.AVATAR}
                 url={
                   Config.RPM_AVATAR ||
-                  character.assets.rpmModelUri ||
+                  characters[0].assets.rpmModelUri ||
                   defaults.DEFAULT_RPM_AVATAR
                 }
               />
@@ -266,21 +267,30 @@ function App() {
                     Back to settings
                   </Button>
                 </Grid>
-                {chatView === CHAT_VIEW.TEXT && (
+                {[CHAT_VIEW.TEXT, CHAT_VIEW.MULTI_AGENT_TEXT].includes(
+                  chatView,
+                ) && (
                   <Grid item sm={6}>
-                    {avatar && (
-                      <CircularRpmAvatar
-                        src={avatar}
-                        name={character.displayName}
-                        size="48px"
-                        sx={{ display: ['none', 'flex'] }}
-                      />
-                    )}
+                    {avatars.length &&
+                      avatars.map((avatar, index) => (
+                        <CircularRpmAvatar
+                          key={index}
+                          src={avatar}
+                          name={characters[index].displayName}
+                          size="48px"
+                          sx={{
+                            display: ['none', 'flex'],
+                            mr: 1,
+                            float: 'left',
+                          }}
+                        />
+                      ))}
                   </Grid>
                 )}
               </Grid>
             </SimulatorHeader>
             <Chat
+              characters={characters}
               chatView={chatView}
               chatHistory={[...prevChatHistory, ...chatHistory]}
               prevTranscripts={prevTranscripts}

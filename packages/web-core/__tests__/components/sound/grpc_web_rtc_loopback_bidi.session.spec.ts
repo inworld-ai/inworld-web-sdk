@@ -6,7 +6,6 @@ import { setNavigatorProperty } from '../../helpers';
 let session: GrpcWebRtcLoopbackBiDiSession;
 
 beforeEach(() => {
-  jest.clearAllMocks();
   setNavigatorProperty('userAgent', '');
 
   session = new GrpcWebRtcLoopbackBiDiSession();
