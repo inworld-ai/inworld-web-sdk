@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Changed
+
+- Updated RPM API to allow for current Ready Player Me characters
+
 ## [1.1.0] - 2024-02-01
 
 ### Changed

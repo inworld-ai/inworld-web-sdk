@@ -86,8 +86,8 @@ export class RPM {
     const batchLoader = new BatchFileLoader({
       fileLoaders: this.animationLoaders,
       callback: this.onLoadAnimations,
-      startProgress: 33,
-      endProgress: 66,
+      startProgress: 0,
+      endProgress: 100,
       updateProgress: this.onLoadProgress,
     });
     batchLoader;
