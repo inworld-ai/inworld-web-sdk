@@ -2,6 +2,7 @@
 
 ### Changed
 
+- Updated RPM API to allow for current Ready Player Me characters
 - Updated README.md documentation for assets installation process
 - Updated LICENSE.md license information
 
