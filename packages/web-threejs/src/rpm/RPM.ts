@@ -50,7 +50,7 @@ export class RPM {
   }
 
   init() {
-    log('RPM - Loading Character');
+    log('RPM - Loading Characters');
     this.loadConfig();
   }
 
