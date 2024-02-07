@@ -598,10 +598,10 @@
     defer-promise "^3.0.0"
     uuid "^9.0.0"
 
-"@inworld/web-core@2.3.0":
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/@inworld/web-core/-/web-core-2.3.0.tgz#988e590e242e706c5497449758e3be384b8b41f5"
-  integrity sha512-kXMl3Vkl/nXIMsUvn3DdB7/o4KrtUjOV1KXFPPgO7Aesnaf/jRZLWKu/mFRFbUQGzhpBGxdpT5iTrCYB516tNQ==
+"@inworld/web-core@2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@inworld/web-core/-/web-core-2.2.0.tgz#b02c33822092506127d09f077d65f844a8b66c1f"
+  integrity sha512-Z7u122IEocTo/MpTA3ty0jh2da6wULhv3wK6HiIwZq15QYUpaN/XrIt3d15C5UKoeGiij2vTpppHcHKtV8s8XA==
   dependencies:
     base64-arraybuffer "^1.0.2"
     defer-promise "^3.0.0"
