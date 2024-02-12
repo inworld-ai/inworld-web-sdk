@@ -46,7 +46,7 @@ describe('event types', () => {
       chunk,
       type: DataChunkDataType.AUDIO,
     });
-    expect(event.routing.targets?.[0].name).toEqual(character.id);
+    expect(event.routing?.target?.name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
     expect(event.packetId?.interactionId).toBeUndefined();
@@ -61,7 +61,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.AUDIO_SESSION_START,
     });
-    expect(event.routing.targets?.[0].name).toEqual(character.id);
+    expect(event.routing?.target?.name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
     expect(event.packetId?.interactionId).toBeUndefined();
@@ -76,7 +76,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.AUDIO_SESSION_END,
     });
-    expect(event.routing.targets?.[0].name).toEqual(character.id);
+    expect(event.routing?.target?.name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
     expect(event.packetId?.interactionId).toBeUndefined();
@@ -91,7 +91,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.TTS_PLAYBACK_START,
     });
-    expect(event.routing.targets?.[0].name).toEqual(character.id);
+    expect(event.routing?.target?.name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
     expect(event.packetId?.interactionId).toBeUndefined();
@@ -106,7 +106,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.TTS_PLAYBACK_END,
     });
-    expect(event.routing.targets?.[0].name).toEqual(character.id);
+    expect(event.routing?.target?.name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
     expect(event.packetId?.interactionId).toBeUndefined();
@@ -121,7 +121,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.TTS_PLAYBACK_MUTE,
     });
-    expect(event.routing.targets?.[0].name).toEqual(character.id);
+    expect(event.routing?.target?.name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
     expect(event.packetId?.interactionId).toBeUndefined();
@@ -136,7 +136,7 @@ describe('event types', () => {
     expect(event.control).toEqual({
       action: ControlEventAction.TTS_PLAYBACK_UNMUTE,
     });
-    expect(event.routing.targets?.[0].name).toEqual(character.id);
+    expect(event.routing?.target?.name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
     expect(event.packetId?.interactionId).toBeUndefined();
@@ -150,7 +150,7 @@ describe('event types', () => {
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.text.text).toEqual(text);
-    expect(event.routing.targets?.[0].name).toEqual(character.id);
+    expect(event.routing?.target?.name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId).toHaveProperty('interactionId');
     expect(event.packetId).toHaveProperty('utteranceId');
@@ -165,7 +165,7 @@ describe('event types', () => {
     expect(event).toHaveProperty('timestamp');
     expect(event.custom.name).toEqual(name);
     expect(event.custom.parameters).toEqual(undefined);
-    expect(event.routing.targets?.[0].name).toEqual(character.id);
+    expect(event.routing?.target?.name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId).toHaveProperty('interactionId');
     expect(event.packetId).toHaveProperty('utteranceId');
@@ -181,7 +181,7 @@ describe('event types', () => {
     expect(event).toHaveProperty('timestamp');
     expect(event.custom.name).toEqual(name);
     expect(event.custom.parameters).toEqual(parameters);
-    expect(event.routing.targets?.[0].name).toEqual(character.id);
+    expect(event.routing.target.name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId).toHaveProperty('interactionId');
     expect(event.packetId).toHaveProperty('utteranceId');
@@ -199,7 +199,7 @@ describe('event types', () => {
       interactionId,
       utteranceId,
     });
-    expect(event.routing.targets?.[0].name).toEqual(character.id);
+    expect(event.routing?.target?.name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.interactionId).toBeUndefined();
     expect(event.packetId?.utteranceId).toBeUndefined();
@@ -213,7 +213,7 @@ describe('event types', () => {
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
     expect(event.action?.narratedAction?.content).toEqual(text);
-    expect(event.routing.targets?.[0].name).toEqual(character.id);
+    expect(event.routing?.target?.name).toEqual(character.id);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId).toHaveProperty('interactionId');
     expect(event.packetId).toHaveProperty('utteranceId');
