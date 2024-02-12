@@ -1,7 +1,6 @@
 import { v4 } from 'uuid';
 
 import {
-  Actor,
   ActorType,
   ControlEventAction,
   DataChunkDataType,
@@ -188,20 +187,21 @@ export class EventFactory {
   }
 
   private routing(characters?: Character[]): Routing {
-    const targets: Actor[] = [];
     const currentCharacter = this.getCurrentCharacter();
 
     if (!!currentCharacter?.id) {
-      targets.push({ type: ActorType.AGENT, name: currentCharacter.id });
+      return {
+        source: { type: ActorType.PLAYER },
+        target: { type: ActorType.AGENT, name: currentCharacter.id },
+      };
     } else {
-      (characters ?? this.characters).forEach((c) =>
-        targets.push({ type: ActorType.AGENT, name: c.id }),
-      );
+      return {
+        source: { type: ActorType.PLAYER },
+        targets: (characters ?? this.characters).map((c) => ({
+          type: ActorType.AGENT,
+          name: c.id,
+        })),
+      };
     }
-
-    return {
-      source: { type: ActorType.PLAYER },
-      targets,
-    };
   }
 }
