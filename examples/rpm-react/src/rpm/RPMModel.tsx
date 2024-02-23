@@ -51,13 +51,12 @@ function RPMModel() {
 
   const onProgressRPM = useCallback(
     (progress: number) => {
-      // console.log("Scene onProgressRPM", progress);
       if (setLoadingPercent) setLoadingPercent(progress);
     },
     [setLoadingPercent],
   );
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (rpmRef.current) {
       rpmRef.current.updateFrame(delta);
     }

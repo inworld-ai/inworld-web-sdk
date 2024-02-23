@@ -2,6 +2,7 @@ import { AdditionalPhonemeInfo, EmotionBehaviorCode } from '@inworld/web-core';
 import { AnimationMixer, LoopPingPong, Object3D, SkinnedMesh } from 'three';
 
 import { JSONAnimationLoader } from '../../loaders/JSONAnimationLoader';
+import { log } from '../../utils/Log';
 import { RPMFacial } from './facial/RPMFacial';
 import { RPMBehaviorToFacial } from './utils/RPMBehaviorToFacial';
 
@@ -48,6 +49,7 @@ export class RPMAnimator {
         if (child.type === 'Object3D' && child.name === AVATAR_MESH_NAME) {
           this.modelMesh = child as SkinnedMesh;
           this.modelMesh.traverse((subChild) => {
+            log(subChild.name, subChild.type);
             if (
               subChild.name === 'Wolf3D_Head' &&
               subChild.type === 'SkinnedMesh'
@@ -55,15 +57,26 @@ export class RPMAnimator {
               this.facial = new RPMFacial({
                 modelMesh: subChild as SkinnedMesh,
               });
+              this.facial.setEmotion(
+                RPMBehaviorToFacial[this.props.defaultEmotion],
+              );
+              this.animationMixer = new AnimationMixer(this.modelMesh);
+              setTimeout(this.startIdleAnimation, END_TALKING_DEBOUNCE_TIME_MS);
+              this.animatorReady = true;
+              return;
             }
           });
-          this.animationMixer = new AnimationMixer(this.modelMesh);
         }
       });
+      if (!this.modelMesh)
+        throw new Error(
+          'Error there was an error processing the model file in RPMAnimator',
+        );
+      if (!this.facial)
+        throw new Error('Error Wolf3D_Head not found in RPMAnimator');
+    } else {
+      throw new Error('Error: Model not found');
     }
-    this.facial.setEmotion(RPMBehaviorToFacial[this.props.defaultEmotion]);
-    setTimeout(this.startIdleAnimation, END_TALKING_DEBOUNCE_TIME_MS);
-    this.animatorReady = true;
   }
 
   getTalkingClipName() {
