@@ -173,8 +173,22 @@ export class ConnectionService<
     return this.history.getTranscript();
   }
 
+  getConfig() {
+    return this.connectionProps.config;
+  }
+
   async loadCharacters() {
     await this.loadScene();
+  }
+
+  async getCurrentCharacter() {
+    await this.loadCharacters();
+
+    return this.getEventFactory().getCurrentCharacter();
+  }
+
+  async setCurrentCharacter(character: Character) {
+    return this.getEventFactory().setCurrentCharacter(character);
   }
 
   async open() {
@@ -267,10 +281,10 @@ export class ConnectionService<
 
     if (
       !this.connectionProps.config.capabilities.multiAgent &&
-      !factory.getCurrentCharacter() &&
+      !this.getEventFactory().getCurrentCharacter() &&
       characters[0]
     ) {
-      factory.setCurrentCharacter(characters[0]);
+      this.setCurrentCharacter(this.characters[0]);
     }
 
     factory.setCharacters(characters);

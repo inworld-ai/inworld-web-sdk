@@ -91,6 +91,7 @@ export enum DataChunkDataType {
   AUDIO = "AUDIO",
   SILENCE = "SILENCE",
   STATE = "STATE",
+  NVIDIA_A2F_ANIMATION = "NVIDIA_A2F_ANIMATION",
 }
 
 export enum DataChunkAudioFormat {
@@ -133,7 +134,7 @@ type BaseInworldPacket = {
 }
 
 export type InworldPacket = BaseInworldPacket
-  & OneOf<{ text: TextEvent; control: ControlEvent; audioChunk: AudioChunk; custom: CustomEvent; cancelResponses: CancelResponsesEvent; emotion: EmotionEvent; dataChunk: DataChunk; action: ActionEvent; mutation: MutationEvent; loadSceneOutput: LoadSceneOutputEvent; debugInfo: DebugInfoEvent; sessionControl: SessionControlEvent; sessionControlResponse: SessionControlResponseEvent }>
+  & OneOf<{ text: TextEvent; control: ControlEvent; audioChunk: AudioChunk; custom: CustomEvent; cancelResponses: CancelResponsesEvent; emotion: EmotionEvent; dataChunk: DataChunk; action: ActionEvent; mutation: MutationEvent; loadSceneOutput: LoadSceneOutputEvent; debugInfo: DebugInfoEvent; sessionControl: SessionControlEvent; sessionControlResponse: SessionControlResponseEvent; a2FEvent: Audio2FaceAnimationEvent }>
 
 export type TextEventModelInfo = {
   service?: string
@@ -234,7 +235,7 @@ type BaseSessionControlResponseEvent = {
 }
 
 export type SessionControlResponseEvent = BaseSessionControlResponseEvent
-  & OneOf<{ loadedScene: LoadedScene; loadedCharacters: LoadedCharacters }>
+  & OneOf<{ loadedScene: LoadedScene; loadedCharacters: LoadedCharacters; sessionHistory: SessionHistoryResponse }>
 
 export type CancelResponses = {
   interactionId?: string
@@ -289,10 +290,19 @@ export type LoadSceneOutputEvent = {
   agents?: LoadSceneOutputEventAgent[]
 }
 
+export type AgentCharacterAssets = {
+  rpmModelUri?: string
+  rpmImageUriPortrait?: string
+  rpmImageUriPosture?: string
+  avatarImg?: string
+  avatarImgOriginal?: string
+}
+
 export type Agent = {
   agentId?: string
   brainName?: string
   givenName?: string
+  characterAssets?: AgentCharacterAssets
 }
 
 
@@ -307,7 +317,12 @@ type BaseSessionControlEvent = {
 }
 
 export type SessionControlEvent = BaseSessionControlEvent
-  & OneOf<{ sessionConfiguration: AiInworldEngineConfigurationConfiguration.SessionConfiguration; userConfiguration: AiInworldEngineConfigurationConfiguration.UserConfiguration; clientConfiguration: AiInworldEngineConfigurationConfiguration.ClientConfiguration; capabilitiesConfiguration: AiInworldEngineConfigurationConfiguration.CapabilitiesConfiguration; continuation: Continuation }>
+  & OneOf<{ sessionConfiguration: AiInworldEngineConfigurationConfiguration.SessionConfiguration; userConfiguration: AiInworldEngineConfigurationConfiguration.UserConfiguration; clientConfiguration: AiInworldEngineConfigurationConfiguration.ClientConfiguration; capabilitiesConfiguration: AiInworldEngineConfigurationConfiguration.CapabilitiesConfiguration; continuation: Continuation; sessionHistoryRequest: SessionHistoryRequest }>
+
+export type Audio2FaceAnimationEvent = {
+  animdata?: string
+  audio?: Uint8Array
+}
 
 export type ContinuationContinuationInfo = {
   passedTime?: GoogleProtobufTimestamp.Timestamp
@@ -337,4 +352,16 @@ export type RelationsRelation = {
 export type Relations = {
   actor?: Actor
   relations?: RelationsRelation[]
+}
+
+export type SessionHistoryRequest = {
+}
+
+export type SessionHistoryResponseSessionHistoryItem = {
+  agent?: Agent
+  packets?: InworldPacket[]
+}
+
+export type SessionHistoryResponse = {
+  sessionHistoryItems?: SessionHistoryResponseSessionHistoryItem[]
 }

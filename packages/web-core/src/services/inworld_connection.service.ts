@@ -19,6 +19,7 @@ import {
   TriggerParameter,
 } from '../entities/inworld_packet.entity';
 import { ConnectionService } from './connection.service';
+import { FeedbackService } from './feedback.service';
 
 interface InworldConnectionServiceProps<
   InworldPacketT extends InworldPacket = InworldPacket,
@@ -32,6 +33,7 @@ interface InworldConnectionServiceProps<
 export class InworldConnectionService<
   InworldPacketT extends InworldPacket = InworldPacket,
 > {
+  readonly feedback: FeedbackService<InworldPacketT>;
   private connection: ConnectionService;
   private grpcAudioPlayer: GrpcAudioPlayback;
 
@@ -41,6 +43,7 @@ export class InworldConnectionService<
   constructor(props: InworldConnectionServiceProps<InworldPacketT>) {
     this.connection = props.connection;
     this.grpcAudioPlayer = props.grpcAudioPlayer;
+    this.feedback = new FeedbackService(props.connection);
 
     this.player = new InworldPlayer({
       grpcAudioPlayer: this.grpcAudioPlayer,
@@ -94,9 +97,11 @@ export class InworldConnectionService<
   }
 
   async getCurrentCharacter() {
-    await this.connection.loadCharacters();
+    return this.connection.getCurrentCharacter();
+  }
 
-    return this.connection.getEventFactory().getCurrentCharacter();
+  setCurrentCharacter(character: Character) {
+    return this.connection.setCurrentCharacter(character);
   }
 
   getHistory() {
@@ -109,10 +114,6 @@ export class InworldConnectionService<
 
   getTranscript() {
     return this.connection.getTranscript();
-  }
-
-  setCurrentCharacter(character: Character) {
-    return this.connection.getEventFactory().setCurrentCharacter(character);
   }
 
   async sendText(text: string, params?: SendPacketParams) {
