@@ -1,3 +1,9 @@
+## [2.3.1] - 2024-02-12
+
+### Fixed
+
+- Use `targets` property only for multi characters mode
+
 ## [2.3.0] - 2024-01-31
 
 ### Added
