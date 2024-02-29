@@ -3,6 +3,7 @@ import { v4 } from 'uuid';
 import {
   Actor,
   ActorType,
+  ContinuationContinuationType,
   ControlEventAction,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
@@ -10,7 +11,7 @@ import {
 import { protoTimestamp } from '../../src/common/helpers';
 import { InworldPacket } from '../../src/entities/inworld_packet.entity';
 import { EventFactory } from '../../src/factories/event';
-import { createCharacter } from '../helpers';
+import { capabilitiesProps, createCharacter } from '../helpers';
 
 let factory: EventFactory;
 
@@ -218,6 +219,134 @@ describe('event types', () => {
     expect(event.packetId).toHaveProperty('interactionId');
     expect(event.packetId).toHaveProperty('utteranceId');
     expect(event.packetId).toHaveProperty('correlationId');
+  });
+
+  test('should generate session control capabilities', () => {
+    const event = EventFactory.sessionControl({
+      capabilities: capabilitiesProps,
+    });
+
+    expect(event).toHaveProperty('routing');
+    expect(event).toHaveProperty('timestamp');
+    expect(event.sessionControl?.capabilitiesConfiguration).toEqual(
+      capabilitiesProps,
+    );
+    expect(event.routing?.target?.type).toEqual(ActorType.WORLD);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.correlationId).toBeUndefined();
+  });
+
+  test('should generate session control session configuration', () => {
+    const sessionConfiguration = { gameSessionId: v4() };
+    const event = EventFactory.sessionControl({ sessionConfiguration });
+
+    expect(event).toHaveProperty('routing');
+    expect(event).toHaveProperty('timestamp');
+    expect(event.sessionControl?.sessionConfiguration).toEqual(
+      sessionConfiguration,
+    );
+    expect(event.routing?.target?.type).toEqual(ActorType.WORLD);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.correlationId).toBeUndefined();
+  });
+
+  test('should generate session control client configuration', () => {
+    const clientConfiguration = {
+      id: v4(),
+      version: v4(),
+      description: v4(),
+    };
+    const event = EventFactory.sessionControl({ clientConfiguration });
+
+    expect(event).toHaveProperty('routing');
+    expect(event).toHaveProperty('timestamp');
+    expect(event.sessionControl?.clientConfiguration).toEqual(
+      clientConfiguration,
+    );
+    expect(event.routing?.target?.type).toEqual(ActorType.WORLD);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.correlationId).toBeUndefined();
+  });
+
+  test('should generate session control user configuration', () => {
+    const userConfiguration = {
+      id: v4(),
+      fullName: v4(),
+      profile: { fields: [{ id: v4(), value: v4() }] },
+    };
+    const event = EventFactory.sessionControl({ userConfiguration });
+
+    expect(event).toHaveProperty('routing');
+    expect(event).toHaveProperty('timestamp');
+    expect(event.sessionControl?.userConfiguration).toEqual(userConfiguration);
+    expect(event.routing?.target?.type).toEqual(ActorType.WORLD);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.correlationId).toBeUndefined();
+  });
+
+  test('should generate session control previous history', () => {
+    const continuation = {
+      dialogHistory: {
+        history: [
+          {
+            actor: { name: v4(), type: ActorType.AGENT },
+            text: v4(),
+          },
+        ],
+      },
+      continuationType:
+        ContinuationContinuationType.CONTINUATION_TYPE_DIALOG_HISTORY,
+    };
+    const event = EventFactory.sessionControl({ continuation });
+
+    expect(event).toHaveProperty('routing');
+    expect(event).toHaveProperty('timestamp');
+    expect(event.sessionControl?.continuation).toEqual(continuation);
+    expect(event.routing?.target?.type).toEqual(ActorType.WORLD);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.correlationId).toBeUndefined();
+  });
+
+  test('should generate session control previous state', () => {
+    const continuation = {
+      externallySavedState: v4() as unknown as Uint8Array,
+      continuationType:
+        ContinuationContinuationType.CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE,
+    };
+    const event = EventFactory.sessionControl({ continuation });
+
+    expect(event).toHaveProperty('routing');
+    expect(event).toHaveProperty('timestamp');
+    expect(event.sessionControl?.continuation).toEqual(continuation);
+    expect(event.routing?.target?.type).toEqual(ActorType.WORLD);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.correlationId).toBeUndefined();
+  });
+
+  test('should generate session control history', () => {
+    const sessionHistory = {};
+    const event = EventFactory.sessionControl({ sessionHistory });
+
+    expect(event).toHaveProperty('routing');
+    expect(event).toHaveProperty('timestamp');
+    expect(event.sessionControl?.sessionHistoryRequest).toEqual(sessionHistory);
+    expect(event.routing?.target?.type).toEqual(ActorType.WORLD);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId?.utteranceId).toBeUndefined();
+    expect(event.packetId?.interactionId).toBeUndefined();
+    expect(event.packetId?.correlationId).toBeUndefined();
   });
 });
 

@@ -88,13 +88,11 @@ export class InworldConnectionService<
   }
 
   async getCharacters() {
-    await this.connection.loadCharacters();
-
-    return this.connection.getEventFactory().getCharacters();
+    return this.connection.getCharacters();
   }
 
   async getCurrentCharacter() {
-    await this.connection.loadCharacters();
+    await this.connection.getCharacters();
 
     return this.connection.getEventFactory().getCurrentCharacter();
   }
