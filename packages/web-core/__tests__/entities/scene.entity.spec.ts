@@ -1,4 +1,7 @@
-import { SessionControlResponseEvent } from '../../proto/ai/inworld/packets/packets.pb';
+import {
+  ActorType,
+  SessionControlResponseEvent,
+} from '../../proto/ai/inworld/packets/packets.pb';
 import { Character } from '../../src/entities/character.entity';
 import { Scene } from '../../src/entities/scene.entity';
 import { createAgent, createCharacter } from '../helpers';
@@ -37,7 +40,31 @@ test('should convert proto to scene', () => {
     sessionHistory: {
       sessionHistoryItems: [
         {
-          packets: [{}, {}],
+          agent: {
+            agentId: agents[0].agentId,
+          },
+          packets: [
+            {
+              routing: {
+                target: {
+                  type: ActorType.AGENT,
+                },
+                source: {
+                  type: ActorType.PLAYER,
+                },
+              },
+            },
+            {
+              routing: {
+                target: {
+                  type: ActorType.PLAYER,
+                },
+                source: {
+                  type: ActorType.AGENT,
+                },
+              },
+            },
+          ],
         },
       ],
     },

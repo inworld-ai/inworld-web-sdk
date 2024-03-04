@@ -1,4 +1,5 @@
 import {
+  ActorType,
   Agent,
   InworldPacket as ProtoPacket,
   SessionControlResponseEvent,
@@ -54,7 +55,28 @@ export class Scene {
       sessionHistory?.sessionHistoryItems?.reduce(
         (acc: ProtoPacket[], item) => {
           if (item.packets?.length) {
-            acc.push(...item.packets);
+            acc.push(
+              ...item.packets.map((packet) => {
+                return {
+                  ...packet,
+                  routing: {
+                    ...packet.routing,
+                    source: {
+                      ...packet.routing.source,
+                      ...(packet.routing.source.type === ActorType.AGENT && {
+                        name: item.agent?.agentId,
+                      }),
+                    },
+                    target: {
+                      ...packet.routing.target,
+                      ...(packet.routing.target.type === ActorType.AGENT && {
+                        name: item.agent?.agentId,
+                      }),
+                    },
+                  },
+                };
+              }),
+            );
           }
 
           return acc;

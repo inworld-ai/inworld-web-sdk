@@ -176,7 +176,20 @@ export const historyResponseEvent = {
   sessionHistory: {
     sessionHistoryItems: agents.map((agent) => ({
       agent,
-      packets: [{}, {}],
+      packets: [
+        {
+          routing: {
+            target: {},
+            source: {},
+          },
+        },
+        {
+          routing: {
+            target: {},
+            source: {},
+          },
+        },
+      ],
     })),
   },
 };
