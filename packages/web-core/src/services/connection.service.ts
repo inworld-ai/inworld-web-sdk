@@ -167,7 +167,7 @@ export class ConnectionService<
   async getCharacters() {
     await this.open();
 
-    return this.scene.characters;
+    return this.scene?.characters ?? [];
   }
 
   async open() {
