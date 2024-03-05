@@ -112,12 +112,10 @@ function App() {
         },
         ...(previousDialog.length && { continuation: { previousDialog } }),
         ...(previousState && { continuation: { previousState } }),
-        ...(duration &&
-          ticks && {
-            audioPlayback: {
-              stop: { duration, ticks },
-            },
-          }),
+        audioPlayback: {
+          ...(duration && ticks && { stop: { duration, ticks } }),
+          sampleRate: 22050,
+        },
         sceneName:
           form.chatView === CHAT_VIEW.MULTI_AGENT_TEXT
             ? form.scene?.name!
