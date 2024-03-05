@@ -116,6 +116,7 @@ function App() {
           ticks && {
             audioPlayback: {
               stop: { duration, ticks },
+              sampleRate: 22050,
             },
           }),
         sceneName:
