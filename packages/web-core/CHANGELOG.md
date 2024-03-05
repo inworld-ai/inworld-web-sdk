@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Added
+
+- Make sample rate configurable
+
 ## [2.3.1] - 2024-02-12
 
 ### Fixed
