@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+
+- Fix playback props initialization
+
 ## [2.4.0] - 2024-03-05
 
 ### Added

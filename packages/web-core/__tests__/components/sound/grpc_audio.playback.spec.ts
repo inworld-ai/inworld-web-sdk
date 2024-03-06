@@ -164,7 +164,27 @@ describe('excludeCurrentInteractionPackets', () => {
 });
 
 describe('stop', () => {
-  test('should stop playback', async () => {
+  test('should stop playback without params', async () => {
+    const playback = new GrpcAudioPlayback();
+
+    expect(playback.getVolume()).toEqual(1);
+
+    playback.addToQueue({
+      packet: audioEvent,
+    });
+
+    await playback.stop();
+
+    expect(playback.getVolume()).toEqual(1);
+  });
+
+  test('should stop playback with sample rate', async () => {
+    const playback = new GrpcAudioPlayback({
+      audioPlaybackConfig: {
+        sampleRate: 44100,
+      },
+    });
+
     expect(playback.getVolume()).toEqual(1);
 
     playback.addToQueue({

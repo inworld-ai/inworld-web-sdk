@@ -54,14 +54,14 @@ export class GrpcAudioPlayback<
     onStopPlaying?: () => Awaitable<void>;
     onPhoneme?: OnPhomeneFn;
   }) {
-    if (props?.audioPlaybackConfig) {
-      this.audioPlaybackConfig = props.audioPlaybackConfig;
-    }
+    this.audioPlaybackConfig = {
+      sampleRate: DEFAULT_PLAYBACK_SAMPLE_RATE,
+      ...this.audioPlaybackConfig,
+      ...props?.audioPlaybackConfig,
+    };
 
     this.playbackAudioContext = new AudioContext({
-      sampleRate: this.audioPlaybackConfig.sampleRate
-        ? this.audioPlaybackConfig.sampleRate
-        : DEFAULT_PLAYBACK_SAMPLE_RATE,
+      sampleRate: this.audioPlaybackConfig.sampleRate,
     });
 
     this.destinationNode =
