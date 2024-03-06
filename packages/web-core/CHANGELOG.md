@@ -1,3 +1,15 @@
+## [2.4.1] - 2024-03-06
+
+### Fixed
+
+- Fix playback props initialization
+
+## [2.4.0] - 2024-03-05
+
+### Added
+
+- Make sample rate configurable
+
 ## [2.3.1] - 2024-02-12
 
 ### Fixed

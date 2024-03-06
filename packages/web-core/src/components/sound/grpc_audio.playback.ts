@@ -1,5 +1,6 @@
 import { decode } from 'base64-arraybuffer';
 
+import { DEFAULT_PLAYBACK_SAMPLE_RATE } from '../../common/constants';
 import {
   AudioPlaybackConfig,
   Awaitable,
@@ -29,7 +30,8 @@ export class GrpcAudioPlayback<
   private isPlaying = false;
   private isStopping = false;
 
-  private playbackAudioContext = new AudioContext({ sampleRate: 16000 });
+  private playbackAudioContext: AudioContext;
+
   private audioBufferSourceNode?: AudioBufferSourceNode;
 
   private onAfterPlaying:
@@ -41,9 +43,8 @@ export class GrpcAudioPlayback<
   private onStopPlaying: (() => Awaitable<void>) | undefined;
   private onPhoneme: OnPhomeneFn;
 
-  private destinationNode =
-    this.playbackAudioContext.createMediaStreamDestination();
-  private gainNode: GainNode = this.playbackAudioContext.createGain();
+  private destinationNode: MediaStreamAudioDestinationNode;
+  private gainNode: GainNode;
   private muted = false;
 
   constructor(props?: {
@@ -53,9 +54,20 @@ export class GrpcAudioPlayback<
     onStopPlaying?: () => Awaitable<void>;
     onPhoneme?: OnPhomeneFn;
   }) {
-    if (props?.audioPlaybackConfig) {
-      this.audioPlaybackConfig = props.audioPlaybackConfig;
-    }
+    this.audioPlaybackConfig = {
+      sampleRate: DEFAULT_PLAYBACK_SAMPLE_RATE,
+      ...this.audioPlaybackConfig,
+      ...props?.audioPlaybackConfig,
+    };
+
+    this.playbackAudioContext = new AudioContext({
+      sampleRate: this.audioPlaybackConfig.sampleRate,
+    });
+
+    this.destinationNode =
+      this.playbackAudioContext.createMediaStreamDestination();
+
+    this.gainNode = this.playbackAudioContext.createGain();
 
     this.onAfterPlaying = props?.onAfterPlaying;
     this.onBeforePlaying = props?.onBeforePlaying;

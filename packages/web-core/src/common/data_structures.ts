@@ -45,7 +45,8 @@ export interface Gateway {
 }
 
 export interface AudioPlaybackConfig {
-  stop: StopAudioPlayback;
+  sampleRate?: number;
+  stop?: StopAudioPlayback;
 }
 
 export interface StopAudioPlayback {
