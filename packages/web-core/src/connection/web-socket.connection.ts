@@ -19,7 +19,6 @@ import {
 import { HistoryItem } from '../components/history';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
-import { Scene } from '../entities/scene.entity';
 import { SessionToken } from '../entities/session_token.entity';
 import { EventFactory } from '../factories/event';
 
@@ -56,7 +55,7 @@ export interface Connection<InworldPacketT, HistoryItemT> {
   isActive: () => boolean;
   openSession(
     props: SessionProps<InworldPacketT, HistoryItemT>,
-  ): Promise<Scene>;
+  ): Promise<SessionControlResponseEvent>;
   write(item: QueueItem<InworldPacketT>): void;
 }
 
@@ -79,11 +78,11 @@ export class WebSocketConnection<
 
   async openSession(props: SessionProps<InworldPacketT, HistoryItemT>) {
     this.convertPacketFromProto = props.convertPacketFromProto;
-    const [ws, scene] = await this.createWebSocket(props);
+    const [ws, sceneProto] = await this.createWebSocket(props);
 
     this.ws = ws;
 
-    return scene;
+    return sceneProto;
   }
 
   close() {
@@ -115,7 +114,7 @@ export class WebSocketConnection<
 
   private async createWebSocket(
     props: SessionProps<InworldPacketT, HistoryItemT>,
-  ): Promise<[WebSocket, Scene]> {
+  ): Promise<[WebSocket, SessionControlResponseEvent]> {
     const { session } = props;
     const { config, onDisconnect, onError } = this.connectionProps;
     const { hostname, ssl } = this.connectionProps.config.connection.gateway;
@@ -153,7 +152,6 @@ export class WebSocketConnection<
       ws.addEventListener(
         'message',
         this.onLoadScene({
-          extension: props.extension,
           needHistory,
           ws,
           write,
@@ -183,18 +181,16 @@ export class WebSocketConnection<
   }
 
   private onLoadScene({
-    extension,
     needHistory,
     write,
     ws,
     resolve,
     reject,
   }: {
-    extension: Extension<InworldPacketT, HistoryItemT>;
     needHistory: boolean;
     ws: WebSocket;
     write: (item: QueueItem<InworldPacketT>) => void;
-    resolve: (value: [WebSocket, Scene]) => void;
+    resolve: (value: [WebSocket, SessionControlResponseEvent]) => void;
     reject: (reason: Error) => void;
   }) {
     const { parseEvent } = this;
@@ -225,14 +221,13 @@ export class WebSocketConnection<
           ws.removeEventListener('message', this);
           ws.addEventListener('message', onMessage);
 
-          const proto = {
-            loadedScene,
-            sessionHistory: packet?.sessionControlResponse?.sessionHistory,
-          } as SessionControlResponseEvent;
-
-          extension?.afterLoadScene?.(proto);
-
-          resolve([ws, Scene.fromProto(proto)]);
+          resolve([
+            ws,
+            {
+              loadedScene,
+              sessionHistory: packet?.sessionControlResponse?.sessionHistory,
+            } as SessionControlResponseEvent,
+          ]);
         }
       }
     };

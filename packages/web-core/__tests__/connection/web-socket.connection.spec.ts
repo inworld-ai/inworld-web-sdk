@@ -399,7 +399,7 @@ describe('open', () => {
     expect(continuation?.continuationType).toEqual(
       ContinuationContinuationType.CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE,
     );
-    expect(result[0].history.length).toEqual(0);
+    expect(result[0].sessionHistory).toBeFalsy();
   });
 
   test('should send gameSessionId', async () => {
@@ -457,7 +457,9 @@ describe('open', () => {
 
     await server.connected;
 
-    expect(result[0].history.length).toBeGreaterThan(0);
+    expect(
+      result[0].sessionHistory?.sessionHistoryItems?.length,
+    ).toBeGreaterThan(0);
   });
 
   test('should not send history request if continuation is not provided', async () => {
@@ -484,7 +486,7 @@ describe('open', () => {
 
     await server.connected;
 
-    expect(result[0].history.length).toEqual(0);
+    expect(result[0].sessionHistory).toBeFalsy();
   });
 
   test('should call extention functions', async () => {
@@ -514,7 +516,6 @@ describe('open', () => {
     await server.connected;
 
     expect(extension.beforeLoadScene).toHaveBeenCalledTimes(1);
-    expect(extension.afterLoadScene).toHaveBeenCalledTimes(1);
   });
 
   test('should not throw error on empty extension', async () => {

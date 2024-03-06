@@ -1,5 +1,8 @@
 import { ClientRequest } from '../../proto/ai/inworld/engine/world-engine.pb';
-import { InworldPacket as ProtoPacket } from '../../proto/ai/inworld/packets/packets.pb';
+import {
+  InworldPacket as ProtoPacket,
+  SessionControlResponseEvent,
+} from '../../proto/ai/inworld/packets/packets.pb';
 import {
   AudioSessionState,
   Awaitable,
@@ -67,6 +70,7 @@ export class ConnectionService<
   private ttsPlaybackAction = TtsPlaybackAction.UNKNOWN;
 
   private scene: Scene | undefined;
+  private nextSceneName: string | undefined;
   private session: SessionToken;
   private connection: Connection<InworldPacketT, HistoryItemT>;
   private connectionProps: ConnectionProps<InworldPacketT, HistoryItemT>;
@@ -92,9 +96,13 @@ export class ConnectionService<
   constructor(props?: ConnectionProps<InworldPacketT, HistoryItemT>) {
     this.connectionProps =
       props || ({} as ConnectionProps<InworldPacketT, HistoryItemT>);
+    this.scene = new Scene({
+      name: this.connectionProps.name,
+    });
     this.history = new InworldHistory<InworldPacketT>({
       extension: this.connectionProps.extension,
       user: this.connectionProps.user,
+      scene: this.scene.name,
     });
 
     this.initializeHandlers();
@@ -110,15 +118,19 @@ export class ConnectionService<
     return this.connectionProps.config?.connection?.autoReconnect ?? true;
   }
 
+  setNextSceneName(name: string) {
+    this.nextSceneName = name;
+  }
+
   async getSessionState() {
     try {
-      const { config, name: scene } = this.connectionProps;
+      const { config } = this.connectionProps;
       const session = await this.ensureSessionToken();
 
       return this.stateService.getSessionState({
         config,
-        scene,
         session,
+        scene: this.scene.name,
       });
     } catch (err) {
       this.onError(err);
@@ -169,7 +181,7 @@ export class ConnectionService<
   async getCharacters() {
     await this.open();
 
-    return this.scene?.characters ?? [];
+    return this.scene.characters;
   }
 
   async open() {
@@ -178,33 +190,23 @@ export class ConnectionService<
     try {
       await this.loadToken();
 
-      const { client, name, sessionContinuation, user } = this.connectionProps;
+      const { client, sessionContinuation, user } = this.connectionProps;
 
       const packets = this.getPacketsToSentOnOpen();
 
       this.packetQueue = [...packets, ...this.packetQueue];
-      this.scene = await this.connection.openSession({
+      const sessionProto = await this.connection.openSession({
         client,
-        name,
+        name: this.scene.name,
         sessionContinuation,
         user,
         session: this.session,
         convertPacketFromProto: this.extension.convertPacketFromProto,
       });
 
-      const factory = this.getEventFactory();
+      this.setSceneFromProtoEvent(sessionProto);
 
-      if (
-        !this.connectionProps.config.capabilities.multiAgent &&
-        !factory.getCurrentCharacter() &&
-        this.scene.characters[0]
-      ) {
-        factory.setCurrentCharacter(this.scene.characters[0]);
-      }
-
-      factory.setCharacters(this.scene.characters);
-
-      if (this.scene?.history?.length) {
+      if (this.scene.history?.length) {
         this.setPreviousState(this.scene.history);
       }
 
@@ -480,6 +482,14 @@ export class ConnectionService<
         this.onWarning(inworldPacket);
       }
 
+      if (packet.sessionControlResponse) {
+        if (packet.sessionControlResponse.loadedScene) {
+          this.setSceneFromProtoEvent(packet.sessionControlResponse);
+        } else if (packet.sessionControlResponse?.loadedCharacters) {
+          this.addCharactersToScene(packet.sessionControlResponse);
+        }
+      }
+
       // Add packet to history.
       this.addPacketToHistory(inworldPacket);
 
@@ -605,5 +615,57 @@ export class ConnectionService<
     }
 
     return packets;
+  }
+
+  private ensureCurrentCharacter() {
+    const factory = this.getEventFactory();
+    const currentCharacter = factory.getCurrentCharacter();
+    const sameCharacter = currentCharacter
+      ? this.scene.characters.find(
+          (c) => c.resourceName === currentCharacter?.resourceName,
+        )
+      : undefined;
+
+    if (!this.connectionProps.config.capabilities.multiAgent) {
+      factory.setCurrentCharacter(sameCharacter ?? this.scene.characters[0]);
+    }
+
+    factory.setCharacters(this.scene.characters);
+  }
+
+  private setSceneFromProtoEvent(proto: SessionControlResponseEvent) {
+    const name = this.nextSceneName || this.scene.name;
+
+    this.scene = Scene.fromProto({
+      name,
+      loadedScene: proto.loadedScene,
+      sessionHistory: proto.sessionHistory,
+    });
+
+    this.setNextSceneName(undefined);
+    this.connectionProps.extension?.afterLoadScene?.(proto);
+    this.ensureCurrentCharacter();
+  }
+
+  private addCharactersToScene(proto: SessionControlResponseEvent) {
+    const characters = proto.loadedCharacters.agents.map((c) =>
+      Character.fromProto(c),
+    );
+
+    const ids = this.scene.characters.reduce(
+      (acc: { [key: string]: boolean }, character) => {
+        acc[character.id] = true;
+        return acc;
+      },
+      {},
+    );
+
+    for (const character of characters) {
+      if (!ids[character.id]) {
+        this.scene.characters.push(character);
+      }
+    }
+
+    this.ensureCurrentCharacter();
   }
 }

@@ -2,7 +2,10 @@ import '../mocks/window.mock';
 
 import { v4 } from 'uuid';
 
-import { DataChunkDataType } from '../../proto/ai/inworld/packets/packets.pb';
+import {
+  DataChunkDataType,
+  SessionControlResponseEvent,
+} from '../../proto/ai/inworld/packets/packets.pb';
 import {
   AudioSessionState,
   InworldPacketType,
@@ -18,7 +21,6 @@ import {
 } from '../../src/connection/web-socket.connection';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
 import { Routing } from '../../src/entities/packets/routing.entity';
-import { Scene } from '../../src/entities/scene.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
 import { InworldConnectionService } from '../../src/services/inworld_connection.service';
@@ -30,6 +32,7 @@ import {
   extension,
   generateSessionToken,
   getPacketId,
+  SCENE,
   setNavigatorProperty,
   setTimeoutMock,
   writeMock,
@@ -141,7 +144,7 @@ describe('history', () => {
   });
 
   test('should get history', () => {
-    const history = new InworldHistory();
+    const history = new InworldHistory({ scene: SCENE });
     const packetId = getPacketId();
     const routing: Routing = {
       source: {
@@ -373,7 +376,9 @@ describe('send', () => {
     test('should send narrated action', async () => {
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
-        .mockImplementationOnce(() => Promise.resolve({ characters } as Scene));
+        .mockImplementationOnce(() =>
+          Promise.resolve({ agents } as SessionControlResponseEvent),
+        );
       jest
         .spyOn(EventFactory.prototype, 'getCharacters')
         .mockReturnValueOnce(characters);
@@ -488,6 +493,50 @@ describe('send', () => {
       expect(open).toHaveBeenCalledTimes(0);
       expect(write).toHaveBeenCalledTimes(1);
       expect(packet).toHaveProperty('mutation', mutation);
+    });
+
+    test('should change scene', async () => {
+      jest
+        .spyOn(WebSocketConnection.prototype, 'openSession')
+        .mockImplementationOnce(() =>
+          Promise.resolve({ agents } as SessionControlResponseEvent),
+        );
+      jest
+        .spyOn(EventFactory.prototype, 'getCharacters')
+        .mockReturnValueOnce(characters);
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const name = v4();
+
+      const packet = await service.changeScene(name);
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet?.sceneMutation).toHaveProperty('name', name);
+    });
+
+    test('should add character', async () => {
+      jest
+        .spyOn(WebSocketConnection.prototype, 'openSession')
+        .mockImplementationOnce(() =>
+          Promise.resolve({ agents } as SessionControlResponseEvent),
+        );
+      jest
+        .spyOn(EventFactory.prototype, 'getCharacters')
+        .mockReturnValueOnce(characters);
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const names = [v4(), v4()];
+
+      const packet = await service.addCharacters(names);
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet?.sceneMutation).toHaveProperty('characterNames', names);
     });
   });
 
@@ -619,7 +668,9 @@ describe('send', () => {
     test('should send narrated action', async () => {
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
-        .mockImplementationOnce(() => Promise.resolve({ characters } as Scene));
+        .mockImplementationOnce(() =>
+          Promise.resolve({ agents } as SessionControlResponseEvent),
+        );
       jest
         .spyOn(EventFactory.prototype, 'getCharacters')
         .mockReturnValueOnce(characters);
