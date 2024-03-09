@@ -38,7 +38,7 @@ import { EventFactory } from '../factories/event';
 import { StateSerializationService } from './pb/state_serialization.service';
 
 interface ConnectionProps<InworldPacketT, HistoryItemT> {
-  name?: string;
+  name: string;
   user?: User;
   client?: ClientRequest;
   config?: InternalClientConfiguration;
@@ -118,7 +118,11 @@ export class ConnectionService<
     return this.connectionProps.config?.connection?.autoReconnect ?? true;
   }
 
-  setNextSceneName(name: string) {
+  getSceneName() {
+    return this.scene.name;
+  }
+
+  setNextSceneName(name?: string) {
     this.nextSceneName = name;
   }
 
