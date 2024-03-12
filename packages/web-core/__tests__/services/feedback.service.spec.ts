@@ -19,7 +19,7 @@ const webRtcLoopbackBiDiSession = new GrpcWebRtcLoopbackBiDiSession();
 
 describe('should create interaction feedback', () => {
   const interactionId = v4();
-  const characterId = v4();
+  const correlationId = v4();
   const comment = v4();
   const types = [
     DislikeType.IRRELEVANT,
@@ -56,14 +56,14 @@ describe('should create interaction feedback', () => {
 
     await new FeedbackService(connection).like({
       interactionId,
-      characterId,
+      correlationId,
     });
 
     expect(createInteractionFeedback).toHaveBeenCalledTimes(1);
     expect(createInteractionFeedback).toHaveBeenCalledWith({
       session,
       config: undefined,
-      characterId,
+      correlationId,
       interactionId,
       interactionFeedback,
     });
@@ -87,6 +87,7 @@ describe('should create interaction feedback', () => {
 
     await new FeedbackService(connection).dislike({
       interactionId,
+      correlationId,
       types,
       comment,
     });
@@ -95,7 +96,7 @@ describe('should create interaction feedback', () => {
     expect(createInteractionFeedback).toHaveBeenCalledWith({
       session,
       config: undefined,
-      characterId: character.id,
+      correlationId,
       interactionId,
       interactionFeedback,
     });
@@ -115,17 +116,5 @@ describe('should create interaction feedback', () => {
       name,
       config: undefined,
     });
-  });
-
-  test('should throw error if no character provided', async () => {
-    jest
-      .spyOn(connection, 'getCurrentCharacter')
-      .mockImplementationOnce(() => Promise.resolve(null));
-
-    const feedbackService = new FeedbackService(connection);
-    const like = feedbackService.like({ interactionId });
-    await expect(like).rejects.toThrow(
-      'characterId is required to send feedback',
-    );
   });
 });

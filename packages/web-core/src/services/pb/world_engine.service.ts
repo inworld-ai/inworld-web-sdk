@@ -6,6 +6,7 @@ import {
   LoadSceneRequest,
   WorldEngine,
 } from '../../../proto/ai/inworld/engine/world-engine.pb';
+import { LoadSceneResponse } from '../../../proto/ai/inworld/engine/world-engine.pb';
 import { CLIENT_ID } from '../../common/constants';
 import {
   Extension,
@@ -34,7 +35,9 @@ export class WorldEngineService<
   InworldPacketT extends InworldPacket = InworldPacket,
   HistoryItemT extends HistoryItem = HistoryItem,
 > extends PbService {
-  async loadScene(props: LoadSceneProps<InworldPacketT, HistoryItemT>) {
+  async loadScene(
+    props: LoadSceneProps<InworldPacketT, HistoryItemT>,
+  ): Promise<LoadSceneResponse> {
     const req = this.buildRequest(props);
     const finalReq = props.extension?.beforeLoadScene?.(req) ?? req;
 

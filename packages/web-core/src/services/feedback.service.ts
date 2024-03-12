@@ -8,12 +8,12 @@ interface SendFeedbackProps {
   isLike?: boolean;
   types?: DislikeType[];
   interactionId: string;
-  characterId?: string;
+  correlationId?: string;
 }
 
 export interface BaseFeedbackProps {
   interactionId: string;
-  characterId?: string;
+  correlationId?: string;
 }
 export interface FeedbackLikeProps extends BaseFeedbackProps {}
 
@@ -51,13 +51,6 @@ export class FeedbackService<
   }
 
   private async send(props: SendFeedbackProps) {
-    const characterId =
-      props.characterId ?? (await this.connection.getCurrentCharacter())?.id;
-
-    if (!characterId) {
-      throw new Error('characterId is required to send feedback');
-    }
-
     const session = await this.connection.ensureSessionToken();
     const interactionFeedback = new Feedback({
       isLike: props.isLike,
@@ -66,8 +59,9 @@ export class FeedbackService<
     }).toProto();
 
     return this.service.createInteractionFeedback({
+      scene: this.connection.getSceneName(),
       config: this.connection.getConfig(),
-      characterId,
+      correlationId: props.correlationId,
       interactionFeedback,
       interactionId: props.interactionId,
       session,

@@ -1,11 +1,5 @@
-import {
-  LoadSceneResponseAgent,
-  PreviousState,
-} from '../../proto/ai/inworld/engine/world-engine.pb';
-import {
-  ClientRequest,
-  LoadSceneResponse,
-} from '../../proto/ai/inworld/engine/world-engine.pb';
+import { PreviousState } from '../../proto/ai/inworld/engine/world-engine.pb';
+import { ClientRequest } from '../../proto/ai/inworld/engine/world-engine.pb';
 import { InworldPacket as ProtoPacket } from '../../proto/ai/inworld/packets/packets.pb';
 import {
   AudioSessionState,
@@ -36,6 +30,7 @@ import {
 import { Character } from '../entities/character.entity';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../entities/inworld_packet.entity';
+import { Scene } from '../entities/scene.entity';
 import { SessionToken } from '../entities/session_token.entity';
 import { EventFactory } from '../factories/event';
 import { StateSerializationService } from './pb/state_serialization.service';
@@ -72,7 +67,8 @@ export class ConnectionService<
   private audioSessionParams: SendPacketParams = {};
   private ttsPlaybackAction = TtsPlaybackAction.UNKNOWN;
 
-  private scene: LoadSceneResponse;
+  private scene: Scene;
+  private sceneIsLoaded: boolean = false;
   private session: SessionToken;
   private connection: Connection<InworldPacketT>;
   private connectionProps: ConnectionProps<InworldPacketT, HistoryItemT>;
@@ -99,6 +95,9 @@ export class ConnectionService<
   constructor(props?: ConnectionProps<InworldPacketT, HistoryItemT>) {
     this.connectionProps =
       props || ({} as ConnectionProps<InworldPacketT, HistoryItemT>);
+    this.scene = new Scene({
+      name: this.connectionProps.name,
+    });
     this.history = new InworldHistory<InworldPacketT>({
       extension: this.connectionProps.extension,
       user: this.connectionProps.user,
@@ -115,6 +114,10 @@ export class ConnectionService<
 
   isAutoReconnected() {
     return this.connectionProps.config?.connection?.autoReconnect ?? true;
+  }
+
+  getSceneName() {
+    return this.scene.name;
   }
 
   async getSessionState() {
@@ -261,30 +264,16 @@ export class ConnectionService<
   }
 
   private setCharacterList() {
-    const characters = (this.scene?.agents || [])?.map(
-      (agent: LoadSceneResponseAgent) =>
-        new Character({
-          id: agent.agentId,
-          resourceName: agent.brainName,
-          displayName: agent.givenName,
-          assets: {
-            avatarImg: agent.characterAssets.avatarImg,
-            avatarImgOriginal: agent.characterAssets.avatarImgOriginal,
-            rpmModelUri: agent.characterAssets.rpmModelUri,
-            rpmImageUriPortrait: agent.characterAssets.rpmImageUriPortrait,
-            rpmImageUriPosture: agent.characterAssets.rpmImageUriPosture,
-          },
-        }),
-    );
+    const { characters } = this.scene;
 
     const factory = this.getEventFactory();
 
     if (
       !this.connectionProps.config.capabilities.multiAgent &&
       !this.getEventFactory().getCurrentCharacter() &&
-      characters[0]
+      characters?.[0]
     ) {
-      this.setCurrentCharacter(this.characters[0]);
+      this.setCurrentCharacter(characters[0]);
     }
 
     factory.setCharacters(characters);
@@ -339,7 +328,8 @@ export class ConnectionService<
   private async loadScene() {
     if (this.state === ConnectionState.LOADING) return;
 
-    const { name, client, user } = this.connectionProps;
+    const { client, user } = this.connectionProps;
+    const name = this.getSceneName();
 
     try {
       await this.ensureSessionToken({
@@ -348,8 +338,8 @@ export class ConnectionService<
         },
       });
 
-      if (!this.scene) {
-        this.scene = await this.engineService.loadScene({
+      if (!this.sceneIsLoaded) {
+        const proto = await this.engineService.loadScene({
           config: this.connectionProps.config,
           session: this.session,
           sessionContinuation: this.connectionProps.sessionContinuation,
@@ -360,8 +350,11 @@ export class ConnectionService<
         });
 
         if (this.connectionProps?.config?.history?.previousState) {
-          this.setPreviousState(this.scene?.previousState);
+          this.setPreviousState(proto?.previousState);
         }
+
+        this.scene = Scene.fromProto(name, proto);
+        this.sceneIsLoaded = true;
 
         this.setCharacterList();
       }
