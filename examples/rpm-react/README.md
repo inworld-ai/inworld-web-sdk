@@ -8,7 +8,7 @@ This project is designed to be a developer demonstration for:
 - Inworld Client Management
 - 3D Environment Configuration
 
-Note: Example source assets for the models, animations and *textures ( *Innequin Only ), are downloaded using `yarn run install:assets` as apart of the install process.
+Note: Example source assets for the models, animations are downloaded using `yarn run install:assets` as apart of the install process.
 
 ![Ready Player Me](./imgs/rpm.png 'RPM')
 
@@ -22,6 +22,7 @@ Note: Example source assets for the models, animations and *textures ( *Innequin
 - [Building](#build)
 - [Environment Variables](#env)
 - [RPM Asset Loading Process](#loading-rpm)
+- [Exporting your RPM Model](#export-rpm)
 
 <br/>
 
@@ -87,5 +88,21 @@ The following are the list of Environment Variables this project supports:
 The following diagram explains the loading process of the configuration file and assets for RPM.
 
 ![RPM](./imgs/rpm-loading-flow.png 'RPM')
+
+<br/>
+
+## Exporting your RPM Model <a id="export-rpm" name="export-rpm"></a>
+
+A Ready Player Me model by default does not come with the blend shapes needed to support Vismeme and other facial animations. In order to add them you will need to append the model download URL with the following `?morphTargets=ARKit,Oculus Visemes`
+
+Example:
+
+https://models.readyplayer.me/65ca3211555ef713271e81dd.glb?morphTargets=ARKit,Oculus Visemes
+
+<br/>
+
+## Generating Mixamo Animations from RPM Model <a id="generate-mixamo" name="generate-mixamo"></a>
+
+By default Ready Player Me models are exported as GLB format and require conversion to another format and we recommend FBX. In order to do that you'll need to use 3D creation software and we recommend Blender. In Blender this is simply done by importing the RPM .glb file and then exporting as FBX however there are some settings recommended for the FBX export. Here is a link
 
 <br/>
