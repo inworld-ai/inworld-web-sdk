@@ -1,13 +1,13 @@
 import { AdditionalPhonemeInfo, EmotionBehaviorCode } from '@inworld/web-core';
 import { AnimationMixer, LoopPingPong, Object3D, SkinnedMesh } from 'three';
 
-import { JSONAnimationLoader } from '../../loaders/JSONAnimationLoader';
+import { GLTFAnimationLoader } from '../../loaders/GLTFAnimationLoader';
 import { log } from '../../utils/Log';
 import { RPMFacial } from './facial/RPMFacial';
 import { RPMBehaviorToFacial } from './utils/RPMBehaviorToFacial';
 
 export type RPMAnimatorProps = {
-  animations: { [key: string]: JSONAnimationLoader };
+  animations: { [key: string]: GLTFAnimationLoader };
   animationsTalking: string[];
   defaultAnimation: string;
   defaultEmotion: EmotionBehaviorCode;
@@ -19,7 +19,7 @@ const AVATAR_MESH_NAME = 'Armature';
 const END_TALKING_DEBOUNCE_TIME_MS = 500;
 
 export class RPMAnimator {
-  animations: { [key: string]: JSONAnimationLoader };
+  animations: { [key: string]: GLTFAnimationLoader };
   animationMixer: AnimationMixer;
   animatorReady: boolean;
   facial: RPMFacial;
@@ -118,7 +118,7 @@ export class RPMAnimator {
           .fadeOut(ANIMATION_FADE_TIME_S);
       }
       let clipName = this.props.defaultAnimation;
-      if (this.animations[clipName].data) {
+      if (this.animations[clipName].animationClip) {
         const durationSeconds =
           this.animations[clipName].animationClip.duration;
         this.animationMixer
