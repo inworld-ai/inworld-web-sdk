@@ -71,16 +71,16 @@ This project requires you to host the assets files, consisting of JSON configura
 
 Here is the link to manually download the source files.
 
-- [rpm-assets-v1.zip](https://storage.googleapis.com/innequin-assets/rpm/rpm-assets-v1.zip) - Contains all RPM asset files and config.json.
+- [rpm-assets-v3.zip](https://storage.googleapis.com/innequin-assets/rpm/rpm-assets-v3.zip) - Contains all RPM asset files and config.json.
 
-The files can be hosted locally by downloading the file and extract it's contents into a folder accessable by a running webserver. For example the assets for the [RPM React Example]('/examples/rpm-react/') we recommend placing them in the `/public/assets/v1/` folder within that example. The `version.json` file contained within the assets zip should be installed to the root at `/public/assets/`.
+The files can be hosted locally by downloading the file and extract it's contents into a folder accessable by a running webserver. For example the assets for the [RPM React Example]('/examples/rpm-react/') we recommend placing them in the `/public/assets/v3/` folder within that example. The `version.json` file contained within the assets zip should be installed to the root at `/public/assets/`.
 
 Note: If you wish to change the recommended location of the assets for our [Ready Player Me Example Project](https://github.com/inworld-ai/inworld-web-sdk/tree/main/examples/rpm-react), you will need to update the environment variables `REACT_APP_RPM_BASE_URI` and `REACT_APP_RPM_CONFIG_URI` located in the `.env` file you create during the setup of the examples.
 
 Example asset folder structure:
 
 ```
-/public/assets/v1/  - The base folder for all following Ready Player Me assets.
+/public/assets/v3/  - The base folder for all following Ready Player Me assets.
     animations/     - The Three.js based JSON animation files.
     models/         - The animation and mesh model files in GLB format.
     config.json     - The file that defines the settings for a Innequin avatar.
@@ -103,3 +103,7 @@ The following diagram explains the loading process of both the configuration fil
 ![RPM](./imgs/rpm-loading-flow.png 'RPM')
 
 <br/>
+
+# Ready Player Me Character Rreation <a id="rpm-creation" name="rpm-creation"></a>
+
+https://models.readyplayer.me/65ca3211555ef713271e81dd.glb

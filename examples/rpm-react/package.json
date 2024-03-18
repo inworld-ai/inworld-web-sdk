@@ -1,12 +1,12 @@
 {
   "name": "rpm-react",
-  "version": "1.0.1",
+  "version": "1.2.0",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
     "@inworld/web-core": "2.2.0",
-    "@inworld/web-threejs": "1.0.0",
+    "@inworld/web-threejs": "1.2.0",
     "@mui/icons-material": "^5.11.11",
     "@mui/material": "^5.11.13",
     "@pmndrs/assets": "^1.6.0",
