@@ -15,6 +15,7 @@ import {
   InworldHistory,
 } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
+import { ControlEvent } from '../../src/entities/packets/control.entity';
 import {
   EmotionBehavior,
   EmotionBehaviorCode,
@@ -87,9 +88,9 @@ const interactionEndPacket = new InworldPacket({
   date,
   trigger: new TriggerEvent({ name: v4() }),
   type: InworldPacketType.CONTROL,
-  control: {
+  control: new ControlEvent({
     type: InworlControlType.INTERACTION_END,
-  },
+  }),
 });
 const incomingTextPacket = new InworldPacket({
   packetId: {

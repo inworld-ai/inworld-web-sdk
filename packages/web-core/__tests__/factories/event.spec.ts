@@ -521,6 +521,30 @@ describe('convert packet to external one', () => {
       expect(result.isInteractionEnd()).toEqual(true);
     });
 
+    test('warning', () => {
+      const today = new Date();
+      const description = v4();
+      const packet: ProtoPacket = {
+        control: {
+          action: ControlEventAction.WARNING,
+          description,
+        },
+        packetId: { packetId: v4() },
+        routing: {
+          source: {} as Actor,
+          targets: [{} as Actor],
+        },
+        timestamp: protoTimestamp(today),
+      };
+
+      const result = InworldPacket.fromProto(packet);
+
+      expect(result).toBeInstanceOf(InworldPacket);
+      expect(result.isControl()).toEqual(true);
+      expect(result.isWarning()).toEqual(true);
+      expect(result.control?.description).toEqual(description);
+    });
+
     test('unknown', () => {
       const today = new Date();
       const packet: ProtoPacket = {

@@ -6,6 +6,7 @@ import {
 } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
 import { AudioEvent } from '../../src/entities/packets/audio.entity';
+import { ControlEvent } from '../../src/entities/packets/control.entity';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
 import { Routing } from '../../src/entities/packets/routing.entity';
 import { TextEvent } from '../../src/entities/packets/text.entity';
@@ -143,11 +144,27 @@ describe('control', () => {
       routing,
       date,
       type: InworldPacketType.CONTROL,
-      control: { type: InworlControlType.INTERACTION_END },
+      control: new ControlEvent({ type: InworlControlType.INTERACTION_END }),
     });
 
     expect(packet.isControl()).toEqual(true);
     expect(packet.isInteractionEnd()).toEqual(true);
+    expect(packet.routing).toEqual(routing);
+    expect(packet.date).toEqual(date);
+    expect(packet.packetId).toEqual(packetId);
+  });
+
+  test('should get warning packet fields', () => {
+    const packet = new InworldPacket({
+      packetId,
+      routing,
+      date,
+      type: InworldPacketType.CONTROL,
+      control: new ControlEvent({ type: InworlControlType.WARNING }),
+    });
+
+    expect(packet.isControl()).toEqual(true);
+    expect(packet.isWarning()).toEqual(true);
     expect(packet.routing).toEqual(routing);
     expect(packet.date).toEqual(date);
     expect(packet.packetId).toEqual(packetId);

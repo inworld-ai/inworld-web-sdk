@@ -148,6 +148,10 @@ export class InworldPacket {
     );
   }
 
+  isWarning() {
+    return this.isControl() && this.control.type === InworlControlType.WARNING;
+  }
+
   isSilence() {
     return this.type === InworldPacketType.SILENCE;
   }
