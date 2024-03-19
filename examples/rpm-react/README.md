@@ -1,6 +1,6 @@
 # Inworld AI Web SDK | Three.js Module - Ready Player Me React Example
 
-This Ready Player Me React Example project for the Inworld AI Web SDK | Three.js Module demostrates using the Typescript based Ready Player Me SDK to load a Ready Player Me model into a React project and animate it using Mixamo animations. We have some advice on best practices in using files both from Ready Player Me and Mixamo [below](#export-rpm)
+This Ready Player Me React Example project for the Inworld AI Web SDK | Three.js Module demostrates using the Typescript based Ready Player Me SDK to load a Ready Player Me model into a React project and animate it using Mixamo animations. We have some advice on best practices in using files both from Ready Player Me and Mixamo [below](#recommendations-rpm).
 
 This project is designed to be a developer demonstration for:
 
