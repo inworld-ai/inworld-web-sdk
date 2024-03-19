@@ -287,7 +287,7 @@ export class InworldPacket {
               ({
                 phoneme: info.phoneme,
                 startOffsetS: parseFloat(info.startOffset),
-              } as AdditionalPhonemeInfo),
+              }) as AdditionalPhonemeInfo,
           ),
         },
       }),
