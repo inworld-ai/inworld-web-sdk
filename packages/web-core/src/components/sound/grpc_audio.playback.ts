@@ -7,7 +7,7 @@ import {
   OnPhomeneFn,
 } from '../../common/data_structures';
 import { interpolate } from '../../common/helpers';
-import { InworldPacket } from '../../entities/inworld_packet.entity';
+import { InworldPacket } from '../../entities/packets/inworld_packet.entity';
 
 interface AudioQueueItem<InworldPacketT> {
   packet: InworldPacketT;
@@ -287,7 +287,16 @@ export class GrpcAudioPlayback<
           this.onPhoneme?.(packet.audio.additionalPhonemeInfo);
         }
 
-        this.currentItem.packet.audio.durationMs = audioBuffer.duration * 1000;
+        this.currentItem = {
+          ...this.currentItem,
+          packet: {
+            ...packet,
+            audio: {
+              ...packet.audio,
+              durationMs: audioBuffer.duration * 1000,
+            },
+          },
+        };
       }
 
       this.getSourceNode().start();

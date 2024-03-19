@@ -20,7 +20,7 @@ import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playbac
 import { GrpcWebRtcLoopbackBiDiSession } from '../../src/components/sound/grpc_web_rtc_loopback_bidi.session';
 import { Player } from '../../src/components/sound/player';
 import { WebSocketConnection } from '../../src/connection/web-socket.connection';
-import { InworldPacket } from '../../src/entities/inworld_packet.entity';
+import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
 import { Scene } from '../../src/entities/scene.entity';
 import { SessionToken } from '../../src/entities/session_token.entity';
 import { EventFactory } from '../../src/factories/event';

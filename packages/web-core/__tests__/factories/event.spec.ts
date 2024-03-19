@@ -9,7 +9,7 @@ import {
   InworldPacket as ProtoPacket,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import { protoTimestamp } from '../../src/common/helpers';
-import { InworldPacket } from '../../src/entities/inworld_packet.entity';
+import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
 import { EventFactory } from '../../src/factories/event';
 import { capabilitiesProps, createCharacter } from '../helpers';
 

@@ -12,7 +12,7 @@ import {
 } from '../../proto/ai/inworld/packets/packets.pb';
 import { HistoryItem } from '../components/history';
 import { Character } from '../entities/character.entity';
-import { AdditionalPhonemeInfo } from '../entities/inworld_packet.entity';
+import { AdditionalPhonemeInfo } from '../entities/packets/audio.entity';
 import { SessionToken } from '../entities/session_token.entity';
 
 export interface Capabilities {
@@ -142,4 +142,25 @@ export interface MediaTrackConstraintsWithSuppress
 
 export interface SendPacketParams {
   characters?: Character[];
+}
+
+export enum InworldPacketType {
+  UNKNOWN = 'UNKNOWN',
+  TEXT = 'TEXT',
+  AUDIO = 'AUDIO',
+  TRIGGER = 'TRIGGER',
+  EMOTION = 'EMOTION',
+  CONTROL = 'CONTROL',
+  SILENCE = 'SILENCE',
+  CANCEL_RESPONSE = 'CANCEL_RESPONSE',
+  NARRATED_ACTION = 'NARRATED_ACTION',
+}
+
+export enum InworlControlType {
+  UNKNOWN = 'UNKNOWN',
+  INTERACTION_END = 'INTERACTION_END',
+  TTS_PLAYBACK_START = 'TTS_PLAYBACK_START',
+  TTS_PLAYBACK_END = 'TTS_PLAYBACK_END',
+  TTS_PLAYBACK_MUTE = 'TTS_PLAYBACK_MUTE',
+  TTS_PLAYBACK_UNMUTE = 'TTS_PLAYBACK_UNMUTE',
 }

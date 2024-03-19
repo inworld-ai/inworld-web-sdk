@@ -1,14 +1,14 @@
 import { v4 } from 'uuid';
 
-import { protoTimestamp } from '../../src/common/helpers';
 import {
-  AudioEvent,
   InworlControlType,
-  InworldPacket,
   InworldPacketType,
-  Routing,
-  TextEvent,
-} from '../../src/entities/inworld_packet.entity';
+} from '../../src/common/data_structures';
+import { protoTimestamp } from '../../src/common/helpers';
+import { AudioEvent } from '../../src/entities/packets/audio.entity';
+import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
+import { Routing } from '../../src/entities/packets/routing.entity';
+import { TextEvent } from '../../src/entities/packets/text.entity';
 import { getPacketId } from '../helpers';
 
 const packetId = getPacketId();
@@ -33,9 +33,9 @@ const routing: Routing = {
 const date = protoTimestamp();
 
 test('should get audio packet fields', () => {
-  const audio: AudioEvent = {
+  const audio = new AudioEvent({
     chunk: v4(),
-  };
+  });
 
   const packet = new InworldPacket({
     audio,

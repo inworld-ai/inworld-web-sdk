@@ -19,7 +19,8 @@ import {
   DialogPhrase,
   PreviousDialog,
 } from '../src/entities/continuation/previous_dialog.entity';
-import { InworldPacket, PacketId } from '../src/entities/inworld_packet.entity';
+import { InworldPacket } from '../src/entities/packets/inworld_packet.entity';
+import { PacketId } from '../src/entities/packets/packet_id.entity';
 import { SessionToken } from '../src/entities/session_token.entity';
 import { ExtendedHistoryItem, ExtendedInworldPacket } from './data_structures';
 
@@ -99,11 +100,12 @@ export const writeMock = async (item: QueueItem<InworldPacket>) => {
   item.afterWriting?.(packet);
 };
 
-export const getPacketId = (): PacketId => ({
-  packetId: v4(),
-  interactionId: v4(),
-  utteranceId: v4(),
-});
+export const getPacketId = () =>
+  new PacketId({
+    packetId: v4(),
+    interactionId: v4(),
+    utteranceId: v4(),
+  });
 
 export const convertPacketFromProto = (proto: ProtoPacket) => {
   const packet = InworldPacket.fromProto(proto) as ExtendedInworldPacket;

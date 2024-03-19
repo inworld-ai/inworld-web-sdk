@@ -1,5 +1,5 @@
 import { HistoryItem } from '../src/components/history';
-import { InworldPacket } from '../src/entities/inworld_packet.entity';
+import { InworldPacket } from '../src/entities/packets/inworld_packet.entity';
 
 export interface RegenerateResponse {
   interactionId?: string;

@@ -17,7 +17,7 @@ import { Character } from '../entities/character.entity';
 import {
   InworldPacket,
   TriggerParameter,
-} from '../entities/inworld_packet.entity';
+} from '../entities/packets/inworld_packet.entity';
 import { ConnectionService } from './connection.service';
 
 interface InworldConnectionServiceProps<
