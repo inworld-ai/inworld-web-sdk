@@ -1,7 +1,18 @@
-import { InworldConnectionService, InworldTriggers } from '@inworld/web-core';
-import { AddReaction, MoreVert, Send, Start } from '@mui/icons-material';
+import {
+  InworldConnectionService,
+  InworldTriggers,
+  TriggerParameter,
+} from '@inworld/web-core';
+import {
+  AddReaction,
+  AutoAwesome,
+  MoreVert,
+  Send,
+  Start,
+} from '@mui/icons-material';
 import {
   Box,
+  Button,
   Dialog,
   DialogContent,
   IconButton,
@@ -16,6 +27,9 @@ import React, { useCallback, useState } from 'react';
 import { INWORLD_COLORS } from '../helpers/colors';
 import { CHAT_VIEW } from '../types';
 
+const paramsPlaceholder =
+  'Enter trigger params. Use JSON format such as [{"name":"value","value":"invalid"}]';
+
 export interface AdditionalActionsProps {
   chatView: CHAT_VIEW;
   connection: InworldConnectionService;
@@ -27,6 +41,9 @@ export const AdditionalActions = (props: AdditionalActionsProps) => {
   const [narration, setNarration] = useState('');
   const [narratedActionDialogOpen, setNarratedActionDialogOpen] =
     useState(false);
+  const [trigger, setTrigger] = useState('');
+  const [triggerParams, setTriggerParams] = useState('');
+  const [triggerDialogOpen, setTriggerDialogOpen] = useState(false);
 
   const onOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setEl(event.currentTarget);
@@ -57,6 +74,44 @@ export const AdditionalActions = (props: AdditionalActionsProps) => {
       setNarratedActionDialogOpen(false);
     }
   }, [props.connection, props.playWorkaroundSound, narration]);
+
+  const handleTriggerChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setTrigger(e.target.value);
+    },
+    [],
+  );
+
+  const handleTriggerParamsChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setTriggerParams(e.target.value);
+    },
+    [],
+  );
+
+  const handleTriggerDialog = useCallback(() => {
+    setTriggerDialogOpen(true);
+  }, []);
+
+  const handleSendTrigger = useCallback(() => {
+    if (trigger) {
+      let parameters: TriggerParameter[];
+
+      try {
+        parameters = JSON.parse(triggerParams);
+      } catch (e) {
+        console.warn('Invalid JSON format for trigger params');
+        return;
+      }
+
+      props.playWorkaroundSound();
+      props.connection?.sendTrigger(trigger, { parameters });
+
+      setTrigger('');
+      setTriggerParams('');
+      setTriggerDialogOpen(false);
+    }
+  }, [props.connection, props.playWorkaroundSound, trigger, triggerParams]);
 
   const handleNextTurn = useCallback(() => {
     props.playWorkaroundSound();
@@ -96,6 +151,11 @@ export const AdditionalActions = (props: AdditionalActionsProps) => {
                 <AddReaction fontSize="small" />
               </IconButton>
             </Tooltip>
+            <Tooltip title="Send trigger" placement="left">
+              <IconButton onClick={handleTriggerDialog}>
+                <AutoAwesome fontSize="small" />
+              </IconButton>
+            </Tooltip>
             {props.chatView === CHAT_VIEW.MULTI_AGENT_TEXT ? (
               <Tooltip title="Next agents turn" placement="left">
                 <IconButton onClick={handleNextTurn}>
@@ -133,6 +193,36 @@ export const AdditionalActions = (props: AdditionalActionsProps) => {
                 disableUnderline: true,
               }}
             />
+          </Box>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={triggerDialogOpen}
+        onClose={() => setTriggerDialogOpen(false)}
+      >
+        <DialogContent>
+          <Box sx={{ m: 1 }}>
+            <TextField
+              sx={{ mb: 3 }}
+              fullWidth
+              size="small"
+              label="Trigger name"
+              onChange={handleTriggerChange}
+              placeholder="Enter trigger name"
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              sx={{ mb: 3 }}
+              fullWidth
+              size="small"
+              label={paramsPlaceholder}
+              onChange={handleTriggerParamsChange}
+              placeholder="Enter trigger params"
+              InputLabelProps={{ shrink: true }}
+            />
+            <Button onClick={handleSendTrigger} variant="contained">
+              Send
+            </Button>
           </Box>
         </DialogContent>
       </Dialog>
