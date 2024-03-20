@@ -140,8 +140,17 @@ export interface MediaTrackConstraintsWithSuppress
   suppressLocalAudioPlayback?: { ideal: boolean };
 }
 
+export interface TriggerParameter {
+  name: string;
+  value: string;
+}
+
 export interface SendPacketParams {
   characters?: Character[];
+}
+
+export interface SendTriggerPacketParams extends SendPacketParams {
+  parameters?: TriggerParameter[];
 }
 
 export enum InworldPacketType {

@@ -1,12 +1,11 @@
 import { v4 } from 'uuid';
 
 import { DEFAULT_USER_NAME } from '../common/constants';
-import { Extension, User } from '../common/data_structures';
+import { Extension, TriggerParameter, User } from '../common/data_structures';
 import { Character } from '../entities/character.entity';
 import { EmotionEvent } from '../entities/packets/emotion/emotion.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { Actor } from '../entities/packets/routing.entity';
-import { TriggerParameter } from '../entities/packets/trigger.entity';
 import { GrpcAudioPlayback } from './sound/grpc_audio.playback';
 
 interface InworldHistoryAddProps<InworldPacketT> {

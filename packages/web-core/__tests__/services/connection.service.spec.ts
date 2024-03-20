@@ -56,6 +56,28 @@ eventFactory.setCurrentCharacter(characters[0]);
 
 const textEvent = eventFactory.text(v4());
 const audioEvent = eventFactory.dataChunk(v4(), DataChunkDataType.AUDIO);
+const warningEvent: ProtoPacket = {
+  packetId: {
+    ...textEvent.packetId,
+    utteranceId: v4(),
+  },
+  routing: {
+    source: {
+      name: v4(),
+      type: ActorType.AGENT,
+    },
+    targets: [
+      {
+        name: characters[0].id,
+        type: ActorType.PLAYER,
+      },
+    ],
+  },
+  control: {
+    action: ControlEventAction.WARNING,
+    description: v4(),
+  },
+};
 const incomingTextEvent: ProtoPacket = {
   packetId: {
     ...textEvent.packetId,
@@ -802,6 +824,48 @@ describe('onMessage', () => {
     ]);
     await server.connected;
 
+    server.send({ result: audioEvent });
+  });
+
+  test('should propagate warning to corresponding callback', async () => {
+    const onWarning = jest.fn();
+    connection = new ConnectionService({
+      name: SCENE,
+      config: {
+        connection: { gateway: { hostname: HOSTNAME }, autoReconnect: false },
+        capabilities: capabilitiesProps,
+      },
+      user,
+      onError,
+      onMessage,
+      onWarning,
+      onDisconnect,
+      onHistoryChange: () => {
+        expect(onWarning).toHaveBeenCalledTimes(1);
+        expect(onWarning).toHaveBeenCalledWith(
+          InworldPacket.fromProto(warningEvent),
+        );
+      },
+      grpcAudioPlayer,
+      generateSessionToken,
+      webRtcLoopbackBiDiSession,
+    });
+
+    jest
+      .spyOn(WorldEngineService.prototype, 'loadScene')
+      .mockImplementationOnce(() => Promise.resolve(scene));
+    jest
+      .spyOn(InworldHistory.prototype, 'display')
+      .mockImplementationOnce(() => [{} as HistoryItem, {} as HistoryItem]);
+    jest
+      .spyOn(InworldHistory.prototype, 'addOrUpdate')
+      .mockImplementationOnce(() => []);
+
+    await connection.open();
+
+    await server.connected;
+
+    server.send({ result: warningEvent });
     server.send({ result: audioEvent });
   });
 });

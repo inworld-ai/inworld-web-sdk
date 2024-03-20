@@ -1,9 +1,5 @@
 import { CustomEvent as ProtoTriggerEvent } from '../../../proto/ai/inworld/packets/packets.pb';
-
-export interface TriggerParameter {
-  name: string;
-  value: string;
-}
+import { TriggerParameter } from '../../common/data_structures';
 
 export class TriggerEvent {
   readonly name: string;

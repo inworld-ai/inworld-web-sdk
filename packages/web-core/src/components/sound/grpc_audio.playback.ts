@@ -287,16 +287,7 @@ export class GrpcAudioPlayback<
           this.onPhoneme?.(packet.audio.additionalPhonemeInfo);
         }
 
-        this.currentItem = {
-          ...this.currentItem,
-          packet: {
-            ...packet,
-            audio: {
-              ...packet.audio,
-              durationMs: audioBuffer.duration * 1000,
-            },
-          },
-        };
+        this.currentItem.packet.audio.durationMs = audioBuffer.duration * 1000;
       }
 
       this.getSourceNode().start();

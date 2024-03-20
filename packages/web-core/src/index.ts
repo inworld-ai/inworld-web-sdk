@@ -14,6 +14,7 @@ import {
   ConnectionConfig,
   Extension,
   StopAudioPlayback,
+  TriggerParameter,
   User,
   UserProfile,
   UserProfileField,
@@ -56,10 +57,7 @@ import { InworldPacket } from './entities/packets/inworld_packet.entity';
 import { PacketId } from './entities/packets/packet_id.entity';
 import { Actor, Routing } from './entities/packets/routing.entity';
 import { TextEvent } from './entities/packets/text.entity';
-import {
-  TriggerEvent,
-  TriggerParameter,
-} from './entities/packets/trigger.entity';
+import { TriggerEvent } from './entities/packets/trigger.entity';
 import { SessionToken } from './entities/session_token.entity';
 import { InworldConnectionService } from './services/inworld_connection.service';
 import { SessionState } from './services/pb/state_serialization.service';

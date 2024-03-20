@@ -32,11 +32,6 @@ export interface InworldPacketProps {
   type: InworldPacketType;
 }
 
-export interface TriggerParameter {
-  name: string;
-  value: string;
-}
-
 export class InworldPacket {
   private type: InworldPacketType = InworldPacketType.UNKNOWN;
 

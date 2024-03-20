@@ -10,22 +10,19 @@ export interface AdditionalPhonemeInfo {
 
 export class AudioEvent {
   readonly chunk: string;
+  readonly additionalPhonemeInfo: AdditionalPhonemeInfo[] | undefined;
   // Available only when metadata is loaded.
   // I.e. before audio playing.
-  readonly durationMs: number | undefined;
-  readonly additionalPhonemeInfo: AdditionalPhonemeInfo[] | undefined;
+  durationMs: number | undefined;
 
   constructor({
     chunk,
-    durationMs,
     additionalPhonemeInfo,
   }: {
     chunk: string;
-    durationMs?: number;
     additionalPhonemeInfo?: AdditionalPhonemeInfo[];
   }) {
     this.chunk = chunk;
-    this.durationMs = durationMs;
     this.additionalPhonemeInfo = additionalPhonemeInfo;
   }
 
