@@ -182,10 +182,24 @@ export class ConnectionService<
     return this.history.getTranscript();
   }
 
+  getConfig() {
+    return this.connectionProps.config;
+  }
+
   async getCharacters() {
     await this.open();
 
     return this.scene.characters;
+  }
+
+  async getCurrentCharacter() {
+    await this.open();
+
+    return this.getEventFactory().getCurrentCharacter();
+  }
+
+  async setCurrentCharacter(character: Character) {
+    return this.getEventFactory().setCurrentCharacter(character);
   }
 
   async open() {

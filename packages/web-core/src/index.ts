@@ -40,6 +40,7 @@ import {
   SessionContinuation,
   SessionContinuationProps,
 } from './entities/continuation/session_continuation.entity';
+import { DislikeType, Feedback } from './entities/feedback.entity';
 import {
   AdditionalPhonemeInfo,
   AudioEvent,
@@ -60,6 +61,10 @@ import { Actor, Routing } from './entities/packets/routing.entity';
 import { TextEvent } from './entities/packets/text.entity';
 import { TriggerEvent } from './entities/packets/trigger.entity';
 import { SessionToken } from './entities/session_token.entity';
+import {
+  FeedbackDislikeProps,
+  FeedbackLikeProps,
+} from './services/feedback.service';
 import { InworldConnectionService } from './services/inworld_connection.service';
 import { SessionState } from './services/pb/state_serialization.service';
 
@@ -76,12 +81,16 @@ export {
   ConnectionConfig,
   DialogParticipant,
   DialogPhrase,
+  DislikeType,
   EmotionBehavior,
   EmotionBehaviorCode,
   EmotionEvent,
   EmotionStrength,
   EmotionStrengthCode,
   Extension,
+  Feedback,
+  FeedbackDislikeProps,
+  FeedbackLikeProps,
   HistoryInteractionEnd,
   HistoryItem,
   HistoryItemActor,
