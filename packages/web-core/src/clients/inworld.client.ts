@@ -1,4 +1,4 @@
-import { CapabilitiesRequest } from '../../proto/ai/inworld/engine/world-engine.pb';
+import { CapabilitiesConfiguration } from '../../proto/ai/inworld/engine/configuration/configuration.pb';
 import { CancelResponses } from '../../proto/ai/inworld/packets/packets.pb';
 import { GRPC_HOSTNAME, SCENE_PATTERN } from '../common/constants';
 import {
@@ -221,7 +221,9 @@ export class InworldClient<
     };
   }
 
-  private buildCapabilities(capabilities: Capabilities): CapabilitiesRequest {
+  private buildCapabilities(
+    capabilities: Capabilities,
+  ): CapabilitiesConfiguration {
     const {
       audio = true,
       emotions = false,
@@ -241,8 +243,6 @@ export class InworldClient<
       narratedActions,
       phonemeInfo,
       silenceEvents,
-      text: true,
-      triggers: true,
       turnBasedStt,
     };
   }

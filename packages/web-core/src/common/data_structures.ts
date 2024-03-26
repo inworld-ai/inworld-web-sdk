@@ -1,9 +1,15 @@
 import {
-  CapabilitiesRequest,
-  LoadSceneRequest,
-  LoadSceneResponse,
-} from '../../proto/ai/inworld/engine/world-engine.pb';
-import { InworldPacket as ProtoPacket } from '../../proto/ai/inworld/packets/packets.pb';
+  CapabilitiesConfiguration,
+  ClientConfiguration as ControlClientConfiguration,
+  SessionConfiguration,
+  UserConfiguration,
+} from '../../proto/ai/inworld/engine/configuration/configuration.pb';
+import {
+  Continuation,
+  InworldPacket as ProtoPacket,
+  SessionControlResponseEvent,
+  SessionHistoryRequest,
+} from '../../proto/ai/inworld/packets/packets.pb';
 import { HistoryItem } from '../components/history';
 import { Character } from '../entities/character.entity';
 import { AdditionalPhonemeInfo } from '../entities/inworld_packet.entity';
@@ -54,6 +60,15 @@ export interface StopAudioPlayback {
   ticks: number;
 }
 
+export interface SessionControlProps {
+  capabilities?: CapabilitiesConfiguration;
+  sessionConfiguration?: SessionConfiguration;
+  userConfiguration?: UserConfiguration;
+  clientConfiguration?: ControlClientConfiguration;
+  continuation?: Continuation;
+  sessionHistory?: SessionHistoryRequest;
+}
+
 export interface ConnectionConfig {
   autoReconnect?: boolean;
   disconnectTimeout?: number;
@@ -65,6 +80,7 @@ export interface HistoryConfig {
 }
 
 export interface ClientConfiguration {
+  gameSessionId?: string;
   connection?: ConnectionConfig;
   capabilities?: Capabilities;
   audioPlayback?: AudioPlaybackConfig;
@@ -72,8 +88,9 @@ export interface ClientConfiguration {
 }
 
 export interface InternalClientConfiguration {
+  gameSessionId?: string;
   connection?: ConnectionConfig;
-  capabilities: CapabilitiesRequest;
+  capabilities: CapabilitiesConfiguration;
   audioPlayback?: AudioPlaybackConfig;
   history?: HistoryConfig;
 }
@@ -96,8 +113,6 @@ export type OnPhomeneFn =
 export enum ConnectionState {
   ACTIVE = 'ACTIVE',
   ACTIVATING = 'ACTIVATING',
-  LOADED = 'LOADED',
-  LOADING = 'LOADING',
   INACTIVE = 'INACTIVE',
 }
 
@@ -115,8 +130,8 @@ export enum TtsPlaybackAction {
 
 export interface Extension<InworldPacketT, HistoryItemT> {
   convertPacketFromProto?: (proto: ProtoPacket) => InworldPacketT;
-  beforeLoadScene?: (request: LoadSceneRequest) => LoadSceneRequest;
-  afterLoadScene?: (res: LoadSceneResponse) => void;
+  beforeLoadScene?: (packets: ProtoPacket[]) => ProtoPacket[];
+  afterLoadScene?: (res: SessionControlResponseEvent) => void;
   historyItem?: (packet: InworldPacketT, item: HistoryItem) => HistoryItemT;
 }
 

@@ -82,6 +82,7 @@ export type CapabilitiesRequest = {
   debugInfo?: boolean
   ttsMp3?: boolean
   multiAgent?: boolean
+  audio2Face?: boolean
 }
 
 export type UserRequest = {
@@ -155,6 +156,7 @@ export type PreviousStateStateHolder = {
 export type PreviousState = {
   stateHolders?: PreviousStateStateHolder[]
   gameSessionId?: string
+  conversationState?: ConversationState
 }
 
 export type LoadSceneResponseAgentCharacterAssets = {
@@ -226,6 +228,16 @@ export type ActorRelationsRelation = {
 export type ActorRelations = {
   actorId?: string
   relations?: ActorRelationsRelation[]
+}
+
+export type ConversationStateConversationSettings = {
+  conversationId?: string
+  participants?: string[]
+  spectators?: string[]
+}
+
+export type ConversationState = {
+  conversationSettings?: ConversationStateConversationSettings[]
 }
 
 export class WorldEngine {

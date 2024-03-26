@@ -18,10 +18,10 @@ import {
   InworldPacketType,
   Routing,
 } from '../../src/entities/inworld_packet.entity';
+import { Scene } from '../../src/entities/scene.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
 import { InworldConnectionService } from '../../src/services/inworld_connection.service';
-import { WorldEngineService } from '../../src/services/pb/world_engine.service';
 import { ExtendedInworldPacket } from '../data_structures';
 import {
   convertAgentsToCharacters,
@@ -323,9 +323,9 @@ describe('send', () => {
     });
 
     test('should throw error if audio session was finished twice', async () => {
-      jest
+      const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+        .mockImplementation(writeMock);
       jest
         .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
         .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
@@ -338,6 +338,7 @@ describe('send', () => {
       }).rejects.toThrow(
         'Audio session cannot be ended because it has not been started',
       );
+      expect(write).toHaveBeenCalledTimes(2);
     });
 
     test('should send audio session end', async () => {
@@ -371,8 +372,8 @@ describe('send', () => {
 
     test('should send narrated action', async () => {
       jest
-        .spyOn(WorldEngineService.prototype, 'loadScene')
-        .mockImplementationOnce(() => Promise.resolve({ agents }));
+        .spyOn(WebSocketConnection.prototype, 'openSession')
+        .mockImplementationOnce(() => Promise.resolve({ characters } as Scene));
       jest
         .spyOn(EventFactory.prototype, 'getCharacters')
         .mockReturnValueOnce(characters);
@@ -617,8 +618,8 @@ describe('send', () => {
 
     test('should send narrated action', async () => {
       jest
-        .spyOn(WorldEngineService.prototype, 'loadScene')
-        .mockImplementationOnce(() => Promise.resolve({ agents }));
+        .spyOn(WebSocketConnection.prototype, 'openSession')
+        .mockImplementationOnce(() => Promise.resolve({ characters } as Scene));
       jest
         .spyOn(EventFactory.prototype, 'getCharacters')
         .mockReturnValueOnce(characters);
@@ -703,6 +704,9 @@ describe('character', () => {
   let service: InworldConnectionService;
 
   beforeEach(() => {
+    jest
+      .spyOn(ConnectionService.prototype, 'getCharacters')
+      .mockImplementation(() => Promise.resolve(characters));
     jest
       .spyOn(ConnectionService.prototype, 'getEventFactory')
       .mockImplementationOnce(() => eventFactory);

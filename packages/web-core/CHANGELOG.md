@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Changed
+
+- Change internal way to open session
+
 ## [2.4.1] - 2024-03-06
 
 ### Fixed

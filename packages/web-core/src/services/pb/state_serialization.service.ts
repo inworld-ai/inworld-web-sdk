@@ -16,7 +16,7 @@ export interface SessionState {
 }
 
 export class StateSerializationService extends PbService {
-  public async getSessionState(props: getSessionStateProps) {
+  async getSessionState(props: getSessionStateProps) {
     const { config, session, scene } = props;
 
     const workspace = SCENE_PATTERN.exec(scene)[1];

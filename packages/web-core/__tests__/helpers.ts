@@ -1,10 +1,10 @@
+import { WS } from 'jest-websocket-mock';
 import { v4 } from 'uuid';
 
 import {
-  LoadSceneRequest,
-  LoadSceneResponseAgent,
-} from '../proto/ai/inworld/engine/world-engine.pb';
-import { InworldPacket as ProtoPacket } from '../proto/ai/inworld/packets/packets.pb';
+  Agent,
+  InworldPacket as ProtoPacket,
+} from '../proto/ai/inworld/packets/packets.pb';
 import {
   Capabilities,
   Client,
@@ -40,7 +40,7 @@ export const createCharacter = () =>
     },
   });
 
-export const createAgent = (): LoadSceneResponseAgent => {
+export const createAgent = (): Agent => {
   return {
     agentId: v4(),
     brainName: v4(),
@@ -52,14 +52,14 @@ export const createAgent = (): LoadSceneResponseAgent => {
   };
 };
 
-export const convertAgentsToCharacters = (agents: LoadSceneResponseAgent[]) => {
+export const convertAgentsToCharacters = (agents: Agent[]) => {
   return agents.map(
-    (agent: LoadSceneResponseAgent) =>
+    (agent: Agent) =>
       new Character({
-        id: agent.agentId,
-        resourceName: agent.brainName,
-        displayName: agent.givenName,
-        assets: agent.characterAssets,
+        id: agent.agentId!,
+        resourceName: agent.brainName!,
+        displayName: agent.givenName!,
+        assets: agent.characterAssets!,
       }),
   );
 };
@@ -108,18 +108,23 @@ export const getPacketId = (): PacketId => ({
 export const convertPacketFromProto = (proto: ProtoPacket) => {
   const packet = InworldPacket.fromProto(proto) as ExtendedInworldPacket;
 
-  packet.mutation = proto.mutation;
+  packet.mutation = proto.mutation!;
 
   return packet;
 };
 
-const beforeLoadScene = (req: LoadSceneRequest) => ({
-  ...req,
-  capabilities: {
-    ...req.capabilities,
-    regenerateResponse: true,
-  },
-});
+const beforeLoadScene = (packets: ProtoPacket[]) => {
+  return packets.map((packet: ProtoPacket) => {
+    if (packet.sessionControl?.capabilitiesConfiguration) {
+      packet.sessionControl.capabilitiesConfiguration = {
+        ...packet.sessionControl.capabilitiesConfiguration,
+        regenerateResponse: true,
+      };
+    }
+
+    return packet;
+  });
+};
 
 export const extension: Extension<ExtendedInworldPacket, ExtendedHistoryItem> =
   {
@@ -159,4 +164,46 @@ export const setTimeoutMock = (callback: any) => {
   }
 
   return { hasRef: () => false } as NodeJS.Timeout;
+};
+
+export const agents = [createAgent(), createAgent()];
+export const sessionControlResponseEvent = {
+  loadedScene: {
+    agentsList: agents,
+  },
+};
+export const historyResponseEvent = {
+  sessionHistory: {
+    sessionHistoryItems: agents.map((agent) => ({
+      agent,
+      packets: [
+        {
+          routing: {
+            target: {},
+            source: {},
+          },
+        },
+        {
+          routing: {
+            target: {},
+            source: {},
+          },
+        },
+      ],
+    })),
+  },
+};
+export const emitSessionControlResponseEvent =
+  (stream: WS) => (resolve: any) => {
+    stream.send({
+      result: { sessionControlResponse: sessionControlResponseEvent },
+    });
+    resolve(true);
+  };
+
+export const emitHistoryResponseEvent = (stream: WS) => (resolve: any) => {
+  stream.send({
+    result: { sessionControlResponse: historyResponseEvent },
+  });
+  resolve(true);
 };
