@@ -30,6 +30,14 @@ export class InworldService {
   constructor(props: InworldServiceProps) {
     const client = new InworldClient()
       .setConfiguration({
+        ...(Config.CONNECTION_HOSTNAME && {
+          connection: {
+            gateway: {
+              hostname: Config.CONNECTION_HOSTNAME,
+              ssl: Config.CONNECTION_SSL,
+            },
+          },
+        }),
         capabilities: props.capabilities,
         audioPlayback: props.audioPlayback,
       })

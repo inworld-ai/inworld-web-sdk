@@ -6,18 +6,24 @@ import {
   AudioSessionState,
   CancelResponsesProps,
   SendPacketParams,
+  SendTriggerPacketParams,
+  TriggerParameter,
   TtsPlaybackAction,
 } from '../common/data_structures';
+import {
+  CHARACTER_HAS_INVALID_FORMAT,
+  SCENE_HAS_INVALID_FORMAT,
+  SCENE_NAME_THE_SAME,
+} from '../common/errors';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
 import { InworldPlayer } from '../components/sound/inworld_player';
 import { InworldRecorder } from '../components/sound/inworld_recorder';
 import { Character } from '../entities/character.entity';
-import {
-  InworldPacket,
-  TriggerParameter,
-} from '../entities/inworld_packet.entity';
+import { InworldPacket } from '../entities/packets/inworld_packet.entity';
+import { EventFactory } from '../factories/event';
+import { characterHasValidFormat, sceneHasValidFormat } from '../guard/scene';
 import { ConnectionService } from './connection.service';
 import { FeedbackService } from './feedback.service';
 
@@ -91,9 +97,7 @@ export class InworldConnectionService<
   }
 
   async getCharacters() {
-    await this.connection.loadCharacters();
-
-    return this.connection.getEventFactory().getCharacters();
+    return this.connection.getCharacters();
   }
 
   async getCurrentCharacter() {
@@ -132,7 +136,7 @@ export class InworldConnectionService<
 
   async sendTrigger(
     name: string,
-    parameters?: TriggerParameter[] | SendPacketParams,
+    parameters?: TriggerParameter[] | SendTriggerPacketParams,
   ) {
     if (parameters && Array.isArray(parameters)) {
       // TODO: Remove this deprecation warning in the next major release.
@@ -229,6 +233,36 @@ export class InworldConnectionService<
         .getEventFactory()
         .narratedAction(text, params?.characters),
     );
+  }
+
+  async reloadScene() {
+    return this.connection.send(() =>
+      EventFactory.loadScene(this.connection.getSceneName()),
+    );
+  }
+
+  async changeScene(name: string) {
+    if (!sceneHasValidFormat(name)) {
+      throw Error(SCENE_HAS_INVALID_FORMAT);
+    }
+
+    if (this.connection.getSceneName() === name) {
+      throw Error(SCENE_NAME_THE_SAME);
+    }
+
+    this.connection.setNextSceneName(name);
+
+    return this.connection.send(() => EventFactory.loadScene(name));
+  }
+
+  async addCharacters(names: string[]) {
+    const invalid = names.find((name) => !characterHasValidFormat(name));
+
+    if (invalid) {
+      throw Error(CHARACTER_HAS_INVALID_FORMAT);
+    }
+
+    return this.connection.send(() => EventFactory.loadCharacters(names));
   }
 
   async sendCustomPacket(getPacket: () => ProtoPacket) {

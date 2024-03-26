@@ -1,33 +1,47 @@
-import { InworldPacket as ProtoPacket } from '../../proto/ai/inworld/packets/packets.pb';
+import { v4 } from 'uuid';
+
+import { version } from '../../package.json';
+import { ClientRequest } from '../../proto/ai/inworld/engine/world-engine.pb';
+import {
+  Continuation,
+  ContinuationContinuationType,
+  InworldPacket as ProtoPacket,
+  LoadedScene,
+  SessionControlResponseEvent,
+} from '../../proto/ai/inworld/packets/packets.pb';
+import { CLIENT_ID } from '../common/constants';
 import {
   Awaitable,
+  Extension,
   InternalClientConfiguration,
+  User,
 } from '../common/data_structures';
-import { InworldPacket } from '../entities/inworld_packet.entity';
+import { HistoryItem } from '../components/history';
+import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
+import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { SessionToken } from '../entities/session_token.entity';
+import { EventFactory } from '../factories/event';
 
-const SESSION_PATH = '/v1/session/default';
+const INWORLD_USER_ID = 'inworldUserId';
+const SESSION_PATH = '/v1/session/open';
 
-interface SessionProps {
-  config: InternalClientConfiguration;
+interface SessionProps<InworldPacketT, HistoryItemT> {
+  name: string;
+  client?: ClientRequest;
+  user?: User;
   session: SessionToken;
+  sessionContinuation?: SessionContinuation;
+  extension?: Extension<InworldPacketT, HistoryItemT>;
+  convertPacketFromProto: (proto: ProtoPacket) => InworldPacketT;
   onDisconnect?: () => Awaitable<void>;
   onError?: (err: Event | Error) => Awaitable<void>;
   onMessage?: (packet: ProtoPacket) => Awaitable<void>;
-  onReady?: () => Awaitable<void>;
 }
 interface ConnectionProps {
   config?: InternalClientConfiguration;
   onDisconnect?: () => Awaitable<void>;
-  onReady?: () => Awaitable<void>;
   onError?: (err: Event | Error) => Awaitable<void>;
   onMessage?: (packet: ProtoPacket) => Awaitable<void>;
-}
-
-interface OpenConnectionProps<InworldPacketT> {
-  session: SessionToken;
-  convertPacketFromProto: (proto: ProtoPacket) => InworldPacketT;
-  packets?: QueueItem<InworldPacketT>[];
 }
 
 export interface QueueItem<InworldPacketT> {
@@ -36,20 +50,22 @@ export interface QueueItem<InworldPacketT> {
   beforeWriting?: (packet: InworldPacketT) => Promise<void>;
 }
 
-export interface Connection<InworldPacketT> {
+export interface Connection<InworldPacketT, HistoryItemT> {
   close(): void;
   isActive: () => boolean;
-  open(props: OpenConnectionProps<InworldPacketT>): Promise<void>;
+  openSession(
+    props: SessionProps<InworldPacketT, HistoryItemT>,
+  ): Promise<SessionControlResponseEvent>;
   write(item: QueueItem<InworldPacketT>): void;
 }
 
 export class WebSocketConnection<
   InworldPacketT extends InworldPacket = InworldPacket,
-> implements Connection<InworldPacketT>
+  HistoryItemT extends HistoryItem = HistoryItem,
+> implements Connection<InworldPacketT, HistoryItemT>
 {
   private connectionProps: ConnectionProps;
   private ws: WebSocket;
-  private packetQueue: QueueItem<InworldPacketT>[] = [];
   private convertPacketFromProto: (proto: ProtoPacket) => InworldPacketT;
 
   constructor(props: ConnectionProps) {
@@ -60,27 +76,13 @@ export class WebSocketConnection<
     return this.ws?.readyState === WebSocket.OPEN;
   }
 
-  async open({
-    session,
-    packets,
-    convertPacketFromProto,
-  }: OpenConnectionProps<InworldPacketT>) {
-    const { config, onError, onDisconnect, onMessage, onReady } =
-      this.connectionProps;
+  async openSession(props: SessionProps<InworldPacketT, HistoryItemT>) {
+    this.convertPacketFromProto = props.convertPacketFromProto;
+    const [ws, sceneProto] = await this.createWebSocket(props);
 
-    if (packets?.length) {
-      this.packetQueue = [...packets, ...this.packetQueue];
-    }
+    this.ws = ws;
 
-    this.convertPacketFromProto = convertPacketFromProto;
-    this.ws = this.createWebSocket({
-      config,
-      session,
-      onError,
-      onDisconnect,
-      ...(onReady && { onReady }),
-      ...(onMessage && { onMessage }),
-    });
+    return sceneProto;
   }
 
   close() {
@@ -92,7 +94,6 @@ export class WebSocketConnection<
       this.ws?.removeEventListener('close', this.connectionProps.onDisconnect);
     }
 
-    this.ws?.removeEventListener('open', this.onReady);
     this.ws?.removeEventListener('message', this.onMessage);
 
     if (this.isActive()) {
@@ -101,36 +102,28 @@ export class WebSocketConnection<
     }
 
     this.ws = null;
-    this.packetQueue = [];
   }
 
   async write(item: QueueItem<InworldPacketT>) {
-    // There's time gap between connection creation and connection activation.
-    // So put packets to queue and send them `onReady` event.
-    if (this.isActive()) {
-      const packet = item.getPacket();
-      const inworldPacket = this.convertPacketFromProto(packet);
-      await item.beforeWriting?.(inworldPacket);
-      this.ws.send(JSON.stringify(packet));
-      item.afterWriting?.(inworldPacket);
-    } else {
-      this.packetQueue.push(item);
-    }
+    const packet = item.getPacket();
+    const inworldPacket = this.convertPacketFromProto(packet);
+    await item.beforeWriting?.(inworldPacket);
+    this.ws.send(JSON.stringify(packet));
+    item.afterWriting?.(inworldPacket);
   }
 
-  private createWebSocket(props: SessionProps) {
-    const { config, session, onDisconnect, onError } = props;
-    const { hostname, ssl } = config.connection.gateway;
+  private async createWebSocket(
+    props: SessionProps<InworldPacketT, HistoryItemT>,
+  ): Promise<[WebSocket, SessionControlResponseEvent]> {
+    const { session } = props;
+    const { config, onDisconnect, onError } = this.connectionProps;
+    const { hostname, ssl } = this.connectionProps.config.connection.gateway;
 
     const url = `${
       ssl ? 'wss' : 'ws'
     }://${hostname}${SESSION_PATH}?session_id=${session.sessionId}`;
 
     const ws = new WebSocket(url, [session.type, session.token]);
-
-    ws.addEventListener('open', this.onReady.bind(this));
-
-    ws.addEventListener('message', this.onMessage.bind(this));
 
     if (onDisconnect) {
       ws.addEventListener('close', onDisconnect);
@@ -140,29 +133,217 @@ export class WebSocketConnection<
       ws.addEventListener('error', onError);
     }
 
-    return ws;
+    const finalPackets = this.getPackets(props);
+    const needHistory =
+      config.history?.previousState &&
+      !!finalPackets.find((p) => p.sessionControl?.continuation);
+    const write = this.write.bind({
+      ws,
+      convertPacketFromProto: props.convertPacketFromProto,
+    });
+
+    ws.addEventListener('open', () => {
+      for (const packet of finalPackets) {
+        write({ getPacket: () => packet });
+      }
+    });
+
+    return new Promise((resolve, reject) =>
+      ws.addEventListener(
+        'message',
+        this.onLoadScene({
+          needHistory,
+          ws,
+          write,
+          resolve,
+          reject,
+        }),
+      ),
+    );
+  }
+
+  private parseEvent(event: MessageEvent) {
+    let payload;
+
+    try {
+      payload = JSON.parse(event.data);
+    } catch {}
+
+    if (!payload) {
+      return [new Error('Invalid JSON received as WS event data')];
+    } else if (payload.error) {
+      return [payload.error];
+    }
+
+    if (payload.result) {
+      return [null, payload.result as ProtoPacket];
+    }
+  }
+
+  private onLoadScene({
+    needHistory,
+    write,
+    ws,
+    resolve,
+    reject,
+  }: {
+    needHistory: boolean;
+    ws: WebSocket;
+    write: (item: QueueItem<InworldPacketT>) => void;
+    resolve: (value: [WebSocket, SessionControlResponseEvent]) => void;
+    reject: (reason: Error) => void;
+  }) {
+    const { parseEvent } = this;
+    const onMessage = this.onMessage.bind(this);
+
+    let historyLoaded = true;
+    let loadedScene: LoadedScene;
+
+    return function (event: MessageEvent) {
+      const [err, packet] = parseEvent(event);
+
+      if (err) {
+        reject(err);
+      } else if (
+        (!loadedScene && packet?.sessionControlResponse) ||
+        (!historyLoaded && packet?.sessionControlResponse?.sessionHistory)
+      ) {
+        loadedScene = loadedScene ?? packet?.sessionControlResponse.loadedScene;
+        historyLoaded =
+          !!packet?.sessionControlResponse?.sessionHistory || !needHistory;
+
+        if (!!loadedScene && !historyLoaded && needHistory) {
+          write({
+            getPacket: () =>
+              EventFactory.sessionControl({ sessionHistory: {} }),
+          });
+        } else {
+          ws.removeEventListener('message', this);
+          ws.addEventListener('message', onMessage);
+
+          resolve([
+            ws,
+            {
+              loadedScene,
+              sessionHistory: packet?.sessionControlResponse?.sessionHistory,
+            } as SessionControlResponseEvent,
+          ]);
+        }
+      }
+    };
   }
 
   private onMessage(event: MessageEvent) {
-    const { onError, onMessage } = this.connectionProps;
+    const [err, packet] = this.parseEvent(event);
 
-    const payload = JSON.parse(event.data);
-
-    if (payload.error && onError) {
-      onError(payload.error);
-    }
-
-    if (!payload.error && onMessage) {
-      onMessage(payload.result as ProtoPacket);
+    if (err) {
+      this.connectionProps.onError?.(err);
+    } else if (packet) {
+      this.connectionProps.onMessage?.(packet);
     }
   }
 
-  private onReady() {
-    setTimeout(() => {
-      this.packetQueue.forEach((item) => this.write(item));
-      this.packetQueue = [];
+  private getPackets(props: SessionProps<InworldPacketT, HistoryItemT>) {
+    const { config } = this.connectionProps;
 
-      this.connectionProps.onReady?.();
-    }, 0);
+    const packets: ProtoPacket[] = [
+      EventFactory.sessionControl({
+        capabilities: config.capabilities,
+      }),
+    ];
+
+    if (config.gameSessionId) {
+      packets.push(
+        EventFactory.sessionControl({
+          sessionConfiguration: {
+            gameSessionId: config.gameSessionId,
+          },
+        }),
+      );
+    }
+
+    packets.push(
+      EventFactory.sessionControl({
+        clientConfiguration: this.getClient(props),
+      }),
+      EventFactory.sessionControl({
+        userConfiguration: this.getUserConfiguration(props),
+      }),
+    );
+
+    const continuation = this.getContinuation(props);
+
+    if (continuation) {
+      packets.push(EventFactory.sessionControl({ continuation }));
+    }
+
+    packets.push(EventFactory.loadScene(props.name));
+
+    return props.extension?.beforeLoadScene?.(packets) || packets;
+  }
+
+  private getClient(props: SessionProps<InworldPacketT, HistoryItemT>) {
+    const description = [CLIENT_ID, version, navigator.userAgent];
+
+    if (props.client?.id) {
+      description.push(props.client.id);
+    }
+
+    return {
+      id: CLIENT_ID,
+      version,
+      description: description.join('; '),
+    } as ClientRequest;
+  }
+
+  private getUserConfiguration(
+    props: SessionProps<InworldPacketT, HistoryItemT>,
+  ) {
+    const { id, fullName, profile } = props.user || {};
+
+    return {
+      id: id ? id : this.getUserId(),
+      ...(fullName && { name: fullName }),
+      ...(profile?.fields.length && {
+        userSettings: {
+          playerProfile: {
+            fields: profile.fields.map(
+              ({ id: fieldId, value: fieldValue }) => ({ fieldId, fieldValue }),
+            ),
+          },
+        },
+      }),
+    };
+  }
+
+  private getUserId() {
+    let id = localStorage.getItem(INWORLD_USER_ID);
+
+    if (!id) {
+      id = v4();
+      localStorage.setItem(INWORLD_USER_ID, id);
+    }
+
+    return id;
+  }
+
+  private getContinuation(props: SessionProps<InworldPacketT, HistoryItemT>) {
+    const { sessionContinuation } = props;
+
+    const continuation = {
+      ...(sessionContinuation?.previousState && {
+        continuationType:
+          ContinuationContinuationType.CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE,
+        externallySavedState:
+          sessionContinuation.previousState as unknown as Uint8Array,
+      }),
+      ...(sessionContinuation?.previousDialog && {
+        continuationType:
+          ContinuationContinuationType.CONTINUATION_TYPE_DIALOG_HISTORY,
+        dialogHistory: sessionContinuation.previousDialog.toProto(),
+      }),
+    } as Continuation;
+
+    return continuation.continuationType ? continuation : undefined;
   }
 }

@@ -1,12 +1,18 @@
 import {
-  CapabilitiesRequest,
-  LoadSceneRequest,
-  LoadSceneResponse,
-} from '../../proto/ai/inworld/engine/world-engine.pb';
-import { InworldPacket as ProtoPacket } from '../../proto/ai/inworld/packets/packets.pb';
+  CapabilitiesConfiguration,
+  ClientConfiguration as ControlClientConfiguration,
+  SessionConfiguration,
+  UserConfiguration,
+} from '../../proto/ai/inworld/engine/configuration/configuration.pb';
+import {
+  Continuation,
+  InworldPacket as ProtoPacket,
+  SessionControlResponseEvent,
+  SessionHistoryRequest,
+} from '../../proto/ai/inworld/packets/packets.pb';
 import { HistoryItem } from '../components/history';
 import { Character } from '../entities/character.entity';
-import { AdditionalPhonemeInfo } from '../entities/inworld_packet.entity';
+import { AdditionalPhonemeInfo } from '../entities/packets/audio.entity';
 import { SessionToken } from '../entities/session_token.entity';
 
 export interface Capabilities {
@@ -54,6 +60,15 @@ export interface StopAudioPlayback {
   ticks: number;
 }
 
+export interface SessionControlProps {
+  capabilities?: CapabilitiesConfiguration;
+  sessionConfiguration?: SessionConfiguration;
+  userConfiguration?: UserConfiguration;
+  clientConfiguration?: ControlClientConfiguration;
+  continuation?: Continuation;
+  sessionHistory?: SessionHistoryRequest;
+}
+
 export interface ConnectionConfig {
   autoReconnect?: boolean;
   disconnectTimeout?: number;
@@ -65,6 +80,7 @@ export interface HistoryConfig {
 }
 
 export interface ClientConfiguration {
+  gameSessionId?: string;
   connection?: ConnectionConfig;
   capabilities?: Capabilities;
   audioPlayback?: AudioPlaybackConfig;
@@ -72,8 +88,9 @@ export interface ClientConfiguration {
 }
 
 export interface InternalClientConfiguration {
+  gameSessionId?: string;
   connection?: ConnectionConfig;
-  capabilities: CapabilitiesRequest;
+  capabilities: CapabilitiesConfiguration;
   audioPlayback?: AudioPlaybackConfig;
   history?: HistoryConfig;
 }
@@ -96,8 +113,6 @@ export type OnPhomeneFn =
 export enum ConnectionState {
   ACTIVE = 'ACTIVE',
   ACTIVATING = 'ACTIVATING',
-  LOADED = 'LOADED',
-  LOADING = 'LOADING',
   INACTIVE = 'INACTIVE',
 }
 
@@ -115,8 +130,8 @@ export enum TtsPlaybackAction {
 
 export interface Extension<InworldPacketT, HistoryItemT> {
   convertPacketFromProto?: (proto: ProtoPacket) => InworldPacketT;
-  beforeLoadScene?: (request: LoadSceneRequest) => LoadSceneRequest;
-  afterLoadScene?: (res: LoadSceneResponse) => void;
+  beforeLoadScene?: (packets: ProtoPacket[]) => ProtoPacket[];
+  afterLoadScene?: (res: SessionControlResponseEvent) => void;
   historyItem?: (packet: InworldPacketT, item: HistoryItem) => HistoryItemT;
 }
 
@@ -125,6 +140,39 @@ export interface MediaTrackConstraintsWithSuppress
   suppressLocalAudioPlayback?: { ideal: boolean };
 }
 
+export interface TriggerParameter {
+  name: string;
+  value: string;
+}
+
 export interface SendPacketParams {
   characters?: Character[];
+}
+
+export interface SendTriggerPacketParams extends SendPacketParams {
+  parameters?: TriggerParameter[];
+}
+
+export enum InworldPacketType {
+  UNKNOWN = 'UNKNOWN',
+  TEXT = 'TEXT',
+  AUDIO = 'AUDIO',
+  TRIGGER = 'TRIGGER',
+  EMOTION = 'EMOTION',
+  CONTROL = 'CONTROL',
+  SILENCE = 'SILENCE',
+  CANCEL_RESPONSE = 'CANCEL_RESPONSE',
+  NARRATED_ACTION = 'NARRATED_ACTION',
+  SCENE_MUTATION_REQUEST = 'SCENE_MUTATION_REQUEST',
+  SCENE_MUTATION_RESPONSE = 'SCENE_MUTATION_RESPONSE',
+}
+
+export enum InworlControlType {
+  UNKNOWN = 'UNKNOWN',
+  INTERACTION_END = 'INTERACTION_END',
+  TTS_PLAYBACK_START = 'TTS_PLAYBACK_START',
+  TTS_PLAYBACK_END = 'TTS_PLAYBACK_END',
+  TTS_PLAYBACK_MUTE = 'TTS_PLAYBACK_MUTE',
+  TTS_PLAYBACK_UNMUTE = 'TTS_PLAYBACK_UNMUTE',
+  WARNING = 'WARNING',
 }

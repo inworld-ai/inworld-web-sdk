@@ -5,13 +5,19 @@ import {
   ControlEventAction,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
+  LoadCharactersCharacterName,
+  MutationEvent,
   Routing,
+  SessionControlEvent,
   TextEventSourceType,
 } from '../../proto/ai/inworld/packets/packets.pb';
-import { CancelResponsesProps } from '../common/data_structures';
+import {
+  CancelResponsesProps,
+  SessionControlProps,
+  TriggerParameter,
+} from '../common/data_structures';
 import { protoTimestamp } from '../common/helpers';
 import { Character } from '../entities/character.entity';
-import { TriggerParameter } from '../entities/inworld_packet.entity';
 
 export class EventFactory {
   private character: Character | null = null;
@@ -163,6 +169,68 @@ export class EventFactory {
     };
   }
 
+  static sessionControl(props: SessionControlProps): ProtoPacket {
+    const sessionControl = {
+      ...(!!props.capabilities && {
+        capabilitiesConfiguration: props.capabilities,
+      }),
+      ...(!!props.sessionConfiguration && {
+        sessionConfiguration: props.sessionConfiguration,
+      }),
+      ...(!!props.clientConfiguration && {
+        clientConfiguration: props.clientConfiguration,
+      }),
+      ...(!!props.userConfiguration && {
+        userConfiguration: props.userConfiguration,
+      }),
+      ...(!!props.continuation && { continuation: props.continuation }),
+      ...(!!props.sessionHistory && {
+        sessionHistoryRequest: props.sessionHistory,
+      }),
+    } as SessionControlEvent;
+
+    return {
+      packetId: {
+        packetId: v4(),
+      },
+      timestamp: protoTimestamp(),
+      routing: this.worldRouting(),
+      sessionControl,
+    };
+  }
+
+  static loadScene(name: string): ProtoPacket {
+    const mutation = { loadScene: { name } } as MutationEvent;
+
+    return {
+      packetId: {
+        packetId: v4(),
+        interactionId: v4(),
+      },
+      timestamp: protoTimestamp(),
+      routing: this.worldRouting(),
+      mutation,
+    };
+  }
+
+  static loadCharacters(names: string[]): ProtoPacket {
+    const name = names.map(
+      (name) =>
+        ({
+          name,
+        }) as LoadCharactersCharacterName,
+    );
+
+    const mutation = { loadCharacters: { name } } as MutationEvent;
+
+    return {
+      packetId: { packetId: v4() },
+      timestamp: protoTimestamp(),
+      routing: this.worldRouting(),
+      mutation,
+    };
+  }
+
   baseProtoPacket({
     utteranceId = true,
     interactionId = true,
@@ -203,5 +271,12 @@ export class EventFactory {
         })),
       };
     }
+  }
+
+  private static worldRouting(): Routing {
+    return {
+      source: { type: ActorType.PLAYER },
+      target: { type: ActorType.WORLD },
+    };
   }
 }

@@ -1,7 +1,9 @@
 import {
-  PreviousDialog as ProtoDialog,
-  PreviousDialogDialogParticipant,
-} from '../../../proto/ai/inworld/engine/world-engine.pb';
+  Actor,
+  ActorType,
+  DialogHistory,
+  DialogHistoryHistoryItem,
+} from '../../../proto/ai/inworld/packets/packets.pb';
 
 export enum DialogParticipant {
   UNKNOWN = 'UNKNOWN',
@@ -13,23 +15,23 @@ export interface DialogPhrase {
   phrase: string;
 }
 
-export class DialogTalker {
+export class DialogActor {
   static toProto(talker: DialogParticipant) {
     switch (talker) {
       case DialogParticipant.PLAYER:
-        return PreviousDialogDialogParticipant.PLAYER;
+        return { type: ActorType.PLAYER } as Actor;
       case DialogParticipant.CHARACTER:
-        return PreviousDialogDialogParticipant.CHARACTER;
+        return { type: ActorType.AGENT } as Actor;
       default:
-        return PreviousDialogDialogParticipant.UNKNOWN;
+        return { type: ActorType.UNKNOWN } as Actor;
     }
   }
 
-  static fromProto(talker: PreviousDialogDialogParticipant) {
-    switch (talker) {
-      case PreviousDialogDialogParticipant.PLAYER:
+  static fromProto(actor: Actor) {
+    switch (actor.type) {
+      case ActorType.PLAYER:
         return DialogParticipant.PLAYER;
-      case PreviousDialogDialogParticipant.CHARACTER:
+      case ActorType.AGENT:
         return DialogParticipant.CHARACTER;
       default:
         return DialogParticipant.UNKNOWN;
@@ -44,20 +46,23 @@ export class PreviousDialog {
     this.phrases = phrases;
   }
 
-  toProto(): ProtoDialog {
-    const phrases = this.phrases.map((item: DialogPhrase) => ({
-      talker: DialogTalker.toProto(item.talker),
-      phrase: item.phrase,
-    }));
+  toProto(): DialogHistory {
+    const history = this.phrases.map(
+      (item: DialogPhrase) =>
+        ({
+          actor: DialogActor.toProto(item.talker),
+          text: item.phrase,
+        }) as DialogHistoryHistoryItem,
+    );
 
-    return { phrases };
+    return { history };
   }
 
-  static fromProto(dialog: ProtoDialog): PreviousDialog {
+  static fromProto(dialog: DialogHistory): PreviousDialog {
     return new PreviousDialog(
-      dialog.phrases.map((item) => ({
-        talker: DialogTalker.fromProto(item.talker),
-        phrase: item.phrase,
+      dialog.history.map((item) => ({
+        talker: DialogActor.fromProto(item.actor),
+        phrase: item.text,
       })),
     );
   }

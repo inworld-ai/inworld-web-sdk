@@ -3,8 +3,8 @@ import { Object3D, Object3DEventMap } from 'three';
 import { GLTF } from 'three-stdlib';
 
 import { BatchFileLoader } from '../loaders/BatchFileLoader';
+import { GLTFAnimationLoader } from '../loaders/GLTFAnimationLoader';
 import { GLTFModelLoader } from '../loaders/GLTFModelLoader';
-import { JSONAnimationLoader } from '../loaders/JSONAnimationLoader';
 import { JSONFileLoader } from '../loaders/JSONFileLoader';
 import { ANIMATION_TYPE } from '../types/types';
 import { log } from '../utils/Log';
@@ -21,7 +21,7 @@ export type RPMProps = {
 };
 
 export class RPM {
-  animationLoaders: { [key: string]: JSONAnimationLoader };
+  animationLoaders: { [key: string]: GLTFAnimationLoader };
   animationsTalking: string[];
   animator: RPMAnimator | null;
   baseURI: string;
@@ -79,7 +79,8 @@ export class RPM {
         this.baseURI +
         this.config.rpm.baseURIs.ANIMATIONS_JSON +
         animation.file;
-      this.animationLoaders[animationName] = new JSONAnimationLoader({
+      this.animationLoaders[animationName] = new GLTFAnimationLoader({
+        name: animationName,
         fileURI: fileURI,
       });
     }

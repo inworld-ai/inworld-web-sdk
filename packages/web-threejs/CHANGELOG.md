@@ -1,3 +1,9 @@
+## [1.3.0] - 2024-03-18
+
+### Changed
+
+- Updated RPM to use GLB files instead of JSON for animations
+
 ## [1.2.0] - 2024-02-01
 
 ### Changed

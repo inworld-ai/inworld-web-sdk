@@ -1,6 +1,6 @@
-import { CapabilitiesRequest } from '../../proto/ai/inworld/engine/world-engine.pb';
+import { CapabilitiesConfiguration } from '../../proto/ai/inworld/engine/configuration/configuration.pb';
 import { CancelResponses } from '../../proto/ai/inworld/packets/packets.pb';
-import { GRPC_HOSTNAME, SCENE_PATTERN } from '../common/constants';
+import { GRPC_HOSTNAME } from '../common/constants';
 import {
   Awaitable,
   Capabilities,
@@ -13,6 +13,11 @@ import {
   OnPhomeneFn,
   User,
 } from '../common/data_structures';
+import {
+  SCENE_HAS_INVALID_FORMAT,
+  STOP_DURATION_NATURAL_NUMBER,
+  STOP_TICKS_NATURAL_NUMBER,
+} from '../common/errors';
 import { HistoryItem } from '../components/history';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
@@ -21,8 +26,9 @@ import {
   SessionContinuation,
   SessionContinuationProps,
 } from '../entities/continuation/session_continuation.entity';
-import { InworldPacket } from '../entities/inworld_packet.entity';
+import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { isNaturalNumber } from '../guard/number';
+import { sceneHasValidFormat } from '../guard/scene';
 import { ConnectionService } from '../services/connection.service';
 import { InworldConnectionService } from '../services/inworld_connection.service';
 
@@ -40,6 +46,7 @@ export class InworldClient<
 
   private onDisconnect: () => Awaitable<void> | undefined;
   private onError: ((err: Event | Error) => Awaitable<void>) | undefined;
+  private onWarning: ((message: InworldPacketT) => Awaitable<void>) | undefined;
   private onMessage: ((message: InworldPacketT) => Awaitable<void>) | undefined;
   private onReady: (() => Awaitable<void>) | undefined;
   private onHistoryChange:
@@ -100,6 +107,12 @@ export class InworldClient<
 
   setOnError(fn?: (err: Error) => Awaitable<void>) {
     this.onError = fn;
+
+    return this;
+  }
+
+  setOnWarning(fn: (message: InworldPacketT) => Awaitable<void>) {
+    this.onWarning = fn;
 
     return this;
   }
@@ -191,6 +204,7 @@ export class InworldClient<
       onError: this.onError,
       onReady: this.onReady,
       onMessage: this.onMessage,
+      onWarning: this.onWarning,
       onHistoryChange: this.onHistoryChange,
       onDisconnect: this.onDisconnect,
       onInterruption: this.onInterruption,
@@ -221,7 +235,9 @@ export class InworldClient<
     };
   }
 
-  private buildCapabilities(capabilities: Capabilities): CapabilitiesRequest {
+  private buildCapabilities(
+    capabilities: Capabilities,
+  ): CapabilitiesConfiguration {
     const {
       audio = true,
       emotions = false,
@@ -241,8 +257,6 @@ export class InworldClient<
       narratedActions,
       phonemeInfo,
       silenceEvents,
-      text: true,
-      triggers: true,
       turnBasedStt,
     };
   }
@@ -259,21 +273,19 @@ export class InworldClient<
       throw Error('Scene name is required');
     }
 
-    if (!SCENE_PATTERN.test(this.scene)) {
-      throw Error('Scene name has wrong format');
+    if (!sceneHasValidFormat(this.scene)) {
+      throw Error(SCENE_HAS_INVALID_FORMAT);
     }
 
     const { audioPlayback } = this.config;
 
     if (audioPlayback?.stop) {
       if (!isNaturalNumber(audioPlayback.stop.duration)) {
-        throw Error(
-          'Stop duration for audio playback should be a natural number',
-        );
+        throw Error(STOP_DURATION_NATURAL_NUMBER);
       }
 
       if (!isNaturalNumber(audioPlayback.stop.ticks)) {
-        throw Error('Stop ticks for audio playback should be a natural number');
+        throw Error(STOP_TICKS_NATURAL_NUMBER);
       }
     }
   }

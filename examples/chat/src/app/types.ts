@@ -19,6 +19,8 @@ export type Configuration = {
   INWORLD_SCENE: string | undefined;
   MODEL_URI: string;
   RPM_AVATAR: string | undefined;
+  CONNECTION_HOSTNAME: string;
+  CONNECTION_SSL: boolean;
 };
 
 export type ConfigurationCamera = {

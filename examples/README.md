@@ -20,6 +20,8 @@ This folder contains server to **generate token** using API key and **chat** rea
 
 Specify VITE_INWORLD_CHARACTER and VITE_INWORLD_SCENE (or fill corresponding fields on application web form after start)
 
+Additionally, you can cpecify VITE_CONNECTION_HOSTNAME and CONNECTION_SSL for Web SDK testing purpuses
+
 ### Install dependencies for both applications
 
 ```sh

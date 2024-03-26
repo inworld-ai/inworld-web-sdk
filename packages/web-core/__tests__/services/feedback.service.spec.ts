@@ -12,7 +12,12 @@ import { DislikeType, Feedback } from '../../src/entities/feedback.entity';
 import { ConnectionService } from '../../src/services/connection.service';
 import { FeedbackService } from '../../src/services/feedback.service';
 import { FeedbackService as FeedbackPbService } from '../../src/services/pb/feedback.service';
-import { createCharacter, generateSessionToken, session } from '../helpers';
+import {
+  createCharacter,
+  generateSessionToken,
+  SCENE,
+  session,
+} from '../helpers';
 
 const grpcAudioPlayer = new GrpcAudioPlayback();
 const webRtcLoopbackBiDiSession = new GrpcWebRtcLoopbackBiDiSession();
@@ -42,6 +47,7 @@ describe('should create interaction feedback', () => {
     InteractionDislikeType.INTERACTION_DISLIKE_TYPE_UNSPECIFIED,
   ];
   const connection = new ConnectionService({
+    name: SCENE,
     grpcAudioPlayer,
     webRtcLoopbackBiDiSession,
     generateSessionToken,
@@ -62,6 +68,7 @@ describe('should create interaction feedback', () => {
     expect(createInteractionFeedback).toHaveBeenCalledTimes(1);
     expect(createInteractionFeedback).toHaveBeenCalledWith({
       session,
+      scene: SCENE,
       config: undefined,
       correlationId,
       interactionId,
@@ -95,6 +102,7 @@ describe('should create interaction feedback', () => {
     expect(createInteractionFeedback).toHaveBeenCalledTimes(1);
     expect(createInteractionFeedback).toHaveBeenCalledWith({
       session,
+      scene: SCENE,
       config: undefined,
       correlationId,
       interactionId,
