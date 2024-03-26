@@ -28,7 +28,7 @@ import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity'
 import { Routing } from '../../src/entities/packets/routing.entity';
 import { TriggerEvent } from '../../src/entities/packets/trigger.entity';
 import { ExtendedHistoryItem } from '../data_structures';
-import { createCharacter, getPacketId, user } from '../helpers';
+import { createCharacter, getPacketId, SCENE, user } from '../helpers';
 
 const characters = [createCharacter(), createCharacter()];
 const packetId = getPacketId();
@@ -92,6 +92,22 @@ const interactionEndPacket = new InworldPacket({
     type: InworlControlType.INTERACTION_END,
   }),
 });
+const sceneChangePacketRequest = new InworldPacket({
+  packetId,
+  routing,
+  date,
+  type: InworldPacketType.SCENE_MUTATION_RESPONSE,
+  sceneMutation: { name: v4() },
+});
+const sceneChangePacketResponse = new InworldPacket({
+  packetId,
+  routing,
+  date,
+  type: InworldPacketType.SCENE_MUTATION_RESPONSE,
+  sceneMutation: {
+    addedCharacters: [characters[0]],
+  },
+});
 const incomingTextPacket = new InworldPacket({
   packetId: {
     ...getPacketId(),
@@ -117,6 +133,7 @@ const createHistoryWithPacket = (
   const history = new InworldHistory({
     ...(extension && { extension }),
     user,
+    scene: SCENE,
   });
 
   history.addOrUpdate({ characters, grpcAudioPlayer, packet });
@@ -125,7 +142,7 @@ const createHistoryWithPacket = (
 };
 
 test('should be empty by default', () => {
-  const history = new InworldHistory();
+  const history = new InworldHistory({ scene: SCENE });
 
   expect(history.get().length).toEqual(0);
 });
@@ -331,7 +348,7 @@ describe('text', () => {
 
   describe('transcript', () => {
     test('should return empty transcript for empty history', () => {
-      const history = new InworldHistory();
+      const history = new InworldHistory({ scene: SCENE });
 
       const transcript = history.getTranscript();
 
@@ -410,7 +427,7 @@ describe('text', () => {
           packet: secondtPacket,
         });
 
-        const expected = `${characters[0].displayName}: ${firstPacket.text.text}${secondtPacket.text.text}`;
+        const expected = `${characters[0].displayName}: ${firstPacket.text.text} ${secondtPacket.text.text}`;
         const transcript = history.getTranscript();
         expect(transcript).toEqual(expected);
       });
@@ -445,7 +462,22 @@ describe('text', () => {
           packet: textPacket,
         });
 
-        const expected = `User: (${emotionsPacket.emotions.behavior.code}) ${textPacket.text.text}`;
+        const expected = `User: ${textPacket.text.text}`;
+        const transcript = history.getTranscript();
+
+        expect(transcript).toEqual(expected);
+      });
+
+      test('should return transcript with scene change', () => {
+        const history = createHistoryWithPacket(sceneChangePacketRequest);
+
+        history.addOrUpdate({
+          characters,
+          grpcAudioPlayer,
+          packet: sceneChangePacketResponse,
+        });
+
+        const expected = `>>> Now moving to ${sceneChangePacketRequest.sceneMutation.name}`;
         const transcript = history.getTranscript();
 
         expect(transcript).toEqual(expected);
