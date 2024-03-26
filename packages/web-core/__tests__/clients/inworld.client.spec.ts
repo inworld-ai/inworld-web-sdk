@@ -23,6 +23,7 @@ describe('should finish with success', () => {
   const onReady = jest.fn();
   const onError = jest.fn();
   const onMessage = jest.fn();
+  const onWarning = jest.fn();
   const onDisconnect = jest.fn();
   const onStopPlaying = jest.fn();
   const onAfterPlaying = jest.fn();
@@ -50,6 +51,7 @@ describe('should finish with success', () => {
       .setOnBeforePlaying(onBeforePlaying)
       .setOnDisconnect(onDisconnect)
       .setOnMessage(onMessage)
+      .setOnWarning(onWarning)
       .setOnError(onError)
       .setOnReady(onReady)
       .setOnHistoryChange(onHistoryChange)

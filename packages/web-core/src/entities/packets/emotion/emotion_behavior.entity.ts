@@ -1,4 +1,4 @@
-import { EmotionEventSpaffCode } from '../../proto/ai/inworld/packets/packets.pb';
+import { EmotionEventSpaffCode } from '../../../../proto/ai/inworld/packets/packets.pb';
 
 export enum EmotionBehaviorCode {
   NEUTRAL = 'NEUTRAL',

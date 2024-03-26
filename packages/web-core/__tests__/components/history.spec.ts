@@ -2,7 +2,12 @@ import '../mocks/window.mock';
 
 import { v4 } from 'uuid';
 
-import { Extension, User } from '../../src/common/data_structures';
+import {
+  Extension,
+  InworldPacketType,
+  User,
+} from '../../src/common/data_structures';
+import { InworlControlType } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
 import {
   CHAT_HISTORY_TYPE,
@@ -10,20 +15,18 @@ import {
   InworldHistory,
 } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
+import { ControlEvent } from '../../src/entities/packets/control.entity';
 import {
   EmotionBehavior,
   EmotionBehaviorCode,
-} from '../../src/entities/emotion_behavior.entity';
+} from '../../src/entities/packets/emotion/emotion_behavior.entity';
 import {
   EmotionStrength,
   EmotionStrengthCode,
-} from '../../src/entities/emotion_strength.entity';
-import {
-  InworlControlType,
-  InworldPacket,
-  InworldPacketType,
-  Routing,
-} from '../../src/entities/inworld_packet.entity';
+} from '../../src/entities/packets/emotion/emotion_strength.entity';
+import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
+import { Routing } from '../../src/entities/packets/routing.entity';
+import { TriggerEvent } from '../../src/entities/packets/trigger.entity';
 import { ExtendedHistoryItem } from '../data_structures';
 import { createCharacter, getPacketId, user } from '../helpers';
 
@@ -83,11 +86,11 @@ const interactionEndPacket = new InworldPacket({
   packetId,
   routing,
   date,
-  trigger: { name: v4() },
+  trigger: new TriggerEvent({ name: v4() }),
   type: InworldPacketType.CONTROL,
-  control: {
+  control: new ControlEvent({
     type: InworlControlType.INTERACTION_END,
-  },
+  }),
 });
 const incomingTextPacket = new InworldPacket({
   packetId: {
@@ -476,7 +479,7 @@ describe('text', () => {
         packetId: getPacketId(),
         routing,
         date,
-        trigger: { name: v4() },
+        trigger: new TriggerEvent({ name: v4() }),
         type: InworldPacketType.TRIGGER,
       });
       const history = createHistoryWithPacket(textPacket);

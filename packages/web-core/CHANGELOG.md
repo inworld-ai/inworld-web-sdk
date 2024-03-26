@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Added
+
+- Handle runtime warnings
+
 ### Changed
 
 - Change internal way to open session

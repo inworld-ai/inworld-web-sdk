@@ -9,7 +9,7 @@ import {
   InworldPacket as ProtoPacket,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import { protoTimestamp } from '../../src/common/helpers';
-import { InworldPacket } from '../../src/entities/inworld_packet.entity';
+import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
 import { EventFactory } from '../../src/factories/event';
 import { capabilitiesProps, createCharacter } from '../helpers';
 
@@ -519,6 +519,30 @@ describe('convert packet to external one', () => {
       expect(result).toBeInstanceOf(InworldPacket);
       expect(result.isControl()).toEqual(true);
       expect(result.isInteractionEnd()).toEqual(true);
+    });
+
+    test('warning', () => {
+      const today = new Date();
+      const description = v4();
+      const packet: ProtoPacket = {
+        control: {
+          action: ControlEventAction.WARNING,
+          description,
+        },
+        packetId: { packetId: v4() },
+        routing: {
+          source: {} as Actor,
+          targets: [{} as Actor],
+        },
+        timestamp: protoTimestamp(today),
+      };
+
+      const result = InworldPacket.fromProto(packet);
+
+      expect(result).toBeInstanceOf(InworldPacket);
+      expect(result.isControl()).toEqual(true);
+      expect(result.isWarning()).toEqual(true);
+      expect(result.control?.description).toEqual(description);
     });
 
     test('unknown', () => {

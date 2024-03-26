@@ -2,7 +2,7 @@ import { EmotionEventSpaffCode } from '../../proto/ai/inworld/packets/packets.pb
 import {
   EmotionBehavior,
   EmotionBehaviorCode,
-} from '../../src/entities/emotion_behavior.entity';
+} from '../../src/entities/packets/emotion/emotion_behavior.entity';
 
 const mappingTestTable = [
   {

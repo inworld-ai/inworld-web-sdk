@@ -3,7 +3,10 @@ import '../mocks/window.mock';
 import { v4 } from 'uuid';
 
 import { DataChunkDataType } from '../../proto/ai/inworld/packets/packets.pb';
-import { AudioSessionState } from '../../src/common/data_structures';
+import {
+  AudioSessionState,
+  InworldPacketType,
+} from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
 import { InworldHistory } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
@@ -13,11 +16,8 @@ import {
   QueueItem,
   WebSocketConnection,
 } from '../../src/connection/web-socket.connection';
-import {
-  InworldPacket,
-  InworldPacketType,
-  Routing,
-} from '../../src/entities/inworld_packet.entity';
+import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
+import { Routing } from '../../src/entities/packets/routing.entity';
 import { Scene } from '../../src/entities/scene.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';

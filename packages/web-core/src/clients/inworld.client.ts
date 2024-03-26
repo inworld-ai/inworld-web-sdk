@@ -21,7 +21,7 @@ import {
   SessionContinuation,
   SessionContinuationProps,
 } from '../entities/continuation/session_continuation.entity';
-import { InworldPacket } from '../entities/inworld_packet.entity';
+import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { isNaturalNumber } from '../guard/number';
 import { ConnectionService } from '../services/connection.service';
 import { InworldConnectionService } from '../services/inworld_connection.service';
@@ -40,6 +40,7 @@ export class InworldClient<
 
   private onDisconnect: () => Awaitable<void> | undefined;
   private onError: ((err: Event | Error) => Awaitable<void>) | undefined;
+  private onWarning: ((message: InworldPacketT) => Awaitable<void>) | undefined;
   private onMessage: ((message: InworldPacketT) => Awaitable<void>) | undefined;
   private onReady: (() => Awaitable<void>) | undefined;
   private onHistoryChange:
@@ -100,6 +101,12 @@ export class InworldClient<
 
   setOnError(fn?: (err: Error) => Awaitable<void>) {
     this.onError = fn;
+
+    return this;
+  }
+
+  setOnWarning(fn: (message: InworldPacketT) => Awaitable<void>) {
+    this.onWarning = fn;
 
     return this;
   }
@@ -191,6 +198,7 @@ export class InworldClient<
       onError: this.onError,
       onReady: this.onReady,
       onMessage: this.onMessage,
+      onWarning: this.onWarning,
       onHistoryChange: this.onHistoryChange,
       onDisconnect: this.onDisconnect,
       onInterruption: this.onInterruption,

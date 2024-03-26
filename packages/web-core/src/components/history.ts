@@ -1,14 +1,11 @@
 import { v4 } from 'uuid';
 
 import { DEFAULT_USER_NAME } from '../common/constants';
-import { Extension, User } from '../common/data_structures';
+import { Extension, TriggerParameter, User } from '../common/data_structures';
 import { Character } from '../entities/character.entity';
-import {
-  Actor,
-  EmotionEvent,
-  InworldPacket,
-  TriggerParameter,
-} from '../entities/inworld_packet.entity';
+import { EmotionEvent } from '../entities/packets/emotion/emotion.entity';
+import { InworldPacket } from '../entities/packets/inworld_packet.entity';
+import { Actor } from '../entities/packets/routing.entity';
 import { GrpcAudioPlayback } from './sound/grpc_audio.playback';
 
 interface InworldHistoryAddProps<InworldPacketT> {
@@ -111,10 +108,13 @@ export class InworldHistory<
     const utteranceId = packet.packetId.utteranceId;
     const interactionId = packet.packetId.interactionId;
 
-    const byId = characters.reduce((acc, character) => {
-      acc[character.id] = character;
-      return acc;
-    }, {} as { [key: string]: Character });
+    const byId = characters.reduce(
+      (acc, character) => {
+        acc[character.id] = character;
+        return acc;
+      },
+      {} as { [key: string]: Character },
+    );
     const itemCharacters = [];
 
     if (packet.routing.source.isCharacter) {

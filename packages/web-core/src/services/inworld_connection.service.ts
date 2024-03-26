@@ -6,6 +6,8 @@ import {
   AudioSessionState,
   CancelResponsesProps,
   SendPacketParams,
+  SendTriggerPacketParams,
+  TriggerParameter,
   TtsPlaybackAction,
 } from '../common/data_structures';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
@@ -14,10 +16,7 @@ import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_
 import { InworldPlayer } from '../components/sound/inworld_player';
 import { InworldRecorder } from '../components/sound/inworld_recorder';
 import { Character } from '../entities/character.entity';
-import {
-  InworldPacket,
-  TriggerParameter,
-} from '../entities/inworld_packet.entity';
+import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { ConnectionService } from './connection.service';
 
 interface InworldConnectionServiceProps<
@@ -129,7 +128,7 @@ export class InworldConnectionService<
 
   async sendTrigger(
     name: string,
-    parameters?: TriggerParameter[] | SendPacketParams,
+    parameters?: TriggerParameter[] | SendTriggerPacketParams,
   ) {
     if (parameters && Array.isArray(parameters)) {
       // TODO: Remove this deprecation warning in the next major release.

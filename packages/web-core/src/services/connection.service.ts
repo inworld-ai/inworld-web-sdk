@@ -28,7 +28,7 @@ import {
 } from '../connection/web-socket.connection';
 import { Character } from '../entities/character.entity';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
-import { InworldPacket } from '../entities/inworld_packet.entity';
+import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { Scene } from '../entities/scene.entity';
 import { SessionToken } from '../entities/session_token.entity';
 import { EventFactory } from '../factories/event';
@@ -43,6 +43,7 @@ interface ConnectionProps<InworldPacketT, HistoryItemT> {
   onReady?: () => Awaitable<void>;
   onError?: (err: Event | Error) => Awaitable<void>;
   onMessage?: (packet: InworldPacketT) => Awaitable<void>;
+  onWarning?: (packet: InworldPacketT) => Awaitable<void>;
   onDisconnect?: () => Awaitable<void>;
   onInterruption?: (props: CancelResponsesProps) => Awaitable<void>;
   onHistoryChange?: (
@@ -80,6 +81,7 @@ export class ConnectionService<
 
   private onDisconnect: (() => Awaitable<void>) | undefined;
   private onError: (err: Event | Error) => Awaitable<void>;
+  private onWarning: ((message: InworldPacketT) => Awaitable<void>) | undefined;
   private onMessage: ((packet: ProtoPacket) => Awaitable<void>) | undefined;
   private onReady: (() => Awaitable<void>) | undefined;
 
@@ -392,6 +394,7 @@ export class ConnectionService<
     const {
       onError,
       onReady,
+      onWarning,
       onDisconnect,
       grpcAudioPlayer,
       webRtcLoopbackBiDiSession,
@@ -416,6 +419,9 @@ export class ConnectionService<
     };
 
     this.onError = onError ?? ((event: Event | Error) => console.error(event));
+    this.onWarning =
+      onWarning ??
+      ((message: InworldPacketT) => console.warn(message.control.description));
 
     this.onMessage = async (packet: ProtoPacket) => {
       const { onMessage, grpcAudioPlayer } = this.connectionProps;
@@ -447,10 +453,8 @@ export class ConnectionService<
       // Send cancel response event in case of player talking.
       if (inworldPacket.isText() && inworldPacket.routing.source.isPlayer) {
         await this.interruptByPacket(inworldPacket);
-      }
-
-      // Play audio or silence.
-      if (inworldPacket.isAudio() || inworldPacket.isSilence()) {
+        // Play audio or silence.
+      } else if (inworldPacket.isAudio() || inworldPacket.isSilence()) {
         if (!this.cancelResponses[interactionId]) {
           grpcAudioPlayer.addToQueue({
             packet: inworldPacket,
@@ -469,11 +473,11 @@ export class ConnectionService<
             },
           });
         }
-      }
-
-      // Delete info about cancel responses on interaction end.
-      if (inworldPacket.isInteractionEnd()) {
+        // Delete info about cancel responses on interaction end.
+      } else if (inworldPacket.isInteractionEnd()) {
         delete this.cancelResponses[interactionId];
+      } else if (inworldPacket.isWarning()) {
+        this.onWarning(inworldPacket);
       }
 
       // Add packet to history.
@@ -523,7 +527,7 @@ export class ConnectionService<
         (packet: InworldPacketT) =>
           ({
             id: packet.routing.source.name,
-          } as Character),
+          }) as Character,
       );
 
       this.sendCancelResponses(
