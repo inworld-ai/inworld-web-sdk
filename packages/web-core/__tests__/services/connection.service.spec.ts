@@ -852,16 +852,16 @@ describe('onMessage', () => {
     });
 
     jest
-      .spyOn(WorldEngineService.prototype, 'loadScene')
-      .mockImplementationOnce(() => Promise.resolve(scene));
-    jest
       .spyOn(InworldHistory.prototype, 'display')
       .mockImplementationOnce(() => [{} as HistoryItem, {} as HistoryItem]);
     jest
       .spyOn(InworldHistory.prototype, 'addOrUpdate')
       .mockImplementationOnce(() => []);
 
-    await connection.open();
+    await Promise.all([
+      connection.open(),
+      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+    ]);
 
     await server.connected;
 

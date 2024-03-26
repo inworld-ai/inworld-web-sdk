@@ -16,7 +16,6 @@ import {
   QueueItem,
   WebSocketConnection,
 } from '../../src/connection/web-socket.connection';
-import { InworldPacketType } from '../../src/entities/inworld_packet.entity';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
 import { Routing } from '../../src/entities/packets/routing.entity';
 import { Scene } from '../../src/entities/scene.entity';
