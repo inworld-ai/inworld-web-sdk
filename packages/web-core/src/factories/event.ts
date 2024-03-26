@@ -5,6 +5,7 @@ import {
   ControlEventAction,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
+  LoadCharactersCharacterName,
   MutationEvent,
   Routing,
   SessionControlEvent,
@@ -193,24 +194,39 @@ export class EventFactory {
         packetId: v4(),
       },
       timestamp: protoTimestamp(),
-      routing: this.openSessionRouting(),
+      routing: this.worldRouting(),
       sessionControl,
     };
   }
 
   static loadScene(name: string): ProtoPacket {
-    const mutation = {
-      loadScene: {
-        name,
-      },
-    } as MutationEvent;
+    const mutation = { loadScene: { name } } as MutationEvent;
 
     return {
       packetId: {
         packetId: v4(),
+        interactionId: v4(),
       },
       timestamp: protoTimestamp(),
-      routing: this.openSessionRouting(),
+      routing: this.worldRouting(),
+      mutation,
+    };
+  }
+
+  static loadCharacters(names: string[]): ProtoPacket {
+    const name = names.map(
+      (name) =>
+        ({
+          name,
+        }) as LoadCharactersCharacterName,
+    );
+
+    const mutation = { loadCharacters: { name } } as MutationEvent;
+
+    return {
+      packetId: { packetId: v4() },
+      timestamp: protoTimestamp(),
+      routing: this.worldRouting(),
       mutation,
     };
   }
@@ -257,7 +273,7 @@ export class EventFactory {
     }
   }
 
-  private static openSessionRouting(): Routing {
+  private static worldRouting(): Routing {
     return {
       source: { type: ActorType.PLAYER },
       target: { type: ActorType.WORLD },

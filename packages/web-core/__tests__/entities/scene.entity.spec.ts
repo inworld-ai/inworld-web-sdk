@@ -1,41 +1,27 @@
-import {
-  ActorType,
-  SessionControlResponseEvent,
-} from '../../proto/ai/inworld/packets/packets.pb';
+import { ActorType } from '../../proto/ai/inworld/packets/packets.pb';
 import { Character } from '../../src/entities/character.entity';
 import { Scene } from '../../src/entities/scene.entity';
-import { createAgent, createCharacter } from '../helpers';
+import { createAgent, createCharacter, SCENE } from '../helpers';
 
 let characters: Array<Character> = [];
 let scene: Scene;
-let json: string;
 
 beforeEach(() => {
   jest.clearAllMocks();
 
   characters = [createCharacter(), createCharacter()];
-  scene = new Scene({ characters });
-  json = JSON.stringify(scene);
+  scene = new Scene({ name: SCENE, characters });
 });
 
 test('should return scene fields', () => {
   expect(scene.characters).toEqual(characters);
 });
 
-test('should serialize', () => {
-  expect(Scene.serialize(scene)).toEqual(json);
-});
-
-test('should deserialize', () => {
-  const result = Scene.deserialize(json);
-
-  expect(result?.characters).toEqual(scene.characters);
-});
-
 test('should convert proto to scene', () => {
   const agents = [createAgent(), createAgent()];
 
   const proto = {
+    name: SCENE,
     loadedScene: { agents },
     sessionHistory: {
       sessionHistoryItems: [
@@ -68,7 +54,7 @@ test('should convert proto to scene', () => {
         },
       ],
     },
-  } as unknown as SessionControlResponseEvent;
+  };
   const scene = Scene.fromProto(proto);
 
   expect(scene.characters[0].id).toEqual(agents[0].agentId);
@@ -79,10 +65,11 @@ test('should convert proto to scene', () => {
 
 test('should convert proto to scene without history items and agents', () => {
   const proto = {
+    name: SCENE,
     sessionHistory: {
       sessionHistoryItems: [{}],
     },
-  } as unknown as SessionControlResponseEvent;
+  };
   const scene = Scene.fromProto(proto);
 
   expect(scene.characters.length).toEqual(0);

@@ -2,11 +2,16 @@
 
 ### Added
 
+- Allow to like, dislike or undo feedback
 - Handle runtime warnings
 
 ### Changed
 
 - Change internal way to open session
+
+### Added
+
+- Allow to change scene and add characters to current scene
 
 ## [2.4.1] - 2024-03-06
 

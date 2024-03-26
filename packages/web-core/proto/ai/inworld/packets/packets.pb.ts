@@ -229,7 +229,7 @@ type BaseMutationEvent = {
 }
 
 export type MutationEvent = BaseMutationEvent
-  & OneOf<{ cancelResponses: CancelResponses; regenerateResponse: RegenerateResponse; applyResponse: ApplyResponse; loadScene: LoadScene; modifyExactResponse: ModifyExactResponse; loadCharacters: LoadCharacters }>
+  & OneOf<{ cancelResponses: CancelResponses; regenerateResponse: RegenerateResponse; applyResponse: ApplyResponse; loadScene: LoadScene; modifyExactResponse: ModifyExactResponse; loadCharacters: LoadCharacters; unloadCharacters: UnloadCharacters }>
 
 
 type BaseSessionControlResponseEvent = {

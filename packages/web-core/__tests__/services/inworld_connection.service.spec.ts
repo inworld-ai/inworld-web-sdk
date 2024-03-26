@@ -2,11 +2,19 @@ import '../mocks/window.mock';
 
 import { v4 } from 'uuid';
 
-import { DataChunkDataType } from '../../proto/ai/inworld/packets/packets.pb';
+import {
+  DataChunkDataType,
+  SessionControlResponseEvent,
+} from '../../proto/ai/inworld/packets/packets.pb';
 import {
   AudioSessionState,
   InworldPacketType,
 } from '../../src/common/data_structures';
+import {
+  CHARACTER_HAS_INVALID_FORMAT,
+  SCENE_HAS_INVALID_FORMAT,
+  SCENE_NAME_THE_SAME,
+} from '../../src/common/errors';
 import { protoTimestamp } from '../../src/common/helpers';
 import { InworldHistory } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
@@ -18,7 +26,6 @@ import {
 } from '../../src/connection/web-socket.connection';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
 import { Routing } from '../../src/entities/packets/routing.entity';
-import { Scene } from '../../src/entities/scene.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
 import { InworldConnectionService } from '../../src/services/inworld_connection.service';
@@ -30,6 +37,7 @@ import {
   extension,
   generateSessionToken,
   getPacketId,
+  SCENE,
   setNavigatorProperty,
   setTimeoutMock,
   writeMock,
@@ -50,6 +58,7 @@ const connection = new ConnectionService({
       emotions: true,
     },
   },
+  name: SCENE,
   grpcAudioPlayer,
   webRtcLoopbackBiDiSession,
   generateSessionToken,
@@ -141,7 +150,7 @@ describe('history', () => {
   });
 
   test('should get history', () => {
-    const history = new InworldHistory();
+    const history = new InworldHistory({ scene: SCENE });
     const packetId = getPacketId();
     const routing: Routing = {
       source: {
@@ -373,7 +382,9 @@ describe('send', () => {
     test('should send narrated action', async () => {
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
-        .mockImplementationOnce(() => Promise.resolve({ characters } as Scene));
+        .mockImplementationOnce(() =>
+          Promise.resolve({ agents } as SessionControlResponseEvent),
+        );
       jest
         .spyOn(EventFactory.prototype, 'getCharacters')
         .mockReturnValueOnce(characters);
@@ -459,6 +470,7 @@ describe('send', () => {
         generateSessionToken,
         onHistoryChange,
         extension,
+        name: SCENE,
       });
       const service = new InworldConnectionService({
         connection,
@@ -488,6 +500,127 @@ describe('send', () => {
       expect(open).toHaveBeenCalledTimes(0);
       expect(write).toHaveBeenCalledTimes(1);
       expect(packet).toHaveProperty('mutation', mutation);
+    });
+
+    test('should reload scene', async () => {
+      jest
+        .spyOn(WebSocketConnection.prototype, 'openSession')
+        .mockImplementationOnce(() =>
+          Promise.resolve({ agents } as SessionControlResponseEvent),
+        );
+      jest
+        .spyOn(EventFactory.prototype, 'getCharacters')
+        .mockReturnValueOnce(characters);
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const packet = await service.reloadScene();
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet?.sceneMutation).toHaveProperty('name', SCENE);
+    });
+
+    test('should change scene', async () => {
+      jest
+        .spyOn(WebSocketConnection.prototype, 'openSession')
+        .mockImplementationOnce(() =>
+          Promise.resolve({ agents } as SessionControlResponseEvent),
+        );
+      jest
+        .spyOn(EventFactory.prototype, 'getCharacters')
+        .mockReturnValueOnce(characters);
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const name = `workspaces/${v4()}/scenes/${v4()}`;
+      const packet = await service.changeScene(name);
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet?.sceneMutation).toHaveProperty('name', name);
+    });
+
+    test('should throw error in case of the same scene for change', async () => {
+      jest
+        .spyOn(WebSocketConnection.prototype, 'openSession')
+        .mockImplementationOnce(() =>
+          Promise.resolve({ agents } as SessionControlResponseEvent),
+        );
+      jest
+        .spyOn(EventFactory.prototype, 'getCharacters')
+        .mockReturnValueOnce(characters);
+      jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      await expect(service.changeScene(SCENE)).rejects.toEqual(
+        new Error(SCENE_NAME_THE_SAME),
+      );
+    });
+
+    test('should throw error in case wrong scene format', async () => {
+      jest
+        .spyOn(WebSocketConnection.prototype, 'openSession')
+        .mockImplementationOnce(() =>
+          Promise.resolve({ agents } as SessionControlResponseEvent),
+        );
+      jest
+        .spyOn(EventFactory.prototype, 'getCharacters')
+        .mockReturnValueOnce(characters);
+      jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      await expect(service.changeScene(v4())).rejects.toEqual(
+        new Error(SCENE_HAS_INVALID_FORMAT),
+      );
+    });
+
+    test('should add character', async () => {
+      jest
+        .spyOn(WebSocketConnection.prototype, 'openSession')
+        .mockImplementationOnce(() =>
+          Promise.resolve({ agents } as SessionControlResponseEvent),
+        );
+      jest
+        .spyOn(EventFactory.prototype, 'getCharacters')
+        .mockReturnValueOnce(characters);
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const names = [
+        `workspaces/${v4()}/characters/${v4()}`,
+        `workspaces/${v4()}/characters/${v4()}`,
+      ];
+
+      const packet = await service.addCharacters(names);
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet?.sceneMutation).toHaveProperty('characterNames', names);
+    });
+
+    test('should throw error in case wrong character format', async () => {
+      jest
+        .spyOn(WebSocketConnection.prototype, 'openSession')
+        .mockImplementationOnce(() =>
+          Promise.resolve({ agents } as SessionControlResponseEvent),
+        );
+      jest
+        .spyOn(EventFactory.prototype, 'getCharacters')
+        .mockReturnValueOnce(characters);
+      jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const names = [`workspaces/${v4()}/characters/${v4()}`, v4()];
+
+      await expect(service.addCharacters(names)).rejects.toEqual(
+        new Error(CHARACTER_HAS_INVALID_FORMAT),
+      );
     });
   });
 
@@ -619,7 +752,9 @@ describe('send', () => {
     test('should send narrated action', async () => {
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
-        .mockImplementationOnce(() => Promise.resolve({ characters } as Scene));
+        .mockImplementationOnce(() =>
+          Promise.resolve({ agents } as SessionControlResponseEvent),
+        );
       jest
         .spyOn(EventFactory.prototype, 'getCharacters')
         .mockReturnValueOnce(characters);
