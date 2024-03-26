@@ -5,6 +5,7 @@ import {
   HistoryItem,
   HistoryItemActor,
   HistoryItemNarratedAction,
+  HistoryItemSceneChange,
   HistoryItemTriggerEvent,
 } from '@inworld/web-core';
 import { Box, Fade, Stack, Typography } from '@mui/material';
@@ -38,6 +39,7 @@ type CombinedHistoryItem = {
     | HistoryItemActor
     | HistoryItemNarratedAction
     | HistoryItemTriggerEvent
+    | HistoryItemSceneChange
   )[];
   source: Actor;
   type: CHAT_HISTORY_TYPE;
@@ -104,6 +106,7 @@ export const History = (props: HistoryProps) => {
           }
           break;
         case CHAT_HISTORY_TYPE.TRIGGER_EVENT:
+        case CHAT_HISTORY_TYPE.SCENE_CHANGE:
           mergedRecords.push({
             interactionId: item.interactionId!,
             messages: [item],
@@ -138,7 +141,8 @@ export const History = (props: HistoryProps) => {
     message:
       | HistoryItemActor
       | HistoryItemNarratedAction
-      | HistoryItemTriggerEvent,
+      | HistoryItemTriggerEvent
+      | HistoryItemSceneChange,
   ) => {
     switch (message.type) {
       case CHAT_HISTORY_TYPE.ACTOR:
@@ -147,6 +151,12 @@ export const History = (props: HistoryProps) => {
         return <HistoryAction>{message.text}</HistoryAction>;
       case CHAT_HISTORY_TYPE.TRIGGER_EVENT:
         return message.name;
+      case CHAT_HISTORY_TYPE.SCENE_CHANGE:
+        return message.to
+          ? `Now moving to ${message.to}`
+          : `New characters in scene: ${message.addedCharacters
+              ?.map((c) => c.displayName)
+              .join(', ')}`;
     }
   };
 
@@ -161,9 +171,15 @@ export const History = (props: HistoryProps) => {
             let messages = item.messages;
             let actorSource = 'AGENT';
             let message = item.messages?.[0];
-            const character = props.characters.find(
-              (c) => c.id === item.source.name,
-            );
+
+            const character =
+              [
+                CHAT_HISTORY_TYPE.ACTOR,
+                CHAT_HISTORY_TYPE.NARRATED_ACTION,
+              ].includes(item.type) &&
+              item.messages[0].characters?.find(
+                (c: Character) => c.id === item.source.name,
+              );
 
             const title =
               item.type === CHAT_HISTORY_TYPE.ACTOR ||
@@ -183,6 +199,10 @@ export const History = (props: HistoryProps) => {
                 }
               }
             }
+
+            const src =
+              character?.assets?.rpmImageUriPortrait ??
+              character?.assets?.avatarImg;
 
             return (
               <HistoryMessageGroup
@@ -204,21 +224,22 @@ export const History = (props: HistoryProps) => {
                       className="history-actor"
                       key={`PortalSimulatorChatHistoryActor-${index}`}
                     >
-                      <CircularRpmAvatar
-                        key={index}
-                        src={
-                          character?.assets?.rpmImageUriPortrait ??
-                          character?.assets?.avatarImg ??
-                          ''
-                        }
-                        name={character?.displayName}
-                        size="48px"
-                        sx={{
-                          display: ['none', 'flex'],
-                          mr: 1,
-                          float: 'left',
-                        }}
-                      />
+                      {item.source.isCharacter && src && (
+                        <CircularRpmAvatar
+                          key={index}
+                          src={src}
+                          name={character?.displayName}
+                          size="48px"
+                          sx={{
+                            display: ['none', 'flex'],
+                            mr: 1,
+                            float: 'left',
+                          }}
+                        />
+                      )}
+                      {item.source.isCharacter &&
+                        !src &&
+                        (character?.displayName ?? '')}
                       {emoji && (
                         <Box className="simulator-message__emoji" fontSize={16}>
                           {emoji}

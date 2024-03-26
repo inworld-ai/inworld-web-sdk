@@ -56,6 +56,7 @@ function App() {
   const [bodyTexture, setBodyTexture] = useState(BODY_TEXTURE_TYPE.WOOD1);
   const [connection, setConnection] = useState<InworldConnectionService>();
   const [characters, setCharacters] = useState<Character[]>([]);
+  const [currentCharacter, setCurrentCharacter] = useState<Character>();
   const [chatHistory, setChatHistory] = useState<HistoryItem[]>([]);
   const [prevChatHistory, setPrevChatHistory] = useState<HistoryItem[]>([]);
   const [prevTranscripts, setPrevTranscripts] = useState<string[]>([]);
@@ -72,6 +73,32 @@ function App() {
     characters,
     chatting,
     connection,
+  };
+
+  const afterSceneLoad = async (connection: InworldConnectionService) => {
+    const form = formMethods.getValues();
+    const characters = await connection.getCharacters();
+    const currentCharacter = await connection.getCurrentCharacter();
+
+    if (characters.length) {
+      console.log('Characters found:', characters);
+      const avatars = characters.map((c: Character) => {
+        const rpmImageUri = c?.assets?.rpmImageUriPortrait;
+        const avatarImg = c?.assets?.avatarImg;
+
+        return rpmImageUri || avatarImg || '';
+      });
+      setAvatars(avatars);
+    } else {
+      console.error(
+        'Character(s) not found. Was them added?:',
+        form.scene?.name! || form.character?.name!,
+      );
+      return;
+    }
+
+    setCurrentCharacter(currentCharacter);
+    setCharacters(characters);
   };
 
   const onHistoryChange = useCallback((history: HistoryItem[]) => {
@@ -141,30 +168,15 @@ function App() {
               [inworldPacket.packetId.interactionId]: inworldPacket.emotions,
             }));
           }
+
+          if (inworldPacket.isSceneMutationResponse()) {
+            afterSceneLoad(service.connection);
+          }
         },
       });
 
-      const characters = await service.connection.getCharacters();
-
-      if (characters.length) {
-        console.log('Characters found:', characters);
-        const avatars = characters.map((c: Character) => {
-          const rpmImageUri = c?.assets?.rpmImageUriPortrait;
-          const avatarImg = c?.assets?.avatarImg;
-
-          return rpmImageUri || avatarImg || '';
-        });
-        setAvatars(avatars);
-      } else {
-        console.error(
-          'Character(s) not found. Was them added?:',
-          form.scene?.name! || form.character?.name!,
-        );
-        return;
-      }
-
+      afterSceneLoad(service.connection);
       setConnection(service.connection);
-      setCharacters(characters);
     },
     [
       chatHistory,
@@ -269,17 +281,25 @@ function App() {
                   chatView,
                 ) && (
                   <Grid item sm={6}>
-                    {avatars.length &&
-                      avatars.map((avatar, index) => (
+                    {characters.length &&
+                      characters.map((character, index) => (
                         <CircularRpmAvatar
                           key={index}
-                          src={avatar}
-                          name={characters[index].displayName}
-                          size="48px"
+                          src={avatars[index]}
+                          name={character.displayName}
+                          size="40px"
                           sx={{
                             display: ['none', 'flex'],
                             mr: 1,
                             float: 'left',
+                          }}
+                          active={
+                            currentCharacter?.resourceName ===
+                            character.resourceName
+                          }
+                          onClick={() => {
+                            connection?.setCurrentCharacter(character);
+                            setCurrentCharacter(character);
                           }}
                         />
                       ))}

@@ -262,6 +262,7 @@ export function Chat(props: ChatProps) {
           </IconButton>
         </Tooltip>
         <AdditionalActions
+          onClose={() => setConfirmOpen(false)}
           chatView={props.chatView}
           connection={connection}
           playWorkaroundSound={() =>
