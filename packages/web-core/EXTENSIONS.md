@@ -19,19 +19,55 @@ Here are several ways to enhance the functionality of the Inworld AI Web SDK:
 ## Extend load scene request
 
 ```ts
-  const beforeLoadScene = (request) => ({
-    ...request,
-    // Extend capabilities.
-    capabilities: {
-      ...request.capabilities,
-      regenerateResponse: true,
-    },
-  });
+  import {
+    InworldPacket as ProtoPacket,
+    SessionControlResponseEvent,
+  } from '@inworld/proto/generated/ai/inworld/packets/packets.pb';
+
+  const beforeLoadScene = (packets: ProtoPacket[]) => {
+    return packets.map((packet: ProtoPacket) => {
+      // Consistently present
+      if (packet.sessionControl?.capabilitiesConfiguration) {
+        packet.sessionControl.capabilitiesConfiguration = {
+          ...packet.sessionControl.capabilitiesConfiguration,
+          regenerateResponse: true,
+        };
+      }
+
+     // Consistently present.
+      if (packet.sessionControl?.clientConfiguration) {
+        packet.sessionControl.clientConfiguration = {
+          ...packet.sessionControl.clientConfiguration,
+          id: 'custom-id',
+        };
+      }
+
+      // Consistently present.
+      if (packet.sessionControl?.userConfiguration) {
+        // Do something here.
+      }
+
+      // Consistently present.
+      if (packet.sessionControl?.sessionConfiguration) {
+        // Do something here.
+      }
+
+      // Optional. It's present if continutation was set using setContinuation method.
+      if (packet.sessionControl?.continuation) {
+        // Do something here.
+      }
+
+      return packet;
+    });
+  };
 
   const client = new InworldClient()
-    .setConfiguration({ capabilities })
+    .setConfiguration({ capabilities, history: { previousState : true } })
     .setUser(user)
     .setScene(sceneName)
+    // If you have previousState propagate it here.
+    // Don't forget to set history.previousState = true in setConfiguration method to attach previousState packets to history automatically.
+    .setSessionContinuation({ previousState })
     ...
     .setExtension({ beforeLoadScene });
 
@@ -41,9 +77,11 @@ Here are several ways to enhance the functionality of the Inworld AI Web SDK:
 ## Parse load scene response
 
 ```ts
-  const afterLoadScene = (response) => {
+  const afterLoadScene = (response: SessionControlResponseEvent) => {
     // Do something with response.
-    console.log(response.previousState?.stateHolders);
+    console.log(response.loadedScene);
+    console.log(response.loadedCharacters);
+    console.log(response.SessionHistoryResponse);
   };
   const client = new InworldClient()
     .setConfiguration({ capabilities })
