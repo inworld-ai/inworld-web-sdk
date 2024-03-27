@@ -218,6 +218,7 @@ export class ConnectionService<
         name: this.scene.name,
         sessionContinuation,
         user,
+        extension: this.extension,
         session: this.session,
         convertPacketFromProto: this.extension.convertPacketFromProto,
       });
