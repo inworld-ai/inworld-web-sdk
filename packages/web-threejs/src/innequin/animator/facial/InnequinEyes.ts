@@ -66,7 +66,7 @@ export class InnequinEyes {
     if (!this.isBlinking) {
       this.blinkTimerInterval = setTimeout(
         () => {
-        this.setBlinking(true);
+          this.setBlinking(true);
       }, randomInt(BLINK_INTERVAL_MIN_MS, BLINK_INTERVAL_MAX_MS));
     }
   }
