@@ -128,7 +128,7 @@ export class InworldHistory<
 
     const byId = characters.reduce(
       (acc, character) => {
-      acc[character.id] = character;
+        acc[character.id] = character;
       return acc;
     }, {} as { [key: string]: Character });
     const itemCharacters = [];
