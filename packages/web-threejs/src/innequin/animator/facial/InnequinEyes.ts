@@ -67,7 +67,9 @@ export class InnequinEyes {
       this.blinkTimerInterval = setTimeout(
         () => {
           this.setBlinking(true);
-      }, randomInt(BLINK_INTERVAL_MIN_MS, BLINK_INTERVAL_MAX_MS));
+        },
+        randomInt(BLINK_INTERVAL_MIN_MS, BLINK_INTERVAL_MAX_MS),
+      );
     }
   }
 
