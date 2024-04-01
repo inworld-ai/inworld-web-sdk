@@ -1,4 +1,4 @@
-import { EmotionEventStrength } from '../../proto/ai/inworld/packets/packets.pb';
+import { EmotionEventStrength } from '../../../../proto/ai/inworld/packets/packets.pb';
 
 export enum EmotionStrengthCode {
   UNSPECIFIED = 'UNSPECIFIED',

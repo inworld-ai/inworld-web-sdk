@@ -28,4 +28,6 @@ export const Config: Configuration = {
     NEAR: 0.01,
     FAR: 1000,
   },
+  CONNECTION_HOSTNAME: import.meta.env.VITE_CONNECTION_HOSTNAME,
+  CONNECTION_SSL: import.meta.env.VITE_CONNECTION_SSL === 'true',
 };

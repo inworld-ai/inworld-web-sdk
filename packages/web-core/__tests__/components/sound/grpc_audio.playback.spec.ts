@@ -4,7 +4,7 @@ import { v4 } from 'uuid';
 
 import { DataChunkDataType } from '../../../proto/ai/inworld/packets/packets.pb';
 import { GrpcAudioPlayback } from '../../../src/components/sound/grpc_audio.playback';
-import { InworldPacket } from '../../../src/entities/inworld_packet.entity';
+import { InworldPacket } from '../../../src/entities/packets/inworld_packet.entity';
 import { getPacketId } from '../../helpers';
 
 const audioEvent = InworldPacket.fromProto({

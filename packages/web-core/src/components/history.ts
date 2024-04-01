@@ -1,14 +1,11 @@
 import { v4 } from 'uuid';
 
 import { DEFAULT_USER_NAME } from '../common/constants';
-import { Extension, User } from '../common/data_structures';
+import { Extension, TriggerParameter, User } from '../common/data_structures';
 import { Character } from '../entities/character.entity';
-import {
-  Actor,
-  EmotionEvent,
-  InworldPacket,
-  TriggerParameter,
-} from '../entities/inworld_packet.entity';
+import { EmotionEvent } from '../entities/packets/emotion/emotion.entity';
+import { InworldPacket } from '../entities/packets/inworld_packet.entity';
+import { Actor } from '../entities/packets/routing.entity';
 import { GrpcAudioPlayback } from './sound/grpc_audio.playback';
 
 interface InworldHistoryAddProps<InworldPacketT> {
@@ -23,11 +20,13 @@ export enum CHAT_HISTORY_TYPE {
   NARRATED_ACTION = 'narrated_action',
   TRIGGER_EVENT = 'trigger_event',
   INTERACTION_END = 'interaction_end',
+  SCENE_CHANGE = 'scene_change',
 }
 
 export interface HistoryItemBase {
   date: Date;
   id: string;
+  scene: string;
   interactionId?: string;
   source: Actor;
   type: CHAT_HISTORY_TYPE;
@@ -64,11 +63,23 @@ export interface HistoryItemNarratedAction extends HistoryItemBase {
   characters?: Character[];
 }
 
+export interface HistoryItemSceneChange {
+  date: Date;
+  id: string;
+  interactionId?: string;
+  source: Actor;
+  type: CHAT_HISTORY_TYPE.SCENE_CHANGE;
+  to?: string;
+  loadedCharacters?: Character[];
+  addedCharacters?: Character[];
+}
+
 export type HistoryItem =
   | HistoryItemActor
   | HistoryItemTriggerEvent
   | HistoryInteractionEnd
-  | HistoryItemNarratedAction;
+  | HistoryItemNarratedAction
+  | HistoryItemSceneChange;
 
 interface EmotionsMap {
   [key: string]: EmotionEvent;
@@ -77,26 +88,30 @@ interface EmotionsMap {
 interface InworldHistoryProps<InworldPacketT, HistoryItemT> {
   extension?: Extension<InworldPacketT, HistoryItemT>;
   user?: User;
+  scene: string;
 }
 
 export class InworldHistory<
   InworldPacketT extends InworldPacket = InworldPacket,
   HistoryItemT extends HistoryItem = HistoryItem,
 > {
+  private scene: string;
   private user?: User;
   private history: HistoryItem[] = [];
   private queue: HistoryItem[] = [];
   private emotions: EmotionsMap = {};
   private extension: Extension<InworldPacketT, HistoryItemT> | undefined;
 
-  constructor(props?: InworldHistoryProps<InworldPacketT, HistoryItemT>) {
-    if (props?.extension) {
+  constructor(props: InworldHistoryProps<InworldPacketT, HistoryItemT>) {
+    if (props.extension) {
       this.extension = props.extension;
     }
 
-    if (props?.user) {
+    if (props.user) {
       this.user = props.user;
     }
+
+    this.scene = props?.scene;
   }
 
   addOrUpdate({
@@ -111,10 +126,13 @@ export class InworldHistory<
     const utteranceId = packet.packetId.utteranceId;
     const interactionId = packet.packetId.interactionId;
 
-    const byId = characters.reduce((acc, character) => {
-      acc[character.id] = character;
-      return acc;
-    }, {} as { [key: string]: Character });
+    const byId = characters.reduce(
+      (acc, character) => {
+        acc[character.id] = character;
+        return acc;
+      },
+      {} as { [key: string]: Character },
+    );
     const itemCharacters = [];
 
     if (packet.routing.source.isCharacter) {
@@ -127,46 +145,67 @@ export class InworldHistory<
       );
     }
 
-    if (packet.isEmotion()) {
-      this.emotions[interactionId] = packet.emotions;
-    } else if (packet.isText()) {
-      const actorItem: HistoryItem = {
-        ...this.combineTextItem(packet),
-        character: itemCharacters[0],
-        characters: itemCharacters,
-      };
+    switch (true) {
+      case packet.isEmotion():
+        this.emotions[interactionId] = packet.emotions;
+        break;
+      case packet.isText():
+        const actorItem: HistoryItem = {
+          ...this.combineTextItem(packet),
+          character: itemCharacters[0],
+          characters: itemCharacters,
+        };
 
-      if (grpcAudioPlayer.hasPacketInQueue({ utteranceId })) {
-        queueItem = actorItem;
-      } else {
-        historyItem = actorItem;
-      }
-    } else if (packet.isNarratedAction()) {
-      const actionItem = this.combineNarratedActionItem(
-        packet,
-        itemCharacters,
-        this.user,
-      );
+        if (grpcAudioPlayer.hasPacketInQueue({ utteranceId })) {
+          queueItem = actorItem;
+        } else {
+          historyItem = actorItem;
+        }
+        break;
 
-      if (
-        grpcAudioPlayer.isCurrentPacket({ interactionId }) ||
-        !grpcAudioPlayer.hasPacketInQueue({ interactionId })
-      ) {
-        historyItem = actionItem;
-      } else {
-        queueItem = actionItem;
-      }
-    } else if (packet.isTrigger()) {
-      historyItem = this.combineTriggerItem(packet, outgoing);
-    } else if (packet.isInteractionEnd()) {
-      const controlItem: HistoryInteractionEnd =
-        this.combineInteractionEndItem(packet);
+      case packet.isNarratedAction():
+        const actionItem = this.combineNarratedActionItem(
+          packet,
+          itemCharacters,
+          this.user,
+        );
 
-      if (grpcAudioPlayer.hasPacketInQueue({ interactionId })) {
-        queueItem = controlItem;
-      } else {
-        historyItem = controlItem;
-      }
+        if (
+          grpcAudioPlayer.isCurrentPacket({ interactionId }) ||
+          !grpcAudioPlayer.hasPacketInQueue({ interactionId })
+        ) {
+          historyItem = actionItem;
+        } else {
+          queueItem = actionItem;
+        }
+        break;
+
+      case packet.isTrigger():
+        historyItem = this.combineTriggerItem(packet, outgoing);
+        break;
+
+      case packet.isInteractionEnd():
+        const controlItem: HistoryInteractionEnd =
+          this.combineInteractionEndItem(packet);
+
+        if (grpcAudioPlayer.hasPacketInQueue({ interactionId })) {
+          queueItem = controlItem;
+        } else {
+          historyItem = controlItem;
+        }
+        break;
+
+      case packet.isSceneMutationResponse():
+      case packet.isSceneMutationRequest():
+        if (packet.sceneMutation?.name || packet.isSceneMutationResponse()) {
+          historyItem = this.combineSceneChangeItem(packet);
+
+          if (historyItem.to) {
+            this.scene = historyItem.to;
+          }
+        }
+
+        break;
     }
 
     if (historyItem) {
@@ -177,7 +216,10 @@ export class InworldHistory<
       const item = this.convertToExtendedType(packet, historyItem);
 
       if (currentHistoryIndex >= 0) {
-        this.history[currentHistoryIndex] = item;
+        this.history[currentHistoryIndex] = {
+          ...this.history[currentHistoryIndex],
+          ...item,
+        };
       } else {
         this.history = [...this.history, item!];
       }
@@ -311,7 +353,9 @@ export class InworldHistory<
             ? item.character.displayName
             : this.getUserName(this.user);
           const emotionCode =
-            this.emotions[item.interactionId]?.behavior?.code || '';
+            (isCharacter &&
+              this.emotions[item.interactionId]?.behavior?.code) ||
+            '';
           const emotion = emotionCode ? `(${emotionCode}) ` : '';
 
           const text =
@@ -320,12 +364,18 @@ export class InworldHistory<
               : item.text;
           transcript +=
             characterLastSpeaking && isCharacter
-              ? item.text
+              ? `${
+                  transcript?.[transcript.length - 1] === ' ' ? '' : ' '
+                }${text}`
               : `${prefix}${givenName}: ${emotion}${text}`;
           characterLastSpeaking = isCharacter;
           break;
         case CHAT_HISTORY_TYPE.TRIGGER_EVENT:
           transcript += `${prefix}>>> ${item.name}`;
+          characterLastSpeaking = false;
+          break;
+        case CHAT_HISTORY_TYPE.SCENE_CHANGE:
+          transcript += `${prefix}${prefix}>>> Now moving to ${item.to}`;
           characterLastSpeaking = false;
           break;
       }
@@ -348,12 +398,34 @@ export class InworldHistory<
     return {
       id: utteranceId,
       isRecognizing: !packet.text.final,
+      scene: this.scene,
       type: CHAT_HISTORY_TYPE.ACTOR,
       text: packet.text.text,
       correlationId,
       date,
       interactionId,
       source,
+    };
+  }
+
+  private combineSceneChangeItem(
+    packet: InworldPacketT,
+  ): HistoryItemSceneChange {
+    return {
+      id: packet.packetId.interactionId,
+      date: new Date(packet.date),
+      interactionId: packet.packetId.interactionId,
+      type: CHAT_HISTORY_TYPE.SCENE_CHANGE,
+      source: packet.routing.source,
+      ...(packet.sceneMutation?.name && {
+        to: packet.sceneMutation.name,
+      }),
+      ...(packet.sceneMutation?.loadedCharacters && {
+        loadedCharacters: packet.sceneMutation.loadedCharacters,
+      }),
+      ...(packet.sceneMutation?.addedCharacters && {
+        addedCharacters: packet.sceneMutation.addedCharacters,
+      }),
     };
   }
 
@@ -373,6 +445,7 @@ export class InworldHistory<
     return {
       id: v4(),
       date,
+      scene: this.scene,
       character: characters[0],
       characters,
       interactionId,
@@ -396,6 +469,7 @@ export class InworldHistory<
       id: utteranceId,
       type: CHAT_HISTORY_TYPE.TRIGGER_EVENT,
       name: packet.trigger.name,
+      scene: this.scene,
       correlationId,
       parameters: packet.trigger.parameters,
       date,
@@ -415,6 +489,7 @@ export class InworldHistory<
       id: v4(),
       date,
       interactionId,
+      scene: this.scene,
       source: packet.routing.source,
       type: CHAT_HISTORY_TYPE.INTERACTION_END,
     };

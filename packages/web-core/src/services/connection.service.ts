@@ -1,12 +1,8 @@
+import { ClientRequest } from '../../proto/ai/inworld/engine/world-engine.pb';
 import {
-  LoadSceneResponseAgent,
-  PreviousState,
-} from '../../proto/ai/inworld/engine/world-engine.pb';
-import {
-  ClientRequest,
-  LoadSceneResponse,
-} from '../../proto/ai/inworld/engine/world-engine.pb';
-import { InworldPacket as ProtoPacket } from '../../proto/ai/inworld/packets/packets.pb';
+  InworldPacket as ProtoPacket,
+  SessionControlResponseEvent,
+} from '../../proto/ai/inworld/packets/packets.pb';
 import {
   AudioSessionState,
   Awaitable,
@@ -35,14 +31,14 @@ import {
 } from '../connection/web-socket.connection';
 import { Character } from '../entities/character.entity';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
-import { InworldPacket } from '../entities/inworld_packet.entity';
+import { InworldPacket } from '../entities/packets/inworld_packet.entity';
+import { Scene } from '../entities/scene.entity';
 import { SessionToken } from '../entities/session_token.entity';
 import { EventFactory } from '../factories/event';
 import { StateSerializationService } from './pb/state_serialization.service';
-import { WorldEngineService } from './pb/world_engine.service';
 
 interface ConnectionProps<InworldPacketT, HistoryItemT> {
-  name?: string;
+  name: string;
   user?: User;
   client?: ClientRequest;
   config?: InternalClientConfiguration;
@@ -50,6 +46,7 @@ interface ConnectionProps<InworldPacketT, HistoryItemT> {
   onReady?: () => Awaitable<void>;
   onError?: (err: Event | Error) => Awaitable<void>;
   onMessage?: (packet: InworldPacketT) => Awaitable<void>;
+  onWarning?: (packet: InworldPacketT) => Awaitable<void>;
   onDisconnect?: () => Awaitable<void>;
   onInterruption?: (props: CancelResponsesProps) => Awaitable<void>;
   onHistoryChange?: (
@@ -72,23 +69,23 @@ export class ConnectionService<
   private audioSessionParams: SendPacketParams = {};
   private ttsPlaybackAction = TtsPlaybackAction.UNKNOWN;
 
-  private scene: LoadSceneResponse;
+  private scene: Scene | undefined;
+  private nextSceneName: string | undefined;
   private session: SessionToken;
-  private connection: Connection<InworldPacketT>;
+  private connection: Connection<InworldPacketT, HistoryItemT>;
   private connectionProps: ConnectionProps<InworldPacketT, HistoryItemT>;
 
-  private characters: Array<Character> = [];
-
+  private eventFactory = new EventFactory();
   private intervals: NodeJS.Timeout[] = [];
+  private packetQueue: QueueItem<InworldPacketT>[] = [];
+
   private disconnectTimeoutId: NodeJS.Timeout;
 
-  private eventFactory = new EventFactory();
-
   private stateService = new StateSerializationService();
-  private engineService = new WorldEngineService<InworldPacketT>();
 
   private onDisconnect: (() => Awaitable<void>) | undefined;
   private onError: (err: Event | Error) => Awaitable<void>;
+  private onWarning: ((message: InworldPacketT) => Awaitable<void>) | undefined;
   private onMessage: ((packet: ProtoPacket) => Awaitable<void>) | undefined;
   private onReady: (() => Awaitable<void>) | undefined;
 
@@ -99,9 +96,13 @@ export class ConnectionService<
   constructor(props?: ConnectionProps<InworldPacketT, HistoryItemT>) {
     this.connectionProps =
       props || ({} as ConnectionProps<InworldPacketT, HistoryItemT>);
+    this.scene = new Scene({
+      name: this.connectionProps.name,
+    });
     this.history = new InworldHistory<InworldPacketT>({
       extension: this.connectionProps.extension,
       user: this.connectionProps.user,
+      scene: this.scene.name,
     });
 
     this.initializeHandlers();
@@ -117,15 +118,23 @@ export class ConnectionService<
     return this.connectionProps.config?.connection?.autoReconnect ?? true;
   }
 
+  getSceneName() {
+    return this.scene.name;
+  }
+
+  setNextSceneName(name?: string) {
+    this.nextSceneName = name;
+  }
+
   async getSessionState() {
     try {
-      const { config, name: scene } = this.connectionProps;
+      const { config } = this.connectionProps;
       const session = await this.ensureSessionToken();
 
       return this.stateService.getSessionState({
         config,
-        scene,
         session,
+        scene: this.scene.name,
       });
     } catch (err) {
       this.onError(err);
@@ -173,27 +182,56 @@ export class ConnectionService<
     return this.history.getTranscript();
   }
 
-  async loadCharacters() {
-    await this.loadScene();
+  getConfig() {
+    return this.connectionProps.config;
+  }
+
+  async getCharacters() {
+    await this.open();
+
+    return this.scene.characters;
+  }
+
+  async getCurrentCharacter() {
+    await this.open();
+
+    return this.getEventFactory().getCurrentCharacter();
+  }
+
+  async setCurrentCharacter(character: Character) {
+    return this.getEventFactory().setCurrentCharacter(character);
   }
 
   async open() {
+    if (this.state !== ConnectionState.INACTIVE) return;
+
     try {
-      await this.loadScene();
+      await this.loadToken();
 
-      if (this.state === ConnectionState.LOADED) {
-        this.state = ConnectionState.ACTIVATING;
+      const { client, sessionContinuation, user } = this.connectionProps;
 
-        const packets = this.getPacketsToSentOnOpen();
+      const packets = this.getPacketsToSentOnOpen();
 
-        await this.connection.open({
-          session: this.session,
-          convertPacketFromProto: this.extension.convertPacketFromProto,
-          ...(packets.length && { packets }),
-        });
+      this.packetQueue = [...packets, ...this.packetQueue];
+      const sessionProto = await this.connection.openSession({
+        client,
+        name: this.scene.name,
+        sessionContinuation,
+        user,
+        extension: this.extension,
+        session: this.session,
+        convertPacketFromProto: this.extension.convertPacketFromProto,
+      });
 
-        this.scheduleDisconnect();
+      this.setSceneFromProtoEvent(sessionProto);
+
+      if (this.scene.history?.length) {
+        this.setPreviousState(this.scene.history);
       }
+
+      await this.onReady?.();
+      this.releaseQueue();
+      this.scheduleDisconnect();
     } catch (err) {
       this.onError(err);
     }
@@ -246,36 +284,6 @@ export class ConnectionService<
     }
   }
 
-  private setCharacterList() {
-    const characters = (this.scene?.agents || [])?.map(
-      (agent: LoadSceneResponseAgent) =>
-        new Character({
-          id: agent.agentId,
-          resourceName: agent.brainName,
-          displayName: agent.givenName,
-          assets: {
-            avatarImg: agent.characterAssets.avatarImg,
-            avatarImgOriginal: agent.characterAssets.avatarImgOriginal,
-            rpmModelUri: agent.characterAssets.rpmModelUri,
-            rpmImageUriPortrait: agent.characterAssets.rpmImageUriPortrait,
-            rpmImageUriPosture: agent.characterAssets.rpmImageUriPosture,
-          },
-        }),
-    );
-
-    const factory = this.getEventFactory();
-
-    if (
-      !this.connectionProps.config.capabilities.multiAgent &&
-      !factory.getCurrentCharacter() &&
-      characters[0]
-    ) {
-      factory.setCurrentCharacter(characters[0]);
-    }
-
-    factory.setCharacters(characters);
-  }
-
   private async write(getPacket: () => ProtoPacket) {
     let inworldPacket: InworldPacketT;
 
@@ -295,10 +303,7 @@ export class ConnectionService<
         this.intervals.push(interval);
       });
 
-    // 1. Send a packet to a connection.
-    // The packet will be sent directly or added to the queue.
-    // If the connection is not active, we need to add the packet to the queue first to guarantee the order of packets.
-    this.connection.write({
+    const itemToSend = {
       getPacket,
       afterWriting: (packet: InworldPacketT) => {
         inworldPacket = packet;
@@ -312,54 +317,27 @@ export class ConnectionService<
           await this.interruptByPacket(packet);
         }
       },
-    });
+    };
 
-    // 2. Open the connection if it's inactive.
-    if (!this.isActive()) {
-      this.open();
+    if (this.isActive()) {
+      this.connection.write(itemToSend);
+    } else {
+      this.packetQueue.push(itemToSend);
+
+      await this.open();
     }
 
     return resolvePacket();
   }
 
-  private async loadScene() {
-    if (this.state === ConnectionState.LOADING) return;
+  private async loadToken() {
+    if (this.state === ConnectionState.ACTIVATING) return;
 
-    const { name, client, user } = this.connectionProps;
-
-    try {
-      await this.ensureSessionToken({
-        beforeLoading: () => {
-          this.state = ConnectionState.LOADING;
-        },
-      });
-
-      if (!this.scene) {
-        this.scene = await this.engineService.loadScene({
-          config: this.connectionProps.config,
-          session: this.session,
-          sessionContinuation: this.connectionProps.sessionContinuation,
-          extension: this.extension,
-          name,
-          user,
-          client,
-        });
-
-        if (this.connectionProps?.config?.history?.previousState) {
-          this.setPreviousState(this.scene?.previousState);
-        }
-
-        this.setCharacterList();
-      }
-
-      if (
-        [ConnectionState.LOADING, ConnectionState.INACTIVE].includes(this.state)
-      ) {
-        this.state = ConnectionState.LOADED;
-      }
-    } catch (err) {
-      this.onError(err);
-    }
+    await this.ensureSessionToken({
+      beforeLoading: () => {
+        this.state = ConnectionState.ACTIVATING;
+      },
+    });
   }
 
   async ensureSessionToken(props?: { beforeLoading: () => void }) {
@@ -394,17 +372,14 @@ export class ConnectionService<
     }
   }
 
-  private setPreviousState(previousState: PreviousState) {
-    const { stateHolders = [] } = previousState || {};
-    stateHolders.forEach((stateHolder) => {
-      stateHolder.packets?.forEach((packet) =>
-        this.history.addOrUpdate({
-          grpcAudioPlayer: this.connectionProps.grpcAudioPlayer,
-          characters: this.eventFactory.getCharacters(),
-          packet: this.extension.convertPacketFromProto(packet),
-        }),
-      );
-    });
+  private setPreviousState(previousPackets: ProtoPacket[]) {
+    previousPackets.forEach((packet) =>
+      this.history.addOrUpdate({
+        grpcAudioPlayer: this.connectionProps.grpcAudioPlayer,
+        characters: this.eventFactory.getCharacters(),
+        packet: this.extension.convertPacketFromProto(packet),
+      }),
+    );
 
     const changed = this.history.get();
 
@@ -419,10 +394,28 @@ export class ConnectionService<
     }
   }
 
+  private releaseQueue() {
+    this.packetQueue.forEach((item: QueueItem<InworldPacketT>) =>
+      this.connection.write(item),
+    );
+
+    this.packetQueue = [];
+  }
+
+  private clearQueue() {
+    this.intervals.forEach((i: NodeJS.Timeout) => {
+      clearInterval(i);
+    });
+
+    this.intervals = [];
+    this.packetQueue = [];
+  }
+
   private initializeHandlers() {
     const {
       onError,
       onReady,
+      onWarning,
       onDisconnect,
       grpcAudioPlayer,
       webRtcLoopbackBiDiSession,
@@ -437,7 +430,7 @@ export class ConnectionService<
         webRtcLoopbackBiDiSession.getPlaybackLoopbackStream(),
       );
       this.state = ConnectionState.ACTIVE;
-      onReady?.();
+      await onReady?.();
     };
 
     this.onDisconnect = async () => {
@@ -447,6 +440,9 @@ export class ConnectionService<
     };
 
     this.onError = onError ?? ((event: Event | Error) => console.error(event));
+    this.onWarning =
+      onWarning ??
+      ((message: InworldPacketT) => console.warn(message.control.description));
 
     this.onMessage = async (packet: ProtoPacket) => {
       const { onMessage, grpcAudioPlayer } = this.connectionProps;
@@ -478,10 +474,8 @@ export class ConnectionService<
       // Send cancel response event in case of player talking.
       if (inworldPacket.isText() && inworldPacket.routing.source.isPlayer) {
         await this.interruptByPacket(inworldPacket);
-      }
-
-      // Play audio or silence.
-      if (inworldPacket.isAudio() || inworldPacket.isSilence()) {
+        // Play audio or silence.
+      } else if (inworldPacket.isAudio() || inworldPacket.isSilence()) {
         if (!this.cancelResponses[interactionId]) {
           grpcAudioPlayer.addToQueue({
             packet: inworldPacket,
@@ -500,11 +494,19 @@ export class ConnectionService<
             },
           });
         }
+        // Delete info about cancel responses on interaction end.
+      } else if (inworldPacket.isInteractionEnd()) {
+        delete this.cancelResponses[interactionId];
+      } else if (inworldPacket.isWarning()) {
+        this.onWarning(inworldPacket);
       }
 
-      // Delete info about cancel responses on interaction end.
-      if (inworldPacket.isInteractionEnd()) {
-        delete this.cancelResponses[interactionId];
+      if (packet.sessionControlResponse) {
+        if (packet.sessionControlResponse.loadedScene) {
+          this.setSceneFromProtoEvent(packet.sessionControlResponse);
+        } else if (packet.sessionControlResponse?.loadedCharacters) {
+          this.addCharactersToScene(packet.sessionControlResponse);
+        }
       }
 
       // Add packet to history.
@@ -554,7 +556,7 @@ export class ConnectionService<
         (packet: InworldPacketT) =>
           ({
             id: packet.routing.source.name,
-          } as Character),
+          }) as Character,
       );
 
       this.sendCancelResponses(
@@ -620,14 +622,6 @@ export class ConnectionService<
     }
   }
 
-  private clearQueue() {
-    this.intervals.forEach((i: NodeJS.Timeout) => {
-      clearInterval(i);
-    });
-
-    this.intervals = [];
-  }
-
   private getPacketsToSentOnOpen() {
     const packets: QueueItem<InworldPacketT>[] = [];
 
@@ -640,5 +634,57 @@ export class ConnectionService<
     }
 
     return packets;
+  }
+
+  private ensureCurrentCharacter() {
+    const factory = this.getEventFactory();
+    const currentCharacter = factory.getCurrentCharacter();
+    const sameCharacter = currentCharacter
+      ? this.scene.characters.find(
+          (c) => c.resourceName === currentCharacter?.resourceName,
+        )
+      : undefined;
+
+    if (!this.connectionProps.config.capabilities.multiAgent) {
+      factory.setCurrentCharacter(sameCharacter ?? this.scene.characters[0]);
+    }
+
+    factory.setCharacters(this.scene.characters);
+  }
+
+  private setSceneFromProtoEvent(proto: SessionControlResponseEvent) {
+    const name = this.nextSceneName || this.scene.name;
+
+    this.scene = Scene.fromProto({
+      name,
+      loadedScene: proto.loadedScene,
+      sessionHistory: proto.sessionHistory,
+    });
+
+    this.setNextSceneName(undefined);
+    this.connectionProps.extension?.afterLoadScene?.(proto);
+    this.ensureCurrentCharacter();
+  }
+
+  private addCharactersToScene(proto: SessionControlResponseEvent) {
+    const characters = proto.loadedCharacters.agents.map((c) =>
+      Character.fromProto(c),
+    );
+
+    const ids = this.scene.characters.reduce(
+      (acc: { [key: string]: boolean }, character) => {
+        acc[character.id] = true;
+        return acc;
+      },
+      {},
+    );
+
+    for (const character of characters) {
+      if (!ids[character.id]) {
+        this.scene.characters.push(character);
+      }
+    }
+
+    this.ensureCurrentCharacter();
   }
 }

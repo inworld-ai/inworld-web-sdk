@@ -7,7 +7,7 @@ import {
   OnPhomeneFn,
 } from '../../common/data_structures';
 import { interpolate } from '../../common/helpers';
-import { InworldPacket } from '../../entities/inworld_packet.entity';
+import { InworldPacket } from '../../entities/packets/inworld_packet.entity';
 
 interface AudioQueueItem<InworldPacketT> {
   packet: InworldPacketT;
