@@ -556,7 +556,7 @@ export class ConnectionService<
         (packet: InworldPacketT) =>
           ({
             id: packet.routing.source.name,
-          } as Character),
+          }) as Character,
       );
 
       this.sendCancelResponses(
