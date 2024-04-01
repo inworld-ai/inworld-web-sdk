@@ -3,7 +3,7 @@
 
 import { EmotionBehaviorCode } from '@inworld/web-core';
 
-import { ANIMATION_TYPE, EMOTIONS_BODY } from '../types/types';
+import { ANIMATION_TYPE, EMOTIONS_BODY, GENDER_TYPES } from '../types/types';
 
 export type RPMConfiguration = {
   rpm: RPMType;
@@ -28,6 +28,7 @@ export type BaseURIsType = {
 
 export type DefaultsType = {
   EMOTION: EmotionBehaviorCode;
+  GENDER: GENDER_TYPES;
   IDLE_ANIMATION: string;
   MODEL: string;
 };

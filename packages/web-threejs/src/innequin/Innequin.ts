@@ -45,7 +45,8 @@ export type InnequinProps = {
 // These variables are constants relating to the names within the 3D files
 // They can change occasionally and eventually these names will be standarized or
 // the names need to be externally passed in via the config variable.
-export const BODY_MATERIAL_NAME = 'T_pose_model_Mannequin_body';
+export const BODY_MATERIAL_NAME_MALE = 'T_pose_model_Mannequin_body';
+export const BODY_MATERIAL_NAME_FEMALE = 'T_pose_model_MannequinFemale_body';
 
 export const MESH_IDS: MESH_TYPE_ID[] = [
   { meshName: 'faceLayer_brows_geo', meshType: MESH_TYPES.BROW },
@@ -184,7 +185,9 @@ export class Innequin {
               : MATERIAL_TYPES.VISEME,
           baseURI:
             this.baseURI +
-            this.config.innequin.baseURIs.TEXTURES_FACIAL_EMOTIONS,
+            this.config.innequin.baseURIs.TEXTURES_FACIAL_EMOTIONS +
+            this.config.innequin.defaults.GENDER +
+            '/',
         });
       });
     });
@@ -370,15 +373,20 @@ export class Innequin {
   addMesh(mesh: SkinnedMesh, type: MESH_TYPES) {
     if (
       mesh.material &&
-      (mesh.material as MeshPhysicalMaterial).name === BODY_MATERIAL_NAME
+      ((mesh.material as MeshPhysicalMaterial).name ===
+        BODY_MATERIAL_NAME_MALE ||
+        (mesh.material as MeshPhysicalMaterial).name ===
+          BODY_MATERIAL_NAME_FEMALE)
     )
       this.modelMaterials[type] = mesh.material as MeshPhysicalMaterial;
     else {
       mesh.traverse((subMesh) => {
         if (
           (subMesh as SkinnedMesh).material &&
-          ((subMesh as SkinnedMesh).material as MeshPhysicalMaterial).name ===
-            BODY_MATERIAL_NAME
+          (((subMesh as SkinnedMesh).material as MeshPhysicalMaterial).name ===
+            BODY_MATERIAL_NAME_MALE ||
+            ((subMesh as SkinnedMesh).material as MeshPhysicalMaterial).name ===
+              BODY_MATERIAL_NAME_FEMALE)
         ) {
           this.modelMaterials[type] = (subMesh as SkinnedMesh)
             .material as MeshPhysicalMaterial;

@@ -7,6 +7,7 @@ import {
   ANIMATION_TYPE,
   ASSET_TYPE,
   EMOTIONS_BODY,
+  GENDER_TYPES,
   SkinType,
 } from '../types/types';
 
@@ -43,6 +44,7 @@ export type BaseURIsType = {
 export type DefaultsType = {
   INTRO_ANIMATION: string;
   EMOTION: EmotionBehaviorCode;
+  GENDER: GENDER_TYPES;
   MODEL: string;
   SKIN: string;
 };
