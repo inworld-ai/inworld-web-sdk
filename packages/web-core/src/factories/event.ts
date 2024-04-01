@@ -218,7 +218,7 @@ export class EventFactory {
       (name) =>
         ({
           name,
-        } as LoadCharactersCharacterName),
+        }) as LoadCharactersCharacterName,
     );
 
     const mutation = { loadCharacters: { name } } as MutationEvent;
