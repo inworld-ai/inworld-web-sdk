@@ -34,7 +34,7 @@ export class AudioEvent {
           ({
             phoneme: info.phoneme,
             startOffsetS: parseFloat(info.startOffset),
-          }) as AdditionalPhonemeInfo,
+          } as AdditionalPhonemeInfo),
       ),
     });
   }

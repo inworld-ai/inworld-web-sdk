@@ -52,7 +52,7 @@ export class PreviousDialog {
         ({
           actor: DialogActor.toProto(item.talker),
           text: item.phrase,
-        }) as DialogHistoryHistoryItem,
+        } as DialogHistoryHistoryItem),
     );
 
     return { history };

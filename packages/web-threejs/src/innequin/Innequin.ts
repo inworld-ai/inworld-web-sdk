@@ -124,6 +124,12 @@ export class Innequin {
     return this.getGLTF().scene;
   }
 
+  hasGender(material: MeshPhysicalMaterial) {
+    return [BODY_MATERIAL_NAME_MALE, BODY_MATERIAL_NAME_FEMALE].includes(
+      material.name,
+    );
+  }
+
   loadAnimations() {
     for (const animationName in this.config.innequin.animations) {
       const animation: InnequinAnimationType =
@@ -371,22 +377,15 @@ export class Innequin {
 
   // Helper Function
   addMesh(mesh: SkinnedMesh, type: MESH_TYPES) {
-    if (
-      mesh.material &&
-      ((mesh.material as MeshPhysicalMaterial).name ===
-        BODY_MATERIAL_NAME_MALE ||
-        (mesh.material as MeshPhysicalMaterial).name ===
-          BODY_MATERIAL_NAME_FEMALE)
-    )
+    if (mesh.material && this.hasGender(mesh.material as MeshPhysicalMaterial))
       this.modelMaterials[type] = mesh.material as MeshPhysicalMaterial;
     else {
       mesh.traverse((subMesh) => {
         if (
           (subMesh as SkinnedMesh).material &&
-          (((subMesh as SkinnedMesh).material as MeshPhysicalMaterial).name ===
-            BODY_MATERIAL_NAME_MALE ||
-            ((subMesh as SkinnedMesh).material as MeshPhysicalMaterial).name ===
-              BODY_MATERIAL_NAME_FEMALE)
+          this.hasGender(
+            (subMesh as SkinnedMesh).material as MeshPhysicalMaterial,
+          )
         ) {
           this.modelMaterials[type] = (subMesh as SkinnedMesh)
             .material as MeshPhysicalMaterial;
