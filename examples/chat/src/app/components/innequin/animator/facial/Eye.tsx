@@ -69,7 +69,7 @@ export function Eye(props: EyeProps) {
   useEffect(() => {
     if (props.isReady && !isBlinking) {
       blinkIntervalRef.current = setTimeout(() => {
-        setIsBlinkng(true);
+          setIsBlinkng(true);
       }, randomInt(BLINK_INTERVAL_MIN_MS, BLINK_INTERVAL_MAX_MS));
       return () => {
         clearTimeout(blinkIntervalRef.current);
