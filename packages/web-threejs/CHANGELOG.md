@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Added
+
+- Add female Quinn to Three.js library
+
 ## [1.3.0] - 2024-03-18
 
 ### Changed
