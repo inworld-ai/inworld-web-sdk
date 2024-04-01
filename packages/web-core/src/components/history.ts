@@ -130,7 +130,9 @@ export class InworldHistory<
       (acc, character) => {
         acc[character.id] = character;
         return acc;
-    }, {} as { [key: string]: Character });
+      },
+      {} as { [key: string]: Character },
+    );
     const itemCharacters = [];
 
     if (packet.routing.source.isCharacter) {
