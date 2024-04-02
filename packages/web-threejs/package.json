@@ -1,6 +1,6 @@
 {
   "name": "@inworld/web-threejs",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "license": "SEE LICENSE IN LICENSE.md",
   "description": "The Inworld Three.js library for the Web SDK. Includes Innequin, and Ready Player Me avatars ready to be used in a Three.js scene.",
   "main": "build/src/index.js",
