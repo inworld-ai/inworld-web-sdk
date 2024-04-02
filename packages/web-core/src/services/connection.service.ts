@@ -70,6 +70,7 @@ export class ConnectionService<
   private ttsPlaybackAction = TtsPlaybackAction.UNKNOWN;
 
   private scene: Scene | undefined;
+  private sceneIsLoaded = false;
   private nextSceneName: string | undefined;
   private session: SessionToken;
   private connection: Connection<InworldPacketT, HistoryItemT>;
@@ -213,20 +214,25 @@ export class ConnectionService<
       const packets = this.getPacketsToSentOnOpen();
 
       this.packetQueue = [...packets, ...this.packetQueue];
-      const sessionProto = await this.connection.openSession({
-        client,
-        name: this.scene.name,
-        sessionContinuation,
-        user,
-        extension: this.extension,
-        session: this.session,
-        convertPacketFromProto: this.extension.convertPacketFromProto,
-      });
 
-      this.setSceneFromProtoEvent(sessionProto);
+      if (this.sceneIsLoaded) {
+        await this.connection.reopenSession(this.session);
+      } else {
+        const sessionProto = await this.connection.openSession({
+          client,
+          name: this.scene.name,
+          sessionContinuation,
+          user,
+          extension: this.extension,
+          session: this.session,
+          convertPacketFromProto: this.extension.convertPacketFromProto,
+        });
 
-      if (this.scene.history?.length) {
-        this.setPreviousState(this.scene.history);
+        this.setSceneFromProtoEvent(sessionProto);
+
+        if (this.scene.history?.length) {
+          this.setPreviousState(this.scene.history);
+        }
       }
 
       await this.onReady?.();
