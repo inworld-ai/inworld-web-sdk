@@ -589,15 +589,6 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-2.0.2.tgz#d9fae00a2d5cb40f92cfe64b47ad749fbc38f917"
   integrity sha512-6EwiSjwWYP7pTckG6I5eyFANjPhmPjUX9JRLUSfNPC7FX7zK9gyZAfUEaECL6ALTpGX5AjnBq3C9XmVWPitNpw==
 
-"@inworld/web-core@2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@inworld/web-core/-/web-core-2.0.1.tgz#0dba2f5d2e8f63f8b725fec06835c302e7521990"
-  integrity sha512-l16S3Wgj5QDx1pVn0lhv0hM4iyJ04MvRI5taTdWDR9187MQ22mJoiJ/iCfKKX7czZn4+hVGuFOdaACeWEyqgCg==
-  dependencies:
-    base64-arraybuffer "^1.0.2"
-    defer-promise "^3.0.0"
-    uuid "^9.0.0"
-
 "@inworld/web-core@2.2.0":
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@inworld/web-core/-/web-core-2.2.0.tgz#b02c33822092506127d09f077d65f844a8b66c1f"
@@ -607,14 +598,23 @@
     defer-promise "^3.0.0"
     uuid "^9.0.0"
 
-"@inworld/web-threejs@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@inworld/web-threejs/-/web-threejs-1.0.0.tgz#7675c23c82ba7110dc2a2c09ebca249f22092fe4"
-  integrity sha512-sMXgVUce7C0l0iDNI96QXOGlQfLgEHrsv3HEOUSN1zq+x67YyB6/V3u0fdE4aMPl8x809EVU1nhAEARpRC/X1A==
+"@inworld/web-core@2.2.2":
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/@inworld/web-core/-/web-core-2.2.2.tgz#dfffc2f5cf3531ba624522eb5084b966322ec814"
+  integrity sha512-AIzHBTHIW175VWlR5EFljurYKw9uKteDcUapNjG5aA98Pj+6TkXrqIVgRxYfN/A7rmRXyEgRIeGMjTJG2uQAOw==
   dependencies:
-    "@inworld/web-core" "2.0.1"
-    three "^0.157.0"
-    three-stdlib "^2.27.2"
+    base64-arraybuffer "^1.0.2"
+    defer-promise "^3.0.0"
+    uuid "^9.0.0"
+
+"@inworld/web-threejs@1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@inworld/web-threejs/-/web-threejs-1.4.0.tgz#6e60d590f47b4afe5ad711aadba85fdf97545e92"
+  integrity sha512-OPNaRmiS218v2ZzmVOwBhNEU4dY+qtBN55LbGF9nI/zui0EjemGPCiqEfHSMtWGjU7fb8yaqpvlyIt0Olg8rsA==
+  dependencies:
+    "@inworld/web-core" "2.2.2"
+    three "^0.160.1"
+    three-stdlib "^2.29.4"
     uuid "^9.0.1"
 
 "@jridgewell/gen-mapping@^0.3.0", "@jridgewell/gen-mapping@^0.3.2":
@@ -3304,7 +3304,7 @@ three-mesh-bvh@^0.7.0:
   resolved "https://registry.yarnpkg.com/three-mesh-bvh/-/three-mesh-bvh-0.7.1.tgz#c11461b73e71c143717f95e0a8e6c9721ad0de77"
   integrity sha512-63xvjnmK3FpA41klHfVvTMi2JRFdKeu3b4STBcLvGyDMYRpkBIyJ2d77CnNvKBZl9bed4sdEyrqE3AOsGorjUA==
 
-three-stdlib@^2.23.4, three-stdlib@^2.27.2, three-stdlib@^2.29.4:
+three-stdlib@^2.23.4, three-stdlib@^2.29.4:
   version "2.29.4"
   resolved "https://registry.yarnpkg.com/three-stdlib/-/three-stdlib-2.29.4.tgz#6e8741f6a2d435d15ed73f3a14dd149660d4ce51"
   integrity sha512-XNzGCrz/uAk9XoLwd35eN7dQyI4ggXZTeqjcN034YdYBpBlNO9kmLHehl/0Nw9jCelblB7jla+unHAOIyLyV6Q==
@@ -3315,11 +3315,6 @@ three-stdlib@^2.23.4, three-stdlib@^2.27.2, three-stdlib@^2.29.4:
     draco3d "^1.4.1"
     fflate "^0.6.9"
     potpack "^1.0.1"
-
-three@^0.157.0:
-  version "0.157.0"
-  resolved "https://registry.yarnpkg.com/three/-/three-0.157.0.tgz#5baac531941fc8c4ca62d45ee4265652e03318d0"
-  integrity sha512-CeAwQrf4x3z0/e+MC4F+nXLW5t0gh3pw+L6CCBqpHvOq3bGYIgRYub7Pv0j/9wR+d++OiEglyZzWyuSYbwWGOA==
 
 three@^0.160.1:
   version "0.160.1"
