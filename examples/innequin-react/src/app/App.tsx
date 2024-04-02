@@ -55,7 +55,7 @@ function App() {
           direction="row"
         >
           <Typography className="textLabel">
-            Inworld Web SDK - Three.js | Innequin React ver 1.0.0{' '}
+            Inworld Web SDK - Three.js | Innequin React ver 1.4.0{' '}
           </Typography>
           <a href="https://www.inworld.ai">
             <img src="/logo-01.svg" color="white" width="120" height="30" />

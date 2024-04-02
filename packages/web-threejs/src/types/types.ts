@@ -63,6 +63,11 @@ export enum FACE_TEXTURE_TYPES {
   VISEMES = 'visemes',
 }
 
+export enum GENDER_TYPES {
+  FEMALE = 'female',
+  MALE = 'male',
+}
+
 export enum MATERIAL_TYPES {
   BODY = 'body',
   FEATURE = 'feature',
