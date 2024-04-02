@@ -76,7 +76,14 @@ describe('open', () => {
         session,
         convertPacketFromProto,
       }),
-      new Promise(emitSessionControlResponseEvent(server)),
+      setTimeout(
+        () =>
+          setTimeout(
+            () => new Promise(emitSessionControlResponseEvent(server)),
+            0,
+          ),
+        0,
+      ),
     ]);
 
     server.send({ result: textMessage });
@@ -100,7 +107,14 @@ describe('open', () => {
         session,
         convertPacketFromProto,
       }),
-      new Promise(emitSessionControlResponseEvent(server)),
+      setTimeout(
+        () =>
+          setTimeout(
+            () => new Promise(emitSessionControlResponseEvent(server)),
+            0,
+          ),
+        0,
+      ),
     ]);
 
     server.send({ error: 'Error' });
@@ -130,7 +144,14 @@ describe('open', () => {
             session,
             convertPacketFromProto,
           }),
-          new Promise(emitSessionControlResponseEvent(server)),
+          setTimeout(
+            () =>
+              setTimeout(
+                () => new Promise(emitSessionControlResponseEvent(server)),
+                0,
+              ),
+            0,
+          ),
         ]);
       }),
       // WebSocket onerror event gets called with an event of type error and not an error
@@ -162,7 +183,14 @@ describe('open', () => {
         session,
         convertPacketFromProto,
       }),
-      new Promise(emitSessionControlResponseEvent(server)),
+      setTimeout(
+        () =>
+          setTimeout(
+            () => new Promise(emitSessionControlResponseEvent(server)),
+            0,
+          ),
+        0,
+      ),
     ]);
 
     await server.connected;
@@ -197,7 +225,14 @@ describe('open', () => {
         convertPacketFromProto,
         client: sceneClient,
       }),
-      new Promise(emitSessionControlResponseEvent(server)),
+      setTimeout(
+        () =>
+          setTimeout(
+            () => new Promise(emitSessionControlResponseEvent(server)),
+            0,
+          ),
+        0,
+      ),
     ]);
 
     await server.connected;
@@ -229,7 +264,14 @@ describe('open', () => {
         session,
         convertPacketFromProto,
       }),
-      new Promise(emitSessionControlResponseEvent(server)),
+      setTimeout(
+        () =>
+          setTimeout(
+            () => new Promise(emitSessionControlResponseEvent(server)),
+            0,
+          ),
+        0,
+      ),
     ]);
 
     await server.connected;
@@ -262,7 +304,7 @@ describe('open', () => {
         session,
         convertPacketFromProto,
       }),
-      new Promise(emitSessionControlResponseEvent(server)),
+      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
 
     await server.connected;
@@ -292,7 +334,7 @@ describe('open', () => {
         session,
         convertPacketFromProto,
       }),
-      new Promise(emitSessionControlResponseEvent(server)),
+      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
 
     await server.connected;
@@ -321,7 +363,7 @@ describe('open', () => {
         session,
         convertPacketFromProto,
       }),
-      new Promise(emitSessionControlResponseEvent(server)),
+      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
 
     await server.connected;
@@ -355,7 +397,7 @@ describe('open', () => {
         session,
         convertPacketFromProto,
       }),
-      new Promise(emitSessionControlResponseEvent(server)),
+      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
 
     await server.connected;
@@ -387,7 +429,7 @@ describe('open', () => {
         session,
         convertPacketFromProto,
       }),
-      new Promise(emitSessionControlResponseEvent(server)),
+      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
 
     await server.connected;
@@ -421,7 +463,7 @@ describe('open', () => {
         session,
         convertPacketFromProto,
       }),
-      new Promise(emitSessionControlResponseEvent(server)),
+      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
 
     await server.connected;
@@ -451,8 +493,8 @@ describe('open', () => {
         session,
         convertPacketFromProto,
       }),
-      new Promise(emitSessionControlResponseEvent(server)),
-      new Promise(emitHistoryResponseEvent(server)),
+      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitHistoryResponseEvent(server)), 0),
     ]);
 
     await server.connected;
@@ -480,7 +522,7 @@ describe('open', () => {
         session,
         convertPacketFromProto,
       }),
-      new Promise(emitSessionControlResponseEvent(server)),
+      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
       new Promise(emitHistoryResponseEvent(server)),
     ]);
 
@@ -510,7 +552,7 @@ describe('open', () => {
         session,
         convertPacketFromProto,
       }),
-      new Promise(emitSessionControlResponseEvent(server)),
+      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
 
     await server.connected;
@@ -536,7 +578,7 @@ describe('open', () => {
         session,
         convertPacketFromProto,
       }),
-      new Promise(emitSessionControlResponseEvent(server)),
+      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
 
     await server.connected;
@@ -565,12 +607,143 @@ describe('open', () => {
           session,
           convertPacketFromProto,
         }),
-        new Promise((resolve: any) => {
-          server.send('');
-          resolve(true);
-        }),
+        setTimeout(
+          () =>
+            new Promise((resolve: any) => {
+              server.send('');
+              resolve(true);
+            }),
+          0,
+        ),
       ]),
     ).rejects.toEqual(error);
+  });
+});
+
+describe('reopen', () => {
+  test('should call onMessage', async () => {
+    const messages: ProtoPacket[] = [];
+    const ws = new WebSocketConnection({
+      config: {
+        connection: { gateway: { hostname: HOSTNAME } },
+        capabilities: capabilitiesProps,
+      },
+      onMessage: (packet: ProtoPacket) => {
+        messages.push(packet);
+      },
+    });
+
+    await Promise.all([
+      ws.reopenSession(session),
+      setTimeout(
+        () =>
+          setTimeout(
+            () => new Promise(emitSessionControlResponseEvent(server)),
+            0,
+          ),
+        0,
+      ),
+    ]);
+
+    server.send({ result: textMessage });
+    server.send({ result: textMessage });
+
+    expect(messages).toEqual([textMessage, textMessage]);
+  });
+
+  test('should call onError in case of error in message', async () => {
+    const ws = new WebSocketConnection({
+      config: {
+        connection: { gateway: { hostname: HOSTNAME } },
+        capabilities: capabilitiesProps,
+      },
+      onError,
+    });
+
+    await Promise.all([
+      ws.reopenSession(session),
+      setTimeout(
+        () =>
+          setTimeout(
+            () => new Promise(emitSessionControlResponseEvent(server)),
+            0,
+          ),
+        0,
+      ),
+    ]);
+
+    server.send({ error: 'Error' });
+
+    expect(onError).toHaveBeenCalledTimes(1);
+  });
+
+  test('should call onError in case of exception', async () => {
+    const HOSTNAME = 'localhost:1235';
+    new WS(`ws://${HOSTNAME}/v1/session/open`, {
+      verifyClient: () => false,
+    });
+    const ws = new WebSocketConnection({
+      config: {
+        connection: { gateway: { hostname: HOSTNAME } },
+        capabilities: capabilitiesProps,
+      },
+      onError,
+    });
+
+    await expect(
+      new Promise(async (_, reject) => {
+        onError.mockImplementation(reject);
+        await Promise.all([
+          ws.reopenSession(session),
+          setTimeout(
+            () =>
+              setTimeout(
+                () => new Promise(emitSessionControlResponseEvent(server)),
+                0,
+              ),
+            0,
+          ),
+        ]);
+      }),
+      // WebSocket onerror event gets called with an event of type error and not an error
+    ).rejects.toEqual(expect.objectContaining({ type: 'error' }));
+  });
+
+  test('should call onDisconnect', async () => {
+    const HOSTNAME = 'localhost:1235';
+
+    const server = new WS(`wss://${HOSTNAME}/v1/session/open`, {
+      jsonProtocol: true,
+    });
+
+    server.on('connection', (socket) => {
+      socket.close({ wasClean: false, code: 1003, reason: 'NOPE' });
+    });
+
+    const ws = new WebSocketConnection({
+      config: {
+        connection: { gateway: { hostname: HOSTNAME, ssl: true } },
+        capabilities: capabilitiesProps,
+      },
+      onDisconnect,
+    });
+
+    await Promise.all([
+      ws.reopenSession(session),
+      setTimeout(
+        () =>
+          setTimeout(
+            () => new Promise(emitSessionControlResponseEvent(server)),
+            0,
+          ),
+        0,
+      ),
+    ]);
+
+    await server.connected;
+    await server.closed;
+
+    expect(onDisconnect).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -596,7 +769,10 @@ describe('close', () => {
           session,
           convertPacketFromProto,
         }),
-        new Promise(emitSessionControlResponseEvent(server)),
+        setTimeout(
+          () => new Promise(emitSessionControlResponseEvent(server)),
+          0,
+        ),
       ]);
 
       ws.write({
@@ -628,7 +804,10 @@ describe('close', () => {
           session,
           convertPacketFromProto,
         }),
-        new Promise(emitSessionControlResponseEvent(server)),
+        setTimeout(
+          () => new Promise(emitSessionControlResponseEvent(server)),
+          0,
+        ),
       ]);
       ws.write({
         getPacket: () => textMessage,

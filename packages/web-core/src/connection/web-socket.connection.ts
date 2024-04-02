@@ -56,6 +56,7 @@ export interface Connection<InworldPacketT, HistoryItemT> {
   openSession(
     props: SessionProps<InworldPacketT, HistoryItemT>,
   ): Promise<SessionControlResponseEvent>;
+  reopenSession(session: SessionToken): Promise<void>;
   write(item: QueueItem<InworldPacketT>): void;
 }
 
@@ -76,13 +77,49 @@ export class WebSocketConnection<
     return this.ws?.readyState === WebSocket.OPEN;
   }
 
-  async openSession(props: SessionProps<InworldPacketT, HistoryItemT>) {
+  async openSession(
+    props: SessionProps<InworldPacketT, HistoryItemT>,
+  ): Promise<SessionControlResponseEvent> {
     this.convertPacketFromProto = props.convertPacketFromProto;
-    const [ws, sceneProto] = await this.createWebSocket(props);
+    const ws = await this.combineWebSocket(props.session);
+
+    const finalPackets = this.getPackets(props);
+    const needHistory =
+      this.connectionProps.config.history?.previousState &&
+      !!finalPackets.find((p) => p.sessionControl?.continuation);
+    const write = this.write.bind({
+      ws,
+      convertPacketFromProto: props.convertPacketFromProto,
+    });
+
+    ws.addEventListener('open', () => {
+      for (const packet of finalPackets) {
+        write({ getPacket: () => packet });
+      }
+    });
 
     this.ws = ws;
 
-    return sceneProto;
+    return new Promise((resolve, reject) =>
+      ws.addEventListener(
+        'message',
+        this.onLoadScene({
+          needHistory,
+          ws,
+          write,
+          resolve,
+          reject,
+        }),
+      ),
+    );
+  }
+
+  async reopenSession(session: SessionToken) {
+    const ws = await this.combineWebSocket(session);
+
+    ws.addEventListener('message', this.onMessage.bind(this));
+
+    this.ws = ws;
   }
 
   close() {
@@ -112,11 +149,8 @@ export class WebSocketConnection<
     item.afterWriting?.(inworldPacket);
   }
 
-  private async createWebSocket(
-    props: SessionProps<InworldPacketT, HistoryItemT>,
-  ): Promise<[WebSocket, SessionControlResponseEvent]> {
-    const { session } = props;
-    const { config, onDisconnect, onError } = this.connectionProps;
+  private async combineWebSocket(session: SessionToken) {
+    const { onDisconnect, onError } = this.connectionProps;
     const { hostname, ssl } = this.connectionProps.config.connection.gateway;
 
     const url = `${
@@ -133,33 +167,7 @@ export class WebSocketConnection<
       ws.addEventListener('error', onError);
     }
 
-    const finalPackets = this.getPackets(props);
-    const needHistory =
-      config.history?.previousState &&
-      !!finalPackets.find((p) => p.sessionControl?.continuation);
-    const write = this.write.bind({
-      ws,
-      convertPacketFromProto: props.convertPacketFromProto,
-    });
-
-    ws.addEventListener('open', () => {
-      for (const packet of finalPackets) {
-        write({ getPacket: () => packet });
-      }
-    });
-
-    return new Promise((resolve, reject) =>
-      ws.addEventListener(
-        'message',
-        this.onLoadScene({
-          needHistory,
-          ws,
-          write,
-          resolve,
-          reject,
-        }),
-      ),
-    );
+    return ws;
   }
 
   private parseEvent(event: MessageEvent) {
@@ -190,7 +198,7 @@ export class WebSocketConnection<
     needHistory: boolean;
     ws: WebSocket;
     write: (item: QueueItem<InworldPacketT>) => void;
-    resolve: (value: [WebSocket, SessionControlResponseEvent]) => void;
+    resolve: (value: SessionControlResponseEvent) => void;
     reject: (reason: Error) => void;
   }) {
     const { parseEvent } = this;
@@ -221,13 +229,10 @@ export class WebSocketConnection<
           ws.removeEventListener('message', this);
           ws.addEventListener('message', onMessage);
 
-          resolve([
-            ws,
-            {
-              loadedScene,
-              sessionHistory: packet?.sessionControlResponse?.sessionHistory,
-            } as SessionControlResponseEvent,
-          ]);
+          resolve({
+            loadedScene,
+            sessionHistory: packet?.sessionControlResponse?.sessionHistory,
+          } as SessionControlResponseEvent);
         }
       }
     };
