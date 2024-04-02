@@ -607,10 +607,10 @@
     defer-promise "^3.0.0"
     uuid "^9.0.0"
 
-"@inworld/web-threejs@1.3.0":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@inworld/web-threejs/-/web-threejs-1.3.0.tgz#ed7b804b6f629c51130283223afc4b15603e4277"
-  integrity sha512-7ylP95tNmjLaZ/fw2buO0VK3bbV7uNqPb7nLh+xzXCUQ5udZY6N66XN3HKncNKN4VaVqJcAipuWrhweu/s1q9w==
+"@inworld/web-threejs@1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@inworld/web-threejs/-/web-threejs-1.4.0.tgz#6e60d590f47b4afe5ad711aadba85fdf97545e92"
+  integrity sha512-OPNaRmiS218v2ZzmVOwBhNEU4dY+qtBN55LbGF9nI/zui0EjemGPCiqEfHSMtWGjU7fb8yaqpvlyIt0Olg8rsA==
   dependencies:
     "@inworld/web-core" "2.2.2"
     three "^0.160.1"
