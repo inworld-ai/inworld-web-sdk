@@ -127,8 +127,15 @@ const incomingTextPacket = new InworldPacket({
 
 const createHistoryWithPacket = (
   packet: InworldPacket,
-  extension?: Extension<InworldPacket, ExtendedHistoryItem>,
-  user?: User,
+  {
+    fromHistory,
+    extension,
+    user,
+  }: {
+    fromHistory?: boolean;
+    extension?: Extension<InworldPacket, ExtendedHistoryItem>;
+    user?: User;
+  } = {},
 ) => {
   const history = new InworldHistory({
     ...(extension && { extension }),
@@ -136,7 +143,7 @@ const createHistoryWithPacket = (
     scene: SCENE,
   });
 
-  history.addOrUpdate({ characters, grpcAudioPlayer, packet });
+  history.addOrUpdate({ characters, grpcAudioPlayer, packet, fromHistory });
 
   return history;
 };
@@ -149,7 +156,16 @@ test('should be empty by default', () => {
 
 describe('text', () => {
   describe('addOrUpdate', () => {
-    test('should add packet to history', () => {
+    test('should add runtime packet to history', () => {
+      const history = createHistoryWithPacket(textPacket);
+      const item = history.get()[0] as HistoryItemActor;
+
+      expect(history.get().length).toEqual(1);
+      expect(item.fromHistory).toEqual(false);
+      expect(item.character!.id).toEqual(characters[0].id);
+    });
+
+    test('should add historical packet to history', () => {
       const history = createHistoryWithPacket(textPacket);
       const item = history.get()[0] as HistoryItemActor;
 
@@ -198,7 +214,9 @@ describe('text', () => {
 
     test('should convert packet to extended one', () => {
       const historyItem = jest.fn();
-      const history = createHistoryWithPacket(textPacket, { historyItem });
+      const history = createHistoryWithPacket(textPacket, {
+        extension: { historyItem },
+      });
       const item = history.get()[0] as HistoryItemActor;
 
       expect(history.get().length).toEqual(1);
@@ -357,7 +375,7 @@ describe('text', () => {
 
     describe('text', () => {
       test('should return transcript for provided user name', () => {
-        const history = createHistoryWithPacket(textPacket, undefined, user);
+        const history = createHistoryWithPacket(textPacket, { user });
 
         history.addOrUpdate({
           characters,
