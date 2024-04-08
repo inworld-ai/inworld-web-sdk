@@ -126,10 +126,13 @@ export class InworldHistory<
     const utteranceId = packet.packetId.utteranceId;
     const interactionId = packet.packetId.interactionId;
 
-    const byId = characters.reduce((acc, character) => {
-      acc[character.id] = character;
-      return acc;
-    }, {} as { [key: string]: Character });
+    const byId = characters.reduce(
+      (acc, character) => {
+        acc[character.id] = character;
+        return acc;
+      },
+      {} as { [key: string]: Character },
+    );
     const itemCharacters = [];
 
     if (packet.routing.source.isCharacter) {
