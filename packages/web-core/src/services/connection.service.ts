@@ -235,8 +235,8 @@ export class ConnectionService<
         }
       }
 
-      await this.onReady?.();
       this.releaseQueue();
+      await this.onReady?.();
       this.scheduleDisconnect();
     } catch (err) {
       this.onError(err);
@@ -418,25 +418,11 @@ export class ConnectionService<
   }
 
   private initializeHandlers() {
-    const {
-      onError,
-      onReady,
-      onWarning,
-      onDisconnect,
-      grpcAudioPlayer,
-      webRtcLoopbackBiDiSession,
-    } = this.connectionProps;
+    const { onError, onReady, onWarning, onDisconnect } = this.connectionProps;
 
     this.onReady = async () => {
-      await webRtcLoopbackBiDiSession.startSession(
-        new MediaStream(),
-        grpcAudioPlayer.getPlaybackStream(),
-      );
-      this.player.setStream(
-        webRtcLoopbackBiDiSession.getPlaybackLoopbackStream(),
-      );
       this.state = ConnectionState.ACTIVE;
-      await onReady?.();
+      onReady?.();
     };
 
     this.onDisconnect = async () => {
@@ -524,17 +510,25 @@ export class ConnectionService<
   }
 
   private initializeConnection() {
-    const { config } = this.connectionProps;
+    const { config, webRtcLoopbackBiDiSession, grpcAudioPlayer } =
+      this.connectionProps;
 
-    const props = {
+    this.connection = new WebSocketConnection({
       config,
       onDisconnect: this.onDisconnect,
-      onReady: this.onReady,
+      onReady: async () => {
+        await webRtcLoopbackBiDiSession.startSession(
+          new MediaStream(),
+          grpcAudioPlayer.getPlaybackStream(),
+        );
+
+        this.player.setStream(
+          webRtcLoopbackBiDiSession.getPlaybackLoopbackStream(),
+        );
+      },
       onError: this.onError,
       onMessage: this.onMessage,
-    };
-
-    this.connection = new WebSocketConnection(props);
+    });
   }
 
   private initializeExtension() {
@@ -562,7 +556,7 @@ export class ConnectionService<
         (packet: InworldPacketT) =>
           ({
             id: packet.routing.source.name,
-          } as Character),
+          }) as Character,
       );
 
       this.sendCancelResponses(
