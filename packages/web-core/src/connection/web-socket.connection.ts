@@ -40,6 +40,7 @@ interface SessionProps<InworldPacketT, HistoryItemT> {
 interface ConnectionProps {
   config?: InternalClientConfiguration;
   onDisconnect?: () => Awaitable<void>;
+  onReady?: () => Awaitable<void>;
   onError?: (err: Event | Error) => Awaitable<void>;
   onMessage?: (packet: ProtoPacket) => Awaitable<void>;
 }
@@ -96,6 +97,8 @@ export class WebSocketConnection<
       for (const packet of finalPackets) {
         write({ getPacket: () => packet });
       }
+
+      this.connectionProps.onReady?.();
     });
 
     this.ws = ws;
