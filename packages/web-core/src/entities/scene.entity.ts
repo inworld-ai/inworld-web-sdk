@@ -1,7 +1,6 @@
 import {
   ActorType,
   Agent,
-  ControlEventAction,
   InworldPacket as ProtoPacket,
   LoadedScene,
   SessionHistoryResponse,
@@ -70,26 +69,6 @@ export class Scene {
         },
         [],
       ) ?? [];
-
-    // This is to ensure that the scene is in a consistent state.
-    // Interaction end means that all historical interactions are finished.
-    if (
-      history.length &&
-      history[history.length - 1].control?.action !==
-        ControlEventAction.INTERACTION_END
-    ) {
-      const lastPacket = history[history.length - 1];
-      history.push({
-        packetId: {
-          interactionId: lastPacket.packetId?.interactionId,
-        },
-        control: {
-          action: ControlEventAction.INTERACTION_END,
-        },
-        routing: { ...lastPacket.routing },
-        timestamp: lastPacket.timestamp,
-      });
-    }
 
     return new Scene({
       name,

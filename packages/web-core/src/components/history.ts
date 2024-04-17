@@ -13,6 +13,7 @@ interface InworldHistoryAddProps<InworldPacketT> {
   grpcAudioPlayer: GrpcAudioPlayback;
   packet: InworldPacketT;
   outgoing?: boolean;
+  fromHistory?: boolean;
 }
 
 export enum CHAT_HISTORY_TYPE {
@@ -30,6 +31,7 @@ export interface HistoryItemBase {
   interactionId?: string;
   source: Actor;
   type: CHAT_HISTORY_TYPE;
+  fromHistory?: boolean;
 }
 
 export interface HistoryItemActor extends HistoryItemBase {
@@ -119,6 +121,7 @@ export class InworldHistory<
     grpcAudioPlayer,
     packet,
     outgoing,
+    fromHistory = false,
   }: InworldHistoryAddProps<InworldPacketT>) {
     let historyItem: HistoryItem | undefined;
     let queueItem: HistoryItem | undefined;
@@ -154,6 +157,7 @@ export class InworldHistory<
           ...this.combineTextItem(packet),
           character: itemCharacters[0],
           characters: itemCharacters,
+          fromHistory,
         };
 
         if (grpcAudioPlayer.hasPacketInQueue({ utteranceId })) {
@@ -164,11 +168,10 @@ export class InworldHistory<
         break;
 
       case packet.isNarratedAction():
-        const actionItem = this.combineNarratedActionItem(
-          packet,
-          itemCharacters,
-          this.user,
-        );
+        const actionItem = {
+          ...this.combineNarratedActionItem(packet, itemCharacters, this.user),
+          fromHistory,
+        };
 
         if (
           grpcAudioPlayer.isCurrentPacket({ interactionId }) ||
@@ -181,7 +184,10 @@ export class InworldHistory<
         break;
 
       case packet.isTrigger():
-        historyItem = this.combineTriggerItem(packet, outgoing);
+        historyItem = {
+          ...this.combineTriggerItem(packet, outgoing),
+          fromHistory,
+        };
         break;
 
       case packet.isInteractionEnd():

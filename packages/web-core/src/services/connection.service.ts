@@ -384,6 +384,7 @@ export class ConnectionService<
         grpcAudioPlayer: this.connectionProps.grpcAudioPlayer,
         characters: this.eventFactory.getCharacters(),
         packet: this.extension.convertPacketFromProto(packet),
+        fromHistory: true,
       }),
     );
 

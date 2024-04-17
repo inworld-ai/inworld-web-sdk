@@ -576,6 +576,7 @@ describe('send', () => {
             scene: SCENE,
             text: textEvent.text.text,
             type: CHAT_HISTORY_TYPE.ACTOR,
+            fromHistory: false,
           },
         ]);
       },
