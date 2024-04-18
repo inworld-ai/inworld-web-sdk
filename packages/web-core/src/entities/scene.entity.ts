@@ -53,12 +53,24 @@ export class Scene {
                         name: item.agent?.agentId,
                       }),
                     },
-                    target: {
-                      ...packet.routing.target,
-                      ...(packet.routing.target.type === ActorType.AGENT && {
-                        name: item.agent?.agentId,
+                    ...(packet.routing.target && {
+                      target: {
+                        ...packet.routing.target,
+                        ...(packet.routing.target.type === ActorType.AGENT && {
+                          name: item.agent?.agentId,
+                        }),
+                      },
+                    }),
+                    ...(packet.routing.targets?.length && {
+                      targets: packet.routing.targets.map((target) => {
+                        return {
+                          ...target,
+                          ...(target.type === ActorType.AGENT && {
+                            name: item.agent?.agentId,
+                          }),
+                        };
                       }),
-                    },
+                    }),
                   },
                 };
               }),
