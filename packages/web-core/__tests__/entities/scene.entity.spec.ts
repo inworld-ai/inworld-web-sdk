@@ -32,9 +32,11 @@ test('should convert proto to scene', () => {
           packets: [
             {
               routing: {
-                target: {
-                  type: ActorType.AGENT,
-                },
+                targets: [
+                  {
+                    type: ActorType.AGENT,
+                  },
+                ],
                 source: {
                   type: ActorType.PLAYER,
                 },
