@@ -155,7 +155,7 @@ export class GrpcAudioPlayback<
       result = false;
     }
 
-    if (utteranceId && packetId.utteranceId !== utteranceId) {
+    if (utteranceId && packetId?.utteranceId !== utteranceId) {
       result = false;
     }
 
