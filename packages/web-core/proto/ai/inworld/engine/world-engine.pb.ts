@@ -234,6 +234,7 @@ export type ConversationStateConversationSettings = {
   conversationId?: string
   participants?: string[]
   spectators?: string[]
+  participatingActors?: AiInworldPacketsPackets.Actor[]
 }
 
 export type ConversationState = {

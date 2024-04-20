@@ -55,6 +55,15 @@ export enum ControlEventAction {
   CONVERSATION_START = "CONVERSATION_START",
   CONVERSATION_UPDATE = "CONVERSATION_UPDATE",
   CONVERSATION_STARTED = "CONVERSATION_STARTED",
+  CONVERSATION_EVENT = "CONVERSATION_EVENT",
+  CURRENT_SCENE_STATUS = "CURRENT_SCENE_STATUS",
+  SESSION_CONFIGURATION = "SESSION_CONFIGURATION",
+}
+
+export enum AudioSessionStartPayloadMicrophoneMode {
+  UNSPECIFIED = "UNSPECIFIED",
+  OPEN_MIC = "OPEN_MIC",
+  EXPECT_AUDIO_END = "EXPECT_AUDIO_END",
 }
 
 export enum EmotionEventSpaffCode {
@@ -108,6 +117,13 @@ export enum ContinuationContinuationType {
   CONTINUATION_TYPE_DIALOG_HISTORY = "CONTINUATION_TYPE_DIALOG_HISTORY",
 }
 
+export enum ConversationEventPayloadConversationEventType {
+  UNKNOWN = "UNKNOWN",
+  STARTED = "STARTED",
+  UPDATED = "UPDATED",
+  EVICTED = "EVICTED",
+}
+
 export type Actor = {
   type?: ActorType
   name?: string
@@ -149,10 +165,18 @@ export type TextEvent = {
   modelInfo?: TextEventModelInfo
 }
 
-export type ControlEvent = {
+
+type BaseControlEvent = {
   action?: ControlEventAction
   description?: string
   payload?: GoogleProtobufStruct.Struct
+}
+
+export type ControlEvent = BaseControlEvent
+  & OneOf<{ conversationUpdate: ConversationUpdatePayload; conversationEvent: ConversationEventPayload; audioSessionStart: AudioSessionStartPayload; currentSceneStatus: CurrentSceneStatus; sessionConfiguration: SessionConfigurationPayload }>
+
+export type AudioSessionStartPayload = {
+  mode?: AudioSessionStartPayloadMicrophoneMode
 }
 
 export type AudioChunk = {
@@ -257,6 +281,9 @@ export type LoadScene = {
 
 export type LoadedScene = {
   agents?: Agent[]
+  sceneName?: string
+  sceneDescription?: string
+  sceneDisplayName?: string
 }
 
 export type LoadCharactersCharacterName = {
@@ -270,10 +297,20 @@ export type LoadCharacters = {
 
 export type LoadedCharacters = {
   agents?: Agent[]
+  sceneName?: string
+  sceneDescription?: string
+  sceneDisplayName?: string
 }
 
 export type UnloadCharacters = {
   agents?: Agent[]
+}
+
+export type CurrentSceneStatus = {
+  agents?: Agent[]
+  sceneName?: string
+  sceneDescription?: string
+  sceneDisplayName?: string
 }
 
 export type ModifyExactResponse = {
@@ -318,7 +355,15 @@ type BaseSessionControlEvent = {
 }
 
 export type SessionControlEvent = BaseSessionControlEvent
-  & OneOf<{ sessionConfiguration: AiInworldEngineConfigurationConfiguration.SessionConfiguration; userConfiguration: AiInworldEngineConfigurationConfiguration.UserConfiguration; clientConfiguration: AiInworldEngineConfigurationConfiguration.ClientConfiguration; capabilitiesConfiguration: AiInworldEngineConfigurationConfiguration.CapabilitiesConfiguration; continuation: Continuation; sessionHistoryRequest: SessionHistoryRequest }>
+  & OneOf<{ sessionConfiguration: AiInworldEngineConfigurationConfiguration.SessionConfiguration; userConfiguration: AiInworldEngineConfigurationConfiguration.UserConfiguration; clientConfiguration: AiInworldEngineConfigurationConfiguration.ClientConfiguration; capabilitiesConfiguration: AiInworldEngineConfigurationConfiguration.CapabilitiesConfiguration; continuation: Continuation; sessionHistoryRequest: SessionHistoryRequest; sessionConfigurationPayload: SessionConfigurationPayload }>
+
+export type SessionConfigurationPayload = {
+  sessionConfiguration?: AiInworldEngineConfigurationConfiguration.SessionConfiguration
+  userConfiguration?: AiInworldEngineConfigurationConfiguration.UserConfiguration
+  clientConfiguration?: AiInworldEngineConfigurationConfiguration.ClientConfiguration
+  capabilitiesConfiguration?: AiInworldEngineConfigurationConfiguration.CapabilitiesConfiguration
+  continuation?: Continuation
+}
 
 export type Audio2FaceAnimationEvent = {
   animdata?: string
@@ -365,4 +410,13 @@ export type SessionHistoryResponseSessionHistoryItem = {
 
 export type SessionHistoryResponse = {
   sessionHistoryItems?: SessionHistoryResponseSessionHistoryItem[]
+}
+
+export type ConversationUpdatePayload = {
+  participants?: Actor[]
+}
+
+export type ConversationEventPayload = {
+  participants?: Actor[]
+  eventType?: ConversationEventPayloadConversationEventType
 }
