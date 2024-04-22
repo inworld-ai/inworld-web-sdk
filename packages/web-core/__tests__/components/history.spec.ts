@@ -127,29 +127,48 @@ const incomingTextPacket = new InworldPacket({
 
 const createHistoryWithPacket = (
   packet: InworldPacket,
-  extension?: Extension<InworldPacket, ExtendedHistoryItem>,
-  user?: User,
+  {
+    audioEnabled = true,
+    fromHistory,
+    extension,
+    user,
+  }: {
+    audioEnabled?: boolean;
+    fromHistory?: boolean;
+    extension?: Extension<InworldPacket, ExtendedHistoryItem>;
+    user?: User;
+  } = {},
 ) => {
   const history = new InworldHistory({
     ...(extension && { extension }),
     user,
     scene: SCENE,
+    audioEnabled,
   });
 
-  history.addOrUpdate({ characters, grpcAudioPlayer, packet });
+  history.addOrUpdate({ characters, grpcAudioPlayer, packet, fromHistory });
 
   return history;
 };
 
 test('should be empty by default', () => {
-  const history = new InworldHistory({ scene: SCENE });
+  const history = new InworldHistory({ scene: SCENE, audioEnabled: false });
 
   expect(history.get().length).toEqual(0);
 });
 
 describe('text', () => {
   describe('addOrUpdate', () => {
-    test('should add packet to history', () => {
+    test('should add runtime packet to history', () => {
+      const history = createHistoryWithPacket(textPacket);
+      const item = history.get()[0] as HistoryItemActor;
+
+      expect(history.get().length).toEqual(1);
+      expect(item.fromHistory).toEqual(false);
+      expect(item.character!.id).toEqual(characters[0].id);
+    });
+
+    test('should add historical packet to history', () => {
       const history = createHistoryWithPacket(textPacket);
       const item = history.get()[0] as HistoryItemActor;
 
@@ -162,7 +181,7 @@ describe('text', () => {
         .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
         .mockImplementationOnce(() => true);
 
-      const history = createHistoryWithPacket(textPacket);
+      const history = createHistoryWithPacket(incomingTextPacket);
 
       expect(history.get().length).toEqual(0);
     });
@@ -198,7 +217,9 @@ describe('text', () => {
 
     test('should convert packet to extended one', () => {
       const historyItem = jest.fn();
-      const history = createHistoryWithPacket(textPacket, { historyItem });
+      const history = createHistoryWithPacket(textPacket, {
+        extension: { historyItem },
+      });
       const item = history.get()[0] as HistoryItemActor;
 
       expect(history.get().length).toEqual(1);
@@ -212,11 +233,11 @@ describe('text', () => {
         .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
         .mockImplementationOnce(() => true);
 
-      const history = createHistoryWithPacket(textPacket);
+      const history = createHistoryWithPacket(incomingTextPacket);
 
       expect(history.get().length).toEqual(0);
 
-      history.display(textPacket, CHAT_HISTORY_TYPE.ACTOR);
+      history.display(incomingTextPacket, CHAT_HISTORY_TYPE.ACTOR);
 
       expect(history.get().length).toEqual(1);
     });
@@ -296,7 +317,7 @@ describe('text', () => {
         .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
         .mockImplementationOnce(() => true);
 
-      const history = createHistoryWithPacket(textPacket);
+      const history = createHistoryWithPacket(incomingTextPacket);
 
       expect(history.get().length).toEqual(0);
 
@@ -312,12 +333,12 @@ describe('text', () => {
       expect(history.get().length).toEqual(0);
     });
 
-    test('should filter queue by diferrent interactionI', () => {
+    test('should filter queue by diferrent interactionId', () => {
       jest
         .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
         .mockImplementationOnce(() => true);
 
-      const history = createHistoryWithPacket(textPacket);
+      const history = createHistoryWithPacket(incomingTextPacket);
 
       expect(history.get().length).toEqual(0);
 
@@ -348,7 +369,7 @@ describe('text', () => {
 
   describe('transcript', () => {
     test('should return empty transcript for empty history', () => {
-      const history = new InworldHistory({ scene: SCENE });
+      const history = new InworldHistory({ scene: SCENE, audioEnabled: true });
 
       const transcript = history.getTranscript();
 
@@ -357,12 +378,13 @@ describe('text', () => {
 
     describe('text', () => {
       test('should return transcript for provided user name', () => {
-        const history = createHistoryWithPacket(textPacket, undefined, user);
+        const history = createHistoryWithPacket(textPacket, { user });
 
         history.addOrUpdate({
           characters,
           grpcAudioPlayer,
           packet: incomingTextPacket,
+          fromHistory: true,
         });
 
         const expected = `${user.fullName}: ${textPacket.text.text}\n${characters[0].displayName}: ${incomingTextPacket.text.text}`;
@@ -378,6 +400,7 @@ describe('text', () => {
           characters,
           grpcAudioPlayer,
           packet: incomingTextPacket,
+          fromHistory: true,
         });
 
         const expected = `User: ${textPacket.text.text}\n${characters[0].displayName}: ${incomingTextPacket.text.text}`;
@@ -419,12 +442,15 @@ describe('text', () => {
           },
           type: InworldPacketType.TEXT,
         });
-        const history = createHistoryWithPacket(firstPacket);
+        const history = createHistoryWithPacket(firstPacket, {
+          fromHistory: true,
+        });
 
         history.addOrUpdate({
           characters,
           grpcAudioPlayer,
           packet: secondtPacket,
+          fromHistory: true,
         });
 
         const expected = `${characters[0].displayName}: ${firstPacket.text.text} ${secondtPacket.text.text}`;
@@ -531,7 +557,9 @@ describe('text', () => {
 
 describe('trigger', () => {
   test('should add packet to history', () => {
-    const history = createHistoryWithPacket(triggerPacket);
+    const history = createHistoryWithPacket(triggerPacket, {
+      audioEnabled: true,
+    });
 
     expect(history.get().length).toEqual(1);
   });
@@ -574,7 +602,9 @@ describe('narrated action', () => {
       type: InworldPacketType.NARRATED_ACTION,
     });
 
-    const history = createHistoryWithPacket(narracterActionPacket);
+    const history = createHistoryWithPacket(narracterActionPacket, {
+      fromHistory: true,
+    });
     const result = history.get()[0] as HistoryItemActor;
 
     expect(result.text).toEqual(text);
@@ -583,7 +613,9 @@ describe('narrated action', () => {
 
 describe('interaction end', () => {
   test('should add packet to history', () => {
-    const history = createHistoryWithPacket(interactionEndPacket);
+    const history = createHistoryWithPacket(interactionEndPacket, {
+      audioEnabled: false,
+    });
 
     expect(history.get().length).toEqual(1);
   });
@@ -603,7 +635,7 @@ describe('interaction end', () => {
       .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
       .mockImplementationOnce(() => true);
 
-    const history = createHistoryWithPacket(textPacket);
+    const history = createHistoryWithPacket(incomingTextPacket);
 
     jest
       .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
@@ -615,7 +647,10 @@ describe('interaction end', () => {
       grpcAudioPlayer,
       packet: new InworldPacket({
         packetId,
-        routing,
+        routing: {
+          source: routing.targets[0],
+          targets: [routing.source],
+        },
         date,
         narratedAction: { text: v4() },
         type: InworldPacketType.NARRATED_ACTION,
@@ -630,8 +665,8 @@ describe('interaction end', () => {
 
     expect(history.get().length).toEqual(0);
 
-    history.display(textPacket, CHAT_HISTORY_TYPE.ACTOR);
-    history.display(textPacket, CHAT_HISTORY_TYPE.NARRATED_ACTION);
+    history.display(incomingTextPacket, CHAT_HISTORY_TYPE.ACTOR);
+    history.display(incomingTextPacket, CHAT_HISTORY_TYPE.NARRATED_ACTION);
     history.display(interactionEndPacket, CHAT_HISTORY_TYPE.INTERACTION_END);
 
     expect(history.get().length).toEqual(3);
@@ -642,7 +677,7 @@ describe('interaction end', () => {
       .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
       .mockImplementationOnce(() => true);
 
-    const history = createHistoryWithPacket(textPacket);
+    const history = createHistoryWithPacket(incomingTextPacket);
 
     jest
       .spyOn(grpcAudioPlayer, 'hasPacketInQueue')

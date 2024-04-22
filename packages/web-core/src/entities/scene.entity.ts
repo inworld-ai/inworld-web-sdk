@@ -1,7 +1,6 @@
 import {
   ActorType,
   Agent,
-  ControlEventAction,
   InworldPacket as ProtoPacket,
   LoadedScene,
   SessionHistoryResponse,
@@ -54,12 +53,24 @@ export class Scene {
                         name: item.agent?.agentId,
                       }),
                     },
-                    target: {
-                      ...packet.routing.target,
-                      ...(packet.routing.target.type === ActorType.AGENT && {
-                        name: item.agent?.agentId,
+                    ...(packet.routing.target && {
+                      target: {
+                        ...packet.routing.target,
+                        ...(packet.routing.target.type === ActorType.AGENT && {
+                          name: item.agent?.agentId,
+                        }),
+                      },
+                    }),
+                    ...(packet.routing.targets?.length && {
+                      targets: packet.routing.targets.map((target) => {
+                        return {
+                          ...target,
+                          ...(target.type === ActorType.AGENT && {
+                            name: item.agent?.agentId,
+                          }),
+                        };
                       }),
-                    },
+                    }),
                   },
                 };
               }),
@@ -70,26 +81,6 @@ export class Scene {
         },
         [],
       ) ?? [];
-
-    // This is to ensure that the scene is in a consistent state.
-    // Interaction end means that all historical interactions are finished.
-    if (
-      history.length &&
-      history[history.length - 1].control?.action !==
-        ControlEventAction.INTERACTION_END
-    ) {
-      const lastPacket = history[history.length - 1];
-      history.push({
-        packetId: {
-          interactionId: lastPacket.packetId?.interactionId,
-        },
-        control: {
-          action: ControlEventAction.INTERACTION_END,
-        },
-        routing: { ...lastPacket.routing },
-        timestamp: lastPacket.timestamp,
-      });
-    }
 
     return new Scene({
       name,

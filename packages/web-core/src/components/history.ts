@@ -13,6 +13,7 @@ interface InworldHistoryAddProps<InworldPacketT> {
   grpcAudioPlayer: GrpcAudioPlayback;
   packet: InworldPacketT;
   outgoing?: boolean;
+  fromHistory?: boolean;
 }
 
 export enum CHAT_HISTORY_TYPE {
@@ -30,6 +31,7 @@ export interface HistoryItemBase {
   interactionId?: string;
   source: Actor;
   type: CHAT_HISTORY_TYPE;
+  fromHistory?: boolean;
 }
 
 export interface HistoryItemActor extends HistoryItemBase {
@@ -86,21 +88,29 @@ interface EmotionsMap {
 }
 
 interface InworldHistoryProps<InworldPacketT, HistoryItemT> {
+  audioEnabled: boolean;
   extension?: Extension<InworldPacketT, HistoryItemT>;
   user?: User;
   scene: string;
+}
+
+interface ConversationItem {
+  packet: InworldPacket;
+  isApplied: boolean;
 }
 
 export class InworldHistory<
   InworldPacketT extends InworldPacket = InworldPacket,
   HistoryItemT extends HistoryItem = HistoryItem,
 > {
+  private audioEnabled: boolean;
   private scene: string;
   private user?: User;
   private history: HistoryItem[] = [];
   private queue: HistoryItem[] = [];
   private emotions: EmotionsMap = {};
   private extension: Extension<InworldPacketT, HistoryItemT> | undefined;
+  private conversationItems: ConversationItem[] = [];
 
   constructor(props: InworldHistoryProps<InworldPacketT, HistoryItemT>) {
     if (props.extension) {
@@ -112,6 +122,11 @@ export class InworldHistory<
     }
 
     this.scene = props?.scene;
+    this.audioEnabled = props.audioEnabled;
+  }
+
+  setAudioEnabled(enabled: boolean) {
+    this.audioEnabled = enabled;
   }
 
   addOrUpdate({
@@ -119,6 +134,7 @@ export class InworldHistory<
     grpcAudioPlayer,
     packet,
     outgoing,
+    fromHistory = false,
   }: InworldHistoryAddProps<InworldPacketT>) {
     let historyItem: HistoryItem | undefined;
     let queueItem: HistoryItem | undefined;
@@ -146,49 +162,66 @@ export class InworldHistory<
     }
 
     switch (true) {
+      case packet.isAudio():
+        this.conversationItems.push({ packet, isApplied: false });
+        break;
+
       case packet.isEmotion():
         this.emotions[interactionId] = packet.emotions;
         break;
+
       case packet.isText():
-        const actorItem: HistoryItem = {
-          ...this.combineTextItem(packet),
-          character: itemCharacters[0],
-          characters: itemCharacters,
-        };
-
-        if (grpcAudioPlayer.hasPacketInQueue({ utteranceId })) {
-          queueItem = actorItem;
-        } else {
-          historyItem = actorItem;
-        }
-        break;
-
       case packet.isNarratedAction():
-        const actionItem = this.combineNarratedActionItem(
-          packet,
-          itemCharacters,
-          this.user,
+        const textItem: HistoryItem = packet.isText()
+          ? {
+              ...this.combineTextItem(packet),
+              character: itemCharacters[0],
+              characters: itemCharacters,
+              fromHistory,
+            }
+          : {
+              ...this.combineNarratedActionItem(
+                packet,
+                itemCharacters,
+                this.user,
+              ),
+              fromHistory,
+            };
+
+        const audioIsApplied = !!this.conversationItems.find(
+          (item: ConversationItem) =>
+            !!item.packet.isAudio() &&
+            item.isApplied &&
+            item.packet.packetId.utteranceId === utteranceId,
         );
 
         if (
-          grpcAudioPlayer.isCurrentPacket({ interactionId }) ||
-          !grpcAudioPlayer.hasPacketInQueue({ interactionId })
+          audioIsApplied ||
+          fromHistory ||
+          packet.routing.source.isPlayer ||
+          !this.audioEnabled
         ) {
-          historyItem = actionItem;
+          historyItem = textItem;
         } else {
-          queueItem = actionItem;
+          queueItem = textItem;
         }
         break;
 
       case packet.isTrigger():
-        historyItem = this.combineTriggerItem(packet, outgoing);
+        historyItem = {
+          ...this.combineTriggerItem(packet, outgoing),
+          fromHistory,
+        };
         break;
 
       case packet.isInteractionEnd():
         const controlItem: HistoryInteractionEnd =
           this.combineInteractionEndItem(packet);
 
-        if (grpcAudioPlayer.hasPacketInQueue({ interactionId })) {
+        if (
+          this.audioEnabled &&
+          grpcAudioPlayer.hasPacketInQueue({ interactionId })
+        ) {
           queueItem = controlItem;
         } else {
           historyItem = controlItem;
@@ -237,21 +270,43 @@ export class InworldHistory<
 
   update(packet: InworldPacketT) {
     if (packet.isText()) {
+      let text: HistoryItemActor;
       const currentHistoryIndex = this.history.findIndex(
         (item) => item.id === packet.packetId.utteranceId,
       );
 
       if (currentHistoryIndex >= 0) {
+        text = this.combineTextItem(packet);
         this.history[currentHistoryIndex] = {
           ...this.history[currentHistoryIndex],
-          ...this.combineTextItem(packet),
+          ...text,
         };
 
-        return true;
+        return [text];
       }
+    } else if (packet.isAudio()) {
+      this.markAsApplied(
+        (item) =>
+          item.isAudio() &&
+          item.packetId.utteranceId === packet.packetId.utteranceId,
+      );
+
+      const actors = this.display(packet, CHAT_HISTORY_TYPE.ACTOR);
+      const actions = this.display(packet, CHAT_HISTORY_TYPE.NARRATED_ACTION);
+      const ends = this.display(packet, CHAT_HISTORY_TYPE.INTERACTION_END);
+
+      if (ends.length) {
+        this.conversationItems = this.conversationItems.filter(
+          (item: ConversationItem) =>
+            item.packet.packetId.interactionId !==
+            packet.packetId.interactionId,
+        );
+      }
+
+      return [...actors, ...actions, ...ends];
     }
 
-    return false;
+    return [];
   }
 
   display(
@@ -276,7 +331,7 @@ export class InworldHistory<
           );
         }
 
-        return [foundActor];
+        return foundActor ? [foundActor] : [];
       case CHAT_HISTORY_TYPE.INTERACTION_END:
         // Find items in current interaction
         const inCurrentInteraction = this.queue.filter(
@@ -498,4 +553,16 @@ export class InworldHistory<
   private convertToExtendedType(packet: InworldPacketT, item: HistoryItem) {
     return this.extension?.historyItem?.(packet, item) || item;
   }
+
+  private markAsApplied = (compare: (item: InworldPacket) => Boolean) => {
+    const found = this.conversationItems.find(
+      (item: ConversationItem) => !item.isApplied && compare(item.packet),
+    );
+
+    if (found) {
+      found.isApplied = true;
+    }
+
+    return found;
+  };
 }

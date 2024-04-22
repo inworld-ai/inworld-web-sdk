@@ -150,7 +150,7 @@ describe('history', () => {
   });
 
   test('should get history', () => {
-    const history = new InworldHistory({ scene: SCENE });
+    const history = new InworldHistory({ scene: SCENE, audioEnabled: true });
     const packetId = getPacketId();
     const routing: Routing = {
       source: {

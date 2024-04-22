@@ -16,11 +16,7 @@ import {
   TtsPlaybackAction,
   User,
 } from '../common/data_structures';
-import {
-  CHAT_HISTORY_TYPE,
-  HistoryItem,
-  InworldHistory,
-} from '../components/history';
+import { HistoryItem, InworldHistory } from '../components/history';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
 import { Player } from '../components/sound/player';
@@ -100,7 +96,9 @@ export class ConnectionService<
     this.scene = new Scene({
       name: this.connectionProps.name,
     });
+
     this.history = new InworldHistory<InworldPacketT>({
+      audioEnabled: props?.config?.capabilities.audio,
       extension: this.connectionProps.extension,
       user: this.connectionProps.user,
       scene: this.scene.name,
@@ -275,6 +273,7 @@ export class ConnectionService<
 
   setTtsPlaybackAction(action: TtsPlaybackAction) {
     this.ttsPlaybackAction = action;
+    this.history.setAudioEnabled(action === TtsPlaybackAction.UNMUTE);
   }
 
   getTtsPlaybackAction() {
@@ -384,6 +383,7 @@ export class ConnectionService<
         grpcAudioPlayer: this.connectionProps.grpcAudioPlayer,
         characters: this.eventFactory.getCharacters(),
         packet: this.extension.convertPacketFromProto(packet),
+        fromHistory: true,
       }),
     );
 
@@ -469,20 +469,28 @@ export class ConnectionService<
         // Play audio or silence.
       } else if (inworldPacket.isAudio() || inworldPacket.isSilence()) {
         if (!this.cancelResponses[interactionId]) {
+          this.addPacketToHistory(inworldPacket);
           grpcAudioPlayer.addToQueue({
             packet: inworldPacket,
             onBeforePlaying: (packet: InworldPacketT) => {
-              this.displayPlacketInHistory(packet, CHAT_HISTORY_TYPE.ACTOR);
-              this.displayPlacketInHistory(
-                packet,
-                CHAT_HISTORY_TYPE.NARRATED_ACTION,
-              );
+              const changed = this.history.update(packet);
+
+              if (changed.length) {
+                this.connectionProps.onHistoryChange?.(
+                  this.getHistory(),
+                  changed,
+                );
+              }
             },
             onAfterPlaying: (packet: InworldPacketT) => {
-              this.displayPlacketInHistory(
-                packet,
-                CHAT_HISTORY_TYPE.INTERACTION_END,
-              );
+              const changed = this.history.update(packet);
+
+              if (changed.length) {
+                this.connectionProps.onHistoryChange?.(
+                  this.getHistory(),
+                  changed,
+                );
+              }
             },
           });
         }
@@ -502,7 +510,10 @@ export class ConnectionService<
       }
 
       // Add packet to history.
-      this.addPacketToHistory(inworldPacket);
+      // Audio and silence packets were added to history earlier.
+      if (!inworldPacket.isAudio() && !inworldPacket.isSilence()) {
+        this.addPacketToHistory(inworldPacket);
+      }
 
       // Pass packet to external callback.
       onMessage?.(inworldPacket);
@@ -602,20 +613,6 @@ export class ConnectionService<
       characters: this.eventFactory.getCharacters(),
       packet,
     });
-
-    if (changed.length) {
-      this.connectionProps.onHistoryChange?.(this.getHistory(), changed);
-    }
-  }
-
-  private displayPlacketInHistory(
-    packet: InworldPacketT,
-    type:
-      | CHAT_HISTORY_TYPE.ACTOR
-      | CHAT_HISTORY_TYPE.INTERACTION_END
-      | CHAT_HISTORY_TYPE.NARRATED_ACTION,
-  ) {
-    const changed = this.history.display(packet, type);
 
     if (changed.length) {
       this.connectionProps.onHistoryChange?.(this.getHistory(), changed);

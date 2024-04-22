@@ -32,9 +32,11 @@ test('should convert proto to scene', () => {
           packets: [
             {
               routing: {
-                target: {
-                  type: ActorType.AGENT,
-                },
+                targets: [
+                  {
+                    type: ActorType.AGENT,
+                  },
+                ],
                 source: {
                   type: ActorType.PLAYER,
                 },
@@ -60,7 +62,7 @@ test('should convert proto to scene', () => {
   expect(scene.characters[0].id).toEqual(agents[0].agentId);
   expect(scene.characters[1].id).toEqual(agents[1].agentId);
   expect(scene.characters[1].assets.avatarImg).toEqual(undefined);
-  expect(scene.history.length).toEqual(3);
+  expect(scene.history.length).toEqual(2);
 });
 
 test('should convert proto to scene without history items and agents', () => {
