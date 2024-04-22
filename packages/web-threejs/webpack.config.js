@@ -12,14 +12,14 @@ module.exports = {
       new TerserPlugin({
         terserOptions: {
           compress: {
-            drop_console: false
+            drop_console: false,
           },
           mangle: false,
           keep_fnames: true,
           keep_classnames: true,
-          toplevel: true,     
+          toplevel: true,
         },
       }),
     ],
-  }
+  },
 };

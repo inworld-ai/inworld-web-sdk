@@ -34,12 +34,14 @@
     "prettier:format": "yarn prettier --write \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
     "test": "jest --no-cache --reporters=default",
     "test:coverage": "jest --coverage",
-    "minify": "webpack --mode production"
+    "minify_bak": "webpack --mode production",
+    "minify": "rollup --config rollup.config.mjs"
   },
   "devDependencies": {
     "@types/defer-promise": "^1.0.0",
     "@types/js-cookie": "^3.0.2",
     "@types/uuid": "^9.0.0",
+    "rollup": "^4.16.1",
     "tsc-alias": "^1.8.8"
   },
   "dependencies": {
