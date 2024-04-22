@@ -11,3 +11,4 @@ jest.config.json
 */**/package-lock.json
 *.log
 EXTENSIONS.md
+/dist

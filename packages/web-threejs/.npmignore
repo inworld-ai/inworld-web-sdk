@@ -11,3 +11,4 @@ jest.config.json
 *.log
 /docs
 EXTENSIONS.md
+/dist

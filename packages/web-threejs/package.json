@@ -35,7 +35,8 @@
     "prettier:format": "yarn prettier --write \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
     "docs": "npm run docs:clean && npm run docs:generate",
     "docs:clean": "npx rimraf docs",
-    "docs:generate": "npx typedoc"
+    "docs:generate": "npx typedoc",
+    "minify": "webpack --mode production"
   },
   "devDependencies": {
     "@types/react": "^18.0.28",
