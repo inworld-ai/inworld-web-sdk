@@ -45,6 +45,7 @@
     "tsc-alias": "^1.8.8"
   },
   "dependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "base64-arraybuffer": "^1.0.2",
     "defer-promise": "^3.0.0",
     "uuid": "^9.0.0"
