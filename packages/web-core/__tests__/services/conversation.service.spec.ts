@@ -1,0 +1,302 @@
+import '../mocks/window.mock';
+
+import { v4 } from 'uuid';
+
+import { ConversationService } from '../../src';
+import {
+  AudioSessionState,
+  ConversationState,
+} from '../../src/common/data_structures';
+import { MULTI_CHAR_NARRATED_ACTIONS } from '../../src/common/errors';
+import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
+import { GrpcWebRtcLoopbackBiDiSession } from '../../src/components/sound/grpc_web_rtc_loopback_bidi.session';
+import { ConnectionService } from '../../src/services/connection.service';
+import {
+  conversationId,
+  conversationUpdated,
+  convertAgentsToCharacters,
+  createAgent,
+  generateSessionToken,
+  SCENE,
+} from '../helpers';
+
+const agents = [createAgent(), createAgent()];
+const characters = convertAgentsToCharacters(agents);
+const grpcAudioPlayer = new GrpcAudioPlayback();
+const webRtcLoopbackBiDiSession = new GrpcWebRtcLoopbackBiDiSession();
+const onHistoryChange = jest.fn();
+
+const connection = new ConnectionService({
+  config: {
+    capabilities: {
+      audio: true,
+      emotions: true,
+    },
+  },
+  name: SCENE,
+  grpcAudioPlayer,
+  webRtcLoopbackBiDiSession,
+  generateSessionToken,
+  onHistoryChange,
+});
+
+beforeEach(() => {
+  connection.conversations.clear();
+});
+
+it('should create service', () => {
+  const conversation = new ConversationService(connection, { characters });
+
+  expect(conversation.getConversationId()).toBeDefined();
+  expect(conversation.getCharacters()).toBe(characters);
+  expect(conversation.getHistory()).toEqual([]);
+});
+
+describe('update participants', () => {
+  beforeEach(() => {
+    connection.conversations.clear();
+  });
+
+  test('should throw error if audio session was started twice', async () => {
+    jest
+      .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+      .mockImplementation(() => AudioSessionState.START);
+
+    const service = new ConversationService(connection, {
+      characters: [characters[0]],
+    });
+
+    expect(async () => {
+      await service.sendAudioSessionStart();
+    }).rejects.toThrow('Audio session is already started');
+  });
+
+  test('should throw error if audio session was finished twice', async () => {
+    jest
+      .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+      .mockImplementation(() => AudioSessionState.END);
+
+    const service = new ConversationService(connection, {
+      characters: [characters[0]],
+    });
+
+    expect(async () => {
+      await service.sendAudioSessionEnd();
+    }).rejects.toThrow(
+      'Audio session cannot be ended because it has not been started',
+    );
+  });
+
+  it('should throw error if conversation is missing', async () => {
+    const service = new ConversationService(connection, {
+      characters: [characters[0]],
+    });
+
+    expect(
+      async () => await service.updateParticipants([characters[1]]),
+    ).rejects.toThrow(`Conversation ${service.getConversationId()} not found`);
+  });
+
+  it('should do nothing if conversation is already in progress', async () => {
+    jest.spyOn(ConnectionService.prototype, 'send').mockImplementation(() =>
+      Promise.resolve({
+        packetId: {
+          conversationId: conversationId,
+        },
+      }),
+    );
+    jest
+      .spyOn(ConversationService.prototype, 'getConversationId')
+      .mockImplementation(() => conversationId);
+
+    const service = new ConversationService(connection, {
+      characters: [characters[0]],
+    });
+
+    expect(service.getCharacters()).toEqual([characters[0]]);
+
+    connection.conversations.set(conversationId, {
+      service: service,
+      state: ConversationState.PROCESSING,
+    });
+
+    await service.updateParticipants([characters[1]]);
+
+    expect(service.getCharacters()).toEqual([characters[0]]);
+  });
+
+  it('should work without errors', async () => {
+    jest.spyOn(ConnectionService.prototype, 'send').mockImplementation(() =>
+      Promise.resolve({
+        packetId: {
+          conversationId: conversationId,
+        },
+      }),
+    );
+    jest
+      .spyOn(ConversationService.prototype, 'getConversationId')
+      .mockImplementation(() => conversationId);
+    const getAudioSessionAction = jest
+      .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+      .mockImplementation(() => AudioSessionState.UNKNOWN);
+    const sendAudioSessionEnd = jest
+      .spyOn(ConversationService.prototype, 'sendAudioSessionEnd')
+      .mockImplementation(jest.fn());
+    const sendAudioSessionStart = jest
+      .spyOn(ConversationService.prototype, 'sendAudioSessionStart')
+      .mockImplementation(jest.fn());
+
+    const service = new ConversationService(connection, {
+      characters: [characters[0]],
+    });
+
+    expect(service.getCharacters()).toEqual([characters[0]]);
+
+    connection.conversations.set(conversationId, {
+      service: service,
+      state: ConversationState.INACTIVE,
+    });
+
+    await Promise.all([
+      service.updateParticipants([characters[1]]),
+      new Promise((resolve: any) => {
+        setTimeout(() => {
+          connection.conversations.set(conversationId, {
+            service: service,
+            state: ConversationState.ACTIVE,
+          });
+          resolve();
+        }, 0);
+      }),
+    ]);
+
+    expect(service.getCharacters()).toEqual([characters[1]]);
+    expect(getAudioSessionAction).toHaveBeenCalledTimes(1);
+    expect(sendAudioSessionEnd).toHaveBeenCalledTimes(0);
+    expect(sendAudioSessionStart).toHaveBeenCalledTimes(0);
+  });
+
+  it('should reopen audio session', async () => {
+    jest.spyOn(ConnectionService.prototype, 'send').mockImplementation(() =>
+      Promise.resolve({
+        packetId: {
+          conversationId: conversationId,
+        },
+      }),
+    );
+    jest
+      .spyOn(ConversationService.prototype, 'getConversationId')
+      .mockImplementation(() => conversationId);
+
+    const getAudioSessionAction = jest
+      .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+      .mockImplementation(() => AudioSessionState.START);
+    const sendAudioSessionEnd = jest
+      .spyOn(ConversationService.prototype, 'sendAudioSessionEnd')
+      .mockImplementation(jest.fn());
+    const sendAudioSessionStart = jest
+      .spyOn(ConversationService.prototype, 'sendAudioSessionStart')
+      .mockImplementation(jest.fn());
+
+    const service = new ConversationService(connection, {
+      characters: [characters[0]],
+    });
+
+    expect(service.getCharacters()).toEqual([characters[0]]);
+
+    connection.conversations.set(conversationId, {
+      service: service,
+      state: ConversationState.INACTIVE,
+    });
+
+    await Promise.all([
+      service.updateParticipants([characters[1]]),
+      new Promise((resolve: any) => {
+        setTimeout(() => {
+          connection.conversations.set(conversationId, {
+            service: service,
+            state: ConversationState.ACTIVE,
+          });
+          resolve();
+        }, 0);
+      }),
+    ]);
+
+    expect(getAudioSessionAction).toHaveBeenCalledTimes(1);
+    expect(sendAudioSessionEnd).toHaveBeenCalledTimes(1);
+    expect(sendAudioSessionStart).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('send', () => {
+  it('should throw error if conversation is missing', async () => {
+    const service = new ConversationService(connection, {
+      characters: [characters[0]],
+    });
+
+    expect(async () => await service.sendText(v4())).rejects.toThrow(
+      `Conversation ${service.getConversationId()} not found`,
+    );
+  });
+
+  test('should throw error if narrated action is sent for multi-agents', async () => {
+    const service = new ConversationService(connection, {
+      characters: characters,
+    });
+
+    connection.conversations.set(conversationId, {
+      service: service,
+      state: ConversationState.ACTIVE,
+    });
+
+    expect(async () => {
+      await service.sendNarratedAction(v4());
+    }).rejects.toThrow(MULTI_CHAR_NARRATED_ACTIONS);
+  });
+
+  test('should keep packages in queue until conversation is active', async () => {
+    const send = jest
+      .spyOn(ConnectionService.prototype, 'send')
+      .mockImplementation(() =>
+        Promise.resolve({
+          packetId: {
+            conversationId: conversationId,
+          },
+        }),
+      );
+    jest
+      .spyOn(ConversationService.prototype, 'getConversationId')
+      .mockImplementation(() => conversationId);
+
+    const service = new ConversationService(connection, {
+      characters,
+    });
+
+    connection.conversations.set(conversationId, {
+      service: service,
+      state: ConversationState.INACTIVE,
+    });
+
+    await Promise.all([
+      Promise.all([service.sendText(v4()), service.sendText(v4())]),
+      new Promise((resolve: any) => {
+        setTimeout(() => {
+          expect(connection.conversations.get(conversationId)?.state).toEqual(
+            ConversationState.PROCESSING,
+          );
+          connection.onMessage!(conversationUpdated);
+          connection.conversations.set(conversationId, {
+            service: service,
+            state: ConversationState.ACTIVE,
+          });
+          resolve();
+        }, 0);
+      }),
+    ]);
+
+    expect(connection.conversations.get(conversationId)?.state).toEqual(
+      ConversationState.ACTIVE,
+    );
+    expect(send).toHaveBeenCalledTimes(3);
+  });
+});

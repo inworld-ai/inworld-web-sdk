@@ -50,14 +50,15 @@ export class Scene {
                     source: {
                       ...packet.routing.source,
                       ...(packet.routing.source.type === ActorType.AGENT && {
-                        name: item.agent?.agentId,
+                        name: item.agent?.agentId ?? packet.routing.source.name,
                       }),
                     },
                     ...(packet.routing.target && {
                       target: {
                         ...packet.routing.target,
                         ...(packet.routing.target.type === ActorType.AGENT && {
-                          name: item.agent?.agentId,
+                          name:
+                            item.agent?.agentId ?? packet.routing.target.name,
                         }),
                       },
                     }),
@@ -66,7 +67,7 @@ export class Scene {
                         return {
                           ...target,
                           ...(target.type === ActorType.AGENT && {
-                            name: item.agent?.agentId,
+                            name: item.agent?.agentId ?? target.name,
                           }),
                         };
                       }),

@@ -1,11 +1,14 @@
+import { InworldPacket } from '../../entities/packets/inworld_packet.entity';
 import { GrpcAudioPlayback } from './grpc_audio.playback';
 import { Player } from './player';
 
-export class InworldPlayer {
+export class InworldPlayer<
+  InworldPacketT extends InworldPacket = InworldPacket,
+> {
   private player = Player.getInstance();
-  private grpcAudioPlayer: GrpcAudioPlayback;
+  private grpcAudioPlayer: GrpcAudioPlayback<InworldPacketT>;
 
-  constructor(props: { grpcAudioPlayer: GrpcAudioPlayback }) {
+  constructor(props: { grpcAudioPlayer: GrpcAudioPlayback<InworldPacketT> }) {
     this.grpcAudioPlayer = props.grpcAudioPlayer;
   }
 

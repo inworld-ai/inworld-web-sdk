@@ -45,6 +45,16 @@ test('should convert proto to scene', () => {
             {
               routing: {
                 target: {
+                  type: ActorType.AGENT,
+                },
+                source: {
+                  type: ActorType.PLAYER,
+                },
+              },
+            },
+            {
+              routing: {
+                target: {
                   type: ActorType.PLAYER,
                 },
                 source: {
@@ -61,8 +71,65 @@ test('should convert proto to scene', () => {
 
   expect(scene.characters[0].id).toEqual(agents[0].agentId);
   expect(scene.characters[1].id).toEqual(agents[1].agentId);
-  expect(scene.characters[1].assets.avatarImg).toEqual(undefined);
-  expect(scene.history.length).toEqual(2);
+  expect(scene.history.length).toEqual(3);
+  expect(scene.history[0].routing!.targets![0].name).toEqual(agents[0].agentId);
+  expect(scene.history[1].routing!.target!.name).toEqual(agents[0].agentId);
+});
+
+test('should convert proto to scene with empty agentId', () => {
+  const agents = [createAgent(), createAgent()];
+
+  const proto = {
+    name: SCENE,
+    loadedScene: { agents },
+    sessionHistory: {
+      sessionHistoryItems: [
+        {
+          packets: [
+            {
+              routing: {
+                targets: [
+                  {
+                    type: ActorType.AGENT,
+                  },
+                ],
+                source: {
+                  type: ActorType.PLAYER,
+                },
+              },
+            },
+            {
+              routing: {
+                target: {
+                  type: ActorType.AGENT,
+                },
+                source: {
+                  type: ActorType.PLAYER,
+                },
+              },
+            },
+            {
+              routing: {
+                target: {
+                  type: ActorType.PLAYER,
+                },
+                source: {
+                  type: ActorType.AGENT,
+                },
+              },
+            },
+          ],
+        },
+      ],
+    },
+  };
+  const scene = Scene.fromProto(proto);
+
+  expect(scene.characters[0].id).toEqual(agents[0].agentId);
+  expect(scene.characters[1].id).toEqual(agents[1].agentId);
+  expect(scene.history.length).toEqual(3);
+  expect(scene.history[0].routing!.targets![0].name).toBeUndefined();
+  expect(scene.history[1].routing!.target!.name).toBeUndefined();
 });
 
 test('should convert proto to scene without history items and agents', () => {

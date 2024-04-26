@@ -33,16 +33,14 @@ interface SessionProps<InworldPacketT, HistoryItemT> {
   sessionContinuation?: SessionContinuation;
   extension?: Extension<InworldPacketT, HistoryItemT>;
   convertPacketFromProto: (proto: ProtoPacket) => InworldPacketT;
-  onDisconnect?: () => Awaitable<void>;
-  onError?: (err: Event | Error) => Awaitable<void>;
-  onMessage?: (packet: ProtoPacket) => Awaitable<void>;
 }
+
 interface ConnectionProps {
   config?: InternalClientConfiguration;
-  onDisconnect?: () => Awaitable<void>;
-  onReady?: () => Awaitable<void>;
-  onError?: (err: Event | Error) => Awaitable<void>;
-  onMessage?: (packet: ProtoPacket) => Awaitable<void>;
+  onDisconnect: () => Awaitable<void>;
+  onReady: () => Awaitable<void>;
+  onError: (err: Event | Error) => Awaitable<void>;
+  onMessage: (packet: ProtoPacket) => Awaitable<void>;
 }
 
 export interface QueueItem<InworldPacketT> {
@@ -98,7 +96,7 @@ export class WebSocketConnection<
         write({ getPacket: () => packet });
       }
 
-      this.connectionProps.onReady?.();
+      this.connectionProps.onReady();
     });
 
     this.ws = ws;
@@ -122,23 +120,23 @@ export class WebSocketConnection<
 
     ws.addEventListener('message', this.onMessage.bind(this));
 
-    this.ws = ws;
+    return new Promise<void>((resolve) => {
+      ws.addEventListener('open', () => {
+        this.ws = ws;
+        this.connectionProps.onReady();
+        resolve();
+      });
+    });
   }
 
   close() {
-    if (this.connectionProps.onError) {
-      this.ws?.removeEventListener('error', this.connectionProps.onError);
-    }
-
-    if (this.connectionProps.onDisconnect) {
-      this.ws?.removeEventListener('close', this.connectionProps.onDisconnect);
-    }
-
+    this.ws?.removeEventListener('error', this.connectionProps.onError);
+    this.ws?.removeEventListener('close', this.connectionProps.onDisconnect);
     this.ws?.removeEventListener('message', this.onMessage);
 
     if (this.isActive()) {
       this.ws.close();
-      this.connectionProps.onDisconnect?.();
+      this.connectionProps.onDisconnect();
     }
 
     this.ws = null;
@@ -245,9 +243,9 @@ export class WebSocketConnection<
     const [err, packet] = this.parseEvent(event);
 
     if (err) {
-      this.connectionProps.onError?.(err);
+      this.connectionProps.onError(err);
     } else if (packet) {
-      this.connectionProps.onMessage?.(packet);
+      this.connectionProps.onMessage(packet);
     }
   }
 

@@ -32,6 +32,7 @@ export interface HistoryItemBase {
   source: Actor;
   type: CHAT_HISTORY_TYPE;
   fromHistory?: boolean;
+  conversationId: string;
 }
 
 export interface HistoryItemActor extends HistoryItemBase {
@@ -74,6 +75,7 @@ export interface HistoryItemSceneChange {
   to?: string;
   loadedCharacters?: Character[];
   addedCharacters?: Character[];
+  conversationId?: string;
 }
 
 export type HistoryItem =
@@ -88,7 +90,7 @@ interface EmotionsMap {
 }
 
 interface InworldHistoryProps<InworldPacketT, HistoryItemT> {
-  audioEnabled: boolean;
+  audioEnabled?: boolean;
   extension?: Extension<InworldPacketT, HistoryItemT>;
   user?: User;
   scene: string;
@@ -104,6 +106,7 @@ export class InworldHistory<
   HistoryItemT extends HistoryItem = HistoryItem,
 > {
   private audioEnabled: boolean;
+  private audioEnabledPerConversation: Record<string, boolean> = {};
   private scene: string;
   private user?: User;
   private history: HistoryItem[] = [];
@@ -122,11 +125,11 @@ export class InworldHistory<
     }
 
     this.scene = props?.scene;
-    this.audioEnabled = props.audioEnabled;
+    this.audioEnabled = props.audioEnabled ?? false;
   }
 
-  setAudioEnabled(enabled: boolean) {
-    this.audioEnabled = enabled;
+  setAudioEnabled(conversationId: string, enabled: boolean) {
+    this.audioEnabledPerConversation[conversationId] = enabled;
   }
 
   addOrUpdate({
@@ -138,9 +141,11 @@ export class InworldHistory<
   }: InworldHistoryAddProps<InworldPacketT>) {
     let historyItem: HistoryItem | undefined;
     let queueItem: HistoryItem | undefined;
+    let needToDisplay: HistoryItem[] = [];
 
     const utteranceId = packet.packetId.utteranceId;
     const interactionId = packet.packetId.interactionId;
+    const conversationId = packet.packetId.conversationId;
 
     const byId = characters.reduce(
       (acc, character) => {
@@ -186,6 +191,7 @@ export class InworldHistory<
                 this.user,
               ),
               fromHistory,
+              conversationId,
             };
 
         const audioIsApplied = !!this.conversationItems.find(
@@ -194,12 +200,14 @@ export class InworldHistory<
             item.isApplied &&
             item.packet.packetId.utteranceId === utteranceId,
         );
+        const audioIsEnabled =
+          this.audioEnabledPerConversation[conversationId] ?? this.audioEnabled;
 
         if (
           audioIsApplied ||
           fromHistory ||
           packet.routing.source.isPlayer ||
-          !this.audioEnabled
+          !audioIsEnabled
         ) {
           historyItem = textItem;
         } else {
@@ -211,12 +219,15 @@ export class InworldHistory<
         historyItem = {
           ...this.combineTriggerItem(packet, outgoing),
           fromHistory,
+          conversationId,
         };
         break;
 
       case packet.isInteractionEnd():
-        const controlItem: HistoryInteractionEnd =
-          this.combineInteractionEndItem(packet);
+        const controlItem: HistoryInteractionEnd = {
+          ...this.combineInteractionEndItem(packet),
+          conversationId,
+        };
 
         if (
           this.audioEnabled &&
@@ -224,6 +235,13 @@ export class InworldHistory<
         ) {
           queueItem = controlItem;
         } else {
+          needToDisplay = [...this.queue].filter(
+            (item) => item.interactionId === interactionId,
+          );
+          this.history = [...this.history, ...needToDisplay];
+          this.queue = this.queue.filter(
+            (item) => item.interactionId !== interactionId,
+          );
           historyItem = controlItem;
         }
         break;
@@ -265,7 +283,7 @@ export class InworldHistory<
       ];
     }
 
-    return [historyItem];
+    return historyItem ? [...needToDisplay, historyItem] : [];
   }
 
   update(packet: InworldPacketT) {
@@ -368,8 +386,14 @@ export class InworldHistory<
     }
   }
 
-  get() {
-    return this.history;
+  get(conversationId?: string) {
+    if (!conversationId) {
+      return this.history;
+    }
+
+    return this.history.filter(
+      (item) => item.conversationId === conversationId,
+    );
   }
 
   filter(props: { utteranceId: string[]; interactionId: string }) {
@@ -444,22 +468,17 @@ export class InworldHistory<
   }
 
   private combineTextItem(packet: InworldPacketT): HistoryItemActor {
-    const date = new Date(packet.date);
-    const source = packet.routing.source;
-    const utteranceId = packet.packetId.utteranceId;
-    const interactionId = packet.packetId.interactionId;
-    const correlationId = packet.packetId.correlationId;
-
     return {
-      id: utteranceId,
+      id: packet.packetId.utteranceId,
       isRecognizing: !packet.text.final,
       scene: this.scene,
       type: CHAT_HISTORY_TYPE.ACTOR,
       text: packet.text.text,
-      correlationId,
-      date,
-      interactionId,
-      source,
+      date: new Date(packet.date),
+      correlationId: packet.packetId.correlationId,
+      conversationId: packet.packetId.conversationId,
+      interactionId: packet.packetId.interactionId,
+      source: packet.routing.source,
     };
   }
 
@@ -489,21 +508,24 @@ export class InworldHistory<
     characters: Character[],
     user?: User,
   ): HistoryItemNarratedAction {
-    const date = new Date(packet.date);
-    const interactionId = packet.packetId.interactionId;
-    const text = packet.routing.source.isPlayer
-      ? packet.narratedAction.text
-          .replaceAll('{character}', characters[0].displayName)
-          .replaceAll('{player}', this.getUserName(user))
-      : packet.narratedAction.text;
+    let text = packet.narratedAction.text;
+
+    if (packet.routing.source.isPlayer) {
+      text = text.replaceAll('{player}', this.getUserName(user));
+
+      if (characters.length) {
+        text = text.replaceAll('{character}', characters[0].displayName);
+      }
+    }
 
     return {
       id: v4(),
-      date,
+      date: new Date(packet.date),
       scene: this.scene,
       character: characters[0],
       characters,
-      interactionId,
+      interactionId: packet.packetId.interactionId,
+      conversationId: packet.packetId.conversationId,
       source: packet.routing.source,
       type: CHAT_HISTORY_TYPE.NARRATED_ACTION,
       text,
@@ -514,36 +536,29 @@ export class InworldHistory<
     packet: InworldPacketT,
     outgoing?: boolean,
   ): HistoryItemTriggerEvent {
-    const date = new Date(packet.date);
-    const source = packet.routing.source;
-    const utteranceId = packet.packetId.utteranceId;
-    const interactionId = packet.packetId.interactionId;
-    const correlationId = packet.packetId.correlationId;
-
     return {
-      id: utteranceId,
+      id: packet.packetId.utteranceId,
       type: CHAT_HISTORY_TYPE.TRIGGER_EVENT,
       name: packet.trigger.name,
       scene: this.scene,
-      correlationId,
       parameters: packet.trigger.parameters,
-      date,
-      interactionId,
+      date: new Date(packet.date),
+      interactionId: packet.packetId.interactionId,
+      conversationId: packet.packetId.conversationId,
+      correlationId: packet.packetId.correlationId,
       outgoing,
-      source,
+      source: packet.routing.source,
     };
   }
 
   private combineInteractionEndItem(
     packet: InworldPacketT,
   ): HistoryInteractionEnd {
-    const date = new Date(packet.date);
-    const interactionId = packet.packetId.interactionId;
-
     return {
       id: v4(),
-      date,
-      interactionId,
+      date: new Date(packet.date),
+      interactionId: packet.packetId.interactionId,
+      conversationId: packet.packetId.conversationId,
       scene: this.scene,
       source: packet.routing.source,
       type: CHAT_HISTORY_TYPE.INTERACTION_END,

@@ -7,7 +7,7 @@ import {
   InworldPacketType,
   User,
 } from '../../src/common/data_structures';
-import { InworlControlType } from '../../src/common/data_structures';
+import { InworlControlAction } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
 import {
   CHAT_HISTORY_TYPE,
@@ -89,7 +89,7 @@ const interactionEndPacket = new InworldPacket({
   trigger: new TriggerEvent({ name: v4() }),
   type: InworldPacketType.CONTROL,
   control: new ControlEvent({
-    type: InworlControlType.INTERACTION_END,
+    action: InworlControlAction.INTERACTION_END,
   }),
 });
 const sceneChangePacketRequest = new InworldPacket({
@@ -179,7 +179,7 @@ describe('text', () => {
     test('should add packet to queue', () => {
       jest
         .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
-        .mockImplementationOnce(() => true);
+        .mockImplementation(() => true);
 
       const history = createHistoryWithPacket(incomingTextPacket);
 
@@ -231,7 +231,7 @@ describe('text', () => {
     test('should display packet stored in queue', () => {
       jest
         .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
-        .mockImplementationOnce(() => true);
+        .mockImplementation(() => true);
 
       const history = createHistoryWithPacket(incomingTextPacket);
 
@@ -305,8 +305,8 @@ describe('text', () => {
       expect(history.get().length).toEqual(1);
 
       history.filter({
-        utteranceId: [packetId.utteranceId],
-        interactionId: packetId.interactionId,
+        utteranceId: [packetId.utteranceId!],
+        interactionId: packetId.interactionId!,
       });
 
       expect(history.get().length).toEqual(0);
@@ -315,15 +315,15 @@ describe('text', () => {
     test('should filter queue by the same interactionId', () => {
       jest
         .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
-        .mockImplementationOnce(() => true);
+        .mockImplementation(() => true);
 
       const history = createHistoryWithPacket(incomingTextPacket);
 
       expect(history.get().length).toEqual(0);
 
       history.filter({
-        utteranceId: [packetId.utteranceId],
-        interactionId: packetId.interactionId,
+        utteranceId: [packetId.utteranceId!],
+        interactionId: packetId.interactionId!,
       });
 
       expect(history.get().length).toEqual(0);
@@ -633,14 +633,9 @@ describe('interaction end', () => {
   test("should display packet stored in queue if it's last one", () => {
     jest
       .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
-      .mockImplementationOnce(() => true);
+      .mockImplementation(() => true);
 
     const history = createHistoryWithPacket(incomingTextPacket);
-
-    jest
-      .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
-      .mockImplementationOnce(() => true)
-      .mockImplementationOnce(() => true);
 
     history.addOrUpdate({
       characters,
@@ -675,13 +670,9 @@ describe('interaction end', () => {
   test("should not display packet stored in queue if it's not last one", () => {
     jest
       .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
-      .mockImplementationOnce(() => true);
+      .mockImplementation(() => true);
 
     const history = createHistoryWithPacket(incomingTextPacket);
-
-    jest
-      .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
-      .mockImplementationOnce(() => true);
 
     history.addOrUpdate({
       characters,
@@ -694,5 +685,23 @@ describe('interaction end', () => {
     history.display(interactionEndPacket, CHAT_HISTORY_TYPE.INTERACTION_END);
 
     expect(history.get().length).toEqual(0);
+  });
+
+  test('should display text packet stored in queue if not audio were received', () => {
+    jest
+      .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
+      .mockImplementation(() => false);
+
+    const history = createHistoryWithPacket(incomingTextPacket);
+
+    expect(history.get().length).toEqual(0);
+
+    history.addOrUpdate({
+      characters,
+      grpcAudioPlayer,
+      packet: interactionEndPacket,
+    });
+
+    expect(history.get().length).toEqual(2);
   });
 });

@@ -36,10 +36,7 @@ describe('should finish with success', () => {
     inworldClient = new InworldClient()
       .setScene(SCENE)
       .setConfiguration({
-        capabilities: {
-          ...capabilitiesProps,
-          multiAgent: true,
-        },
+        capabilities: capabilitiesProps,
         audioPlayback: { stop: { duration: 1000, ticks: 30 } },
         history: { previousState: true },
       })

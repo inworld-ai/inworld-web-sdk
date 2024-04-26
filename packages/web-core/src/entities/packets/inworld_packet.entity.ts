@@ -5,7 +5,7 @@ import {
   LoadCharactersCharacterName,
 } from '../../../proto/ai/inworld/packets/packets.pb';
 import {
-  InworlControlType,
+  InworlControlAction,
   InworldPacketType,
 } from '../../common/data_structures';
 import { Character } from '../character.entity';
@@ -127,40 +127,42 @@ export class InworldPacket {
   isInteractionEnd() {
     return (
       this.isControl() &&
-      this.control.type === InworlControlType.INTERACTION_END
+      this.control.action === InworlControlAction.INTERACTION_END
     );
   }
 
   isTTSPlaybackStart() {
     return (
       this.isControl() &&
-      this.control.type === InworlControlType.TTS_PLAYBACK_START
+      this.control.action === InworlControlAction.TTS_PLAYBACK_START
     );
   }
 
   isTTSPlaybackEnd() {
     return (
       this.isControl() &&
-      this.control.type === InworlControlType.TTS_PLAYBACK_END
+      this.control.action === InworlControlAction.TTS_PLAYBACK_END
     );
   }
 
   isTTSPlaybackMute() {
     return (
       this.isControl() &&
-      this.control.type === InworlControlType.TTS_PLAYBACK_MUTE
+      this.control.action === InworlControlAction.TTS_PLAYBACK_MUTE
     );
   }
 
   isTTSPlaybackUnmute() {
     return (
       this.isControl() &&
-      this.control.type === InworlControlType.TTS_PLAYBACK_UNMUTE
+      this.control.action === InworlControlAction.TTS_PLAYBACK_UNMUTE
     );
   }
 
   isWarning() {
-    return this.isControl() && this.control.type === InworlControlType.WARNING;
+    return (
+      this.isControl() && this.control.action === InworlControlAction.WARNING
+    );
   }
 
   isSilence() {

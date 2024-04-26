@@ -1,7 +1,7 @@
 import { v4 } from 'uuid';
 
 import {
-  InworlControlType,
+  InworlControlAction,
   InworldPacketType,
 } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
@@ -214,7 +214,9 @@ describe('control', () => {
       routing,
       date,
       type: InworldPacketType.CONTROL,
-      control: new ControlEvent({ type: InworlControlType.INTERACTION_END }),
+      control: new ControlEvent({
+        action: InworlControlAction.INTERACTION_END,
+      }),
     });
 
     expect(packet.isControl()).toEqual(true);
@@ -230,7 +232,7 @@ describe('control', () => {
       routing,
       date,
       type: InworldPacketType.CONTROL,
-      control: new ControlEvent({ type: InworlControlType.WARNING }),
+      control: new ControlEvent({ action: InworlControlAction.WARNING }),
     });
 
     expect(packet.isControl()).toEqual(true);

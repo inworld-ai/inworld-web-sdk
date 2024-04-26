@@ -3,12 +3,15 @@ import '../mocks/window.mock';
 import { v4 } from 'uuid';
 
 import {
+  ControlEventAction,
   DataChunkDataType,
   SessionControlResponseEvent,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import {
   AudioSessionState,
+  ConversationState,
   InworldPacketType,
+  TtsPlaybackAction,
 } from '../../src/common/data_structures';
 import {
   CHARACTER_HAS_INVALID_FORMAT,
@@ -16,7 +19,10 @@ import {
   SCENE_NAME_THE_SAME,
 } from '../../src/common/errors';
 import { protoTimestamp } from '../../src/common/helpers';
-import { InworldHistory } from '../../src/components/history';
+import {
+  CHAT_HISTORY_TYPE,
+  InworldHistory,
+} from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../../src/components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../../src/components/sound/grpc_web_rtc_loopback_bidi.session';
@@ -28,12 +34,14 @@ import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity'
 import { Routing } from '../../src/entities/packets/routing.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
+import { ConversationService } from '../../src/services/conversation.service';
 import { InworldConnectionService } from '../../src/services/inworld_connection.service';
 import { ExtendedInworldPacket } from '../data_structures';
 import {
+  conversationId,
+  conversationUpdated,
   convertAgentsToCharacters,
   createAgent,
-  createCharacter,
   extension,
   generateSessionToken,
   getPacketId,
@@ -50,6 +58,7 @@ const grpcAudioPlayer = new GrpcAudioPlayback();
 const grpcAudioRecorder = new GrpcAudioRecorder();
 const webRtcLoopbackBiDiSession = new GrpcWebRtcLoopbackBiDiSession();
 const onHistoryChange = jest.fn();
+const onError = jest.fn();
 
 const connection = new ConnectionService({
   config: {
@@ -63,6 +72,7 @@ const connection = new ConnectionService({
   webRtcLoopbackBiDiSession,
   generateSessionToken,
   onHistoryChange,
+  onError,
 });
 
 test('should open connection', async () => {
@@ -149,7 +159,7 @@ describe('history', () => {
     });
   });
 
-  test('should get history', () => {
+  test('should get full history', () => {
     const history = new InworldHistory({ scene: SCENE, audioEnabled: true });
     const packetId = getPacketId();
     const routing: Routing = {
@@ -183,8 +193,42 @@ describe('history', () => {
       .spyOn(ConnectionService.prototype, 'getHistory')
       .mockImplementationOnce(() => history.get());
 
-    expect(service.getHistory()).toEqual(history.get());
+    expect(service.getFullHistory()).toEqual(history.get());
     expect(getHistory).toHaveBeenCalledTimes(1);
+  });
+
+  test('should return empty conversation history if conversation is not created', async () => {
+    const history = new InworldHistory({ scene: SCENE, audioEnabled: true });
+    const packetId = getPacketId();
+    const routing: Routing = {
+      source: {
+        name: v4(),
+        isPlayer: true,
+        isCharacter: false,
+      },
+      targets: [
+        {
+          name: characters[0].id,
+          isPlayer: false,
+          isCharacter: true,
+        },
+      ],
+    };
+    const date = protoTimestamp();
+    const packet = new InworldPacket({
+      packetId,
+      routing,
+      date,
+      text: {
+        text: v4(),
+        final: false,
+      },
+      type: InworldPacketType.TEXT,
+    });
+    history.addOrUpdate({ characters, grpcAudioPlayer, packet });
+
+    expect(service.getHistory()).toEqual([]);
+    expect(service.getCurrentConversation()).toBeUndefined();
   });
 
   test('should clear history', () => {
@@ -229,6 +273,10 @@ describe('send', () => {
       jest
         .spyOn(grpcAudioPlayer, 'excludeCurrentInteractionPackets')
         .mockImplementation(() => []);
+      jest
+        .spyOn(ConnectionService.prototype, 'getCurrentCharacter')
+        .mockImplementation(() => Promise.resolve(character));
+
       service = new InworldConnectionService({
         connection,
         grpcAudioPlayer,
@@ -240,91 +288,319 @@ describe('send', () => {
     });
 
     test('should send audio', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
+
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+        .mockImplementation(writeMock);
 
       const chunk = v4();
 
-      const packet = await service.sendAudio(chunk);
+      const [packet] = await Promise.all([
+        service.sendAudio(chunk),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
 
       expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(write.mock.calls[0][0].getPacket().control?.action).toEqual(
+        ControlEventAction.CONVERSATION_UPDATE,
+      );
+      expect(write.mock.calls[1][0].getPacket().dataChunk!.type).toEqual(
+        DataChunkDataType.AUDIO,
+      );
       expect(packet).toHaveProperty('type', DataChunkDataType.AUDIO);
-      expect(packet.audio).toHaveProperty('chunk', chunk);
+      expect(packet!.audio).toHaveProperty('chunk', chunk);
+      expect(service.getConversations()).toEqual([
+        {
+          conversationId,
+          characters: [characters[0]],
+        },
+      ]);
+      expect(service.getCurrentConversation()).toEqual({
+        conversationId,
+        characters: [characters[0]],
+      });
     });
 
     test('should send text', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+        .mockImplementation(writeMock);
 
       const text = v4();
 
-      const packet = await service.sendText(text);
+      const [packet] = await Promise.all([
+        service.sendText(text),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
 
       expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet.text).toHaveProperty('text', text);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(write.mock.calls[0][0].getPacket().control?.action).toEqual(
+        ControlEventAction.CONVERSATION_UPDATE,
+      );
+      expect(write.mock.calls[1][0].getPacket().text!.text).toEqual(text);
+      expect(packet!.text).toHaveProperty('text', text);
+      expect(service.getConversations()).toEqual([
+        {
+          conversationId,
+          characters: [characters[0]],
+        },
+      ]);
+      expect(service.getHistory().length).toEqual(1);
+      expect(service.getHistory()[0].type).toEqual(CHAT_HISTORY_TYPE.ACTOR);
     });
 
     test('should send trigger without parameters', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+        .mockImplementation(writeMock);
 
       const name = v4();
 
-      const packet = await service.sendTrigger(name);
+      const [packet] = await Promise.all([
+        service.sendTrigger(name),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
 
       expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet.trigger).toHaveProperty('name', name);
-      expect(packet.trigger).toHaveProperty('parameters', undefined);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(write.mock.calls[0][0].getPacket().control?.action).toEqual(
+        ControlEventAction.CONVERSATION_UPDATE,
+      );
+      expect(write.mock.calls[1][0].getPacket().custom?.name).toEqual(name);
+      expect(packet!.trigger).toHaveProperty('name', name);
+      expect(packet!.trigger.parameters).toBeUndefined();
+      expect(service.getConversations()).toEqual([
+        {
+          conversationId,
+          characters: [characters[0]],
+        },
+      ]);
     });
 
-    test('should send trigger with parameters', async () => {
+    test('should send trigger with parameters in the old way', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+        .mockImplementation(writeMock);
       const warn = jest.spyOn(global.console, 'warn').mockImplementation();
 
       const name = v4();
       const parameters = [{ name: v4(), value: v4() }];
 
-      const packet = await service.sendTrigger(name, parameters);
+      const [packet] = await Promise.all([
+        service.sendTrigger(name, parameters),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
 
       expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(warn).toBeCalledTimes(1);
-      expect(packet.trigger).toHaveProperty('name', name);
-      expect(packet.trigger).toHaveProperty('parameters', parameters);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(write.mock.calls[0][0].getPacket().control?.action).toEqual(
+        ControlEventAction.CONVERSATION_UPDATE,
+      );
+      expect(write.mock.calls[1][0].getPacket().custom?.parameters).toEqual(
+        parameters,
+      );
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(packet!.trigger).toHaveProperty('name', name);
+      expect(packet!.trigger).toHaveProperty('parameters', parameters);
+      expect(service.getConversations()).toEqual([
+        {
+          conversationId,
+          characters: [characters[0]],
+        },
+      ]);
+    });
+
+    test('should send trigger with parameters in the new way', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementation(writeMock);
+      const warn = jest.spyOn(global.console, 'warn').mockImplementation();
+
+      const name = v4();
+      const parameters = [{ name: v4(), value: v4() }];
+
+      const [packet] = await Promise.all([
+        service.sendTrigger(name, { parameters }),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(write.mock.calls[0][0].getPacket().control?.action).toEqual(
+        ControlEventAction.CONVERSATION_UPDATE,
+      );
+      expect(write.mock.calls[1][0].getPacket().custom?.parameters).toEqual(
+        parameters,
+      );
+      expect(warn).toHaveBeenCalledTimes(0);
+      expect(packet!.trigger).toHaveProperty('name', name);
+      expect(packet!.trigger).toHaveProperty('parameters', parameters);
+      expect(service.getConversations()).toEqual([
+        {
+          conversationId,
+          characters: [characters[0]],
+        },
+      ]);
     });
 
     test('should send audio session start', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
+
       jest
         .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
         .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+        .mockImplementation(writeMock);
 
-      const packet = await service.sendAudioSessionStart();
+      const [packet] = await Promise.all([
+        service.sendAudioSessionStart(),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
 
       expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet.isControl()).toEqual(true);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(write.mock.calls[0][0].getPacket().control?.action).toEqual(
+        ControlEventAction.CONVERSATION_UPDATE,
+      );
+      expect(write.mock.calls[1][0].getPacket().control?.action).toEqual(
+        ControlEventAction.AUDIO_SESSION_START,
+      );
+      expect(packet!.isControl()).toEqual(true);
+      expect(service.getConversations()).toEqual([
+        {
+          conversationId,
+          characters: [characters[0]],
+        },
+      ]);
     });
 
     test('should throw error if audio session was started twice', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
+
       jest
         .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+        .mockImplementation(writeMock);
       jest
         .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
         .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
 
-      await service.sendAudioSessionStart();
+      await Promise.all([
+        service.sendAudioSessionStart(),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
 
       expect(async () => {
         await service.sendAudioSessionStart();
@@ -332,6 +608,18 @@ describe('send', () => {
     });
 
     test('should throw error if audio session was finished twice', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
+
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
         .mockImplementation(writeMock);
@@ -339,7 +627,16 @@ describe('send', () => {
         .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
         .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
 
-      await service.sendAudioSessionStart();
+      await Promise.all([
+        service.sendAudioSessionStart(),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
+
       await service.sendAudioSessionEnd();
 
       expect(async () => {
@@ -347,39 +644,97 @@ describe('send', () => {
       }).rejects.toThrow(
         'Audio session cannot be ended because it has not been started',
       );
-      expect(write).toHaveBeenCalledTimes(2);
+      expect(write).toHaveBeenCalledTimes(3);
     });
 
     test('should send audio session end', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
+
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock)
-        .mockImplementationOnce(writeMock);
+        .mockImplementation(writeMock);
       jest
         .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
         .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
 
-      await service.sendAudioSessionStart();
+      await Promise.all([
+        service.sendAudioSessionStart(),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
+
       const packet = await service.sendAudioSessionEnd();
 
       expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(2);
-      expect(packet.isControl()).toEqual(true);
+      expect(write).toHaveBeenCalledTimes(3);
+      expect(write.mock.calls[0][0].getPacket().control?.action).toEqual(
+        ControlEventAction.CONVERSATION_UPDATE,
+      );
+      expect(write.mock.calls[1][0].getPacket().control?.action).toEqual(
+        ControlEventAction.AUDIO_SESSION_START,
+      );
+      expect(packet!.isControl()).toEqual(true);
     });
 
     test('should send cancel responses', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
+
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+        .mockImplementation(writeMock);
 
-      const packet = await service.sendCancelResponse({ utteranceId: [v4()] });
+      const [packet] = await Promise.all([
+        service.sendCancelResponse({ utteranceId: [v4()] }),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
 
       expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet.isCancelResponse()).toEqual(true);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(packet!.isCancelResponse()).toEqual(true);
     });
 
     test('should send narrated action', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
+
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
         .mockImplementationOnce(() =>
@@ -390,67 +745,155 @@ describe('send', () => {
         .mockReturnValueOnce(characters);
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+        .mockImplementation(writeMock);
 
       const text = v4();
 
-      const packet = await service.sendNarratedAction(text);
+      const [packet] = await Promise.all([
+        service.sendNarratedAction(text),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
 
       expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet?.narratedAction).toHaveProperty('text', text);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(packet!.narratedAction).toHaveProperty('text', text);
     });
 
     test('should send tts playback end', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
+
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+        .mockImplementation(writeMock);
 
-      const packet = await service.sendTTSPlaybackStart();
+      const [packet] = await Promise.all([
+        service.sendTTSPlaybackStart(),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
 
       expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet.isControl()).toEqual(true);
-      expect(packet.isTTSPlaybackStart()).toEqual(true);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(packet!.isControl()).toEqual(true);
+      expect(packet!.isTTSPlaybackStart()).toEqual(true);
     });
 
     test('should send tts playback start', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
+
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+        .mockImplementation(writeMock);
 
-      const packet = await service.sendTTSPlaybackEnd();
+      const [packet] = await Promise.all([
+        service.sendTTSPlaybackEnd(),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
 
       expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
+      expect(write).toHaveBeenCalledTimes(2);
       expect(packet.isControl()).toEqual(true);
       expect(packet.isTTSPlaybackEnd()).toEqual(true);
     });
 
     test('should send tts playback mute', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
+
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+        .mockImplementation(writeMock);
 
-      const packet = await service.sendTTSPlaybackMute(true);
+      const [packet] = await Promise.all([
+        service.sendTTSPlaybackMute(true),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
 
       expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet.isControl()).toEqual(true);
-      expect(packet.isTTSPlaybackMute()).toEqual(true);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(packet!.isControl()).toEqual(true);
+      expect(packet!.isTTSPlaybackMute()).toEqual(true);
     });
 
     test('should send tts playback unmute', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
+
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+        .mockImplementation(writeMock);
 
-      const packet = await service.sendTTSPlaybackMute(false);
+      const [packet] = await Promise.all([
+        service.sendTTSPlaybackMute(false),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
 
       expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet.isControl()).toEqual(true);
-      expect(packet.isTTSPlaybackUnmute()).toEqual(true);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(packet!.isControl()).toEqual(true);
+      expect(packet!.isTTSPlaybackUnmute()).toEqual(true);
     });
 
     test('should interrupt', async () => {
@@ -464,6 +907,7 @@ describe('send', () => {
     });
 
     test('should send custom packet', async () => {
+      const grpcAudioPlayer = new GrpcAudioPlayback<ExtendedInworldPacket>();
       const connection = new ConnectionService<ExtendedInworldPacket>({
         grpcAudioPlayer,
         webRtcLoopbackBiDiSession,
@@ -478,28 +922,57 @@ describe('send', () => {
         grpcAudioRecorder,
         webRtcLoopbackBiDiSession,
       });
+      const conversationService =
+        new ConversationService<ExtendedInworldPacket>(connection, {
+          characters: [characters[0]],
+        });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(
-          async (item: QueueItem<ExtendedInworldPacket>) => {
-            const packet = extension.convertPacketFromProto(item.getPacket());
-            await item.beforeWriting?.(packet);
-            item.afterWriting?.(packet);
-          },
-        );
+        .mockImplementation(async (item: QueueItem<ExtendedInworldPacket>) => {
+          const packet = extension.convertPacketFromProto!(item.getPacket());
+          await item.beforeWriting?.(packet);
+          item.afterWriting?.(packet);
+        });
 
       const interactionId = v4();
       const mutation = { regenerateResponse: { interactionId } };
       const baseProtoPacket = service.baseProtoPacket();
-      const packet = await service.sendCustomPacket(() => ({
-        ...baseProtoPacket,
-        packetId: { ...baseProtoPacket.packetId, interactionId },
-        mutation,
-      }));
+
+      const [packet] = await Promise.all([
+        service.sendCustomPacket(() => ({
+          ...baseProtoPacket,
+          packetId: { ...baseProtoPacket.packetId, interactionId },
+          mutation,
+        })),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
 
       expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(write.mock.calls[0][0].getPacket().control?.action).toEqual(
+        ControlEventAction.CONVERSATION_UPDATE,
+      );
+      expect(write.mock.calls[1][0].getPacket().mutation).toEqual(mutation);
       expect(packet).toHaveProperty('mutation', mutation);
+      expect(service.getConversations()).toEqual([
+        {
+          conversationId,
+          characters: [characters[0]],
+        },
+      ]);
     });
 
     test('should reload scene', async () => {
@@ -622,215 +1095,108 @@ describe('send', () => {
         new Error(CHARACTER_HAS_INVALID_FORMAT),
       );
     });
-  });
 
-  describe('multi characters', () => {
-    const externalCharacters = [createCharacter(), createCharacter()];
+    test('should add playback mute event to queue in case of auto reconnect', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
 
-    beforeEach(() => {
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementation(writeMock);
       jest
-        .spyOn(ConnectionService.prototype, 'isActive')
-        .mockImplementation(() => true);
-      jest
-        .spyOn(ConnectionService.prototype, 'getEventFactory')
-        .mockImplementation(() => eventFactory);
-      jest
-        .spyOn(grpcAudioPlayer, 'excludeCurrentInteractionPackets')
-        .mockImplementation(() => []);
-      service = new InworldConnectionService({
+        .spyOn(ConversationService.prototype, 'getTtsPlaybackAction')
+        .mockImplementationOnce(() => TtsPlaybackAction.MUTE);
+
+      const text = v4();
+
+      const [packet] = await Promise.all([
+        service.sendText(text),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(3);
+      expect(write.mock.calls[0][0].getPacket().control?.action).toEqual(
+        ControlEventAction.CONVERSATION_UPDATE,
+      );
+      expect(write.mock.calls[1][0].getPacket().control?.action).toEqual(
+        ControlEventAction.TTS_PLAYBACK_MUTE,
+      );
+      expect(write.mock.calls[2][0].getPacket().text!.text).toEqual(text);
+      expect(packet!.text).toHaveProperty('text', text);
+      expect(service.getConversations()).toEqual([
+        {
+          conversationId,
+          characters: [characters[0]],
+        },
+      ]);
+    });
+
+    test('should start conversation', async () => {
+      const connection = new ConnectionService({
+        config: {
+          capabilities: {
+            audio: true,
+            emotions: true,
+          },
+        },
+        name: SCENE,
+        grpcAudioPlayer,
+        webRtcLoopbackBiDiSession,
+        generateSessionToken,
+        onHistoryChange,
+      });
+      const service = new InworldConnectionService({
         connection,
         grpcAudioPlayer,
         grpcAudioRecorder,
         webRtcLoopbackBiDiSession,
       });
-      eventFactory.setCharacters(characters);
-    });
 
-    test('should send audio', async () => {
-      const write = jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+      expect(service.getConversations()).toEqual([]);
 
-      const chunk = v4();
+      service.startConversation([characters[0]]);
 
-      const packet = await service.sendAudio(chunk, {
-        characters: externalCharacters,
-      });
-
-      expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet).toHaveProperty('type', DataChunkDataType.AUDIO);
-      expect(packet.audio).toHaveProperty('chunk', chunk);
-    });
-
-    test('should send text', async () => {
-      const write = jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
-
-      const text = v4();
-
-      const packet = await service.sendText(text, {
-        characters: externalCharacters,
-      });
-
-      expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet.text).toHaveProperty('text', text);
-    });
-
-    test('should send trigger', async () => {
-      const write = jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
-
-      const name = v4();
-
-      const packet = await service.sendTrigger(name, {
-        characters: externalCharacters,
-      });
-
-      expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet.trigger).toHaveProperty('name', name);
-      expect(packet.trigger).toHaveProperty('parameters', undefined);
-    });
-
-    test('should send audio session start', async () => {
-      jest
-        .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
-        .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
-      const write = jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
-
-      const packet = await service.sendAudioSessionStart({
-        characters: externalCharacters,
-      });
-
-      expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet.isControl()).toEqual(true);
-    });
-
-    test('should send audio session end', async () => {
-      const write = jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock)
-        .mockImplementationOnce(writeMock);
-      jest
-        .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
-        .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
-
-      await service.sendAudioSessionStart();
-      const packet = await service.sendAudioSessionEnd({
-        characters: externalCharacters,
-      });
-
-      expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(2);
-      expect(packet.isControl()).toEqual(true);
-    });
-
-    test('should send cancel responses', async () => {
-      const write = jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
-
-      const packet = await service.sendCancelResponse(
-        { utteranceId: [v4()] },
+      expect(service.getConversations()).toEqual([
         {
-          characters: externalCharacters,
+          conversationId: expect.anything(),
+          characters: [characters[0]],
         },
-      );
-
-      expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet.isCancelResponse()).toEqual(true);
+      ]);
     });
 
-    test('should send narrated action', async () => {
+    test('should throw error if character is not set', async () => {
+      const conversationService = new ConversationService(connection, {
+        characters: [characters[0]],
+      });
       jest
-        .spyOn(WebSocketConnection.prototype, 'openSession')
-        .mockImplementationOnce(() =>
-          Promise.resolve({ agents } as SessionControlResponseEvent),
-        );
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
       jest
-        .spyOn(EventFactory.prototype, 'getCharacters')
-        .mockReturnValueOnce(characters);
-      const write = jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+        .spyOn(connection, 'getCurrentCharacter')
+        .mockImplementationOnce(() => Promise.resolve(undefined));
 
-      const text = v4();
-
-      const packet = await service.sendNarratedAction(text, {
-        characters: externalCharacters,
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
       });
 
-      expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet?.narratedAction).toHaveProperty('text', text);
-    });
-
-    test('should send tts playback end', async () => {
-      const write = jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
-
-      const packet = await service.sendTTSPlaybackStart({
-        characters: externalCharacters,
-      });
-
-      expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet.isControl()).toEqual(true);
-      expect(packet.isTTSPlaybackStart()).toEqual(true);
-    });
-
-    test('should send tts playback start', async () => {
-      const write = jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
-
-      const packet = await service.sendTTSPlaybackEnd({
-        characters: externalCharacters,
-      });
-
-      expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet.isControl()).toEqual(true);
-      expect(packet.isTTSPlaybackEnd()).toEqual(true);
-    });
-
-    test('should send tts playback mute', async () => {
-      const write = jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
-
-      const packet = await service.sendTTSPlaybackMute(true, {
-        characters: externalCharacters,
-      });
-
-      expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet.isControl()).toEqual(true);
-      expect(packet.isTTSPlaybackMute()).toEqual(true);
-    });
-
-    test('should send tts playback unmute', async () => {
-      const write = jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
-
-      const packet = await service.sendTTSPlaybackMute(false, {
-        characters: externalCharacters,
-      });
-
-      expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet.isControl()).toEqual(true);
-      expect(packet.isTTSPlaybackUnmute()).toEqual(true);
+      expect(async () => {
+        await service.sendText(v4());
+      }).rejects.toThrow('Current character is not set');
     });
   });
 });
@@ -861,9 +1227,7 @@ describe('character', () => {
   });
 
   test('should return current character', async () => {
-    const getCurrentCharacter = jest
-      .spyOn(eventFactory, 'getCurrentCharacter')
-      .mockImplementationOnce(() => characters[0]);
+    const getCurrentCharacter = jest.spyOn(connection, 'getCurrentCharacter');
 
     const result = await service.getCurrentCharacter();
 
@@ -878,6 +1242,28 @@ describe('character', () => {
 
     expect(setCurrentCharacter).toHaveBeenCalledTimes(1);
     expect(setCurrentCharacter).toHaveBeenCalledWith(characters[0]);
+  });
+
+  test('should change current character for existing one-to-one conversation', async () => {
+    jest
+      .spyOn(service, 'getCurrentCharacter')
+      .mockImplementationOnce(() => Promise.resolve(characters[0]));
+
+    jest
+      .spyOn(ConversationService.prototype, 'sendText')
+      .mockImplementation(jest.fn());
+
+    await service.sendText(v4());
+
+    expect(service.getCurrentConversation()?.characters).toEqual([
+      characters[0],
+    ]);
+
+    service.setCurrentCharacter(characters[1]);
+
+    expect(service.getCurrentConversation()?.characters).toEqual([
+      characters[1],
+    ]);
   });
 });
 
@@ -897,12 +1283,23 @@ describe('listener', () => {
     jest
       .spyOn(ConnectionService.prototype, 'isActive')
       .mockImplementationOnce(() => false);
+    jest
+      .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+      .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
 
+    const getCurrentAudioConversation = jest
+      .spyOn(ConnectionService.prototype, 'getCurrentAudioConversation')
+      .mockImplementationOnce(
+        () =>
+          new ConversationService(connection, {
+            characters: [],
+          }),
+      );
     const sendAudioSessionStart = jest
-      .spyOn(InworldConnectionService.prototype, 'sendAudioSessionStart')
+      .spyOn(ConversationService.prototype, 'sendAudioSessionStart')
       .mockImplementationOnce(jest.fn());
     const sendAudio = jest
-      .spyOn(InworldConnectionService.prototype, 'sendAudio')
+      .spyOn(ConversationService.prototype, 'sendAudio')
       .mockImplementationOnce(jest.fn());
 
     const service = new InworldConnectionService({
@@ -914,22 +1311,12 @@ describe('listener', () => {
 
     await service.recorder.start();
 
+    expect(getCurrentAudioConversation).toHaveBeenCalledTimes(1);
     expect(sendAudioSessionStart).toHaveBeenCalledTimes(1);
     expect(sendAudio).toHaveBeenCalledTimes(1);
   });
 
-  test('should send audio session start af first for inactive connection', async () => {
-    jest
-      .spyOn(ConnectionService.prototype, 'isActive')
-      .mockImplementationOnce(() => true);
-
-    const sendAudioSessionStart = jest
-      .spyOn(InworldConnectionService.prototype, 'sendAudioSessionStart')
-      .mockImplementationOnce(jest.fn());
-    const sendAudio = jest
-      .spyOn(InworldConnectionService.prototype, 'sendAudio')
-      .mockImplementationOnce(jest.fn());
-
+  test('should throw error if current conversation is not set', async () => {
     const service = new InworldConnectionService({
       connection,
       grpcAudioPlayer,
@@ -937,9 +1324,15 @@ describe('listener', () => {
       webRtcLoopbackBiDiSession,
     });
 
+    jest
+      .spyOn(ConnectionService.prototype, 'getCurrentAudioConversation')
+      .mockImplementationOnce(() => undefined);
+
     await service.recorder.start();
 
-    expect(sendAudioSessionStart).toHaveBeenCalledTimes(0);
-    expect(sendAudio).toHaveBeenCalledTimes(1);
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError.mock.calls[0][0].message).toEqual(
+      'No conversation is available to send audio.',
+    );
   });
 });

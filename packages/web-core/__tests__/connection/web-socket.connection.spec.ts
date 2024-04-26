@@ -22,10 +22,10 @@ import {
   previousState,
   session,
   user,
-  writeMock,
 } from '../helpers';
 const { version } = require('../../package.json');
 
+const conversationId = v4();
 const character = createCharacter();
 const eventFactory = new EventFactory();
 eventFactory.setCurrentCharacter(character);
@@ -34,9 +34,11 @@ let server: WS;
 let ws: WebSocketConnection;
 
 const HOSTNAME = 'localhost:1234';
-const textMessage = eventFactory.text(v4());
+const textMessage = eventFactory.text(v4(), { conversationId });
 
 const onError = jest.fn();
+const onReady = jest.fn();
+const onMessage = jest.fn();
 const onDisconnect = jest.fn();
 
 beforeEach(() => {
@@ -49,6 +51,10 @@ beforeEach(() => {
       connection: { gateway: { hostname: HOSTNAME } },
       capabilities: capabilitiesProps,
     },
+    onError,
+    onReady,
+    onMessage,
+    onDisconnect,
   });
 });
 
@@ -68,6 +74,9 @@ describe('open', () => {
       onMessage: (packet: ProtoPacket) => {
         messages.push(packet);
       },
+      onError,
+      onReady,
+      onDisconnect,
     });
 
     await Promise.all([
@@ -99,6 +108,9 @@ describe('open', () => {
         capabilities: capabilitiesProps,
       },
       onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
 
     await Promise.all([
@@ -133,6 +145,9 @@ describe('open', () => {
         capabilities: capabilitiesProps,
       },
       onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
 
     await expect(
@@ -174,6 +189,9 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME, ssl: true } },
         capabilities: capabilitiesProps,
       },
+      onError,
+      onReady,
+      onMessage,
       onDisconnect,
     });
 
@@ -213,10 +231,14 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
     const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementation(writeMock);
+      .spyOn(WebSocket.prototype, 'send')
+      .mockImplementation(jest.fn());
 
     await Promise.all([
       ws.openSession({
@@ -237,12 +259,12 @@ describe('open', () => {
 
     await server.connected;
 
-    const actualClient =
-      write.mock.calls[1][0].getPacket().sessionControl?.clientConfiguration;
+    const actualClient = JSON.parse(write.mock.calls[1][0] as string)
+      .sessionControl?.clientConfiguration;
 
-    expect(actualClient.id).toEqual(CLIENT_ID);
-    expect(actualClient.version).toEqual(version);
-    expect(actualClient.description).toEqual(description.join('; '));
+    expect(actualClient!.id).toEqual(CLIENT_ID);
+    expect(actualClient!.version).toEqual(version);
+    expect(actualClient!.description).toEqual(description.join('; '));
   });
 
   test("should not send client id if it's not provided", async () => {
@@ -253,10 +275,14 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
     const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementation(writeMock);
+      .spyOn(WebSocket.prototype, 'send')
+      .mockImplementation(jest.fn());
 
     await Promise.all([
       ws.openSession({
@@ -276,8 +302,8 @@ describe('open', () => {
 
     await server.connected;
 
-    const actualClient =
-      write.mock.calls[1][0].getPacket().sessionControl?.clientConfiguration;
+    const actualClient = JSON.parse(write.mock.calls[1][0] as string)
+      .sessionControl?.clientConfiguration;
 
     expect(actualClient.id).toEqual(CLIENT_ID);
     expect(actualClient.version).toEqual(version);
@@ -292,10 +318,14 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
     const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementation(writeMock);
+      .spyOn(WebSocket.prototype, 'send')
+      .mockImplementation(jest.fn());
 
     await Promise.all([
       ws.openSession({
@@ -309,8 +339,8 @@ describe('open', () => {
 
     await server.connected;
 
-    const sentUser =
-      write.mock.calls[2][0].getPacket().sessionControl?.userConfiguration;
+    const sentUser = JSON.parse(write.mock.calls[2][0] as string).sessionControl
+      ?.userConfiguration;
 
     expect(sentUser.name).toEqual(user.fullName);
     expect(sentUser.id.length).not.toEqual(0);
@@ -322,10 +352,14 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
     const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementation(writeMock);
+      .spyOn(WebSocket.prototype, 'send')
+      .mockImplementation(jest.fn());
 
     await Promise.all([
       ws.openSession({
@@ -339,8 +373,8 @@ describe('open', () => {
 
     await server.connected;
 
-    const sentUser =
-      write.mock.calls[2][0].getPacket().sessionControl?.userConfiguration;
+    const sentUser = JSON.parse(write.mock.calls[2][0] as string).sessionControl
+      ?.userConfiguration;
 
     expect(sentUser).toEqual({ id: user.id });
   });
@@ -351,10 +385,14 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
     const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementation(writeMock);
+      .spyOn(WebSocket.prototype, 'send')
+      .mockImplementation(jest.fn());
 
     await Promise.all([
       ws.openSession({
@@ -368,12 +406,12 @@ describe('open', () => {
 
     await server.connected;
 
-    const sentUser =
-      write.mock.calls[2][0].getPacket().sessionControl?.userConfiguration;
+    const sentUser = JSON.parse(write.mock.calls[2][0] as string).sessionControl
+      ?.userConfiguration;
 
     expect(sentUser?.userSettings?.playerProfile?.fields[0]).toEqual({
-      fieldId: user.profile.fields[0].id,
-      fieldValue: user.profile.fields[0].value,
+      fieldId: user.profile!.fields[0].id,
+      fieldValue: user.profile!.fields[0].value,
     });
   });
 
@@ -383,10 +421,14 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
     const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementation(writeMock);
+      .spyOn(WebSocket.prototype, 'send')
+      .mockImplementation(jest.fn());
 
     await Promise.all([
       ws.openSession({
@@ -402,8 +444,8 @@ describe('open', () => {
 
     await server.connected;
 
-    const continuation =
-      write.mock.calls[3][0].getPacket().sessionControl?.continuation;
+    const continuation = JSON.parse(write.mock.calls[3][0] as string)
+      .sessionControl?.continuation;
 
     expect(continuation?.dialogHistory).toEqual(previousDialog.toProto());
     expect(continuation?.continuationType).toEqual(
@@ -417,10 +459,14 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
     const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementation(writeMock);
+      .spyOn(WebSocket.prototype, 'send')
+      .mockImplementation(jest.fn());
 
     const result = await Promise.all([
       ws.openSession({
@@ -434,8 +480,8 @@ describe('open', () => {
 
     await server.connected;
 
-    const continuation =
-      write.mock.calls[3][0].getPacket().sessionControl?.continuation;
+    const continuation = JSON.parse(write.mock.calls[3][0] as string)
+      .sessionControl?.continuation;
 
     expect(continuation?.externallySavedState).toEqual(previousState);
     expect(continuation?.continuationType).toEqual(
@@ -452,10 +498,14 @@ describe('open', () => {
         capabilities: capabilitiesProps,
         gameSessionId,
       },
+      onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
     const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementation(writeMock);
+      .spyOn(WebSocket.prototype, 'send')
+      .mockImplementation(jest.fn());
 
     await Promise.all([
       ws.openSession({
@@ -468,8 +518,8 @@ describe('open', () => {
 
     await server.connected;
 
-    const sessionConfiguration =
-      write.mock.calls[1][0].getPacket().sessionControl?.sessionConfiguration;
+    const sessionConfiguration = JSON.parse(write.mock.calls[1][0] as string)
+      .sessionControl?.sessionConfiguration;
 
     expect(sessionConfiguration?.gameSessionId).toEqual(gameSessionId);
   });
@@ -481,10 +531,12 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
-    jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementation(writeMock);
+    jest.spyOn(WebSocket.prototype, 'send').mockImplementation(jest.fn());
 
     const result = await Promise.all([
       ws.openSession({
@@ -511,10 +563,12 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
-    jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementation(writeMock);
+    jest.spyOn(WebSocket.prototype, 'send').mockImplementation(jest.fn());
 
     const result = await Promise.all([
       ws.openSession({
@@ -540,10 +594,12 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
-    jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementation(writeMock);
+    jest.spyOn(WebSocket.prototype, 'send').mockImplementation(jest.fn());
 
     await Promise.all([
       ws.openSession({
@@ -566,10 +622,12 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
-    jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementation(writeMock);
+    jest.spyOn(WebSocket.prototype, 'send').mockImplementation(jest.fn());
 
     await Promise.all([
       ws.openSession({
@@ -594,10 +652,12 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
-    jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementation(writeMock);
+    jest.spyOn(WebSocket.prototype, 'send').mockImplementation(jest.fn());
 
     await expect(
       Promise.all([
@@ -631,19 +691,12 @@ describe('reopen', () => {
       onMessage: (packet: ProtoPacket) => {
         messages.push(packet);
       },
+      onError,
+      onReady,
+      onDisconnect,
     });
 
-    await Promise.all([
-      ws.reopenSession(session),
-      setTimeout(
-        () =>
-          setTimeout(
-            () => new Promise(emitSessionControlResponseEvent(server)),
-            0,
-          ),
-        0,
-      ),
-    ]);
+    await ws.reopenSession(session);
 
     server.send({ result: textMessage });
     server.send({ result: textMessage });
@@ -658,6 +711,9 @@ describe('reopen', () => {
         capabilities: capabilitiesProps,
       },
       onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
 
     await Promise.all([
@@ -688,6 +744,9 @@ describe('reopen', () => {
         capabilities: capabilitiesProps,
       },
       onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
 
     await expect(
@@ -725,6 +784,9 @@ describe('reopen', () => {
         connection: { gateway: { hostname: HOSTNAME, ssl: true } },
         capabilities: capabilitiesProps,
       },
+      onError,
+      onReady,
+      onMessage,
       onDisconnect,
     });
 
@@ -748,76 +810,37 @@ describe('reopen', () => {
 });
 
 describe('close', () => {
-  describe('should open and close connection', () => {
-    test('with Disconnect', async () => {
-      ws = new WebSocketConnection({
-        config: {
-          connection: { gateway: { hostname: HOSTNAME } },
-          capabilities: capabilitiesProps,
-        },
-        onError,
-        onDisconnect,
-      });
-
-      jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementation(writeMock);
-
-      await Promise.all([
-        ws.openSession({
-          name: v4(),
-          session,
-          convertPacketFromProto,
-        }),
-        setTimeout(
-          () => new Promise(emitSessionControlResponseEvent(server)),
-          0,
-        ),
-      ]);
-
-      ws.write({
-        getPacket: () => textMessage,
-      });
-
-      await server.connected;
-
-      expect(() => ws.close()).not.toThrow();
-      expect(onDisconnect).toHaveBeenCalledTimes(1);
+  test('with Disconnect', async () => {
+    ws = new WebSocketConnection({
+      config: {
+        connection: { gateway: { hostname: HOSTNAME } },
+        capabilities: capabilitiesProps,
+      },
+      onError,
+      onReady,
+      onMessage,
+      onDisconnect,
     });
 
-    test('without Disconnect', async () => {
-      ws = new WebSocketConnection({
-        config: {
-          connection: { gateway: { hostname: HOSTNAME } },
-          capabilities: capabilitiesProps,
-        },
-        onError,
-      });
+    jest.spyOn(WebSocket.prototype, 'send').mockImplementation(jest.fn());
 
-      jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementation(writeMock);
+    await Promise.all([
+      ws.openSession({
+        name: v4(),
+        session,
+        convertPacketFromProto,
+      }),
+      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+    ]);
 
-      await Promise.all([
-        ws.openSession({
-          name: v4(),
-          session,
-          convertPacketFromProto,
-        }),
-        setTimeout(
-          () => new Promise(emitSessionControlResponseEvent(server)),
-          0,
-        ),
-      ]);
-      ws.write({
-        getPacket: () => textMessage,
-      });
-
-      await server.connected;
-
-      expect(() => ws.close()).not.toThrow();
-      expect(onDisconnect).toHaveBeenCalledTimes(0);
+    ws.write({
+      getPacket: () => textMessage,
     });
+
+    await server.connected;
+
+    expect(() => ws.close()).not.toThrow();
+    expect(onDisconnect).toHaveBeenCalledTimes(1);
   });
 
   test('should not throw error if connection is not open before', async () => {
@@ -827,9 +850,90 @@ describe('close', () => {
         capabilities: capabilitiesProps,
       },
       onError,
+      onReady,
+      onMessage,
       onDisconnect,
     });
 
     expect(() => ws.close()).not.toThrow();
+  });
+});
+
+describe('write', () => {
+  let send: any;
+
+  beforeEach(() => {
+    send = jest
+      .spyOn(WebSocket.prototype, 'send')
+      .mockImplementation(jest.fn());
+  });
+
+  test('should call beforeWriting and afterWriting', async () => {
+    const ws = new WebSocketConnection({
+      config: {
+        connection: { gateway: { hostname: HOSTNAME } },
+        capabilities: capabilitiesProps,
+      },
+      onError,
+      onReady,
+      onMessage,
+      onDisconnect,
+    });
+
+    const beforeWriting = jest.fn();
+    const afterWriting = jest.fn();
+    const packet = textMessage;
+
+    await Promise.all([
+      ws.openSession({
+        name: v4(),
+        session,
+        convertPacketFromProto,
+      }),
+      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+    ]);
+
+    ws.write({
+      getPacket: () => packet,
+      beforeWriting,
+      afterWriting,
+    });
+
+    await server.connected;
+
+    expect(send).toHaveBeenCalledTimes(5);
+    expect(beforeWriting).toHaveBeenCalledTimes(1);
+    expect(afterWriting).toHaveBeenCalledTimes(1);
+  });
+
+  test('should work without beforeWriting and afterWriting', async () => {
+    const ws = new WebSocketConnection({
+      config: {
+        connection: { gateway: { hostname: HOSTNAME } },
+        capabilities: capabilitiesProps,
+      },
+      onError,
+      onReady,
+      onMessage,
+      onDisconnect,
+    });
+    const packet = textMessage;
+
+    await Promise.all([
+      ws.openSession({
+        name: v4(),
+        session,
+        convertPacketFromProto,
+      }),
+      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+    ]);
+
+    ws.write({
+      getPacket: () => packet,
+    });
+
+    await server.connected;
+
+    expect(send).toHaveBeenCalledTimes(5);
   });
 });

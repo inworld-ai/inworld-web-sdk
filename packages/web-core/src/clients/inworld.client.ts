@@ -9,6 +9,7 @@ import {
   Extension,
   Gateway,
   GenerateSessionTokenFn,
+  HistoryChangedProps,
   InternalClientConfiguration,
   OnPhomeneFn,
   User,
@@ -50,7 +51,10 @@ export class InworldClient<
   private onMessage: ((message: InworldPacketT) => Awaitable<void>) | undefined;
   private onReady: (() => Awaitable<void>) | undefined;
   private onHistoryChange:
-    | ((history: HistoryItem[], diff: HistoryItem[]) => Awaitable<void>)
+    | ((
+        history: HistoryItem[],
+        props: HistoryChangedProps<HistoryItemT>,
+      ) => Awaitable<void>)
     | undefined;
   private onInterruption:
     | ((props: CancelResponses) => Awaitable<void>)
@@ -130,7 +134,10 @@ export class InworldClient<
   }
 
   setOnHistoryChange(
-    fn?: (history: HistoryItemT[], diff: HistoryItemT[]) => Awaitable<void>,
+    fn?: (
+      history: HistoryItemT[],
+      props: HistoryChangedProps<HistoryItemT>,
+    ) => Awaitable<void>,
   ) {
     this.onHistoryChange = fn;
 
@@ -242,7 +249,6 @@ export class InworldClient<
       audio = true,
       emotions = false,
       interruptions = false,
-      multiAgent = false,
       narratedActions = false,
       turnBasedStt = false,
       phonemes: phonemeInfo = false,
@@ -250,10 +256,11 @@ export class InworldClient<
     } = capabilities;
 
     return {
+      debugInfo: true,
       audio,
       emotions,
       interruptions,
-      multiAgent,
+      multiAgent: true,
       narratedActions,
       phonemeInfo,
       silenceEvents,

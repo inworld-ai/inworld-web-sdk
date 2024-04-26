@@ -3,6 +3,7 @@ import { v4 } from 'uuid';
 
 import {
   Agent,
+  ConversationEventPayloadConversationEventType,
   InworldPacket as ProtoPacket,
 } from '../proto/ai/inworld/packets/packets.pb';
 import {
@@ -22,6 +23,7 @@ import {
 import { InworldPacket } from '../src/entities/packets/inworld_packet.entity';
 import { PacketId } from '../src/entities/packets/packet_id.entity';
 import { SessionToken } from '../src/entities/session_token.entity';
+import { EventFactory } from '../src/factories/event';
 import { ExtendedHistoryItem, ExtendedInworldPacket } from './data_structures';
 
 const inOneHours = new Date();
@@ -46,6 +48,8 @@ export const createAgent = (): Agent => {
     agentId: v4(),
     brainName: v4(),
     characterAssets: {
+      avatarImg: v4(),
+      avatarImgOriginal: v4(),
       rpmModelUri: v4(),
       rpmImageUriPortrait: v4(),
       rpmImageUriPosture: v4(),
@@ -207,3 +211,14 @@ export const emitHistoryResponseEvent = (stream: WS) => (resolve: any) => {
   });
   resolve(true);
 };
+
+const eventFactory = new EventFactory();
+export const conversationId = v4();
+export const conversationUpdated = {
+  ...eventFactory.baseProtoPacket({ conversationId }),
+  control: {
+    conversationEvent: {
+      eventType: ConversationEventPayloadConversationEventType.UPDATED,
+    },
+  },
+} as ProtoPacket;
