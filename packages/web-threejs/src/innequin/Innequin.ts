@@ -131,6 +131,7 @@ export class Innequin {
   }
 
   loadAnimations() {
+    log('Innequin - Loading Animations');
     for (const animationName in this.config.innequin.animations) {
       const animation: InnequinAnimationType =
         this.config.innequin.animations[animationName];
@@ -155,11 +156,13 @@ export class Innequin {
 
   // Loads the config.json file with the animations, assets and skins character data as well as the global paths to asset files.
   loadConfig() {
+    log('Innequin - Loading Config');
     this.configFile = new JSONFileLoader({ fileURI: this.configURI });
     this.configFile.load(this.onLoadConfig);
   }
 
   loadModel() {
+    log('Innequin - Loading Model');
     const fileURI: string =
       this.baseURI +
       this.config.innequin.baseURIs.MODELS_BODY +
@@ -168,7 +171,7 @@ export class Innequin {
       path: fileURI,
       dracoPath: this.dracoURI,
     });
-    this.modelFile.load(this.onLoadModel);
+    this.modelFile.load(this.onLoadModel.bind(this));
   }
 
   loadVismeMaterials() {
@@ -176,12 +179,12 @@ export class Innequin {
       Object.values(FACE_TEXTURE_TYPES).forEach((valueFaceType) => {
         this.facialMaterialLoaders[
           valueEmotionType.toLowerCase() +
-            '_' +
-            valueFaceType +
-            '_' +
-            (valueFaceType !== FACE_TEXTURE_TYPES.VISEMES
-              ? MATERIAL_TYPES.FEATURE
-              : MATERIAL_TYPES.VISEME)
+          '_' +
+          valueFaceType +
+          '_' +
+          (valueFaceType !== FACE_TEXTURE_TYPES.VISEMES
+            ? MATERIAL_TYPES.FEATURE
+            : MATERIAL_TYPES.VISEME)
         ] = new FacialMaterialLoader({
           emotionType: valueEmotionType,
           faceType: valueFaceType,
@@ -250,6 +253,7 @@ export class Innequin {
   onLoadModel() {
     // This next block parses the model and locates the detected
     // meshes needed to run Innequin
+
     let skeleton: SkinnedMesh | undefined;
     this.getModel().traverse((child) => {
       if (child.name === 'Armature') {
@@ -273,6 +277,8 @@ export class Innequin {
       this.getModel() as SkinnedMesh,
       this.config.innequin.assets,
     );
+
+    log('Innequin - Model Loaded');
 
     this.loadAnimations();
   }
