@@ -39,7 +39,7 @@ export class GLTFModelLoader implements IFileLoader {
   }
 
   public load(callback: Function) {
-    log('GLTFModelLoader load')
+    log('GLTFModelLoader load');
     this.callback = callback;
     this.loader.load(this.path, this.onLoad, this.onUpdate, this.onError);
   }
@@ -50,7 +50,7 @@ export class GLTFModelLoader implements IFileLoader {
   }
 
   private onLoad(model: GLTF) {
-    log('GLTFModelLoader onLoad')
+    log('GLTFModelLoader onLoad');
     this.model = model;
     this.model.scene.traverse((node) => {
       if ((node as Mesh).isMesh) {
