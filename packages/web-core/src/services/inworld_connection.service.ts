@@ -116,6 +116,8 @@ export class InworldConnectionService<
         conversationId: this.oneToOneConversation?.getConversationId(),
       },
     );
+
+    this.addConversationToConnection(this.oneToOneConversation);
   }
 
   getHistory() {
@@ -131,6 +133,10 @@ export class InworldConnectionService<
   }
 
   getTranscript() {
+    return this.oneToOneConversation?.getTranscript() ?? '';
+  }
+
+  getFullTranscript() {
     return this.connection.getTranscript();
   }
 
@@ -335,13 +341,18 @@ export class InworldConnectionService<
         { characters: [character] },
       );
 
-      this.connection.conversations.set(
-        this.oneToOneConversation.getConversationId(),
-        {
-          service: this.oneToOneConversation,
-          state: ConversationState.INACTIVE,
-        },
-      );
+      this.addConversationToConnection(this.oneToOneConversation);
+    }
+  }
+
+  private addConversationToConnection(
+    conversation: ConversationService<InworldPacketT>,
+  ) {
+    if (!this.connection.conversations.has(conversation.getConversationId())) {
+      this.connection.conversations.set(conversation.getConversationId(), {
+        service: conversation,
+        state: ConversationState.INACTIVE,
+      });
     }
   }
 }

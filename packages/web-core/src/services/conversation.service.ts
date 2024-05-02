@@ -59,6 +59,10 @@ export class ConversationService<
     return this.connection.history.get(this.getConversationId());
   }
 
+  getTranscript() {
+    return this.connection.history.getTranscript(this.getConversationId());
+  }
+
   async updateParticipants(characters: Character[]) {
     const conversationId = this.getConversationId();
     const conversation = this.connection.conversations.get(conversationId);

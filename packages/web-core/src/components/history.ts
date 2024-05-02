@@ -414,15 +414,17 @@ export class InworldHistory<
     this.history = [];
   }
 
-  getTranscript(): string {
-    if (!this.history.length) {
+  getTranscript(conversationId?: string): string {
+    const history = this.get(conversationId);
+
+    if (!history.length) {
       return '';
     }
 
     let transcript = '';
     let characterLastSpeaking = false;
 
-    this.history.forEach((item) => {
+    history.forEach((item) => {
       const prefix = transcript.length ? '\n' : '';
       switch (item.type) {
         case CHAT_HISTORY_TYPE.ACTOR:
