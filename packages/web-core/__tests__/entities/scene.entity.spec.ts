@@ -1,3 +1,5 @@
+import { v4 } from 'uuid';
+
 import { ActorType } from '../../proto/ai/inworld/packets/packets.pb';
 import { Character } from '../../src/entities/character.entity';
 import { Scene } from '../../src/entities/scene.entity';
@@ -143,4 +145,30 @@ test('should convert proto to scene without history items and agents', () => {
 
   expect(scene.characters.length).toEqual(0);
   expect(scene.history.length).toEqual(0);
+});
+
+test('should find character by id', () => {
+  const character = scene.getCharacterById(characters[0].id);
+
+  expect(character).toEqual(characters[0]);
+});
+
+test('should return undefined when character not found', () => {
+  const character = scene.getCharacterById(v4());
+
+  expect(character).toBeUndefined();
+});
+
+test('should find character by resource name', () => {
+  const character = scene.getCharacterByResourceName(
+    characters[0].resourceName,
+  );
+
+  expect(character).toEqual(characters[0]);
+});
+
+test('should return undefined when character not found by resource name', () => {
+  const character = scene.getCharacterByResourceName(v4());
+
+  expect(character).toBeUndefined();
 });

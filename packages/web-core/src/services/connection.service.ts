@@ -216,6 +216,14 @@ export class ConnectionService<
     return this.getEventFactory().getCurrentCharacter();
   }
 
+  getCharacterById(id: string) {
+    return this.scene.getCharacterById(id);
+  }
+
+  getCharacterByResourceName(name: string) {
+    return this.scene.getCharacterByResourceName(name);
+  }
+
   async setCurrentCharacter(character: Character) {
     this.getEventFactory().setCurrentCharacter(character);
   }

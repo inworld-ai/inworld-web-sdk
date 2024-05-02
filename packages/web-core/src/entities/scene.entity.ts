@@ -89,4 +89,12 @@ export class Scene {
       history,
     });
   }
+
+  getCharacterById(id: string) {
+    return this.characters.find((c) => c.id === id);
+  }
+
+  getCharacterByResourceName(name: string) {
+    return this.characters.find((c) => c.resourceName === name);
+  }
 }

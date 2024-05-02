@@ -106,6 +106,14 @@ export class InworldConnectionService<
     return this.connection.getCurrentCharacter();
   }
 
+  getCharacterById(id: string) {
+    return this.connection.getCharacterById(id);
+  }
+
+  getCharacterByResourceName(name: string) {
+    return this.connection.getCharacterByResourceName(name);
+  }
+
   setCurrentCharacter(character: Character) {
     this.connection.setCurrentCharacter(character);
 
