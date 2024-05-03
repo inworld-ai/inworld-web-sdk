@@ -261,7 +261,7 @@ export class InworldHistory<
 
     if (historyItem) {
       const currentHistoryIndex = this.history.findIndex((item) => {
-        return item.id === historyItem.id;
+        return item.id === historyItem.id && item.type === historyItem.type;
       });
 
       const item = this.convertToExtendedType(packet, historyItem);
@@ -309,11 +309,13 @@ export class InworldHistory<
           item.packetId.utteranceId === packet.packetId.utteranceId,
       );
 
-      const actors = this.display(packet, CHAT_HISTORY_TYPE.ACTOR);
-      const actions = this.display(packet, CHAT_HISTORY_TYPE.NARRATED_ACTION);
-      const ends = this.display(packet, CHAT_HISTORY_TYPE.INTERACTION_END);
+      const toDisplay = this.display(packet);
 
-      if (ends.length) {
+      if (
+        toDisplay.find(
+          (item) => item.type === CHAT_HISTORY_TYPE.INTERACTION_END,
+        )
+      ) {
         this.conversationItems = this.conversationItems.filter(
           (item: ConversationItem) =>
             item.packet.packetId.interactionId !==
@@ -321,69 +323,102 @@ export class InworldHistory<
         );
       }
 
-      return [...actors, ...actions, ...ends];
+      return toDisplay;
     }
 
     return [];
   }
 
-  display(
-    packet: InworldPacketT,
-    type:
-      | CHAT_HISTORY_TYPE.ACTOR
-      | CHAT_HISTORY_TYPE.INTERACTION_END
-      | CHAT_HISTORY_TYPE.NARRATED_ACTION,
-  ) {
-    switch (type) {
-      case CHAT_HISTORY_TYPE.ACTOR:
-        const foundActor = this.queue.find(
-          (item) =>
-            item.type === CHAT_HISTORY_TYPE.ACTOR &&
-            item.id === packet.packetId.utteranceId,
-        );
+  display(packet: InworldPacketT) {
+    const types = [
+      CHAT_HISTORY_TYPE.ACTOR,
+      CHAT_HISTORY_TYPE.INTERACTION_END,
+      CHAT_HISTORY_TYPE.NARRATED_ACTION,
+    ];
+    const found = this.queue.filter(
+      (item) =>
+        types.includes(item.type) &&
+        item.interactionId === packet.packetId.interactionId,
+    );
+    const toDisplay: HistoryItem[] = [];
 
-        if (foundActor) {
-          this.history = [...this.history, foundActor];
-          this.queue = [...this.queue].filter(
-            (item) => item.id !== foundActor.id,
-          );
+    if (found.length) {
+      for (const item of found) {
+        if (
+          [CHAT_HISTORY_TYPE.ACTOR, CHAT_HISTORY_TYPE.NARRATED_ACTION].includes(
+            item.type,
+          ) &&
+          item.id === packet.packetId.utteranceId
+        ) {
+          toDisplay.push(item);
         }
+      }
 
-        return foundActor ? [foundActor] : [];
-      case CHAT_HISTORY_TYPE.INTERACTION_END:
-        // Find items in current interaction
-        const inCurrentInteraction = this.queue.filter(
-          (item) => item.interactionId === packet.packetId.interactionId,
-        );
-        const onlyInteractionEnd =
-          inCurrentInteraction.length === 1 &&
-          inCurrentInteraction[0].type === CHAT_HISTORY_TYPE.INTERACTION_END;
-
-        // If only INTERACTION_END is left in list then move it to history
-        if (onlyInteractionEnd) {
-          this.history = [...this.history, inCurrentInteraction[0]];
-          this.queue = this.queue.filter(
-            (item) => item.id !== inCurrentInteraction[0].id,
-          );
-
-          return [inCurrentInteraction[0]];
-        }
-
-        return [];
-      case CHAT_HISTORY_TYPE.NARRATED_ACTION:
-        const byCondition = (item: HistoryItem) =>
-          item.type === CHAT_HISTORY_TYPE.NARRATED_ACTION &&
-          item.interactionId === packet.packetId.interactionId;
-
-        const foundActions = this.queue.filter(byCondition);
-
-        if (foundActions.length) {
-          this.history = [...this.history, ...foundActions];
-          this.queue = this.queue.filter((item) => !byCondition(item));
-        }
-
-        return foundActions;
+      if (
+        toDisplay.length + 1 === found.length &&
+        found[found.length - 1].type === CHAT_HISTORY_TYPE.INTERACTION_END
+      ) {
+        toDisplay.push(found[found.length - 1]);
+      }
     }
+
+    this.queue = this.queue.filter(
+      (item) => !toDisplay.find((x) => x.id === item.id),
+    );
+    this.history = [...this.history, ...toDisplay];
+
+    return toDisplay;
+
+    // switch (type) {
+    //   case CHAT_HISTORY_TYPE.ACTOR:
+    //     const foundActor = this.queue.find(
+    //       (item) =>
+    //         item.type === CHAT_HISTORY_TYPE.ACTOR &&
+    //         item.id === packet.packetId.utteranceId,
+    //     );
+
+    //     if (foundActor) {
+    //       this.history = [...this.history, foundActor];
+    //       this.queue = [...this.queue].filter(
+    //         (item) => item.id !== foundActor.id,
+    //       );
+    //     }
+
+    //     return foundActor ? [foundActor] : [];
+    //   case CHAT_HISTORY_TYPE.INTERACTION_END:
+    //     // Find items in current interaction
+    //     const inCurrentInteraction = this.queue.filter(
+    //       (item) => item.interactionId === packet.packetId.interactionId,
+    //     );
+    //     const onlyInteractionEnd =
+    //       inCurrentInteraction.length === 1 &&
+    //       inCurrentInteraction[0].type === CHAT_HISTORY_TYPE.INTERACTION_END;
+
+    //     // If only INTERACTION_END is left in list then move it to history
+    //     if (onlyInteractionEnd) {
+    //       this.history = [...this.history, inCurrentInteraction[0]];
+    //       this.queue = this.queue.filter(
+    //         (item) => item.id !== inCurrentInteraction[0].id,
+    //       );
+
+    //       return [inCurrentInteraction[0]];
+    //     }
+
+    //     return [];
+    //   case CHAT_HISTORY_TYPE.NARRATED_ACTION:
+    //     const byCondition = (item: HistoryItem) =>
+    //       item.type === CHAT_HISTORY_TYPE.NARRATED_ACTION &&
+    //       item.interactionId === packet.packetId.interactionId;
+
+    //     const foundActions = this.queue.filter(byCondition);
+
+    //     if (foundActions.length) {
+    //       this.history = [...this.history, ...foundActions];
+    //       this.queue = this.queue.filter((item) => !byCondition(item));
+    //     }
+
+    //     return foundActions;
+    // }
   }
 
   get(conversationId?: string) {
@@ -521,7 +556,7 @@ export class InworldHistory<
     }
 
     return {
-      id: v4(),
+      id: packet.packetId.utteranceId,
       date: new Date(packet.date),
       scene: this.scene,
       character: characters[0],

@@ -237,7 +237,7 @@ describe('text', () => {
 
       expect(history.get().length).toEqual(0);
 
-      history.display(incomingTextPacket, CHAT_HISTORY_TYPE.ACTOR);
+      history.display(incomingTextPacket);
 
       expect(history.get().length).toEqual(1);
     });
@@ -328,7 +328,7 @@ describe('text', () => {
 
       expect(history.get().length).toEqual(0);
 
-      history.display(textPacket, CHAT_HISTORY_TYPE.ACTOR);
+      history.display(textPacket);
 
       expect(history.get().length).toEqual(0);
     });
@@ -343,13 +343,13 @@ describe('text', () => {
       expect(history.get().length).toEqual(0);
 
       history.filter({
-        utteranceId: [packetId.utteranceId],
+        utteranceId: [packetId.utteranceId!],
         interactionId: v4(),
       });
 
       expect(history.get().length).toEqual(0);
 
-      history.display(textPacket, CHAT_HISTORY_TYPE.ACTOR);
+      history.display(textPacket);
 
       expect(history.get().length).toEqual(0);
     });
@@ -641,7 +641,10 @@ describe('interaction end', () => {
       characters,
       grpcAudioPlayer,
       packet: new InworldPacket({
-        packetId,
+        packetId: {
+          ...packetId,
+          utteranceId: incomingTextPacket.packetId.utteranceId,
+        },
         routing: {
           source: routing.targets[0],
           targets: [routing.source],
@@ -660,11 +663,57 @@ describe('interaction end', () => {
 
     expect(history.get().length).toEqual(0);
 
-    history.display(incomingTextPacket, CHAT_HISTORY_TYPE.ACTOR);
-    history.display(incomingTextPacket, CHAT_HISTORY_TYPE.NARRATED_ACTION);
-    history.display(interactionEndPacket, CHAT_HISTORY_TYPE.INTERACTION_END);
+    history.display(incomingTextPacket);
+    const items = history.get();
 
-    expect(history.get().length).toEqual(3);
+    expect(items.length).toEqual(3);
+    expect(items[0].type).toEqual(CHAT_HISTORY_TYPE.ACTOR);
+    expect(items[1].type).toEqual(CHAT_HISTORY_TYPE.NARRATED_ACTION);
+    expect(items[2].type).toEqual(CHAT_HISTORY_TYPE.INTERACTION_END);
+  });
+
+  test('should display keep packets order', () => {
+    jest
+      .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
+      .mockImplementation(() => true);
+
+    const history = createHistoryWithPacket(
+      new InworldPacket({
+        packetId: {
+          ...packetId,
+          utteranceId: incomingTextPacket.packetId.utteranceId,
+        },
+        routing: {
+          source: routing.targets[0],
+          targets: [routing.source],
+        },
+        date,
+        narratedAction: { text: v4() },
+        type: InworldPacketType.NARRATED_ACTION,
+      }),
+    );
+
+    history.addOrUpdate({
+      characters,
+      grpcAudioPlayer,
+      packet: incomingTextPacket,
+    });
+
+    history.addOrUpdate({
+      characters,
+      grpcAudioPlayer,
+      packet: interactionEndPacket,
+    });
+
+    expect(history.get().length).toEqual(0);
+
+    history.display(incomingTextPacket);
+    const items = history.get();
+
+    expect(items.length).toEqual(3);
+    expect(items[0].type).toEqual(CHAT_HISTORY_TYPE.NARRATED_ACTION);
+    expect(items[1].type).toEqual(CHAT_HISTORY_TYPE.ACTOR);
+    expect(items[2].type).toEqual(CHAT_HISTORY_TYPE.INTERACTION_END);
   });
 
   test("should not display packet stored in queue if it's not last one", () => {
@@ -682,7 +731,7 @@ describe('interaction end', () => {
 
     expect(history.get().length).toEqual(0);
 
-    history.display(interactionEndPacket, CHAT_HISTORY_TYPE.INTERACTION_END);
+    history.display(interactionEndPacket);
 
     expect(history.get().length).toEqual(0);
   });
