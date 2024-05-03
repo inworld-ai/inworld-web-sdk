@@ -1,10 +1,13 @@
+## [Unreleased]
+
+- Multi-character conversation support (2.0)
+
 ## [2.5.0] - 2024-05-03
 
 ### Added
 
 - Allow to like, dislike or undo feedback
 - Handle runtime warnings
-- Multi-character conversation support (2.0)
 
 ### Changed
 
