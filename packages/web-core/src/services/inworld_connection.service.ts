@@ -148,15 +148,10 @@ export class InworldConnectionService<
     return this.connection.getTranscript();
   }
 
-  getCurrentConversation() {
-    if (!this.oneToOneConversation) {
-      return;
-    }
+  async getCurrentConversation() {
+    await this.ensureOneToOneConversation();
 
-    return {
-      conversationId: this.oneToOneConversation.getConversationId(),
-      characters: this.oneToOneConversation.getCharacters(),
-    };
+    return this.oneToOneConversation;
   }
 
   getConversations() {
@@ -331,6 +326,7 @@ export class InworldConnectionService<
   baseProtoPacket(props?: {
     utteranceId?: boolean;
     interactionId?: boolean;
+    conversationId?: string;
     characters?: Character[];
   }) {
     return this.connection.getEventFactory().baseProtoPacket(props);

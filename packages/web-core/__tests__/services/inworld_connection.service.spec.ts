@@ -202,45 +202,6 @@ describe('history', () => {
     expect(getHistory).toHaveBeenCalledTimes(1);
   });
 
-  test('should return empty conversation history if conversation is not created', async () => {
-    const history = new InworldHistory({
-      scene: SCENE,
-      audioEnabled: true,
-      conversations: new Map<string, ConversationMapItem>(),
-    });
-    const packetId = getPacketId();
-    const routing: Routing = {
-      source: {
-        name: v4(),
-        isPlayer: true,
-        isCharacter: false,
-      },
-      targets: [
-        {
-          name: characters[0].id,
-          isPlayer: false,
-          isCharacter: true,
-        },
-      ],
-    };
-    const date = protoTimestamp();
-    const packet = new InworldPacket({
-      packetId,
-      routing,
-      date,
-      text: {
-        text: v4(),
-        final: false,
-      },
-      type: InworldPacketType.TEXT,
-    });
-    history.addOrUpdate({ characters, grpcAudioPlayer, packet });
-
-    expect(service.getHistory()).toEqual([]);
-    expect(service.getTranscript()).toEqual('');
-    expect(service.getCurrentConversation()).toBeUndefined();
-  });
-
   test('should clear history', () => {
     const clearHistory = jest
       .spyOn(ConnectionService.prototype, 'clearHistory')
@@ -335,10 +296,12 @@ describe('send', () => {
           characters: [characters[0]],
         },
       ]);
-      expect(service.getCurrentConversation()).toEqual({
-        conversationId,
-        characters: [characters[0]],
-      });
+      expect((await service.getCurrentConversation()).getCharacters()).toEqual([
+        characters[0],
+      ]);
+      expect(
+        (await service.getCurrentConversation()).getConversationId(),
+      ).toEqual(conversationId);
     });
 
     test('should send text', async () => {
@@ -1139,15 +1102,13 @@ describe('character', () => {
 
     await service.sendText(v4());
 
-    expect(service.getCurrentConversation()?.characters).toEqual([
-      characters[0],
-    ]);
+    const conversation = await service.getCurrentConversation();
+
+    expect(conversation.getCharacters()).toEqual([characters[0]]);
 
     service.setCurrentCharacter(characters[1]);
 
-    expect(service.getCurrentConversation()?.characters).toEqual([
-      characters[1],
-    ]);
+    expect(conversation.getCharacters()).toEqual([characters[0]]);
   });
 });
 
