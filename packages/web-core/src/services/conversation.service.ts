@@ -247,7 +247,7 @@ export class ConversationService<
     );
   }
 
-  async ensureConversation(
+  private async ensureConversation(
     getPacket: () => ProtoPacket,
     props?: { skipMuting: boolean },
   ) {

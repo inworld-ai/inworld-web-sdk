@@ -92,38 +92,6 @@ describe('event types', () => {
     expect(event.packetId?.conversationId).toEqual(conversationId);
   });
 
-  test('should generate tts playback start', () => {
-    const event = factory.ttsPlaybackStart({ conversationId });
-
-    expect(event).toHaveProperty('routing');
-    expect(event).toHaveProperty('timestamp');
-    expect(event.control).toEqual({
-      action: ControlEventAction.TTS_PLAYBACK_START,
-    });
-    expect(event.routing?.target).toBeFalsy();
-    expect(event.packetId).toHaveProperty('packetId');
-    expect(event.packetId?.utteranceId).toBeUndefined();
-    expect(event.packetId?.interactionId).toBeUndefined();
-    expect(event.packetId?.correlationId).toBeUndefined();
-    expect(event.packetId?.conversationId).toEqual(conversationId);
-  });
-
-  test('should generate tts playback end', () => {
-    const event = factory.ttsPlaybackEnd({ conversationId });
-
-    expect(event).toHaveProperty('routing');
-    expect(event).toHaveProperty('timestamp');
-    expect(event.control).toEqual({
-      action: ControlEventAction.TTS_PLAYBACK_END,
-    });
-    expect(event.routing?.target).toBeFalsy();
-    expect(event.packetId).toHaveProperty('packetId');
-    expect(event.packetId?.utteranceId).toBeUndefined();
-    expect(event.packetId?.interactionId).toBeUndefined();
-    expect(event.packetId?.correlationId).toBeUndefined();
-    expect(event.packetId?.conversationId).toEqual(conversationId);
-  });
-
   test('should generate tts playback mute', () => {
     const event = factory.mutePlayback(true, { conversationId });
 

@@ -230,30 +230,6 @@ export class InworldConnectionService<
     return this.oneToOneConversation.sendAudioSessionEnd(true);
   }
 
-  async sendTTSPlaybackStart() {
-    console.warn('`sendTTSPlaybackStart` method is deprecated.');
-
-    await this.ensureOneToOneConversation();
-
-    return this.oneToOneConversation.ensureConversation(() =>
-      this.connection.getEventFactory().ttsPlaybackStart({
-        conversationId: this.oneToOneConversation.getConversationId(),
-      }),
-    );
-  }
-
-  async sendTTSPlaybackEnd() {
-    console.warn('`sendTTSPlaybackEnd` method is deprecated.');
-
-    await this.ensureOneToOneConversation();
-
-    return this.oneToOneConversation.ensureConversation(() =>
-      this.connection.getEventFactory().ttsPlaybackEnd({
-        conversationId: this.oneToOneConversation.getConversationId(),
-      }),
-    );
-  }
-
   async sendTTSPlaybackMute(isMuted: boolean) {
     await this.ensureOneToOneConversation();
 

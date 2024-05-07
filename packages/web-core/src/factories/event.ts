@@ -89,28 +89,6 @@ export class EventFactory {
     };
   }
 
-  ttsPlaybackStart(params: SendPacketParams): ProtoPacket {
-    return {
-      ...this.baseProtoPacket({
-        utteranceId: false,
-        interactionId: false,
-        conversationId: params.conversationId,
-      }),
-      control: { action: ControlEventAction.TTS_PLAYBACK_START },
-    };
-  }
-
-  ttsPlaybackEnd(params: SendPacketParams): ProtoPacket {
-    return {
-      ...this.baseProtoPacket({
-        utteranceId: false,
-        interactionId: false,
-        conversationId: params.conversationId,
-      }),
-      control: { action: ControlEventAction.TTS_PLAYBACK_END },
-    };
-  }
-
   mutePlayback(isMuted: boolean, params: SendPacketParams): ProtoPacket {
     return {
       ...this.baseProtoPacket({

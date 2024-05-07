@@ -657,56 +657,6 @@ describe('send', () => {
       expect(packet!.narratedAction).toHaveProperty('text', text);
     });
 
-    test('should send tts playback end', async () => {
-      jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
-
-      const write = jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementation(writeMock);
-
-      const [packet] = await Promise.all([
-        service.sendTTSPlaybackStart(),
-        new Promise((resolve: any) => {
-          setTimeout(() => {
-            connection.onMessage!(conversationUpdated);
-            resolve(true);
-          }, 0);
-        }),
-      ]);
-
-      expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(2);
-      expect(packet!.isControl()).toEqual(true);
-      expect(packet!.isTTSPlaybackStart()).toEqual(true);
-    });
-
-    test('should send tts playback start', async () => {
-      jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
-
-      const write = jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementation(writeMock);
-
-      const [packet] = await Promise.all([
-        service.sendTTSPlaybackEnd(),
-        new Promise((resolve: any) => {
-          setTimeout(() => {
-            connection.onMessage!(conversationUpdated);
-            resolve(true);
-          }, 0);
-        }),
-      ]);
-
-      expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(2);
-      expect(packet!.isControl()).toEqual(true);
-      expect(packet!.isTTSPlaybackEnd()).toEqual(true);
-    });
-
     test('should send tts playback mute', async () => {
       jest
         .spyOn(ConversationService.prototype, 'getConversationId')
