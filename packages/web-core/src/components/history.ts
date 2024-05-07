@@ -1,7 +1,12 @@
 import { v4 } from 'uuid';
 
 import { DEFAULT_USER_NAME } from '../common/constants';
-import { Extension, TriggerParameter, User } from '../common/data_structures';
+import {
+  ConversationMapItem,
+  Extension,
+  TriggerParameter,
+  User,
+} from '../common/data_structures';
 import { Character } from '../entities/character.entity';
 import { EmotionEvent } from '../entities/packets/emotion/emotion.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
@@ -89,11 +94,15 @@ interface EmotionsMap {
   [key: string]: EmotionEvent;
 }
 
-interface InworldHistoryProps<InworldPacketT, HistoryItemT> {
+interface InworldHistoryProps<
+  InworldPacketT extends InworldPacket = InworldPacket,
+  HistoryItemT extends HistoryItem = HistoryItem,
+> {
   audioEnabled?: boolean;
   extension?: Extension<InworldPacketT, HistoryItemT>;
   user?: User;
   scene: string;
+  conversations: Map<string, ConversationMapItem<InworldPacketT>>;
 }
 
 interface ConversationItem {
@@ -114,6 +123,7 @@ export class InworldHistory<
   private emotions: EmotionsMap = {};
   private extension: Extension<InworldPacketT, HistoryItemT> | undefined;
   private conversationItems: ConversationItem[] = [];
+  private conversations: Map<string, ConversationMapItem<InworldPacketT>>;
 
   constructor(props: InworldHistoryProps<InworldPacketT, HistoryItemT>) {
     if (props.extension) {
@@ -125,6 +135,7 @@ export class InworldHistory<
     }
 
     this.scene = props?.scene;
+    this.conversations = props.conversations;
     this.audioEnabled = props.audioEnabled ?? false;
   }
 
@@ -147,25 +158,6 @@ export class InworldHistory<
     const interactionId = packet.packetId.interactionId;
     const conversationId = packet.packetId.conversationId;
 
-    const byId = characters.reduce(
-      (acc, character) => {
-        acc[character.id] = character;
-        return acc;
-      },
-      {} as { [key: string]: Character },
-    );
-    const itemCharacters = [];
-
-    if (packet.routing.source.isCharacter) {
-      itemCharacters.push(byId[packet.routing.source.name]);
-    } else {
-      itemCharacters.push(
-        ...packet.routing.targets
-          .filter((x) => x.isCharacter && byId[x.name])
-          .map((x) => byId[x.name]),
-      );
-    }
-
     switch (true) {
       case packet.isAudio():
         this.conversationItems.push({ packet, isApplied: false });
@@ -177,6 +169,7 @@ export class InworldHistory<
 
       case packet.isText():
       case packet.isNarratedAction():
+        const itemCharacters = this.findCharacters(packet, characters);
         const textItem: HistoryItem = packet.isText()
           ? {
               ...this.combineTextItem(packet),
@@ -368,57 +361,6 @@ export class InworldHistory<
     this.history = [...this.history, ...toDisplay];
 
     return toDisplay;
-
-    // switch (type) {
-    //   case CHAT_HISTORY_TYPE.ACTOR:
-    //     const foundActor = this.queue.find(
-    //       (item) =>
-    //         item.type === CHAT_HISTORY_TYPE.ACTOR &&
-    //         item.id === packet.packetId.utteranceId,
-    //     );
-
-    //     if (foundActor) {
-    //       this.history = [...this.history, foundActor];
-    //       this.queue = [...this.queue].filter(
-    //         (item) => item.id !== foundActor.id,
-    //       );
-    //     }
-
-    //     return foundActor ? [foundActor] : [];
-    //   case CHAT_HISTORY_TYPE.INTERACTION_END:
-    //     // Find items in current interaction
-    //     const inCurrentInteraction = this.queue.filter(
-    //       (item) => item.interactionId === packet.packetId.interactionId,
-    //     );
-    //     const onlyInteractionEnd =
-    //       inCurrentInteraction.length === 1 &&
-    //       inCurrentInteraction[0].type === CHAT_HISTORY_TYPE.INTERACTION_END;
-
-    //     // If only INTERACTION_END is left in list then move it to history
-    //     if (onlyInteractionEnd) {
-    //       this.history = [...this.history, inCurrentInteraction[0]];
-    //       this.queue = this.queue.filter(
-    //         (item) => item.id !== inCurrentInteraction[0].id,
-    //       );
-
-    //       return [inCurrentInteraction[0]];
-    //     }
-
-    //     return [];
-    //   case CHAT_HISTORY_TYPE.NARRATED_ACTION:
-    //     const byCondition = (item: HistoryItem) =>
-    //       item.type === CHAT_HISTORY_TYPE.NARRATED_ACTION &&
-    //       item.interactionId === packet.packetId.interactionId;
-
-    //     const foundActions = this.queue.filter(byCondition);
-
-    //     if (foundActions.length) {
-    //       this.history = [...this.history, ...foundActions];
-    //       this.queue = this.queue.filter((item) => !byCondition(item));
-    //     }
-
-    //     return foundActions;
-    // }
   }
 
   get(conversationId?: string) {
@@ -617,4 +559,32 @@ export class InworldHistory<
 
     return found;
   };
+
+  private findCharacters(
+    packet: InworldPacketT,
+    characters: Character[],
+  ): Character[] {
+    const byId = characters.reduce(
+      (acc, character) => {
+        acc[character.id] = character;
+        return acc;
+      },
+      {} as { [key: string]: Character },
+    );
+    if (packet.routing.source.isCharacter) {
+      return byId[packet.routing.source.name]
+        ? [byId[packet.routing.source.name]]
+        : [];
+    }
+
+    if (packet.routing.targets.length) {
+      return packet.routing.targets
+        .filter((x) => x.isCharacter && byId[x.name])
+        .map((x) => byId[x.name]);
+    }
+
+    const conversation = this.conversations.get(packet.packetId.conversationId);
+
+    return conversation?.service?.getCharacters() || [];
+  }
 }

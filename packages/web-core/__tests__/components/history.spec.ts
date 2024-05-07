@@ -3,6 +3,7 @@ import '../mocks/window.mock';
 import { v4 } from 'uuid';
 
 import {
+  ConversationMapItem,
   Extension,
   InworldPacketType,
   User,
@@ -144,6 +145,7 @@ const createHistoryWithPacket = (
     user,
     scene: SCENE,
     audioEnabled,
+    conversations: new Map<string, ConversationMapItem>(),
   });
 
   history.addOrUpdate({ characters, grpcAudioPlayer, packet, fromHistory });
@@ -152,7 +154,11 @@ const createHistoryWithPacket = (
 };
 
 test('should be empty by default', () => {
-  const history = new InworldHistory({ scene: SCENE, audioEnabled: false });
+  const history = new InworldHistory({
+    scene: SCENE,
+    audioEnabled: false,
+    conversations: new Map<string, ConversationMapItem>(),
+  });
 
   expect(history.get().length).toEqual(0);
 });
@@ -369,7 +375,11 @@ describe('text', () => {
 
   describe('transcript', () => {
     test('should return empty transcript for empty history', () => {
-      const history = new InworldHistory({ scene: SCENE, audioEnabled: true });
+      const history = new InworldHistory({
+        scene: SCENE,
+        audioEnabled: true,
+        conversations: new Map<string, ConversationMapItem>(),
+      });
 
       const transcript = history.getTranscript();
 

@@ -111,6 +111,7 @@ export class ConnectionService<
       extension: this.connectionProps.extension,
       user: this.connectionProps.user,
       scene: this.scene.name,
+      conversations: this.conversations,
     });
 
     this.initializeHandlers();

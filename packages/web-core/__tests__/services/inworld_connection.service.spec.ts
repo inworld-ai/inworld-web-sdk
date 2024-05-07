@@ -9,6 +9,7 @@ import {
 } from '../../proto/ai/inworld/packets/packets.pb';
 import {
   AudioSessionState,
+  ConversationMapItem,
   ConversationState,
   InworldPacketType,
   TtsPlaybackAction,
@@ -160,7 +161,11 @@ describe('history', () => {
   });
 
   test('should get full history', () => {
-    const history = new InworldHistory({ scene: SCENE, audioEnabled: true });
+    const history = new InworldHistory({
+      scene: SCENE,
+      audioEnabled: true,
+      conversations: new Map<string, ConversationMapItem>(),
+    });
     const packetId = getPacketId();
     const routing: Routing = {
       source: {
@@ -198,7 +203,11 @@ describe('history', () => {
   });
 
   test('should return empty conversation history if conversation is not created', async () => {
-    const history = new InworldHistory({ scene: SCENE, audioEnabled: true });
+    const history = new InworldHistory({
+      scene: SCENE,
+      audioEnabled: true,
+      conversations: new Map<string, ConversationMapItem>(),
+    });
     const packetId = getPacketId();
     const routing: Routing = {
       source: {
