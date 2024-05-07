@@ -210,7 +210,7 @@ describe('event types', () => {
     const event = factory.cancelResponse({
       interactionId,
       utteranceId,
-      conversationId,
+      character,
     });
 
     expect(event).toHaveProperty('routing');
@@ -219,12 +219,14 @@ describe('event types', () => {
       interactionId,
       utteranceId,
     });
-    expect(event.routing?.target).toBeFalsy();
+    expect(event.routing?.target).toEqual({
+      name: character.id,
+      type: ActorType.AGENT,
+    });
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.interactionId).toBeUndefined();
     expect(event.packetId?.utteranceId).toBeUndefined();
     expect(event.packetId).toHaveProperty('correlationId');
-    expect(event.packetId?.conversationId).toEqual(conversationId);
   });
 
   test('should generate narrated action event', () => {

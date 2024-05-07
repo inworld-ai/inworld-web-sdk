@@ -198,10 +198,16 @@ export class ConversationService<
   }
 
   async sendCancelResponse(cancelResponses?: CancelResponsesProps) {
+    const characters = this.getCharacters();
+
+    if (characters.length != 1) {
+      return;
+    }
+
     return this.ensureConversation(() =>
       this.connection.getEventFactory().cancelResponse({
         ...cancelResponses,
-        conversationId: this.getConversationId(),
+        character: characters[0],
       }),
     );
   }

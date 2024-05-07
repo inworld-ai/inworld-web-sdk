@@ -27,9 +27,9 @@ export interface SendTriggerPacketParams {
 }
 
 export interface SendCancelResponsePacketParams {
-  conversationId: string;
   interactionId?: string;
   utteranceId?: string[];
+  character: Character;
 }
 
 export class EventFactory {
@@ -161,7 +161,6 @@ export class EventFactory {
         utteranceId: false,
         interactionId: false,
         correlationId: true,
-        conversationId: params.conversationId,
       }),
       mutation: {
         cancelResponses: {
@@ -169,6 +168,7 @@ export class EventFactory {
           utteranceId: params.utteranceId,
         },
       },
+      routing: this.routing({ character: params.character }),
     };
   }
 

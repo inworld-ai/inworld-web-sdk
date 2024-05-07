@@ -611,11 +611,14 @@ export class ConnectionService<
     cancelResponses: CancelResponsesProps,
     conversationId: string,
   ) {
-    if (cancelResponses.interactionId) {
+    const characters =
+      this.conversations.get(conversationId)?.service.getCharacters() ?? [];
+
+    if (cancelResponses.interactionId && characters.length === 1) {
       this.send(() =>
         this.getEventFactory().cancelResponse({
           ...cancelResponses,
-          conversationId,
+          character: characters[0],
         }),
       );
 

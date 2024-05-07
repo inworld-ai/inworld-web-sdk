@@ -704,9 +704,21 @@ describe('send', () => {
             packetId: audioEvent.packetId!.packetId,
             interactionId,
             utteranceId,
+            conversationId,
           },
         }),
       ]);
+    jest
+      .spyOn(ConversationService.prototype, 'getConversationId')
+      .mockImplementation(() => conversationId);
+
+    connection.conversations.set(conversationId, {
+      service: new ConversationService(connection, {
+        characters: [characters[0]],
+        conversationId,
+      }),
+      state: ConversationState.ACTIVE,
+    });
 
     await Promise.all([
       connection.send(() => textEvent),
@@ -783,10 +795,22 @@ describe('onMessage', () => {
           ...audioEvent,
           packetId: {
             ...textEvent.packetId,
+            conversationId,
           },
         }),
       ]);
     jest.spyOn(connection, 'isActive').mockImplementation(() => true);
+    jest
+      .spyOn(ConversationService.prototype, 'getConversationId')
+      .mockImplementation(() => conversationId);
+
+    connection.conversations.set(conversationId, {
+      service: new ConversationService(connection, {
+        characters: [characters[0]],
+        conversationId,
+      }),
+      state: ConversationState.ACTIVE,
+    });
 
     await Promise.all([
       connection.open(),
@@ -796,7 +820,15 @@ describe('onMessage', () => {
 
     await connection.send(() => textEvent);
 
-    server.send({ result: incomingTextEvent });
+    server.send({
+      result: {
+        ...incomingTextEvent,
+        packetId: {
+          ...incomingTextEvent.packetId,
+          conversationId,
+        },
+      },
+    });
 
     expect(cancelResponse).toHaveBeenCalledTimes(2);
   });
@@ -1149,6 +1181,9 @@ describe('interrupt', () => {
     const send = jest
       .spyOn(ConnectionService.prototype, 'send')
       .mockImplementationOnce(jest.fn());
+    jest
+      .spyOn(ConversationService.prototype, 'getConversationId')
+      .mockImplementation(() => conversationId);
 
     const HOSTNAME = 'localhost:1235';
     const connection = new ConnectionService({
@@ -1165,6 +1200,14 @@ describe('interrupt', () => {
       grpcAudioPlayer,
       generateSessionToken,
       webRtcLoopbackBiDiSession,
+    });
+
+    connection.conversations.set(conversationId, {
+      service: new ConversationService(connection, {
+        characters: [characters[0]],
+        conversationId,
+      }),
+      state: ConversationState.ACTIVE,
     });
 
     await connection.interrupt();
