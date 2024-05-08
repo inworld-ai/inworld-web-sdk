@@ -27,7 +27,6 @@ import {
 } from '../types/types';
 import { log } from '../utils/Log';
 import { InnequinAnimator } from './animator/InnequinAnimator';
-import { InnequinAssetController } from './controllers/InnequinAssetController';
 import {
   InnequinAnimationType,
   InnequinConfiguration,
@@ -179,12 +178,12 @@ export class Innequin {
       Object.values(FACE_TEXTURE_TYPES).forEach((valueFaceType) => {
         this.facialMaterialLoaders[
           valueEmotionType.toLowerCase() +
-            '_' +
-            valueFaceType +
-            '_' +
-            (valueFaceType !== FACE_TEXTURE_TYPES.VISEMES
-              ? MATERIAL_TYPES.FEATURE
-              : MATERIAL_TYPES.VISEME)
+          '_' +
+          valueFaceType +
+          '_' +
+          (valueFaceType !== FACE_TEXTURE_TYPES.VISEMES
+            ? MATERIAL_TYPES.FEATURE
+            : MATERIAL_TYPES.VISEME)
         ] = new FacialMaterialLoader({
           emotionType: valueEmotionType,
           faceType: valueFaceType,
@@ -253,7 +252,6 @@ export class Innequin {
   onLoadModel() {
     // This next block parses the model and locates the detected
     // meshes needed to run Innequin
-
     let skeleton: SkinnedMesh | undefined;
     this.getModel().traverse((child) => {
       if (child.name === 'Armature') {
@@ -273,13 +271,13 @@ export class Innequin {
     });
 
     // Hides all the accessories on the model.
-    InnequinAssetController.updateDisplayList(
-      this.getModel() as SkinnedMesh,
-      this.config.innequin.assets,
-    );
+    // Currently this is commented out awaiting future architecture
+    // InnequinAssetController.updateDisplayList(
+    //   this.getModel() as SkinnedMesh,
+    //   this.config.innequin.assets,
+    // );
 
     log('Innequin - Model Loaded');
-
     this.loadAnimations();
   }
 
