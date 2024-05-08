@@ -112,10 +112,10 @@ export class InnequinMouth {
     ).map =
       this.props.facialMaterials[
         this.emotion.toLowerCase() +
-        '_' +
-        FACE_TEXTURE_TYPES.VISEMES +
-        '_' +
-        MATERIAL_TYPES.VISEME
+          '_' +
+          FACE_TEXTURE_TYPES.VISEMES +
+          '_' +
+          MATERIAL_TYPES.VISEME
       ]!.getTextureColor()!;
     const offsets = getSpriteCoordFromViseme('sil');
     (

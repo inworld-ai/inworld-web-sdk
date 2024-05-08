@@ -35,7 +35,7 @@ export class InnequinFacial {
     this.init();
   }
 
-  init() { }
+  init() {}
 
   setEmotion(emotion: EMOTIONS_FACE) {
     this.emotion = emotion;
@@ -51,10 +51,10 @@ export class InnequinFacial {
       ).map =
         this.props.facialMaterials[
           emotion.toLowerCase() +
-          '_' +
-          valueFaceType +
-          '_' +
-          MATERIAL_TYPES.FEATURE
+            '_' +
+            valueFaceType +
+            '_' +
+            MATERIAL_TYPES.FEATURE
         ]!.getTextureColor()!;
       (
         this.props.modelMeshes[valueFaceType]?.material as MeshPhysicalMaterial

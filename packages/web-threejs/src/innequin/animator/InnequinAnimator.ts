@@ -102,7 +102,7 @@ export class InnequinAnimator {
         this.playIdle.bind(this),
         (this.props.animationClips[this.animationName]!.duration -
           ANIMATION_FADE_TIME_S) *
-        1000,
+          1000,
       );
       this.isPlaying = true;
     }
@@ -233,10 +233,10 @@ export class InnequinAnimator {
       this.animationState = ANIMATION_TYPE.GESTURE;
       this.gestureDebounce = Math.floor(
         Math.random() *
-        (ANIMATION_GESTURE_DEBOUNCE_MAX_S -
-          ANIMATION_GESTURE_DEBOUNCE_MIN_S +
-          1) +
-        ANIMATION_GESTURE_DEBOUNCE_MIN_S,
+          (ANIMATION_GESTURE_DEBOUNCE_MAX_S -
+            ANIMATION_GESTURE_DEBOUNCE_MIN_S +
+            1) +
+          ANIMATION_GESTURE_DEBOUNCE_MIN_S,
       );
       this.animationMixer
         .clipAction(this.props.animationClips[this.animationName]!)
@@ -352,12 +352,12 @@ export class InnequinAnimator {
           this.animationState === ANIMATION_TYPE.IDLE &&
           this.talkingCurrentTime > ANIMATION_FADE_TIME_S &&
           this.talkingCurrentTime <
-          this.phonemeData[this.phonemeData.length - 1].startOffsetS!
+            this.phonemeData[this.phonemeData.length - 1].startOffsetS!
         ) {
           if (this.gestureDebounce === 0) {
             this.randomGesture(
               this.phonemeData[this.phonemeData.length - 1].startOffsetS! -
-              this.talkingCurrentTime,
+                this.talkingCurrentTime,
             );
           }
         } else if (

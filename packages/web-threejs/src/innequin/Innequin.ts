@@ -178,12 +178,12 @@ export class Innequin {
       Object.values(FACE_TEXTURE_TYPES).forEach((valueFaceType) => {
         this.facialMaterialLoaders[
           valueEmotionType.toLowerCase() +
-          '_' +
-          valueFaceType +
-          '_' +
-          (valueFaceType !== FACE_TEXTURE_TYPES.VISEMES
-            ? MATERIAL_TYPES.FEATURE
-            : MATERIAL_TYPES.VISEME)
+            '_' +
+            valueFaceType +
+            '_' +
+            (valueFaceType !== FACE_TEXTURE_TYPES.VISEMES
+              ? MATERIAL_TYPES.FEATURE
+              : MATERIAL_TYPES.VISEME)
         ] = new FacialMaterialLoader({
           emotionType: valueEmotionType,
           faceType: valueFaceType,
