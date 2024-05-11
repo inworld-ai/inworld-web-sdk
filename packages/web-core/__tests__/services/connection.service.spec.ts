@@ -173,7 +173,8 @@ test('should close', async () => {
 test('should set and get current audio conversation', () => {
   const connection = new ConnectionService();
   const conversation = new ConversationService(connection, {
-    characters,
+    participants: characters.map((c) => c.resourceName),
+    addCharacters: jest.fn(),
   });
 
   connection.setCurrentAudioConversation(conversation);
@@ -582,6 +583,9 @@ describe('send', () => {
     });
 
     jest.spyOn(Player.prototype, 'setStream').mockImplementation(jest.fn());
+    jest
+      .spyOn(ConversationService.prototype, 'getConversationId')
+      .mockImplementation(() => conversationId);
   });
 
   afterEach(() => {
@@ -708,17 +712,22 @@ describe('send', () => {
           },
         }),
       ]);
-    jest
-      .spyOn(ConversationService.prototype, 'getConversationId')
-      .mockImplementation(() => conversationId);
 
     connection.conversations.set(conversationId, {
       service: new ConversationService(connection, {
-        characters: [characters[0]],
+        participants: [characters[0].resourceName],
         conversationId,
+        addCharacters: jest.fn(),
       }),
       state: ConversationState.ACTIVE,
     });
+    jest
+      .spyOn(connection, 'getCharactersByResourceNames')
+      .mockImplementation((names: string[]) =>
+        characters.filter((character) =>
+          names.includes(character.resourceName),
+        ),
+      );
 
     await Promise.all([
       connection.send(() => textEvent),
@@ -806,11 +815,20 @@ describe('onMessage', () => {
 
     connection.conversations.set(conversationId, {
       service: new ConversationService(connection, {
-        characters: [characters[0]],
+        participants: [characters[0].resourceName],
         conversationId,
+        addCharacters: jest.fn(),
       }),
       state: ConversationState.ACTIVE,
     });
+
+    jest
+      .spyOn(connection, 'getCharactersByResourceNames')
+      .mockImplementation((names: string[]) =>
+        characters.filter((character) =>
+          names.includes(character.resourceName),
+        ),
+      );
 
     await Promise.all([
       connection.open(),
@@ -1065,15 +1083,17 @@ describe('onDisconnect', () => {
 
     connection.conversations.set(conversationId1, {
       service: new ConversationService(connection, {
-        characters,
+        participants: characters.map((character) => character.resourceName),
         conversationId: conversationId1,
+        addCharacters: jest.fn(),
       }),
       state: ConversationState.ACTIVE,
     });
     connection.conversations.set(conversationId2, {
       service: new ConversationService(connection, {
-        characters,
+        participants: characters.map((character) => character.resourceName),
         conversationId: conversationId2,
+        addCharacters: jest.fn(),
       }),
       state: ConversationState.PROCESSING,
     });
@@ -1201,11 +1221,19 @@ describe('interrupt', () => {
       generateSessionToken,
       webRtcLoopbackBiDiSession,
     });
+    jest
+      .spyOn(connection, 'getCharactersByResourceNames')
+      .mockImplementation((names: string[]) =>
+        characters.filter((character) =>
+          names.includes(character.resourceName),
+        ),
+      );
 
     connection.conversations.set(conversationId, {
       service: new ConversationService(connection, {
-        characters: [characters[0]],
+        participants: [characters[0].resourceName],
         conversationId,
+        addCharacters: jest.fn(),
       }),
       state: ConversationState.ACTIVE,
     });

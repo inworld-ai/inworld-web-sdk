@@ -250,6 +250,24 @@ export class EventFactory {
     };
   }
 
+  static unloadCharacters(names: string[]): ProtoPacket {
+    const name = names.map(
+      (name) =>
+        ({
+          name,
+        }) as LoadCharactersCharacterName,
+    );
+
+    const mutation = { unloadCharacters: { name } } as MutationEvent;
+
+    return {
+      packetId: { packetId: v4() },
+      timestamp: protoTimestamp(),
+      routing: this.worldRouting(),
+      mutation,
+    };
+  }
+
   baseProtoPacket({
     utteranceId = true,
     interactionId = true,

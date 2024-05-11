@@ -46,7 +46,8 @@ export const createCharacter = () =>
 export const createAgent = (): Agent => {
   return {
     agentId: v4(),
-    brainName: v4(),
+    brainName: `workspaces/${v4()}/characters/${v4()}`,
+    givenName: v4(),
     characterAssets: {
       avatarImg: v4(),
       avatarImgOriginal: v4(),

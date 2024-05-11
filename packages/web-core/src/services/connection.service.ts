@@ -217,16 +217,25 @@ export class ConnectionService<
     return this.getEventFactory().getCurrentCharacter();
   }
 
-  getCharacterById(id: string) {
-    return this.scene.getCharacterById(id);
+  getCharactersByIds(ids: string[]) {
+    return this.scene.getCharactersByIds(ids);
   }
 
-  getCharacterByResourceName(name: string) {
-    return this.scene.getCharacterByResourceName(name);
+  getCharactersByResourceNames(names: string[]) {
+    return this.scene.getCharactersByResourceNames(names);
   }
 
-  async setCurrentCharacter(character: Character) {
+  setCurrentCharacter(character: Character) {
     this.getEventFactory().setCurrentCharacter(character);
+  }
+
+  removeCharacters(names: string[]) {
+    this.scene = new Scene({
+      ...this.scene,
+      characters: this.scene.characters.filter(
+        (c) => !names.includes(c.resourceName),
+      ),
+    });
   }
 
   async open() {
@@ -372,6 +381,14 @@ export class ConnectionService<
     }
 
     return this.session;
+  }
+
+  addInterval(interval: NodeJS.Timeout) {
+    this.intervals.push(interval);
+  }
+
+  removeInterval(interval: NodeJS.Timeout) {
+    this.intervals = this.intervals.filter((i) => i !== interval);
   }
 
   private scheduleDisconnect() {
@@ -679,25 +696,6 @@ export class ConnectionService<
     this.setNextSceneName(undefined);
     this.connectionProps.extension?.afterLoadScene?.(proto);
     this.ensureCurrentCharacter();
-
-    // Update characters in conversations.
-    const byResourceName = this.scene.characters.reduce(
-      (acc, character) => {
-        acc[character.resourceName] = character;
-        return acc;
-      },
-      {} as { [key: string]: Character },
-    );
-    this.conversations.forEach((conversation) => {
-      const characters = conversation.service
-        .getCharacters()
-        .map((c) => byResourceName[c.resourceName] ?? c);
-
-      conversation.service = new ConversationService<InworldPacketT>(this, {
-        characters,
-        conversationId: conversation.service.getConversationId(),
-      });
-    });
   }
 
   private addCharactersToScene(proto: SessionControlResponseEvent) {

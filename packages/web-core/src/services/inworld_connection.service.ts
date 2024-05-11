@@ -107,25 +107,40 @@ export class InworldConnectionService<
   }
 
   getCharacterById(id: string) {
-    return this.connection.getCharacterById(id);
+    return this.connection.getCharactersByIds([id])?.[0];
   }
 
   getCharacterByResourceName(name: string) {
-    return this.connection.getCharacterByResourceName(name);
+    return this.connection.getCharactersByResourceNames([name])?.[0];
   }
 
-  setCurrentCharacter(character: Character) {
+  async setCurrentCharacter(character: Character) {
     this.connection.setCurrentCharacter(character);
 
-    this.oneToOneConversation = new ConversationService<InworldPacketT>(
-      this.connection,
-      {
-        characters: [character],
-        conversationId: this.oneToOneConversation?.getConversationId(),
-      },
-    );
+    if (!this.oneToOneConversation) {
+      this.oneToOneConversation = new ConversationService<InworldPacketT>(
+        this.connection,
+        {
+          participants: [character.resourceName],
+          conversationId: this.oneToOneConversation?.getConversationId(),
+          addCharacters: this.addCharacters.bind(this),
+        },
+      );
 
-    this.addConversationToConnection(this.oneToOneConversation);
+      this.addConversationToConnection(this.oneToOneConversation);
+    } else {
+      this.oneToOneConversation.changeParticipants([character.resourceName]);
+    }
+
+    if (
+      this.connection.conversations.get(
+        this.oneToOneConversation.getConversationId(),
+      ).state === ConversationState.ACTIVE
+    ) {
+      await this.oneToOneConversation.updateParticipants([
+        character.resourceName,
+      ]);
+    }
   }
 
   getHistory() {
@@ -265,7 +280,15 @@ export class InworldConnectionService<
 
     this.connection.setNextSceneName(name);
 
-    return this.connection.send(() => EventFactory.loadScene(name));
+    const result = await this.connection.send(() =>
+      EventFactory.loadScene(name),
+    );
+
+    await this.resolveInterval(() => {
+      return this.connection.getSceneName() === name;
+    });
+
+    return result;
   }
 
   async addCharacters(names: string[]) {
@@ -275,7 +298,42 @@ export class InworldConnectionService<
       throw Error(CHARACTER_HAS_INVALID_FORMAT);
     }
 
-    return this.connection.send(() => EventFactory.loadCharacters(names));
+    const result = await this.connection.send(() =>
+      EventFactory.loadCharacters(names),
+    );
+
+    await this.resolveInterval(() => {
+      const found = this.connection.getCharactersByResourceNames(names);
+
+      return found.length && found.length === names.length;
+    });
+
+    return result;
+  }
+
+  async removeCharacters(names: string[]) {
+    const invalid = names.find((name) => !characterHasValidFormat(name));
+
+    if (invalid) {
+      throw Error(CHARACTER_HAS_INVALID_FORMAT);
+    }
+
+    const result = await this.connection.send(() =>
+      EventFactory.unloadCharacters(names),
+    );
+
+    this.connection.removeCharacters(names);
+
+    this.connection.conversations.forEach((conversation) => {
+      conversation.service.changeParticipants(
+        conversation.service
+          .getCharacters()
+          .filter((c) => !names.includes(c.resourceName))
+          .map((c) => c.resourceName),
+      );
+    });
+
+    return result;
   }
 
   async sendCustomPacket(getPacket: () => ProtoPacket) {
@@ -288,8 +346,11 @@ export class InworldConnectionService<
     return this.connection.interrupt();
   }
 
-  startConversation(characters: Character[]) {
-    const service = new ConversationService(this.connection, { characters });
+  startConversation(participants: string[]) {
+    const service = new ConversationService(this.connection, {
+      participants,
+      addCharacters: this.addCharacters.bind(this),
+    });
 
     this.connection.conversations.set(service.getConversationId(), {
       service,
@@ -318,11 +379,28 @@ export class InworldConnectionService<
 
       this.oneToOneConversation = new ConversationService<InworldPacketT>(
         this.connection,
-        { characters: [character] },
+        {
+          participants: [character.resourceName],
+          addCharacters: this.addCharacters.bind(this),
+        },
       );
 
       this.addConversationToConnection(this.oneToOneConversation);
     }
+  }
+
+  private async resolveInterval(done: () => boolean) {
+    return new Promise<void>((resolve) => {
+      const interval = setInterval(() => {
+        if (done()) {
+          clearInterval(interval);
+          this.connection.removeInterval(interval);
+          resolve();
+        }
+      }, 10);
+
+      this.connection.addInterval(interval);
+    });
   }
 
   private addConversationToConnection(

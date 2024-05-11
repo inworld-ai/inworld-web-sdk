@@ -148,27 +148,27 @@ test('should convert proto to scene without history items and agents', () => {
 });
 
 test('should find character by id', () => {
-  const character = scene.getCharacterById(characters[0].id);
+  const [character] = scene.getCharactersByIds([characters[0].id]);
 
   expect(character).toEqual(characters[0]);
 });
 
 test('should return undefined when character not found', () => {
-  const character = scene.getCharacterById(v4());
+  const [character] = scene.getCharactersByIds([v4()]);
 
   expect(character).toBeUndefined();
 });
 
 test('should find character by resource name', () => {
-  const character = scene.getCharacterByResourceName(
+  const [character] = scene.getCharactersByResourceNames([
     characters[0].resourceName,
-  );
+  ]);
 
   expect(character).toEqual(characters[0]);
 });
 
 test('should return undefined when character not found by resource name', () => {
-  const character = scene.getCharacterByResourceName(v4());
+  const [character] = scene.getCharactersByResourceNames([v4()]);
 
   expect(character).toBeUndefined();
 });

@@ -7,6 +7,7 @@ import {
   DataChunkDataType,
   SessionControlResponseEvent,
 } from '../../proto/ai/inworld/packets/packets.pb';
+import { ProtoPacket } from '../../src';
 import {
   AudioSessionState,
   ConversationMapItem,
@@ -247,6 +248,16 @@ describe('send', () => {
       jest
         .spyOn(ConnectionService.prototype, 'getCurrentCharacter')
         .mockImplementation(() => Promise.resolve(character));
+      jest
+        .spyOn(connection, 'getCharactersByResourceNames')
+        .mockImplementation((names: string[]) =>
+          characters.filter((character) =>
+            names.includes(character.resourceName),
+          ),
+        );
+      jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
 
       connection.conversations.clear();
       service = new InworldConnectionService({
@@ -260,10 +271,6 @@ describe('send', () => {
     });
 
     test('should send audio', async () => {
-      jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
-
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
         .mockImplementation(writeMock);
@@ -305,9 +312,6 @@ describe('send', () => {
     });
 
     test('should send text', async () => {
-      jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
         .mockImplementation(writeMock);
@@ -342,9 +346,6 @@ describe('send', () => {
     });
 
     test('should send trigger without parameters', async () => {
-      jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
         .mockImplementation(writeMock);
@@ -378,9 +379,6 @@ describe('send', () => {
     });
 
     test('should send trigger with parameters in the old way', async () => {
-      jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
         .mockImplementation(writeMock);
@@ -419,9 +417,6 @@ describe('send', () => {
     });
 
     test('should send trigger with parameters in the new way', async () => {
-      jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
         .mockImplementation(writeMock);
@@ -461,9 +456,6 @@ describe('send', () => {
 
     test('should send audio session start', async () => {
       jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
-      jest
         .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
         .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
       const write = jest
@@ -499,11 +491,9 @@ describe('send', () => {
 
     test('should throw error if audio session was started twice', async () => {
       const conversationService = new ConversationService(connection, {
-        characters: [characters[0]],
+        participants: [characters[0].resourceName],
+        addCharacters: jest.fn(),
       });
-      jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
 
       connection.conversations.set(conversationService.getConversationId(), {
         service: conversationService,
@@ -533,10 +523,6 @@ describe('send', () => {
     });
 
     test('should throw error if audio session was finished twice', async () => {
-      jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
-
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
         .mockImplementation(writeMock);
@@ -565,10 +551,6 @@ describe('send', () => {
     });
 
     test('should send audio session end', async () => {
-      jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
-
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
         .mockImplementation(writeMock);
@@ -600,10 +582,6 @@ describe('send', () => {
     });
 
     test('should send cancel responses', async () => {
-      jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
-
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
         .mockImplementation(writeMock);
@@ -624,10 +602,6 @@ describe('send', () => {
     });
 
     test('should send narrated action', async () => {
-      jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
-
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
         .mockImplementationOnce(() =>
@@ -658,10 +632,6 @@ describe('send', () => {
     });
 
     test('should send tts playback mute', async () => {
-      jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
-
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
         .mockImplementation(writeMock);
@@ -683,10 +653,6 @@ describe('send', () => {
     });
 
     test('should send tts playback unmute', async () => {
-      jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
-
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
         .mockImplementation(writeMock);
@@ -737,6 +703,13 @@ describe('send', () => {
       jest
         .spyOn(ConversationService.prototype, 'getConversationId')
         .mockImplementation(() => conversationId);
+      jest
+        .spyOn(connection, 'getCharactersByResourceNames')
+        .mockImplementation((names: string[]) =>
+          characters.filter((character) =>
+            names.includes(character.resourceName),
+          ),
+        );
 
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
@@ -798,27 +771,6 @@ describe('send', () => {
       expect(packet?.sceneMutation).toHaveProperty('name', SCENE);
     });
 
-    test('should change scene', async () => {
-      jest
-        .spyOn(WebSocketConnection.prototype, 'openSession')
-        .mockImplementationOnce(() =>
-          Promise.resolve({ agents } as SessionControlResponseEvent),
-        );
-      jest
-        .spyOn(EventFactory.prototype, 'getCharacters')
-        .mockReturnValueOnce(characters);
-      const write = jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
-
-      const name = `workspaces/${v4()}/scenes/${v4()}`;
-      const packet = await service.changeScene(name);
-
-      expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet?.sceneMutation).toHaveProperty('name', name);
-    });
-
     test('should throw error in case of the same scene for change', async () => {
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
@@ -855,6 +807,43 @@ describe('send', () => {
       );
     });
 
+    test('should change scene', async () => {
+      jest
+        .spyOn(WebSocketConnection.prototype, 'openSession')
+        .mockImplementationOnce(() =>
+          Promise.resolve({ agents } as SessionControlResponseEvent),
+        );
+      jest
+        .spyOn(EventFactory.prototype, 'getCharacters')
+        .mockReturnValueOnce(characters);
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const name = `workspaces/${v4()}/scenes/${v4()}`;
+
+      const [packet] = await Promise.all([
+        service.changeScene(name),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!({
+              sessionControlResponse: {
+                loadedScene: {
+                  agents,
+                },
+              },
+              packetId: { packetId: v4() },
+            } as ProtoPacket);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(packet?.sceneMutation).toHaveProperty('name', name);
+    });
+
     test('should add character', async () => {
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
@@ -868,12 +857,26 @@ describe('send', () => {
         .spyOn(WebSocketConnection.prototype, 'write')
         .mockImplementationOnce(writeMock);
 
-      const names = [
-        `workspaces/${v4()}/characters/${v4()}`,
-        `workspaces/${v4()}/characters/${v4()}`,
-      ];
+      const names = [agents[0].brainName!, agents[1].brainName!];
 
-      const packet = await service.addCharacters(names);
+      const [packet] = await Promise.all([
+        service.addCharacters(names),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!({
+              sessionControlResponse: {
+                loadedCharacters: {
+                  agents,
+                },
+              },
+              packetId: { packetId: v4() },
+            } as ProtoPacket);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
+
+      // const packet = await service.addCharacters(names);
 
       expect(open).toHaveBeenCalledTimes(0);
       expect(write).toHaveBeenCalledTimes(1);
@@ -901,10 +904,6 @@ describe('send', () => {
     });
 
     test('should add playback mute event to queue in case of auto reconnect', async () => {
-      jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
-
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
         .mockImplementation(writeMock);
@@ -963,9 +962,17 @@ describe('send', () => {
         webRtcLoopbackBiDiSession,
       });
 
+      jest
+        .spyOn(connection, 'getCharactersByResourceNames')
+        .mockImplementation((names: string[]) =>
+          characters.filter((character) =>
+            names.includes(character.resourceName),
+          ),
+        );
+
       expect(service.getConversations()).toEqual([]);
 
-      service.startConversation([characters[0]]);
+      service.startConversation([characters[0].resourceName]);
 
       expect(service.getConversations()).toEqual([
         {
@@ -977,7 +984,8 @@ describe('send', () => {
 
     test('should throw error if character is not set', async () => {
       const conversationService = new ConversationService(connection, {
-        characters: [characters[0]],
+        participants: [characters[0].resourceName],
+        addCharacters: jest.fn(),
       });
       jest
         .spyOn(ConversationService.prototype, 'getConversationId')
@@ -1008,6 +1016,13 @@ describe('character', () => {
     jest
       .spyOn(ConnectionService.prototype, 'getEventFactory')
       .mockImplementationOnce(() => eventFactory);
+    jest
+      .spyOn(connection, 'getCharactersByResourceNames')
+      .mockImplementation((names: string[]) =>
+        characters.filter((character) =>
+          names.includes(character.resourceName),
+        ),
+      );
 
     service = new InworldConnectionService({
       connection,
@@ -1045,20 +1060,19 @@ describe('character', () => {
     jest
       .spyOn(service, 'getCurrentCharacter')
       .mockImplementationOnce(() => Promise.resolve(characters[0]));
-
     jest
       .spyOn(ConversationService.prototype, 'sendText')
       .mockImplementation(jest.fn());
 
     await service.sendText(v4());
 
-    const conversation = await service.getCurrentConversation();
+    let conversation = await service.getCurrentConversation();
 
     expect(conversation.getCharacters()).toEqual([characters[0]]);
 
-    service.setCurrentCharacter(characters[1]);
+    await service.setCurrentCharacter(characters[1]);
 
-    expect(conversation.getCharacters()).toEqual([characters[0]]);
+    expect(conversation.getCharacters()).toEqual([characters[1]]);
   });
 });
 
@@ -1087,7 +1101,8 @@ describe('listener', () => {
       .mockImplementationOnce(
         () =>
           new ConversationService(connection, {
-            characters: [],
+            participants: [],
+            addCharacters: jest.fn(),
           }),
       );
     const sendAudioSessionStart = jest

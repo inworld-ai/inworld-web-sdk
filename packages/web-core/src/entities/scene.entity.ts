@@ -90,11 +90,11 @@ export class Scene {
     });
   }
 
-  getCharacterById(id: string) {
-    return this.characters.find((c) => c.id === id);
+  getCharactersByIds(ids: string[]) {
+    return this.characters.filter((c) => ids.includes(c.id));
   }
 
-  getCharacterByResourceName(name: string) {
-    return this.characters.find((c) => c.resourceName === name);
+  getCharactersByResourceNames(names: string[]) {
+    return this.characters.filter((c) => names.includes(c.resourceName));
   }
 }

@@ -30,21 +30,27 @@ export class ConversationService<
 > {
   private connection: ConnectionService<InworldPacketT>;
   private conversationId: string;
-  private characters: Character[];
+  private participants: string[];
+  private addCharacters?: (names: string[]) => Promise<void>;
   private packetQueue: PacketQueueItem<InworldPacketT>[] = [];
-  private intervals: NodeJS.Timeout[] = [];
   private ttsPlaybackAction = TtsPlaybackAction.UNKNOWN;
 
   constructor(
     connection: ConnectionService<InworldPacketT>,
     {
-      characters,
+      participants,
       conversationId,
-    }: { characters: Character[]; conversationId?: string },
+      addCharacters,
+    }: {
+      participants: string[];
+      conversationId?: string;
+      addCharacters: (names: string[]) => Promise<void>;
+    },
   ) {
     this.connection = connection;
     this.conversationId = conversationId ?? v4();
-    this.characters = characters;
+    this.participants = participants;
+    this.addCharacters = addCharacters;
   }
 
   getConversationId() {
@@ -52,7 +58,7 @@ export class ConversationService<
   }
 
   getCharacters() {
-    return this.characters;
+    return this.connection.getCharactersByResourceNames(this.participants);
   }
 
   getHistory() {
@@ -63,7 +69,11 @@ export class ConversationService<
     return this.connection.history.getTranscript(this.getConversationId());
   }
 
-  async updateParticipants(characters: Character[]) {
+  changeParticipants(participants: string[]) {
+    this.participants = participants;
+  }
+
+  async updateParticipants(participants: string[]) {
     const conversationId = this.getConversationId();
     const conversation = this.connection.conversations.get(conversationId);
 
@@ -86,11 +96,24 @@ export class ConversationService<
 
     let needToReacreateAudioSession = false;
 
+    // If audio session is started, we need to end it before updating participants
     if (this.connection.getAudioSessionAction() === AudioSessionState.START) {
       needToReacreateAudioSession = true;
       await this.sendAudioSessionEnd();
     }
 
+    // Load characters if they are not loaded
+    let characters = await this.connection.getCharacters();
+    const charactersToAdd = participants.filter(
+      (p) => !characters.find((c) => c.resourceName === p),
+    );
+
+    if (charactersToAdd.length) {
+      await this.addCharacters(charactersToAdd);
+    }
+    characters = await this.connection.getCharacters();
+
+    // Update conversation
     const sent = await this.connection.send(() =>
       EventFactory.conversation(
         characters.map((character) => character.id),
@@ -100,31 +123,23 @@ export class ConversationService<
       ),
     );
 
+    // If audio session was started before, we need to restart it
     if (needToReacreateAudioSession) {
       await this.sendAudioSessionStart();
     }
 
-    const resolveConversation = () =>
-      new Promise<void>((resolve) => {
-        const interval = setInterval(() => {
-          const found = this.connection.conversations.get(
-            sent.packetId.conversationId,
-          );
+    await this.resolveInterval(
+      () => {
+        const found = this.connection.conversations.get(
+          sent.packetId.conversationId,
+        );
 
-          if (found?.state === ConversationState.ACTIVE) {
-            clearInterval(interval);
-            this.intervals = this.intervals.filter(
-              (i: NodeJS.Timeout) => i !== interval,
-            );
-
-            this.characters = characters;
-            resolve();
-          }
-        }, 10);
-        this.intervals.push(interval);
-      });
-
-    await resolveConversation();
+        return found?.state === ConversationState.ACTIVE;
+      },
+      () => {
+        this.participants = participants;
+      },
+    );
 
     return conversation.service;
   }
@@ -228,7 +243,7 @@ export class ConversationService<
   }
 
   async sendNarratedAction(text: string) {
-    if (this.characters.length > 1) {
+    if (this.participants.length > 1) {
       throw Error(MULTI_CHAR_NARRATED_ACTIONS);
     }
 
@@ -262,25 +277,6 @@ export class ConversationService<
       return this.connection.send(getPacket);
     } else if (conversation.state === ConversationState.PROCESSING) {
       let packet: InworldPacketT;
-      const resolvePacket = () =>
-        new Promise<InworldPacketT>((resolve) => {
-          const done = (packet: InworldPacketT) => {
-            resolve(packet);
-          };
-
-          const interval = setInterval(() => {
-            if (packet) {
-              clearInterval(interval);
-
-              this.intervals = this.intervals.filter(
-                (i: NodeJS.Timeout) => i !== interval,
-              );
-
-              done(packet);
-            }
-          }, 10);
-          this.intervals.push(interval);
-        });
 
       this.packetQueue.push({
         getPacket,
@@ -289,7 +285,10 @@ export class ConversationService<
         },
       });
 
-      return resolvePacket();
+      return this.resolveInterval<InworldPacketT>(
+        () => !!packet,
+        () => packet,
+      );
     }
 
     this.connection.conversations.set(this.getConversationId(), {
@@ -298,31 +297,21 @@ export class ConversationService<
     });
 
     const conversationPacket = await this.connection.send(() =>
-      EventFactory.conversation(conversation.service.getParticipants(), {
-        conversationId: this.getConversationId(),
-      }),
+      EventFactory.conversation(
+        conversation.service.getCharacters().map((c) => c.id),
+        {
+          conversationId: this.getConversationId(),
+        },
+      ),
     );
 
-    const resolveConversation = () =>
-      new Promise<void>((resolve) => {
-        const interval = setInterval(() => {
-          const found = this.connection.conversations.get(
-            conversationPacket.packetId.conversationId,
-          );
+    await this.resolveInterval(() => {
+      const found = this.connection.conversations.get(
+        conversationPacket.packetId.conversationId,
+      );
 
-          if (found?.state === ConversationState.ACTIVE) {
-            clearInterval(interval);
-            this.intervals = this.intervals.filter(
-              (i: NodeJS.Timeout) => i !== interval,
-            );
-
-            resolve();
-          }
-        }, 10);
-        this.intervals.push(interval);
-      });
-
-    await resolveConversation();
+      return found?.state === ConversationState.ACTIVE;
+    });
 
     if (
       this.connection.isAutoReconnected() &&
@@ -358,7 +347,20 @@ export class ConversationService<
     return this.ttsPlaybackAction;
   }
 
-  private getParticipants() {
-    return this.characters.map((character) => character.id);
+  private async resolveInterval<T = void>(
+    done: () => boolean,
+    resolve?: () => T,
+  ) {
+    return new Promise<T>((r) => {
+      const interval = setInterval(() => {
+        if (done()) {
+          clearInterval(interval);
+          this.connection.removeInterval(interval);
+          r(resolve?.() as T);
+        }
+      }, 10);
+
+      this.connection.addInterval(interval);
+    });
   }
 }

@@ -2,6 +2,10 @@ import '../mocks/window.mock';
 
 import { v4 } from 'uuid';
 
+import {
+  ActorType,
+  SessionControlResponseEvent,
+} from '../../proto/ai/inworld/packets/packets.pb';
 import { ConversationService } from '../../src';
 import {
   AudioSessionState,
@@ -10,6 +14,7 @@ import {
 import { MULTI_CHAR_NARRATED_ACTIONS } from '../../src/common/errors';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
 import { GrpcWebRtcLoopbackBiDiSession } from '../../src/components/sound/grpc_web_rtc_loopback_bidi.session';
+import { WebSocketConnection } from '../../src/connection/web-socket.connection';
 import { ConnectionService } from '../../src/services/connection.service';
 import {
   conversationId,
@@ -42,13 +47,24 @@ const connection = new ConnectionService({
 
 beforeEach(() => {
   connection.conversations.clear();
+
+  jest
+    .spyOn(connection, 'getCharactersByResourceNames')
+    .mockImplementation((names: string[]) =>
+      characters.filter((character) => names.includes(character.resourceName)),
+    );
 });
 
 it('should create service', () => {
-  const conversation = new ConversationService(connection, { characters });
+  const conversation = new ConversationService(connection, {
+    participants: characters.map((c) => c.resourceName),
+    addCharacters: jest.fn(),
+  });
+  const conversationCharacters = conversation.getCharacters();
 
   expect(conversation.getConversationId()).toBeDefined();
-  expect(conversation.getCharacters()).toBe(characters);
+  expect(conversationCharacters[0].id).toBe(characters[0].id);
+  expect(conversationCharacters[1].id).toBe(characters[1].id);
   expect(conversation.getHistory()).toEqual([]);
 });
 
@@ -63,7 +79,8 @@ describe('update participants', () => {
       .mockImplementation(() => AudioSessionState.START);
 
     const service = new ConversationService(connection, {
-      characters: [characters[0]],
+      participants: [characters[0].resourceName],
+      addCharacters: jest.fn(),
     });
 
     expect(async () => {
@@ -77,7 +94,8 @@ describe('update participants', () => {
       .mockImplementation(() => AudioSessionState.END);
 
     const service = new ConversationService(connection, {
-      characters: [characters[0]],
+      participants: [characters[0].resourceName],
+      addCharacters: jest.fn(),
     });
 
     expect(async () => {
@@ -89,11 +107,13 @@ describe('update participants', () => {
 
   it('should throw error if conversation is missing', async () => {
     const service = new ConversationService(connection, {
-      characters: [characters[0]],
+      participants: [characters[0].resourceName],
+      addCharacters: jest.fn(),
     });
 
     expect(
-      async () => await service.updateParticipants([characters[1]]),
+      async () =>
+        await service.updateParticipants([characters[1].resourceName]),
     ).rejects.toThrow(`Conversation ${service.getConversationId()} not found`);
   });
 
@@ -110,7 +130,8 @@ describe('update participants', () => {
       .mockImplementation(() => conversationId);
 
     const service = new ConversationService(connection, {
-      characters: [characters[0]],
+      participants: [characters[0].resourceName],
+      addCharacters: jest.fn(),
     });
 
     expect(service.getCharacters()).toEqual([characters[0]]);
@@ -120,7 +141,7 @@ describe('update participants', () => {
       state: ConversationState.PROCESSING,
     });
 
-    await service.updateParticipants([characters[1]]);
+    await service.updateParticipants([characters[1].resourceName]);
 
     expect(service.getCharacters()).toEqual([characters[0]]);
   });
@@ -133,6 +154,48 @@ describe('update participants', () => {
         },
       }),
     );
+    jest
+      .spyOn(WebSocketConnection.prototype, 'openSession')
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          loadedScene: { agents },
+          sessionHistory: {
+            sessionHistoryItems: [
+              {
+                agent: {
+                  agentId: agents[0].agentId,
+                },
+                packets: [
+                  {
+                    packetId: { packetId: v4() },
+                    routing: {
+                      targets: [
+                        {
+                          type: ActorType.AGENT,
+                        },
+                      ],
+                      source: {
+                        type: ActorType.PLAYER,
+                      },
+                    },
+                  },
+                  {
+                    packetId: { packetId: v4() },
+                    routing: {
+                      target: {
+                        type: ActorType.PLAYER,
+                      },
+                      source: {
+                        type: ActorType.AGENT,
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        } as unknown as SessionControlResponseEvent),
+      );
     jest
       .spyOn(ConversationService.prototype, 'getConversationId')
       .mockImplementation(() => conversationId);
@@ -147,7 +210,8 @@ describe('update participants', () => {
       .mockImplementation(jest.fn());
 
     const service = new ConversationService(connection, {
-      characters: [characters[0]],
+      participants: [characters[0].resourceName],
+      addCharacters: jest.fn(),
     });
 
     expect(service.getCharacters()).toEqual([characters[0]]);
@@ -158,7 +222,7 @@ describe('update participants', () => {
     });
 
     await Promise.all([
-      service.updateParticipants([characters[1]]),
+      service.updateParticipants([characters[1].resourceName]),
       new Promise((resolve: any) => {
         setTimeout(() => {
           connection.conversations.set(conversationId, {
@@ -199,7 +263,8 @@ describe('update participants', () => {
       .mockImplementation(jest.fn());
 
     const service = new ConversationService(connection, {
-      characters: [characters[0]],
+      participants: [characters[0].resourceName],
+      addCharacters: jest.fn(),
     });
 
     expect(service.getCharacters()).toEqual([characters[0]]);
@@ -210,7 +275,7 @@ describe('update participants', () => {
     });
 
     await Promise.all([
-      service.updateParticipants([characters[1]]),
+      service.updateParticipants([characters[1].resourceName]),
       new Promise((resolve: any) => {
         setTimeout(() => {
           connection.conversations.set(conversationId, {
@@ -231,7 +296,8 @@ describe('update participants', () => {
 describe('send', () => {
   it('should throw error if conversation is missing', async () => {
     const service = new ConversationService(connection, {
-      characters: [characters[0]],
+      participants: [characters[0].resourceName],
+      addCharacters: jest.fn(),
     });
 
     expect(async () => await service.sendText(v4())).rejects.toThrow(
@@ -241,7 +307,8 @@ describe('send', () => {
 
   test('should throw error if narrated action is sent for multi-agents', async () => {
     const service = new ConversationService(connection, {
-      characters: characters,
+      participants: characters.map((c) => c.resourceName),
+      addCharacters: jest.fn(),
     });
 
     connection.conversations.set(conversationId, {
@@ -269,7 +336,8 @@ describe('send', () => {
       .mockImplementation(() => conversationId);
 
     const service = new ConversationService(connection, {
-      characters,
+      participants: characters.map((c) => c.resourceName),
+      addCharacters: jest.fn(),
     });
 
     connection.conversations.set(conversationId, {
