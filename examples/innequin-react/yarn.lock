@@ -605,25 +605,6 @@
     defer-promise "^3.0.0"
     uuid "^9.0.0"
 
-"@inworld/web-core@2.2.2":
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/@inworld/web-core/-/web-core-2.2.2.tgz#dfffc2f5cf3531ba624522eb5084b966322ec814"
-  integrity sha512-AIzHBTHIW175VWlR5EFljurYKw9uKteDcUapNjG5aA98Pj+6TkXrqIVgRxYfN/A7rmRXyEgRIeGMjTJG2uQAOw==
-  dependencies:
-    base64-arraybuffer "^1.0.2"
-    defer-promise "^3.0.0"
-    uuid "^9.0.0"
-
-"@inworld/web-threejs@1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@inworld/web-threejs/-/web-threejs-1.4.0.tgz#6e60d590f47b4afe5ad711aadba85fdf97545e92"
-  integrity sha512-OPNaRmiS218v2ZzmVOwBhNEU4dY+qtBN55LbGF9nI/zui0EjemGPCiqEfHSMtWGjU7fb8yaqpvlyIt0Olg8rsA==
-  dependencies:
-    "@inworld/web-core" "2.2.2"
-    three "^0.160.1"
-    three-stdlib "^2.29.4"
-    uuid "^9.0.1"
-
 "@jridgewell/gen-mapping@^0.3.0", "@jridgewell/gen-mapping@^0.3.2":
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/@jridgewell/gen-mapping/-/gen-mapping-0.3.3.tgz#7e02e6eb5df901aaedb08514203b096614024098"
@@ -3380,7 +3361,7 @@ three-mesh-bvh@^0.7.0:
   resolved "https://registry.yarnpkg.com/three-mesh-bvh/-/three-mesh-bvh-0.7.4.tgz#a5c799856a3f26f73537a73b6ec632c30f712ba8"
   integrity sha512-flxe0A4uflTPR6elgq/Y8VrLoljDNS899i422SxQcU3EtMj6o8z4kZRyqZqGWzR0qMf1InTZzY1/0xZl/rnvVw==
 
-three-stdlib@^2.23.4, three-stdlib@^2.29.4:
+three-stdlib@^2.23.4:
   version "2.29.4"
   resolved "https://registry.yarnpkg.com/three-stdlib/-/three-stdlib-2.29.4.tgz#6e8741f6a2d435d15ed73f3a14dd149660d4ce51"
   integrity sha512-XNzGCrz/uAk9XoLwd35eN7dQyI4ggXZTeqjcN034YdYBpBlNO9kmLHehl/0Nw9jCelblB7jla+unHAOIyLyV6Q==
@@ -3403,11 +3384,6 @@ three-stdlib@^2.29.11, three-stdlib@^2.29.9:
     draco3d "^1.4.1"
     fflate "^0.6.9"
     potpack "^1.0.1"
-
-three@^0.160.1:
-  version "0.160.1"
-  resolved "https://registry.yarnpkg.com/three/-/three-0.160.1.tgz#61fe2907312e8604b1f64187f58e047503847413"
-  integrity sha512-Bgl2wPJypDOZ1stAxwfWAcJ0WQf7QzlptsxkjYiURPz+n5k4RBDLsq+6f9Y75TYxn6aHLcWz+JNmwTOXWrQTBQ==
 
 three@^0.164.1:
   version "0.164.1"

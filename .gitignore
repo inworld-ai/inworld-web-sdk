@@ -26,3 +26,5 @@ dist
 # Environment Variable FIle
 .env*
 !.env-sample
+
+ yarn-error.log

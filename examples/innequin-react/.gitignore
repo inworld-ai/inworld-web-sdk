@@ -27,3 +27,4 @@ bak.env*
 
 # logs
 *.log
+ yarn-error.log

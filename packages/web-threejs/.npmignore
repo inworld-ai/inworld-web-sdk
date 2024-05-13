@@ -12,3 +12,4 @@ jest.config.json
 /docs
 EXTENSIONS.md
 /dist
+ yarn-error.log

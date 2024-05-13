@@ -27,9 +27,7 @@ function InnequinModel() {
   const { emotionEvent, open, phonemes } = useInworld();
 
   useEffect(() => {
-    console.log('InnequinModel init a', isLoaded, innequinRef.current);
     if (!isLoaded && !innequinRef.current) {
-      console.log('InnequinModel init b');
       innequinRef.current = new Innequin({
         ...config.innequin,
         skinName: initSkinRef.current,
@@ -73,7 +71,6 @@ function InnequinModel() {
 
   const onProgressInnequin = useCallback(
     (progress: number) => {
-      console.log('Scene onProgressInnequin', progress);
       if (setLoadingPercent) setLoadingPercent(progress);
     },
     [setLoadingPercent],
