@@ -111,7 +111,9 @@ export class ConversationService<
     if (charactersToAdd.length) {
       await this.addCharacters(charactersToAdd);
     }
-    characters = await this.connection.getCharacters();
+    characters = (await this.connection.getCharacters()).filter((c) =>
+      participants.includes(c.resourceName),
+    );
 
     // Update conversation
     const sent = await this.connection.send(() =>
