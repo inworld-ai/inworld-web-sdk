@@ -464,10 +464,10 @@
   resolved "https://registry.yarnpkg.com/@floating-ui/utils/-/utils-0.2.1.tgz#16308cea045f0fc777b6ff20a9f25474dd8293d2"
   integrity sha512-9TANp6GPoMtYzQdt54kfAyMmz1+osLlXdg2ENroU7zzrtflTLrrC/lgrIfaSe+Wu0b89GKccT7vxXA0MoAIO+Q==
 
-"@inworld/web-core@2.4.0":
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/@inworld/web-core/-/web-core-2.4.0.tgz#75a1809eedc3acf4b2b5e4d033d0b5811f6abfd0"
-  integrity sha512-h0C4FwGAPg4P7WUdOPwSPYt1JlO3X/ZafUeJkBzpkuSQPA8F0U8pTzz6pwMYEMJ//pkReX0c+80ba09fSUdauQ==
+"@inworld/web-core@2.5.0":
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/@inworld/web-core/-/web-core-2.5.0.tgz#56d115ac7ccef1b39bbd7d2c46c344e3f9b2146e"
+  integrity sha512-GFfn1mMduWahGPEnSMlkpDb5d/fm06g2zhgGhBZOpr3hvK+3dfxd8EI2gD5DAYaOouSlVwqIamsIomwWwcpTvw==
   dependencies:
     base64-arraybuffer "^1.0.2"
     defer-promise "^3.0.0"
