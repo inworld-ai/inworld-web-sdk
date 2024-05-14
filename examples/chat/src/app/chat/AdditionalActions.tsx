@@ -199,16 +199,22 @@ export const AdditionalActions = (props: AdditionalActionsProps) => {
       >
         <Stack sx={{ p: 2 }} spacing={2}>
           <Box>
-            <Tooltip title="Send narrated action" placement="left">
-              <IconButton onClick={handleNarratedActionDialog}>
-                <AddReaction fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Send trigger" placement="left">
-              <IconButton onClick={handleTriggerDialog}>
-                <AutoAwesome fontSize="small" />
-              </IconButton>
-            </Tooltip>
+            {props.chatView != CHAT_VIEW.MULTI_AGENT_TEXT ? (
+              <>
+                <Tooltip title="Send narrated action" placement="left">
+                  <IconButton onClick={handleNarratedActionDialog}>
+                    <AddReaction fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Send trigger" placement="left">
+                  <IconButton onClick={handleTriggerDialog}>
+                    <AutoAwesome fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </>
+            ) : (
+              ''
+            )}
             <Tooltip title="Change scene" placement="left">
               <IconButton onClick={handleSceneChangeDialog}>
                 <MovieFilter fontSize="small" />
