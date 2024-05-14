@@ -450,11 +450,11 @@ export class ConnectionService<
     this.onDisconnect = async () => {
       this.state = ConnectionState.INACTIVE;
       this.audioSessionAction = AudioSessionState.UNKNOWN;
-      await onDisconnect?.();
-
       this.conversations.forEach((conversation) => {
         conversation.state = ConversationState.INACTIVE;
       });
+
+      await onDisconnect?.();
     };
 
     this.onError = onError ?? ((event: Event | Error) => console.error(event));

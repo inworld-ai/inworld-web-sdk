@@ -184,14 +184,14 @@ export class ConversationService<
       throw Error('Audio session is already started');
     }
 
-    return this.ensureConversation(() => {
-      this.connection.setAudioSessionAction(AudioSessionState.START);
-      this.connection.setCurrentAudioConversation(this);
+    this.connection.setAudioSessionAction(AudioSessionState.START);
+    this.connection.setCurrentAudioConversation(this);
 
-      return this.connection
+    return this.ensureConversation(() =>
+      this.connection
         .getEventFactory()
-        .audioSessionStart({ conversationId: this.getConversationId() });
-    });
+        .audioSessionStart({ conversationId: this.getConversationId() }),
+    );
   }
 
   async sendAudioSessionEnd(force?: boolean) {

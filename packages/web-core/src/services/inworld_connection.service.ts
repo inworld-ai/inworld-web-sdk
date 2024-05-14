@@ -65,7 +65,6 @@ export class InworldConnectionService<
 
         if (
           !this.connection.isActive() &&
-          this.connection.isAutoReconnected() &&
           this.connection.getAudioSessionAction() !== AudioSessionState.START
         ) {
           await conversation.sendAudioSessionStart();
