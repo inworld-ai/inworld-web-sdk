@@ -338,10 +338,9 @@ export class InworldHistory<
     if (found.length) {
       for (const item of found) {
         if (
-          [CHAT_HISTORY_TYPE.ACTOR, CHAT_HISTORY_TYPE.NARRATED_ACTION].includes(
-            item.type,
-          ) &&
-          item.id === packet.packetId.utteranceId
+          (item.type === CHAT_HISTORY_TYPE.ACTOR &&
+            item.id === packet.packetId.utteranceId) ||
+          item.type === CHAT_HISTORY_TYPE.NARRATED_ACTION
         ) {
           toDisplay.push(item);
         }
