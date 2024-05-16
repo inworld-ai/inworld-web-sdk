@@ -67,9 +67,19 @@ export class WebSocketConnection<
   private connectionProps: ConnectionProps;
   private ws: WebSocket;
   private convertPacketFromProto: (proto: ProtoPacket) => InworldPacketT;
+  private onMessage: (event: MessageEvent) => void;
 
   constructor(props: ConnectionProps) {
     this.connectionProps = props;
+    this.onMessage = (event: MessageEvent) => {
+      const [err, packet] = this.parseEvent(event);
+
+      if (err) {
+        this.connectionProps.onError(err);
+      } else if (packet) {
+        this.connectionProps.onMessage(packet);
+      }
+    };
   }
 
   isActive() {
@@ -118,7 +128,7 @@ export class WebSocketConnection<
   async reopenSession(session: SessionToken) {
     const ws = await this.combineWebSocket(session);
 
-    ws.addEventListener('message', this.onMessage.bind(this));
+    ws.addEventListener('message', this.onMessage);
 
     return new Promise<void>((resolve) => {
       ws.addEventListener('open', () => {
@@ -203,8 +213,7 @@ export class WebSocketConnection<
     reject: (reason: Error) => void;
   }) {
     const { parseEvent } = this;
-    const onMessage = this.onMessage.bind(this);
-
+    const onMessage = this.onMessage;
     let historyLoaded = true;
     let loadedScene: LoadedScene;
 
@@ -237,16 +246,6 @@ export class WebSocketConnection<
         }
       }
     };
-  }
-
-  private onMessage(event: MessageEvent) {
-    const [err, packet] = this.parseEvent(event);
-
-    if (err) {
-      this.connectionProps.onError(err);
-    } else if (packet) {
-      this.connectionProps.onMessage(packet);
-    }
   }
 
   private getPackets(props: SessionProps<InworldPacketT, HistoryItemT>) {
