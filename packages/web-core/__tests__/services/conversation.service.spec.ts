@@ -12,15 +12,18 @@ import {
   ConversationState,
 } from '../../src/common/data_structures';
 import { MULTI_CHAR_NARRATED_ACTIONS } from '../../src/common/errors';
+import { InworldHistory } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
 import { GrpcWebRtcLoopbackBiDiSession } from '../../src/components/sound/grpc_web_rtc_loopback_bidi.session';
 import { WebSocketConnection } from '../../src/connection/web-socket.connection';
+import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
 import {
   conversationId,
   conversationUpdated,
   convertAgentsToCharacters,
   createAgent,
+  createCharacter,
   generateSessionToken,
   SCENE,
 } from '../helpers';
@@ -55,7 +58,7 @@ beforeEach(() => {
     );
 });
 
-it('should create service', () => {
+test('should create service', () => {
   const conversation = new ConversationService(connection, {
     participants: characters.map((c) => c.resourceName),
     addCharacters: jest.fn(),
@@ -66,6 +69,23 @@ it('should create service', () => {
   expect(conversationCharacters[0].id).toBe(characters[0].id);
   expect(conversationCharacters[1].id).toBe(characters[1].id);
   expect(conversation.getHistory()).toEqual([]);
+});
+
+test('should return transcript', () => {
+  const result = 'test';
+  const getTranscript = jest
+    .spyOn(InworldHistory.prototype, 'getTranscript')
+    .mockImplementationOnce(() => result);
+
+  const conversation = new ConversationService(connection, {
+    participants: characters.map((c) => c.resourceName),
+    addCharacters: jest.fn(),
+  });
+
+  const transcript = conversation.getTranscript();
+
+  expect(getTranscript).toHaveBeenCalledTimes(1);
+  expect(transcript).toEqual(result);
 });
 
 describe('update participants', () => {
@@ -105,7 +125,7 @@ describe('update participants', () => {
     );
   });
 
-  it('should throw error if conversation is missing', async () => {
+  test('should throw error if conversation is missing', async () => {
     const service = new ConversationService(connection, {
       participants: [characters[0].resourceName],
       addCharacters: jest.fn(),
@@ -117,7 +137,7 @@ describe('update participants', () => {
     ).rejects.toThrow(`Conversation ${service.getConversationId()} not found`);
   });
 
-  it('should do nothing if conversation is already in progress', async () => {
+  test('should do nothing if conversation is already in progress', async () => {
     jest.spyOn(ConnectionService.prototype, 'send').mockImplementation(() =>
       Promise.resolve({
         packetId: {
@@ -146,7 +166,7 @@ describe('update participants', () => {
     expect(service.getCharacters()).toEqual([characters[0]]);
   });
 
-  it('should work without errors', async () => {
+  test('should work without errors', async () => {
     jest.spyOn(ConnectionService.prototype, 'send').mockImplementation(() =>
       Promise.resolve({
         packetId: {
@@ -240,7 +260,7 @@ describe('update participants', () => {
     expect(sendAudioSessionStart).toHaveBeenCalledTimes(0);
   });
 
-  it('should reopen audio session', async () => {
+  test('should reopen audio session', async () => {
     jest.spyOn(ConnectionService.prototype, 'send').mockImplementation(() =>
       Promise.resolve({
         packetId: {
@@ -291,10 +311,55 @@ describe('update participants', () => {
     expect(sendAudioSessionEnd).toHaveBeenCalledTimes(1);
     expect(sendAudioSessionStart).toHaveBeenCalledTimes(1);
   });
+
+  test('should add characters to scene automatically', async () => {
+    jest.spyOn(ConnectionService.prototype, 'send').mockImplementation(() =>
+      Promise.resolve({
+        packetId: {
+          conversationId: conversationId,
+        },
+      }),
+    );
+    jest
+      .spyOn(ConversationService.prototype, 'getConversationId')
+      .mockImplementation(() => conversationId);
+
+    const newCharacter = createCharacter();
+    const addCharacters = jest.fn();
+    const service = new ConversationService(connection, {
+      participants: [characters[0].resourceName],
+      addCharacters,
+    });
+
+    expect(service.getCharacters()).toEqual([characters[0]]);
+
+    connection.conversations.set(conversationId, {
+      service: service,
+      state: ConversationState.INACTIVE,
+    });
+
+    await Promise.all([
+      service.updateParticipants([
+        characters[0].resourceName,
+        newCharacter.resourceName,
+      ]),
+      new Promise((resolve: any) => {
+        setTimeout(() => {
+          connection.conversations.set(conversationId, {
+            service: service,
+            state: ConversationState.ACTIVE,
+          });
+          resolve();
+        }, 0);
+      }),
+    ]);
+
+    expect(addCharacters).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('send', () => {
-  it('should throw error if conversation is missing', async () => {
+  test('should throw error if conversation is missing', async () => {
     const service = new ConversationService(connection, {
       participants: [characters[0].resourceName],
       addCharacters: jest.fn(),
@@ -319,6 +384,24 @@ describe('send', () => {
     expect(async () => {
       await service.sendNarratedAction(v4());
     }).rejects.toThrow(MULTI_CHAR_NARRATED_ACTIONS);
+  });
+
+  test('should skip cancel response sending for multi-agent', async () => {
+    const cancelResponse = jest.spyOn(EventFactory.prototype, 'cancelResponse');
+
+    const service = new ConversationService(connection, {
+      participants: characters.map((c) => c.resourceName),
+      addCharacters: jest.fn(),
+    });
+
+    connection.conversations.set(conversationId, {
+      service: service,
+      state: ConversationState.ACTIVE,
+    });
+
+    await service.sendCancelResponse();
+
+    expect(cancelResponse).toHaveBeenCalledTimes(0);
   });
 
   test('should keep packages in queue until conversation is active', async () => {

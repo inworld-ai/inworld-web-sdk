@@ -38,6 +38,8 @@ export interface InworldPacketProps {
 
 export interface SceneMutation {
   name?: string;
+  description?: string;
+  displayName?: string;
   characterNames?: string[];
   loadedCharacters?: Character[];
   addedCharacters?: Character[];
@@ -131,20 +133,6 @@ export class InworldPacket {
     );
   }
 
-  isTTSPlaybackStart() {
-    return (
-      this.isControl() &&
-      this.control.action === InworlControlAction.TTS_PLAYBACK_START
-    );
-  }
-
-  isTTSPlaybackEnd() {
-    return (
-      this.isControl() &&
-      this.control.action === InworlControlAction.TTS_PLAYBACK_END
-    );
-  }
-
   isTTSPlaybackMute() {
     return (
       this.isControl() &&
@@ -235,6 +223,11 @@ export class InworldPacket {
               proto.sessionControlResponse.loadedScene.agents.map(
                 (agent: Agent) => Character.fromProto(agent),
               ),
+            name: proto.sessionControlResponse.loadedScene.sceneName,
+            description:
+              proto.sessionControlResponse.loadedScene.sceneDescription,
+            displayName:
+              proto.sessionControlResponse.loadedScene.sceneDisplayName,
           }),
           ...(proto.sessionControlResponse?.loadedCharacters && {
             addedCharacters:

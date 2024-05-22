@@ -81,12 +81,12 @@ export const generateSessionToken = () => Promise.resolve(session);
 
 export const capabilitiesProps: Capabilities = {
   audio: true,
+  debugInfo: true,
   emotions: true,
   interruptions: true,
   phonemes: true,
   silence: true,
   narratedActions: true,
-  turnBasedStt: true,
 };
 
 export const user: User = {
@@ -174,9 +174,9 @@ export const setTimeoutMock = (callback: any) => {
 };
 
 export const agents = [createAgent(), createAgent()];
-export const sessionControlResponseEvent = {
-  loadedScene: { agents },
-};
+export const sessionControlResponseEvent = (sceneName: string) => ({
+  loadedScene: { agents, sceneName },
+});
 export const historyResponseEvent = {
   sessionHistory: {
     sessionHistoryItems: agents.map((agent) => ({
@@ -199,9 +199,11 @@ export const historyResponseEvent = {
   },
 };
 export const emitSessionControlResponseEvent =
-  (stream: WS) => (resolve: any) => {
+  (stream: WS, sceneName?: string) => (resolve: any) => {
     stream.send({
-      result: { sessionControlResponse: sessionControlResponseEvent },
+      result: {
+        sessionControlResponse: sessionControlResponseEvent(sceneName ?? SCENE),
+      },
     });
     resolve(true);
   };

@@ -63,10 +63,6 @@ export class ControlEvent {
     switch (proto.action) {
       case ControlEventAction.INTERACTION_END:
         return InworlControlAction.INTERACTION_END;
-      case ControlEventAction.TTS_PLAYBACK_START:
-        return InworlControlAction.TTS_PLAYBACK_START;
-      case ControlEventAction.TTS_PLAYBACK_END:
-        return InworlControlAction.TTS_PLAYBACK_END;
       case ControlEventAction.TTS_PLAYBACK_MUTE:
         return InworlControlAction.TTS_PLAYBACK_MUTE;
       case ControlEventAction.TTS_PLAYBACK_UNMUTE:

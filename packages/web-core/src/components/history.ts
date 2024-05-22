@@ -78,6 +78,8 @@ export interface HistoryItemSceneChange {
   source: Actor;
   type: CHAT_HISTORY_TYPE.SCENE_CHANGE;
   to?: string;
+  description?: string;
+  displayName?: string;
   loadedCharacters?: Character[];
   addedCharacters?: Character[];
   conversationId?: string;
@@ -240,8 +242,7 @@ export class InworldHistory<
         break;
 
       case packet.isSceneMutationResponse():
-      case packet.isSceneMutationRequest():
-        if (packet.sceneMutation?.name || packet.isSceneMutationResponse()) {
+        if (packet.isSceneMutationResponse()) {
           historyItem = this.combineSceneChangeItem(packet);
 
           if (historyItem.to) {
@@ -471,6 +472,8 @@ export class InworldHistory<
       source: packet.routing.source,
       ...(packet.sceneMutation?.name && {
         to: packet.sceneMutation.name,
+        description: packet.sceneMutation.description,
+        displayName: packet.sceneMutation.displayName,
       }),
       ...(packet.sceneMutation?.loadedCharacters && {
         loadedCharacters: packet.sceneMutation.loadedCharacters,

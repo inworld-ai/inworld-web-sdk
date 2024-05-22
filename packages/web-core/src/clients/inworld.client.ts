@@ -1,9 +1,7 @@
-import { CapabilitiesConfiguration } from '../../proto/ai/inworld/engine/configuration/configuration.pb';
 import { CancelResponses } from '../../proto/ai/inworld/packets/packets.pb';
 import { GRPC_HOSTNAME } from '../common/constants';
 import {
   Awaitable,
-  Capabilities,
   Client,
   ClientConfiguration,
   Extension,
@@ -23,6 +21,7 @@ import { HistoryItem } from '../components/history';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
+import { Capability } from '../entities/capability.entity';
 import {
   SessionContinuation,
   SessionContinuationProps,
@@ -238,33 +237,7 @@ export class InworldClient<
         ...connection,
         gateway: this.ensureGateway(gateway),
       },
-      capabilities: this.buildCapabilities(capabilities),
-    };
-  }
-
-  private buildCapabilities(
-    capabilities: Capabilities,
-  ): CapabilitiesConfiguration {
-    const {
-      audio = true,
-      emotions = false,
-      interruptions = false,
-      narratedActions = false,
-      turnBasedStt = false,
-      phonemes: phonemeInfo = false,
-      silence: silenceEvents = false,
-    } = capabilities;
-
-    return {
-      debugInfo: true,
-      audio,
-      emotions,
-      interruptions,
-      multiAgent: true,
-      narratedActions,
-      phonemeInfo,
-      silenceEvents,
-      turnBasedStt,
+      capabilities: Capability.toProto(capabilities),
     };
   }
 

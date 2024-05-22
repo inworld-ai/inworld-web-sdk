@@ -2,6 +2,7 @@ import { v4 } from 'uuid';
 
 import {
   ActorType,
+  Agent,
   ControlEvent,
   ControlEventAction,
   DataChunkDataType,
@@ -250,15 +251,10 @@ export class EventFactory {
     };
   }
 
-  static unloadCharacters(names: string[]): ProtoPacket {
-    const name = names.map(
-      (name) =>
-        ({
-          name,
-        }) as LoadCharactersCharacterName,
-    );
+  static unloadCharacters(ids: string[]): ProtoPacket {
+    const agents = ids.map((agentId) => ({ agentId }) as Agent);
 
-    const mutation = { unloadCharacters: { name } } as MutationEvent;
+    const mutation = { unloadCharacters: { agents } } as MutationEvent;
 
     return {
       packetId: { packetId: v4() },

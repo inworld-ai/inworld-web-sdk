@@ -18,7 +18,6 @@ import {
 import {
   CHARACTER_HAS_INVALID_FORMAT,
   SCENE_HAS_INVALID_FORMAT,
-  SCENE_NAME_THE_SAME,
 } from '../../src/common/errors';
 import { protoTimestamp } from '../../src/common/helpers';
 import {
@@ -62,19 +61,23 @@ const webRtcLoopbackBiDiSession = new GrpcWebRtcLoopbackBiDiSession();
 const onHistoryChange = jest.fn();
 const onError = jest.fn();
 
-const connection = new ConnectionService({
-  config: {
-    capabilities: {
-      audio: true,
-      emotions: true,
+let connection: ConnectionService;
+
+beforeEach(() => {
+  connection = new ConnectionService({
+    config: {
+      capabilities: {
+        audio: true,
+        emotions: true,
+      },
     },
-  },
-  name: SCENE,
-  grpcAudioPlayer,
-  webRtcLoopbackBiDiSession,
-  generateSessionToken,
-  onHistoryChange,
-  onError,
+    name: SCENE,
+    grpcAudioPlayer,
+    webRtcLoopbackBiDiSession,
+    generateSessionToken,
+    onHistoryChange,
+    onError,
+  });
 });
 
 test('should open connection', async () => {
@@ -237,6 +240,34 @@ describe('send', () => {
   describe('single characters', () => {
     beforeEach(() => {
       jest
+        .spyOn(ConversationService.prototype, 'getConversationId')
+        .mockImplementation(() => conversationId);
+      connection = new ConnectionService({
+        config: {
+          capabilities: {
+            audio: true,
+            emotions: true,
+          },
+        },
+        name: SCENE,
+        grpcAudioPlayer,
+        webRtcLoopbackBiDiSession,
+        generateSessionToken,
+        onHistoryChange,
+        onError,
+      });
+
+      connection.conversations.clear();
+      service = new InworldConnectionService({
+        connection,
+        grpcAudioPlayer,
+        grpcAudioRecorder,
+        webRtcLoopbackBiDiSession,
+      });
+      eventFactory.setCharacters(characters);
+      eventFactory.setCurrentCharacter(character);
+
+      jest
         .spyOn(ConnectionService.prototype, 'isActive')
         .mockImplementation(() => true);
       jest
@@ -255,19 +286,6 @@ describe('send', () => {
             names.includes(character.resourceName),
           ),
         );
-      jest
-        .spyOn(ConversationService.prototype, 'getConversationId')
-        .mockImplementation(() => conversationId);
-
-      connection.conversations.clear();
-      service = new InworldConnectionService({
-        connection,
-        grpcAudioPlayer,
-        grpcAudioRecorder,
-        webRtcLoopbackBiDiSession,
-      });
-      eventFactory.setCharacters(characters);
-      eventFactory.setCurrentCharacter(character);
     });
 
     test('should send audio', async () => {
@@ -753,6 +771,7 @@ describe('send', () => {
     });
 
     test('should reload scene', async () => {
+      jest.spyOn(console, 'warn').mockImplementationOnce(jest.fn());
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
         .mockImplementationOnce(() =>
@@ -761,32 +780,14 @@ describe('send', () => {
       jest
         .spyOn(EventFactory.prototype, 'getCharacters')
         .mockReturnValueOnce(characters);
-      const write = jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+      const change = jest
+        .spyOn(ConnectionService.prototype, 'change')
+        .mockImplementationOnce(jest.fn());
 
-      const packet = await service.reloadScene();
+      await service.reloadScene();
+      expect(console.warn).toHaveBeenCalledTimes(1);
       expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet?.sceneMutation).toHaveProperty('name', SCENE);
-    });
-
-    test('should throw error in case of the same scene for change', async () => {
-      jest
-        .spyOn(WebSocketConnection.prototype, 'openSession')
-        .mockImplementationOnce(() =>
-          Promise.resolve({ agents } as SessionControlResponseEvent),
-        );
-      jest
-        .spyOn(EventFactory.prototype, 'getCharacters')
-        .mockReturnValueOnce(characters);
-      jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
-
-      await expect(service.changeScene(SCENE)).rejects.toEqual(
-        new Error(SCENE_NAME_THE_SAME),
-      );
+      expect(change).toHaveBeenCalledTimes(1);
     });
 
     test('should throw error in case wrong scene format', async () => {
@@ -816,32 +817,16 @@ describe('send', () => {
       jest
         .spyOn(EventFactory.prototype, 'getCharacters')
         .mockReturnValueOnce(characters);
-      const write = jest
-        .spyOn(WebSocketConnection.prototype, 'write')
-        .mockImplementationOnce(writeMock);
+      const change = jest
+        .spyOn(ConnectionService.prototype, 'change')
+        .mockImplementationOnce(jest.fn());
 
       const name = `workspaces/${v4()}/scenes/${v4()}`;
 
-      const [packet] = await Promise.all([
-        service.changeScene(name),
-        new Promise((resolve: any) => {
-          setTimeout(() => {
-            connection.onMessage!({
-              sessionControlResponse: {
-                loadedScene: {
-                  agents,
-                },
-              },
-              packetId: { packetId: v4() },
-            } as ProtoPacket);
-            resolve(true);
-          }, 0);
-        }),
-      ]);
+      await service.changeScene(name);
 
       expect(open).toHaveBeenCalledTimes(0);
-      expect(write).toHaveBeenCalledTimes(1);
-      expect(packet?.sceneMutation).toHaveProperty('name', name);
+      expect(change).toHaveBeenCalledTimes(1);
     });
 
     test('should add character', async () => {
@@ -876,14 +861,51 @@ describe('send', () => {
         }),
       ]);
 
-      // const packet = await service.addCharacters(names);
-
       expect(open).toHaveBeenCalledTimes(0);
       expect(write).toHaveBeenCalledTimes(1);
       expect(packet?.sceneMutation).toHaveProperty('characterNames', names);
     });
 
-    test('should throw error in case wrong character format', async () => {
+    test('should remove character', async () => {
+      jest
+        .spyOn(WebSocketConnection.prototype, 'openSession')
+        .mockImplementationOnce(() =>
+          Promise.resolve({ agents } as SessionControlResponseEvent),
+        );
+      jest
+        .spyOn(EventFactory.prototype, 'getCharacters')
+        .mockReturnValueOnce(characters);
+      jest
+        .spyOn(InworldConnectionService.prototype, 'getCharacters')
+        .mockImplementation(() => Promise.resolve(characters));
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const names = [agents[0].brainName!];
+      const ids = [agents[0].agentId!];
+
+      const conversationService = new ConversationService(connection, {
+        participants: [characters[0].resourceName, characters[1].resourceName],
+        addCharacters: jest.fn(),
+      });
+
+      connection.conversations.set(conversationService.getConversationId(), {
+        service: conversationService,
+        state: ConversationState.ACTIVE,
+      });
+
+      await service.removeCharacters(names);
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(write.mock.calls[0][0].getPacket().mutation).toHaveProperty(
+        'unloadCharacters',
+        { agents: ids.map((id) => ({ agentId: id })) },
+      );
+    });
+
+    test('should throw error in case wrong character format on add', async () => {
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
         .mockImplementationOnce(() =>
@@ -899,6 +921,26 @@ describe('send', () => {
       const names = [`workspaces/${v4()}/characters/${v4()}`, v4()];
 
       await expect(service.addCharacters(names)).rejects.toEqual(
+        new Error(CHARACTER_HAS_INVALID_FORMAT),
+      );
+    });
+
+    test('should throw error in case wrong character format on remove', async () => {
+      jest
+        .spyOn(WebSocketConnection.prototype, 'openSession')
+        .mockImplementationOnce(() =>
+          Promise.resolve({ agents } as SessionControlResponseEvent),
+        );
+      jest
+        .spyOn(EventFactory.prototype, 'getCharacters')
+        .mockReturnValueOnce(characters);
+      jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementationOnce(writeMock);
+
+      const names = [`workspaces/${v4()}/characters/${v4()}`, v4()];
+
+      await expect(service.removeCharacters(names)).rejects.toEqual(
         new Error(CHARACTER_HAS_INVALID_FORMAT),
       );
     });
@@ -973,6 +1015,7 @@ describe('send', () => {
       expect(service.getConversations()).toEqual([]);
 
       service.startConversation([characters[0].resourceName]);
+      service.getTranscript();
 
       expect(service.getConversations()).toEqual([
         {
@@ -980,6 +1023,7 @@ describe('send', () => {
           characters: [characters[0]],
         },
       ]);
+      expect(service.getTranscript()).toEqual('');
     });
 
     test('should throw error if character is not set', async () => {
@@ -1010,6 +1054,27 @@ describe('character', () => {
   let service: InworldConnectionService;
 
   beforeEach(() => {
+    connection = new ConnectionService({
+      config: {
+        capabilities: {
+          audio: true,
+          emotions: true,
+        },
+      },
+      name: SCENE,
+      grpcAudioPlayer,
+      webRtcLoopbackBiDiSession,
+      generateSessionToken,
+      onHistoryChange,
+      onError,
+    });
+    service = new InworldConnectionService({
+      connection,
+      grpcAudioPlayer,
+      grpcAudioRecorder,
+      webRtcLoopbackBiDiSession,
+    });
+
     jest
       .spyOn(ConnectionService.prototype, 'getCharacters')
       .mockImplementation(() => Promise.resolve(characters));
@@ -1023,19 +1088,36 @@ describe('character', () => {
           names.includes(character.resourceName),
         ),
       );
-
-    service = new InworldConnectionService({
-      connection,
-      grpcAudioPlayer,
-      grpcAudioRecorder,
-      webRtcLoopbackBiDiSession,
-    });
+    jest
+      .spyOn(connection, 'getCharactersByIds')
+      .mockImplementation((ids: string[]) =>
+        characters.filter((character) => ids.includes(character.id)),
+      );
   });
 
   test('should return characters', async () => {
     const result = await service.getCharacters();
 
     expect(result).toEqual(characters);
+  });
+
+  test('should find character by id', () => {
+    expect(service.getCharacterById(characters[0].id)).toEqual(characters[0]);
+    expect(service.getCharacterById(characters[1].id)).toEqual(characters[1]);
+  });
+
+  test('should find character by resource name', () => {
+    expect(
+      service.getCharacterByResourceName(characters[0].resourceName),
+    ).toEqual(characters[0]);
+    expect(
+      service.getCharacterByResourceName(characters[1].resourceName),
+    ).toEqual(characters[1]);
+  });
+
+  test('should return undefined if character is not found', () => {
+    expect(service.getCharacterById(v4())).toBeUndefined();
+    expect(service.getCharacterByResourceName(v4())).toBeUndefined();
   });
 
   test('should return current character', async () => {
@@ -1064,6 +1146,11 @@ describe('character', () => {
       .spyOn(ConversationService.prototype, 'sendText')
       .mockImplementation(jest.fn());
 
+    const transcript = v4();
+    const getTranscript = jest
+      .spyOn(ConversationService.prototype, 'getTranscript')
+      .mockImplementation(() => transcript);
+
     await service.sendText(v4());
 
     let conversation = await service.getCurrentConversation();
@@ -1073,6 +1160,8 @@ describe('character', () => {
     await service.setCurrentCharacter(characters[1]);
 
     expect(conversation.getCharacters()).toEqual([characters[1]]);
+    expect(service.getTranscript()).toEqual(transcript);
+    expect(getTranscript).toHaveBeenCalledTimes(1);
   });
 });
 

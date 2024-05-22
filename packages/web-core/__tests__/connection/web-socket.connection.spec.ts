@@ -51,6 +51,7 @@ beforeEach(() => {
       connection: { gateway: { hostname: HOSTNAME } },
       capabilities: capabilitiesProps,
     },
+    extension: { convertPacketFromProto },
     onError,
     onReady,
     onMessage,
@@ -71,6 +72,7 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onMessage: (packet: ProtoPacket) => {
         messages.push(packet);
       },
@@ -83,7 +85,6 @@ describe('open', () => {
       ws.openSession({
         name: v4(),
         session,
-        convertPacketFromProto,
       }),
       setTimeout(
         () =>
@@ -107,6 +108,7 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -117,7 +119,6 @@ describe('open', () => {
       ws.openSession({
         name: v4(),
         session,
-        convertPacketFromProto,
       }),
       setTimeout(
         () =>
@@ -144,6 +145,7 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -157,7 +159,6 @@ describe('open', () => {
           ws.openSession({
             name: v4(),
             session,
-            convertPacketFromProto,
           }),
           setTimeout(
             () =>
@@ -189,6 +190,7 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME, ssl: true } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -199,7 +201,6 @@ describe('open', () => {
       ws.openSession({
         name: v4(),
         session,
-        convertPacketFromProto,
       }),
       setTimeout(
         () =>
@@ -231,6 +232,7 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -244,7 +246,6 @@ describe('open', () => {
       ws.openSession({
         name: v4(),
         session,
-        convertPacketFromProto,
         client: sceneClient,
       }),
       setTimeout(
@@ -275,6 +276,7 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -288,7 +290,6 @@ describe('open', () => {
       ws.openSession({
         name: v4(),
         session,
-        convertPacketFromProto,
       }),
       setTimeout(
         () =>
@@ -318,6 +319,7 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -332,7 +334,6 @@ describe('open', () => {
         name: v4(),
         user,
         session,
-        convertPacketFromProto,
       }),
       setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
@@ -352,6 +353,7 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -366,7 +368,6 @@ describe('open', () => {
         name: v4(),
         user: { id: user.id },
         session,
-        convertPacketFromProto,
       }),
       setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
@@ -385,6 +386,7 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -399,7 +401,6 @@ describe('open', () => {
         name: v4(),
         user: { profile: user.profile },
         session,
-        convertPacketFromProto,
       }),
       setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
@@ -421,6 +422,7 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -437,14 +439,13 @@ describe('open', () => {
           previousDialog: phrases,
         }),
         session,
-        convertPacketFromProto,
       }),
       setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
 
     await server.connected;
 
-    const continuation = JSON.parse(write.mock.calls[3][0] as string)
+    const continuation = JSON.parse(write.mock.calls[2][0] as string)
       .sessionControl?.continuation;
 
     expect(continuation?.dialogHistory).toEqual(previousDialog.toProto());
@@ -459,6 +460,7 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -473,14 +475,13 @@ describe('open', () => {
         name: v4(),
         sessionContinuation: new SessionContinuation({ previousState }),
         session,
-        convertPacketFromProto,
       }),
       setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
 
     await server.connected;
 
-    const continuation = JSON.parse(write.mock.calls[3][0] as string)
+    const continuation = JSON.parse(write.mock.calls[2][0] as string)
       .sessionControl?.continuation;
 
     expect(continuation?.externallySavedState).toEqual(previousState);
@@ -498,6 +499,7 @@ describe('open', () => {
         capabilities: capabilitiesProps,
         gameSessionId,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -511,7 +513,6 @@ describe('open', () => {
       ws.openSession({
         name: v4(),
         session,
-        convertPacketFromProto,
       }),
       setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
@@ -531,6 +532,7 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -543,7 +545,6 @@ describe('open', () => {
         name: v4(),
         sessionContinuation: new SessionContinuation({ previousState }),
         session,
-        convertPacketFromProto,
       }),
       setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
       setTimeout(() => new Promise(emitHistoryResponseEvent(server)), 0),
@@ -563,6 +564,7 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -574,7 +576,6 @@ describe('open', () => {
       ws.openSession({
         name: v4(),
         session,
-        convertPacketFromProto,
       }),
       setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
       new Promise(emitHistoryResponseEvent(server)),
@@ -594,6 +595,7 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension,
       onError,
       onReady,
       onMessage,
@@ -604,9 +606,7 @@ describe('open', () => {
     await Promise.all([
       ws.openSession({
         name: v4(),
-        extension,
         session,
-        convertPacketFromProto,
       }),
       setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
@@ -622,6 +622,7 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -632,9 +633,7 @@ describe('open', () => {
     await Promise.all([
       ws.openSession({
         name: v4(),
-        extension: {},
         session,
-        convertPacketFromProto,
       }),
       setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
@@ -652,6 +651,7 @@ describe('open', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -665,7 +665,6 @@ describe('open', () => {
           name: v4(),
           sessionContinuation: new SessionContinuation({ previousState }),
           session,
-          convertPacketFromProto,
         }),
         setTimeout(
           () =>
@@ -688,6 +687,7 @@ describe('reopen', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onMessage: (packet: ProtoPacket) => {
         messages.push(packet);
       },
@@ -710,6 +710,7 @@ describe('reopen', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -743,6 +744,7 @@ describe('reopen', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -784,6 +786,7 @@ describe('reopen', () => {
         connection: { gateway: { hostname: HOSTNAME, ssl: true } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -809,6 +812,150 @@ describe('reopen', () => {
   });
 });
 
+describe('update', () => {
+  test('should call onMessage', async () => {
+    const messages: ProtoPacket[] = [];
+    const ws = new WebSocketConnection({
+      config: {
+        connection: { gateway: { hostname: HOSTNAME } },
+        capabilities: capabilitiesProps,
+      },
+      extension: { convertPacketFromProto },
+      onError,
+      onReady,
+      onMessage: (packet: ProtoPacket) => {
+        messages.push(packet);
+      },
+      onDisconnect,
+    });
+    const write = jest
+      .spyOn(WebSocket.prototype, 'send')
+      .mockImplementation(jest.fn());
+
+    await Promise.all([
+      ws.openSession({
+        name: v4(),
+        user: { profile: user.profile },
+        session,
+      }),
+      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+    ]);
+
+    await server.connected;
+
+    const newName = v4();
+    const newCapabilities = { ...capabilitiesProps, audio: false };
+    const gameSessionId = v4();
+    const sessionContinuation = new SessionContinuation({
+      previousState,
+    });
+
+    expect(write).toHaveBeenCalledTimes(4);
+
+    await Promise.all([
+      ws.updateSession({
+        name: newName,
+        gameSessionId,
+        capabilities: newCapabilities,
+        sessionContinuation,
+      }),
+      setTimeout(
+        () => new Promise(emitSessionControlResponseEvent(server, newName)),
+        0,
+      ),
+    ]);
+
+    expect(write).toHaveBeenCalledTimes(8);
+
+    server.send({ result: textMessage });
+
+    expect(messages[0].sessionControlResponse?.loadedScene?.sceneName).toEqual(
+      newName,
+    );
+    expect(messages[1]).toEqual(textMessage);
+
+    expect(JSON.parse(write.mock.calls[4][0] as string).sessionControl).toEqual(
+      {
+        capabilitiesConfiguration: newCapabilities,
+      },
+    );
+    expect(JSON.parse(write.mock.calls[5][0] as string).sessionControl).toEqual(
+      {
+        sessionConfiguration: {
+          gameSessionId,
+        },
+      },
+    );
+    expect(JSON.parse(write.mock.calls[6][0] as string).sessionControl).toEqual(
+      {
+        continuation: {
+          externallySavedState: previousState,
+          continuationType:
+            ContinuationContinuationType.CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE,
+        },
+      },
+    );
+  });
+
+  test('should send history request', async () => {
+    const messages: ProtoPacket[] = [];
+    const ws = new WebSocketConnection({
+      config: {
+        history: { previousState: true },
+        connection: { gateway: { hostname: HOSTNAME } },
+        capabilities: capabilitiesProps,
+      },
+      extension: { convertPacketFromProto },
+      onError,
+      onReady,
+      onMessage: (packet: ProtoPacket) => {
+        messages.push(packet);
+      },
+      onDisconnect,
+    });
+    const write = jest
+      .spyOn(WebSocket.prototype, 'send')
+      .mockImplementation(jest.fn());
+
+    await Promise.all([
+      ws.openSession({
+        name: v4(),
+        user: { profile: user.profile },
+        session,
+      }),
+      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitHistoryResponseEvent(server)), 0),
+    ]);
+
+    await server.connected;
+
+    const newName = v4();
+    const newCapabilities = { ...capabilitiesProps, audio: false };
+    const gameSessionId = v4();
+    const sessionContinuation = new SessionContinuation({
+      previousState,
+    });
+
+    expect(write).toHaveBeenCalledTimes(4);
+
+    await Promise.all([
+      ws.updateSession({
+        name: newName,
+        gameSessionId,
+        capabilities: newCapabilities,
+        sessionContinuation,
+      }),
+      setTimeout(
+        () => new Promise(emitSessionControlResponseEvent(server, newName)),
+        0,
+      ),
+      setTimeout(() => new Promise(emitHistoryResponseEvent(server)), 0),
+    ]);
+
+    expect(write).toHaveBeenCalledTimes(9);
+  });
+});
+
 describe('close', () => {
   test('with Disconnect', async () => {
     ws = new WebSocketConnection({
@@ -816,6 +963,7 @@ describe('close', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -828,7 +976,6 @@ describe('close', () => {
       ws.openSession({
         name: v4(),
         session,
-        convertPacketFromProto,
       }),
       setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
@@ -849,6 +996,7 @@ describe('close', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -874,6 +1022,7 @@ describe('write', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -888,7 +1037,6 @@ describe('write', () => {
       ws.openSession({
         name: v4(),
         session,
-        convertPacketFromProto,
       }),
       setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
@@ -901,7 +1049,7 @@ describe('write', () => {
 
     await server.connected;
 
-    expect(send).toHaveBeenCalledTimes(5);
+    expect(send).toHaveBeenCalledTimes(4);
     expect(beforeWriting).toHaveBeenCalledTimes(1);
     expect(afterWriting).toHaveBeenCalledTimes(1);
   });
@@ -912,6 +1060,7 @@ describe('write', () => {
         connection: { gateway: { hostname: HOSTNAME } },
         capabilities: capabilitiesProps,
       },
+      extension: { convertPacketFromProto },
       onError,
       onReady,
       onMessage,
@@ -923,7 +1072,6 @@ describe('write', () => {
       ws.openSession({
         name: v4(),
         session,
-        convertPacketFromProto,
       }),
       setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
     ]);
@@ -934,6 +1082,6 @@ describe('write', () => {
 
     await server.connected;
 
-    expect(send).toHaveBeenCalledTimes(5);
+    expect(send).toHaveBeenCalledTimes(4);
   });
 });

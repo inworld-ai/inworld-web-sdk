@@ -10,17 +10,23 @@ import { Character } from './character.entity';
 export interface SceneProps {
   name: string;
   characters?: Character[];
+  description?: string;
+  displayName?: string;
   history?: ProtoPacket[];
 }
 
 export class Scene {
   name: string;
   characters: Character[];
+  description: string;
+  displayName: string;
   history: ProtoPacket[];
 
   constructor(props: SceneProps) {
     this.name = props.name;
     this.characters = props.characters ?? [];
+    this.description = props.description ?? '';
+    this.displayName = props.displayName ?? '';
     this.history = props.history ?? [];
   }
 
@@ -85,6 +91,8 @@ export class Scene {
 
     return new Scene({
       name,
+      description: loadedScene?.sceneDescription,
+      displayName: loadedScene?.sceneDisplayName,
       characters,
       history,
     });

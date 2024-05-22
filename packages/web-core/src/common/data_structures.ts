@@ -11,6 +11,7 @@ import {
   SessionHistoryRequest,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import { HistoryItem } from '../components/history';
+import { SessionContinuationProps } from '../entities/continuation/session_continuation.entity';
 import { AdditionalPhonemeInfo } from '../entities/packets/audio.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { SessionToken } from '../entities/session_token.entity';
@@ -18,12 +19,12 @@ import { ConversationService } from '../services/conversation.service';
 
 export interface Capabilities {
   audio?: boolean;
+  debugInfo?: boolean;
   emotions?: boolean;
   interruptions?: boolean;
   narratedActions?: boolean;
   phonemes?: boolean;
   silence?: boolean;
-  turnBasedStt?: boolean;
 }
 
 export interface UserProfileField {
@@ -167,8 +168,6 @@ export enum InworldPacketType {
 export enum InworlControlAction {
   UNKNOWN = 'UNKNOWN',
   INTERACTION_END = 'INTERACTION_END',
-  TTS_PLAYBACK_START = 'TTS_PLAYBACK_START',
-  TTS_PLAYBACK_END = 'TTS_PLAYBACK_END',
   TTS_PLAYBACK_MUTE = 'TTS_PLAYBACK_MUTE',
   TTS_PLAYBACK_UNMUTE = 'TTS_PLAYBACK_UNMUTE',
   WARNING = 'WARNING',
@@ -208,4 +207,10 @@ export interface ConversationMapItem<
 export interface HistoryChangedProps<HistoryItemT = HistoryItem> {
   diff: HistoryItemT[];
   conversationId?: string;
+}
+
+export interface ChangeSceneProps {
+  capabilities?: Capabilities;
+  sessionContinuation?: SessionContinuationProps;
+  gameSessionId?: string;
 }

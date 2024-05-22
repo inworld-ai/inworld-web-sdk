@@ -2,6 +2,7 @@ import { InworldPacket as ProtoPacket } from '../../proto/ai/inworld/packets/pac
 import {
   AudioSessionState,
   CancelResponsesProps,
+  ChangeSceneProps,
   ConversationState,
   TriggerParameter,
 } from '../common/data_structures';
@@ -9,7 +10,6 @@ import {
   CHARACTER_HAS_INVALID_FORMAT,
   CURRENT_CHARACTER_NOT_SET,
   SCENE_HAS_INVALID_FORMAT,
-  SCENE_NAME_THE_SAME,
 } from '../common/errors';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
@@ -263,31 +263,20 @@ export class InworldConnectionService<
   }
 
   async reloadScene() {
-    return this.connection.send(() =>
-      EventFactory.loadScene(this.connection.getSceneName()),
-    );
+    // TODO: Remove this deprecation warning in the next major release.
+    console.warn('Reload scene is deprecated. Please use changeScene instead.');
+
+    await this.changeScene(this.connection.getSceneName());
   }
 
-  async changeScene(name: string) {
+  async changeScene(name: string, props?: ChangeSceneProps) {
     if (!sceneHasValidFormat(name)) {
       throw Error(SCENE_HAS_INVALID_FORMAT);
     }
 
-    if (this.connection.getSceneName() === name) {
-      throw Error(SCENE_NAME_THE_SAME);
-    }
-
     this.connection.setNextSceneName(name);
 
-    const result = await this.connection.send(() =>
-      EventFactory.loadScene(name),
-    );
-
-    await this.resolveInterval(() => {
-      return this.connection.getSceneName() === name;
-    });
-
-    return result;
+    return this.connection.change(name, props);
   }
 
   async addCharacters(names: string[]) {
@@ -317,8 +306,12 @@ export class InworldConnectionService<
       throw Error(CHARACTER_HAS_INVALID_FORMAT);
     }
 
+    const ids = (await this.getCharacters())
+      .filter((c) => names.includes(c.resourceName))
+      .map((c) => c.id);
+
     const result = await this.connection.send(() =>
-      EventFactory.unloadCharacters(names),
+      EventFactory.unloadCharacters(ids),
     );
 
     this.connection.removeCharacters(names);

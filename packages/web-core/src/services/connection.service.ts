@@ -8,6 +8,7 @@ import {
   Awaitable,
   CancelResponses,
   CancelResponsesProps,
+  ChangeSceneProps,
   ConnectionState,
   ConversationMapItem,
   ConversationState,
@@ -27,6 +28,7 @@ import {
   QueueItem,
   WebSocketConnection,
 } from '../connection/web-socket.connection';
+import { Capability } from '../entities/capability.entity';
 import { Character } from '../entities/character.entity';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
@@ -73,7 +75,7 @@ export class ConnectionService<
   private sceneIsLoaded = false;
   private nextSceneName: string | undefined;
   private session: SessionToken;
-  private connection: Connection<InworldPacketT, HistoryItemT>;
+  private connection: Connection<InworldPacketT>;
   private connectionProps: ConnectionProps<InworldPacketT, HistoryItemT>;
 
   private eventFactory = new EventFactory();
@@ -115,8 +117,8 @@ export class ConnectionService<
     });
 
     this.initializeHandlers();
-    this.initializeConnection();
     this.initializeExtension();
+    this.initializeConnection();
   }
 
   isActive() {
@@ -244,19 +246,17 @@ export class ConnectionService<
     try {
       await this.loadToken();
 
-      const { client, sessionContinuation, user } = this.connectionProps;
-
       if (this.sceneIsLoaded) {
         await this.connection.reopenSession(this.session);
       } else {
+        const { client, sessionContinuation, user } = this.connectionProps;
+
         const sessionProto = await this.connection.openSession({
           client,
           name: this.scene.name,
           sessionContinuation,
           user,
-          extension: this.extension,
           session: this.session,
-          convertPacketFromProto: this.extension.convertPacketFromProto,
         });
 
         this.setSceneFromProtoEvent(sessionProto);
@@ -271,6 +271,41 @@ export class ConnectionService<
       this.scheduleDisconnect();
     } catch (err) {
       this.onError(err);
+    }
+  }
+
+  async change(name: string, props?: ChangeSceneProps) {
+    if (!this.sceneIsLoaded) {
+      throw Error('Unable to change scene that is not loaded yet');
+    }
+
+    this.connectionProps = {
+      ...this.connectionProps,
+      config: {
+        ...this.connectionProps.config,
+        ...(props?.capabilities && {
+          capabilities: Capability.toProto(props.capabilities),
+        }),
+        ...(props?.gameSessionId && {
+          gameSessionId: props.gameSessionId,
+        }),
+      },
+      sessionContinuation: props?.sessionContinuation
+        ? new SessionContinuation(props.sessionContinuation)
+        : undefined,
+    };
+
+    const sessionProto = await this.connection.updateSession({
+      name,
+      capabilities: props?.capabilities,
+      gameSessionId: props?.gameSessionId,
+      sessionContinuation: this.connectionProps.sessionContinuation,
+    });
+
+    this.setSceneFromProtoEvent(sessionProto);
+
+    if (this.scene.history?.length) {
+      this.setPreviousState(this.scene.history);
     }
   }
 
@@ -587,6 +622,7 @@ export class ConnectionService<
       },
       onError: this.onError,
       onMessage: this.onMessage,
+      extension: this.extension,
     });
   }
 
