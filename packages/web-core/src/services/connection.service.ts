@@ -540,7 +540,8 @@ export class ConnectionService<
         });
       }
 
-      if (inworldPacket.isKnownDataType() && !conversation) {
+      // Skip packets that are not attached to any conversation.
+      if (inworldPacket.shouldHaveConversationId() && !conversation) {
         return;
       }
 

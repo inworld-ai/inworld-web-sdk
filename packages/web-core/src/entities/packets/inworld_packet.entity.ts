@@ -173,14 +173,13 @@ export class InworldPacket {
     return this.type === InworldPacketType.SCENE_MUTATION_RESPONSE;
   }
 
-  isKnownDataType() {
+  shouldHaveConversationId() {
     return (
       this.isAudio() ||
       this.isText() ||
       this.isTrigger() ||
       this.isNarratedAction() ||
       this.isSilence() ||
-      this.isWarning() ||
       this.isInteractionEnd()
     );
   }
