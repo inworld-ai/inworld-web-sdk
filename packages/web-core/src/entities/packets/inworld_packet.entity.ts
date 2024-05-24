@@ -179,8 +179,7 @@ export class InworldPacket {
       this.isText() ||
       this.isTrigger() ||
       this.isNarratedAction() ||
-      this.isSilence() ||
-      this.isInteractionEnd()
+      this.isSilence()
     );
   }
 
