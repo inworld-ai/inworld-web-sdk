@@ -151,7 +151,13 @@ export class InworldConnectionService<
   }
 
   clearHistory() {
-    return this.connection.clearHistory();
+    const diff = this.getHistory();
+
+    this.connection.clearHistory();
+
+    if (diff.length > 0) {
+      this.connection.onHistoryChange([], { diff });
+    }
   }
 
   getTranscript() {
@@ -273,6 +279,11 @@ export class InworldConnectionService<
     if (!sceneHasValidFormat(name)) {
       throw Error(SCENE_HAS_INVALID_FORMAT);
     }
+
+    // Clear all conversations
+    this.oneToOneConversation = undefined;
+    this.connection.conversations.clear();
+    this.clearHistory();
 
     this.connection.setNextSceneName(name);
 

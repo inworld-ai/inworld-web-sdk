@@ -173,6 +173,18 @@ export class InworldPacket {
     return this.type === InworldPacketType.SCENE_MUTATION_RESPONSE;
   }
 
+  isKnownDataType() {
+    return (
+      this.isAudio() ||
+      this.isText() ||
+      this.isTrigger() ||
+      this.isNarratedAction() ||
+      this.isSilence() ||
+      this.isWarning() ||
+      this.isInteractionEnd()
+    );
+  }
+
   static fromProto(proto: ProtoPacket): InworldPacket {
     const type = this.getType(proto);
 

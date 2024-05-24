@@ -94,6 +94,10 @@ export class ConnectionService<
   onWarning: (message: InworldPacketT) => Awaitable<void>;
   onMessage: (packet: ProtoPacket) => Awaitable<void>;
   onReady: () => Awaitable<void>;
+  onHistoryChange: (
+    history: HistoryItem[],
+    props: HistoryChangedProps<HistoryItemT>,
+  ) => Awaitable<void> | undefined;
 
   readonly history: InworldHistory;
   readonly conversations: Map<string, ConversationMapItem<InworldPacketT>> =
@@ -295,6 +299,10 @@ export class ConnectionService<
         : undefined,
     };
 
+    if (!this.isActive()) {
+      await this.connection.reopenSession(this.session);
+    }
+
     const sessionProto = await this.connection.updateSession({
       name,
       capabilities: props?.capabilities,
@@ -448,7 +456,7 @@ export class ConnectionService<
 
     const diff = this.history.get() as HistoryItemT[];
 
-    this.connectionProps.onHistoryChange?.(diff, { diff });
+    this.onHistoryChange?.(diff, { diff });
   }
 
   private cancelScheduler() {
@@ -506,6 +514,35 @@ export class ConnectionService<
 
       const inworldPacket = this.extension.convertPacketFromProto(packet);
       const interactionId = inworldPacket.packetId.interactionId;
+      const conversationId = inworldPacket.packetId.conversationId;
+      const conversation =
+        conversationId && this.conversations.get(conversationId);
+
+      // Update session state.
+      if (packet.sessionControlResponse) {
+        if (packet.sessionControlResponse.loadedScene) {
+          this.setSceneFromProtoEvent(packet.sessionControlResponse);
+        } else if (packet.sessionControlResponse?.loadedCharacters) {
+          this.addCharactersToScene(packet.sessionControlResponse);
+        }
+      }
+
+      // Update conversation state.
+      if (inworldPacket.control?.conversation && conversation) {
+        this.conversations.set(inworldPacket.packetId.conversationId, {
+          service: conversation.service,
+          state: [
+            InworldConversationEventType.STARTED,
+            InworldConversationEventType.UPDATED,
+          ].includes(inworldPacket.control.conversation.type)
+            ? ConversationState.ACTIVE
+            : ConversationState.INACTIVE,
+        });
+      }
+
+      if (inworldPacket.isKnownDataType() && !conversation) {
+        return;
+      }
 
       // Don't pass text packet outside for interrupred interaction.
       if (
@@ -518,7 +555,7 @@ export class ConnectionService<
             interactionId,
             utteranceId: [packet.packetId.utteranceId],
           },
-          inworldPacket.packetId.conversationId,
+          conversationId,
         );
 
         return;
@@ -537,9 +574,9 @@ export class ConnectionService<
               const diff = this.history.update(packet) as HistoryItemT[];
 
               if (diff.length) {
-                this.connectionProps.onHistoryChange?.(this.getHistory(), {
+                this.onHistoryChange?.(this.getHistory(), {
                   diff,
-                  conversationId: inworldPacket.packetId.conversationId,
+                  conversationId,
                 });
               }
             },
@@ -547,7 +584,7 @@ export class ConnectionService<
               const diff = this.history.update(packet) as HistoryItemT[];
 
               if (diff.length) {
-                this.connectionProps.onHistoryChange?.(this.getHistory(), {
+                this.onHistoryChange?.(this.getHistory(), {
                   diff,
                   conversationId: packet.packetId.conversationId,
                 });
@@ -562,45 +599,17 @@ export class ConnectionService<
         this.onWarning(inworldPacket);
       }
 
-      if (packet.sessionControlResponse) {
-        if (packet.sessionControlResponse.loadedScene) {
-          this.setSceneFromProtoEvent(packet.sessionControlResponse);
-        } else if (packet.sessionControlResponse?.loadedCharacters) {
-          this.addCharactersToScene(packet.sessionControlResponse);
-        }
-      }
-
       // Add packet to history.
       // Audio and silence packets were added to history earlier.
       if (!inworldPacket.isAudio() && !inworldPacket.isSilence()) {
         this.addPacketToHistory(inworldPacket);
       }
 
-      // Update conversation state.
-      if (
-        inworldPacket.control?.conversation &&
-        inworldPacket.packetId.conversationId
-      ) {
-        const conversation = this.conversations.get(
-          inworldPacket.packetId.conversationId,
-        );
-
-        if (conversation) {
-          this.conversations.set(inworldPacket.packetId.conversationId, {
-            service: conversation.service,
-            state: [
-              InworldConversationEventType.STARTED,
-              InworldConversationEventType.UPDATED,
-            ].includes(inworldPacket.control.conversation.type)
-              ? ConversationState.ACTIVE
-              : ConversationState.INACTIVE,
-          });
-        }
-      }
-
       // Pass packet to external callback.
       onMessage?.(inworldPacket);
     };
+
+    this.onHistoryChange = this.connectionProps.onHistoryChange;
   }
 
   private initializeConnection() {
@@ -699,7 +708,7 @@ export class ConnectionService<
     }) as HistoryItemT[];
 
     if (diff.length) {
-      this.connectionProps.onHistoryChange?.(this.getHistory(), {
+      this.onHistoryChange?.(this.getHistory(), {
         diff,
         conversationId: packet.packetId.conversationId,
       });
