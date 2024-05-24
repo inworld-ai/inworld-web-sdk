@@ -518,6 +518,13 @@ export class ConnectionService<
       const conversation =
         conversationId && this.conversations.get(conversationId);
 
+      // Skip packets that are not attached to any conversation.
+      if (inworldPacket.shouldHaveConversationId() && !conversation) {
+        // Pass packet to external callback.
+        onMessage?.(inworldPacket);
+        return;
+      }
+
       // Update session state.
       if (packet.sessionControlResponse) {
         if (packet.sessionControlResponse.loadedScene) {
@@ -538,11 +545,6 @@ export class ConnectionService<
             ? ConversationState.ACTIVE
             : ConversationState.INACTIVE,
         });
-      }
-
-      // Skip packets that are not attached to any conversation.
-      if (inworldPacket.shouldHaveConversationId() && !conversation) {
-        return;
       }
 
       // Don't pass text packet outside for interrupred interaction.
