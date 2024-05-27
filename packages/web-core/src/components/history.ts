@@ -4,6 +4,7 @@ import { DEFAULT_USER_NAME } from '../common/constants';
 import {
   ConversationMapItem,
   Extension,
+  InworlControlAction,
   TriggerParameter,
   User,
 } from '../common/data_structures';
@@ -27,6 +28,7 @@ export enum CHAT_HISTORY_TYPE {
   TRIGGER_EVENT = 'trigger_event',
   INTERACTION_END = 'interaction_end',
   SCENE_CHANGE = 'scene_change',
+  CONVERSATION_UPDATE = 'conversation_update',
 }
 
 export interface HistoryItemBase {
@@ -85,12 +87,25 @@ export interface HistoryItemSceneChange {
   conversationId?: string;
 }
 
+export interface HistoryItemConversationUpdate {
+  date: Date;
+  id: string;
+  interactionId?: string;
+  source: Actor;
+  type: CHAT_HISTORY_TYPE.CONVERSATION_UPDATE;
+  conversationId?: string;
+  currentCharacters?: Character[];
+  addedCharacters?: Character[];
+  removedCharacters?: Character[];
+}
+
 export type HistoryItem =
   | HistoryItemActor
   | HistoryItemTriggerEvent
   | HistoryInteractionEnd
   | HistoryItemNarratedAction
-  | HistoryItemSceneChange;
+  | HistoryItemSceneChange
+  | HistoryItemConversationUpdate;
 
 interface EmotionsMap {
   [key: string]: EmotionEvent;
@@ -171,7 +186,7 @@ export class InworldHistory<
 
       case packet.isText():
       case packet.isNarratedAction():
-        const itemCharacters = this.findCharacters(packet, characters);
+        const itemCharacters = this.findCharacters(characters, { packet });
         const textItem: HistoryItem = packet.isText()
           ? {
               ...this.combineTextItem(packet),
@@ -242,15 +257,66 @@ export class InworldHistory<
         break;
 
       case packet.isSceneMutationResponse():
-        if (packet.isSceneMutationResponse()) {
-          historyItem = this.combineSceneChangeItem(packet);
+        historyItem = this.combineSceneChangeItem(packet);
 
-          if (historyItem.to) {
-            this.scene = historyItem.to;
-          }
+        if (historyItem.to) {
+          this.scene = historyItem.to;
         }
 
         break;
+
+      case packet.control?.action === InworlControlAction.CONVERSATION_UPDATE:
+        const conversation = this.conversations.get(conversationId);
+        this.queue.push({
+          ...this.combineConversationUpdateItem(packet),
+          currentCharacters: conversation.service?.getCharacters(),
+        });
+
+        break;
+      case packet.control?.action === InworlControlAction.CONVERSATION_EVENT:
+        const updateItem = this.queue.find(
+          (item) =>
+            item.type === CHAT_HISTORY_TYPE.CONVERSATION_UPDATE &&
+            item.conversationId === packet.packetId.conversationId,
+        ) as HistoryItemConversationUpdate;
+
+        if (updateItem) {
+          const addedPatricipants =
+            packet.control.conversation.participants.filter(
+              (participant) =>
+                !updateItem.currentCharacters?.find(
+                  (character) => character.id === participant.name,
+                ),
+            );
+          const addedCharacters = this.findCharacters(characters, {
+            participants: addedPatricipants,
+          });
+          const removedCharacters = updateItem.currentCharacters.filter(
+            (character) =>
+              !packet.control.conversation.participants?.find(
+                (participant) => character.id === participant.name,
+              ),
+          );
+
+          this.queue = this.queue.filter(
+            (item) =>
+              item.type !== CHAT_HISTORY_TYPE.CONVERSATION_UPDATE ||
+              item.conversationId !== packet.packetId.conversationId,
+          );
+
+          if (addedCharacters.length || removedCharacters.length) {
+            const diff = {
+              ...updateItem,
+              addedCharacters,
+              removedCharacters,
+            };
+            this.history = [...this.history, ...[diff]];
+
+            return [diff];
+          }
+
+          return [];
+        }
     }
 
     if (historyItem) {
@@ -465,7 +531,7 @@ export class InworldHistory<
     packet: InworldPacketT,
   ): HistoryItemSceneChange {
     return {
-      id: packet.packetId.interactionId,
+      id: v4(),
       date: new Date(packet.date),
       interactionId: packet.packetId.interactionId,
       type: CHAT_HISTORY_TYPE.SCENE_CHANGE,
@@ -481,6 +547,18 @@ export class InworldHistory<
       ...(packet.sceneMutation?.addedCharacters && {
         addedCharacters: packet.sceneMutation.addedCharacters,
       }),
+    };
+  }
+
+  private combineConversationUpdateItem(
+    packet: InworldPacketT,
+  ): HistoryItemConversationUpdate {
+    return {
+      id: v4(),
+      date: new Date(packet.date),
+      type: CHAT_HISTORY_TYPE.CONVERSATION_UPDATE,
+      source: packet.routing.source,
+      conversationId: packet.packetId.conversationId,
     };
   }
 
@@ -563,9 +641,11 @@ export class InworldHistory<
   };
 
   private findCharacters(
-    packet: InworldPacketT,
     characters: Character[],
+    props: { packet?: InworldPacketT; participants?: Actor[] },
   ): Character[] {
+    const { packet, participants = [] } = props;
+
     const byId = characters.reduce(
       (acc, character) => {
         acc[character.id] = character;
@@ -573,20 +653,31 @@ export class InworldHistory<
       },
       {} as { [key: string]: Character },
     );
-    if (packet.routing.source.isCharacter) {
-      return byId[packet.routing.source.name]
-        ? [byId[packet.routing.source.name]]
-        : [];
-    }
 
-    if (packet.routing.targets.length) {
-      return packet.routing.targets
+    if (!!packet) {
+      if (packet.routing.source.isCharacter) {
+        return byId[packet.routing.source.name]
+          ? [byId[packet.routing.source.name]]
+          : [];
+      }
+
+      if (packet.routing.targets.length) {
+        return packet.routing.targets
+          .filter((x) => x.isCharacter && byId[x.name])
+          .map((x) => byId[x.name]);
+      }
+
+      const conversation = this.conversations.get(
+        packet.packetId.conversationId,
+      );
+
+      return conversation?.service?.getCharacters() || [];
+    } else if (participants.length) {
+      return participants
         .filter((x) => x.isCharacter && byId[x.name])
         .map((x) => byId[x.name]);
+    } else {
+      return [];
     }
-
-    const conversation = this.conversations.get(packet.packetId.conversationId);
-
-    return conversation?.service?.getCharacters() || [];
   }
 }

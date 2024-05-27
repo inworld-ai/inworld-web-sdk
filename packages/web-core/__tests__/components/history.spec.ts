@@ -93,12 +93,13 @@ const interactionEndPacket = new InworldPacket({
     action: InworlControlAction.INTERACTION_END,
   }),
 });
+const sceneNameRequested = v4();
 const sceneChangePacketRequest = new InworldPacket({
   packetId,
   routing,
   date,
-  type: InworldPacketType.SCENE_MUTATION_RESPONSE,
-  sceneMutation: { name: v4() },
+  type: InworldPacketType.SCENE_MUTATION_REQUEST,
+  sceneMutation: { name: sceneNameRequested },
 });
 const sceneChangePacketResponse = new InworldPacket({
   packetId,
@@ -106,7 +107,7 @@ const sceneChangePacketResponse = new InworldPacket({
   date,
   type: InworldPacketType.SCENE_MUTATION_RESPONSE,
   sceneMutation: {
-    addedCharacters: [characters[0]],
+    name: sceneNameRequested,
   },
 });
 const incomingTextPacket = new InworldPacket({
