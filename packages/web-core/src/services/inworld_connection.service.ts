@@ -283,7 +283,6 @@ export class InworldConnectionService<
     // Clear all conversations
     this.oneToOneConversation = undefined;
     this.connection.conversations.clear();
-    this.clearHistory();
 
     this.connection.setNextSceneName(name);
 
