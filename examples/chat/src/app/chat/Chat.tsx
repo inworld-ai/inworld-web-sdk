@@ -186,6 +186,7 @@ export function Chat(props: ChatProps) {
       }}
     >
       <History
+        connection={connection}
         history={chatHistory}
         characters={props.characters}
         chatView={props.chatView}
@@ -262,6 +263,7 @@ export function Chat(props: ChatProps) {
           </IconButton>
         </Tooltip>
         <AdditionalActions
+          onClose={() => setConfirmOpen(false)}
           chatView={props.chatView}
           connection={connection}
           playWorkaroundSound={() =>
