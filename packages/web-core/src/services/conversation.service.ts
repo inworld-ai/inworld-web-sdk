@@ -140,6 +140,7 @@ export class ConversationService<
       },
       () => {
         this.participants = participants;
+        this.releaseQueue();
       },
     );
 
@@ -329,10 +330,7 @@ export class ConversationService<
 
     const sent = await this.connection.send(getPacket);
 
-    this.packetQueue.forEach(async (item: PacketQueueItem<InworldPacketT>) => {
-      const inworldPacket = await this.connection.send(item.getPacket);
-      item.afterWriting(inworldPacket);
-    });
+    this.releaseQueue();
 
     return sent;
   }
@@ -364,5 +362,13 @@ export class ConversationService<
 
       this.connection.addInterval(interval);
     });
+  }
+
+  private releaseQueue() {
+    this.packetQueue.forEach(async (item: PacketQueueItem<InworldPacketT>) => {
+      const inworldPacket = await this.connection.send(item.getPacket);
+      item.afterWriting(inworldPacket);
+    });
+    this.packetQueue = [];
   }
 }
