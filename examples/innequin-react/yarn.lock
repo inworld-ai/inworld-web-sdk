@@ -1025,10 +1025,10 @@
     uuid "^9.0.1"
     zustand "^3.7.1"
 
-"@react-three/fiber@^8.16.4":
-  version "8.16.4"
-  resolved "https://registry.yarnpkg.com/@react-three/fiber/-/fiber-8.16.4.tgz#94db0eb5e03cddc35c64b7b47dd512a0d54f1a6e"
-  integrity sha512-Jvn5JXublvVZUMWht8zb86oWPNTPpG72T4O1PCp9EjkfWr1ZSJhJ/YtNZrev/uHQ1RwqziIwaFJjfiNUjYreCQ==
+"@react-three/fiber@^8.16.6":
+  version "8.16.6"
+  resolved "https://registry.yarnpkg.com/@react-three/fiber/-/fiber-8.16.6.tgz#8ee71f6b10b3420c03f2ab3758909e6d98fd8f31"
+  integrity sha512-sKEqocYKRI3deW7z9CAVjedDID1an2i8FwxQVv2reMJxzIxIlyxCYXMIAqXBCgHTFtVX2hWGTZYhLL5nyne8kA==
   dependencies:
     "@babel/runtime" "^7.17.8"
     "@types/react-reconciler" "^0.26.7"
@@ -2788,9 +2788,9 @@ ms@2.1.2:
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
 
 n8ao@^1.6.6:
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/n8ao/-/n8ao-1.8.0.tgz#70e578de65ed53892e1f4c131f08fea1a01815e6"
-  integrity sha512-OLaEyyd3x/Ut+pj757BEWnhhW5tgIpZXhaw9mWsOhIcVny17Ir2dl8Dk3bv5NA3SBH4HFL3BgnWBfh7ufoBp1A==
+  version "1.8.2"
+  resolved "https://registry.yarnpkg.com/n8ao/-/n8ao-1.8.2.tgz#aee5689ef195f4752b97a5be82462bc02e0c0288"
+  integrity sha512-bJLtqdQxtjBeoT6RozfNfTd6LNRfz/UpTRVRltwsnz8O0chnT8dN2l8FdSYicJZ5HPNFNXEwi3juNVOUybL+bw==
 
 nanoid@^3.3.7:
   version "3.3.7"
@@ -2954,9 +2954,9 @@ postcss@^8.4.32:
     source-map-js "^1.0.2"
 
 postprocessing@^6.32.1:
-  version "6.34.1"
-  resolved "https://registry.yarnpkg.com/postprocessing/-/postprocessing-6.34.1.tgz#bdbff8def3301e861f0d45a39a188f3cafa7f252"
-  integrity sha512-xae6A2XNs61V3ohGHR+i9sQDvB4dWaoG/AICw0hg8sOYQWAYDlf+esWMRmO4hixMaYo3AJBJ9WAA7JF7OiGakw==
+  version "6.35.4"
+  resolved "https://registry.yarnpkg.com/postprocessing/-/postprocessing-6.35.4.tgz#51040e0d5cd4614d4f2fca1606911573c150ca5a"
+  integrity sha512-U4Uk+wOHRbdlMV8zhn843K3bZyiWGKnWXWSsDXa8IW6NAiAP/YJtf6DHs4UFo1gLnNnRGpgJPc2Xxai9O/HoLg==
 
 potpack@^1.0.1:
   version "1.0.2"
@@ -3362,9 +3362,9 @@ three-mesh-bvh@^0.7.0:
   integrity sha512-flxe0A4uflTPR6elgq/Y8VrLoljDNS899i422SxQcU3EtMj6o8z4kZRyqZqGWzR0qMf1InTZzY1/0xZl/rnvVw==
 
 three-stdlib@^2.23.4:
-  version "2.29.4"
-  resolved "https://registry.yarnpkg.com/three-stdlib/-/three-stdlib-2.29.4.tgz#6e8741f6a2d435d15ed73f3a14dd149660d4ce51"
-  integrity sha512-XNzGCrz/uAk9XoLwd35eN7dQyI4ggXZTeqjcN034YdYBpBlNO9kmLHehl/0Nw9jCelblB7jla+unHAOIyLyV6Q==
+  version "2.30.0"
+  resolved "https://registry.yarnpkg.com/three-stdlib/-/three-stdlib-2.30.0.tgz#c6133f5e16ba2ab702d8dc05203ed9aa89595c9f"
+  integrity sha512-ALL7rn57jq/MovDRk5hGjeWCvOeZlZhFCWIdpbBAQNudCO3nMwxEba5ZulsMgiI1ymQMzUzTMcxhLTCVlUaKDw==
   dependencies:
     "@types/draco3d" "^1.4.0"
     "@types/offscreencanvas" "^2019.6.4"

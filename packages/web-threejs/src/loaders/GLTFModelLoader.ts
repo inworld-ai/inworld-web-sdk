@@ -63,6 +63,6 @@ export class GLTFModelLoader implements IFileLoader {
   }
 
   private onUpdate(event: ProgressEvent) {
-    // log('GLTFModelLoader onUpdate', event);
+    log('GLTFModelLoader onUpdate', event);
   }
 }
