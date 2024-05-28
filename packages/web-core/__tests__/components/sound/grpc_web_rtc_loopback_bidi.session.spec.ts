@@ -1,7 +1,7 @@
 import '../../mocks/window.mock';
 
 import { GrpcWebRtcLoopbackBiDiSession } from '../../../src/components/sound/grpc_web_rtc_loopback_bidi.session';
-import { setNavigatorProperty } from '../../helpers';
+import { setNavigatorProperty } from '../../helpers/index';
 
 let session: GrpcWebRtcLoopbackBiDiSession;
 

@@ -10,7 +10,11 @@ import { ControlEvent } from '../../src/entities/packets/control.entity';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
 import { Routing } from '../../src/entities/packets/routing.entity';
 import { TextEvent } from '../../src/entities/packets/text.entity';
-import { agents, convertAgentsToCharacters, getPacketId } from '../helpers';
+import {
+  agents,
+  convertAgentsToCharacters,
+  getPacketId,
+} from '../helpers/index';
 
 const packetId = getPacketId();
 const packetIdWithCorrelation = {

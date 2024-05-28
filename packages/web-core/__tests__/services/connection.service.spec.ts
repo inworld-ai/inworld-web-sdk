@@ -38,6 +38,7 @@ import {
 } from '../../src/services/pb/state_serialization.service';
 import {
   capabilitiesProps,
+  conversationId,
   convertAgentsToCharacters,
   convertPacketFromProto,
   createAgent,
@@ -48,9 +49,8 @@ import {
   session,
   user,
   writeMock,
-} from '../helpers';
+} from '../helpers/index';
 
-const conversationId = v4();
 const onError = jest.fn();
 const onMessage = jest.fn();
 const onDisconnect = jest.fn();

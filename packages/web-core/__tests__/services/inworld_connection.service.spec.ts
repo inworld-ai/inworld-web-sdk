@@ -22,6 +22,7 @@ import {
 import { protoTimestamp } from '../../src/common/helpers';
 import {
   CHAT_HISTORY_TYPE,
+  HistoryItem,
   InworldHistory,
 } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
@@ -50,7 +51,7 @@ import {
   setNavigatorProperty,
   setTimeoutMock,
   writeMock,
-} from '../helpers';
+} from '../helpers/index';
 
 const agents = [createAgent(), createAgent()];
 const characters = convertAgentsToCharacters(agents);
@@ -206,14 +207,34 @@ describe('history', () => {
     expect(getHistory).toHaveBeenCalledTimes(1);
   });
 
-  test('should clear history', () => {
+  test('should clear empty history', () => {
     const clearHistory = jest
       .spyOn(ConnectionService.prototype, 'clearHistory')
       .mockImplementationOnce(jest.fn);
+    const getHistory = jest
+      .spyOn(service, 'getHistory')
+      .mockImplementationOnce(() => []);
 
     service.clearHistory();
 
     expect(clearHistory).toHaveBeenCalledTimes(1);
+    expect(getHistory).toHaveBeenCalledTimes(1);
+    expect(onHistoryChange).toHaveBeenCalledTimes(0);
+  });
+
+  test('should clear not empty history', () => {
+    const clearHistory = jest
+      .spyOn(ConnectionService.prototype, 'clearHistory')
+      .mockImplementationOnce(jest.fn);
+    const getHistory = jest
+      .spyOn(service, 'getHistory')
+      .mockImplementationOnce(() => [{} as HistoryItem]);
+
+    service.clearHistory();
+
+    expect(clearHistory).toHaveBeenCalledTimes(1);
+    expect(getHistory).toHaveBeenCalledTimes(1);
+    expect(onHistoryChange).toHaveBeenCalledTimes(1);
   });
 
   test('should return full transcript', () => {

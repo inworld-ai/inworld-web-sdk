@@ -129,7 +129,10 @@ export enum TtsPlaybackAction {
   UNMUTE = 'UNMUTE',
 }
 
-export interface Extension<InworldPacketT, HistoryItemT> {
+export interface Extension<
+  InworldPacketT extends InworldPacket = InworldPacket,
+  HistoryItemT extends HistoryItem = HistoryItem,
+> {
   convertPacketFromProto?: (proto: ProtoPacket) => InworldPacketT;
   beforeLoadScene?: (packets: ProtoPacket[]) => ProtoPacket[];
   afterLoadScene?: (res: SessionControlResponseEvent) => void;

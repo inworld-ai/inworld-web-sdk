@@ -8,7 +8,6 @@ import {
   InworldPacketType,
   User,
 } from '../../src/common/data_structures';
-import { InworlControlAction } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
 import {
   CHAT_HISTORY_TYPE,
@@ -16,82 +15,41 @@ import {
   InworldHistory,
 } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
-import { ControlEvent } from '../../src/entities/packets/control.entity';
-import {
-  EmotionBehavior,
-  EmotionBehaviorCode,
-} from '../../src/entities/packets/emotion/emotion_behavior.entity';
-import {
-  EmotionStrength,
-  EmotionStrengthCode,
-} from '../../src/entities/packets/emotion/emotion_strength.entity';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
-import { Routing } from '../../src/entities/packets/routing.entity';
 import { TriggerEvent } from '../../src/entities/packets/trigger.entity';
 import { ExtendedHistoryItem } from '../data_structures';
-import { createCharacter, getPacketId, SCENE, user } from '../helpers';
+import {
+  createCharacter,
+  getEmotionPacket,
+  getInteractionEndPacket,
+  getNarratedActionPacket,
+  getPacketId,
+  getRouting,
+  getTextPacket,
+  getTriggerPacket,
+  SCENE,
+  user,
+} from '../helpers/index';
 
 const characters = [createCharacter(), createCharacter()];
 const packetId = getPacketId();
-const routing: Routing = {
-  source: {
-    name: v4(),
-    isPlayer: true,
-    isCharacter: false,
-  },
-  targets: [
-    {
-      name: characters[0].id,
-      isPlayer: false,
-      isCharacter: true,
-    },
-  ],
-};
+const routing = getRouting(characters[0]);
 const date = protoTimestamp();
 const grpcAudioPlayer = new GrpcAudioPlayback();
-const textPacket = new InworldPacket({
-  packetId,
-  routing,
-  date,
-  text: {
-    text: v4(),
-    final: false,
-  },
-  type: InworldPacketType.TEXT,
+const textPacket = getTextPacket({
+  character: characters[0],
 });
-const triggerPacket = new InworldPacket({
-  packetId,
-  routing,
-  date,
-  trigger: { name: v4(), parameters: [{ name: v4(), value: v4() }] },
-  type: InworldPacketType.TRIGGER,
+const triggerPacket = getTriggerPacket({
+  character: characters[0],
 });
-const narracterActionPacket = new InworldPacket({
-  packetId,
-  routing,
-  date,
-  narratedAction: { text: v4() },
-  type: InworldPacketType.NARRATED_ACTION,
+const narracterActionPacket = getNarratedActionPacket({
+  character: characters[0],
 });
-const emotionsPacket = new InworldPacket({
-  packetId,
-  routing,
-  date,
-  emotions: {
-    behavior: new EmotionBehavior(EmotionBehaviorCode.NEUTRAL),
-    strength: new EmotionStrength(EmotionStrengthCode.NORMAL),
-  },
-  type: InworldPacketType.EMOTION,
+const emotionsPacket = getEmotionPacket({
+  character: characters[0],
 });
-const interactionEndPacket = new InworldPacket({
-  packetId,
-  routing,
-  date,
-  trigger: new TriggerEvent({ name: v4() }),
-  type: InworldPacketType.CONTROL,
-  control: new ControlEvent({
-    action: InworlControlAction.INTERACTION_END,
-  }),
+const interactionEndPacket = getInteractionEndPacket({
+  character: characters[0],
 });
 const sceneNameRequested = v4();
 const sceneChangePacketRequest = new InworldPacket({
@@ -166,8 +124,13 @@ test('should be empty by default', () => {
 
 describe('text', () => {
   describe('addOrUpdate', () => {
+    let history: InworldHistory;
+
+    beforeEach(() => {
+      history = createHistoryWithPacket(textPacket);
+    });
+
     test('should add runtime packet to history', () => {
-      const history = createHistoryWithPacket(textPacket);
       const item = history.get()[0] as HistoryItemActor;
 
       expect(history.get().length).toEqual(1);
@@ -176,7 +139,6 @@ describe('text', () => {
     });
 
     test('should add historical packet to history', () => {
-      const history = createHistoryWithPacket(textPacket);
       const item = history.get()[0] as HistoryItemActor;
 
       expect(history.get().length).toEqual(1);
@@ -184,18 +146,17 @@ describe('text', () => {
     });
 
     test('should add packet to queue', () => {
+      const history = createHistoryWithPacket(incomingTextPacket);
+
       jest
         .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
         .mockImplementation(() => true);
-
-      const history = createHistoryWithPacket(incomingTextPacket);
 
       expect(history.get().length).toEqual(0);
     });
 
     test('should find and update existing packet in history', () => {
       const text = v4();
-      const history = createHistoryWithPacket(textPacket);
       const firstItem = history.get()[0] as HistoryItemActor;
 
       expect(firstItem.type).toEqual(CHAT_HISTORY_TYPE.ACTOR);
@@ -205,12 +166,10 @@ describe('text', () => {
       history.addOrUpdate({
         characters,
         grpcAudioPlayer,
-        packet: new InworldPacket({
-          packetId,
-          routing,
-          date,
-          text: { text, final: false },
-          type: InworldPacketType.TEXT,
+        packet: getTextPacket({
+          packetId: textPacket.packetId,
+          character: characters[0],
+          text,
         }),
       });
 
@@ -251,9 +210,14 @@ describe('text', () => {
   });
 
   describe('update', () => {
+    let history: InworldHistory;
+
+    beforeEach(() => {
+      history = createHistoryWithPacket(textPacket);
+    });
+
     test('should update exising packet', () => {
       const text = v4();
-      const history = createHistoryWithPacket(textPacket);
       const firstItem = history.get()[0] as HistoryItemActor;
 
       expect(firstItem.type).toEqual(CHAT_HISTORY_TYPE.ACTOR);
@@ -261,12 +225,10 @@ describe('text', () => {
       expect(history.get().length).toEqual(1);
 
       history.update(
-        new InworldPacket({
-          packetId,
-          routing,
-          date,
-          text: { text, final: false },
-          type: InworldPacketType.TEXT,
+        getTextPacket({
+          character: characters[0],
+          text,
+          packetId: textPacket.packetId,
         }),
       );
 
@@ -280,7 +242,6 @@ describe('text', () => {
 
     test('should do nothing if packet is out of history', () => {
       const text = v4();
-      const history = createHistoryWithPacket(textPacket);
       const firstItem = history.get()[0] as HistoryItemActor;
 
       expect(firstItem.type).toEqual(CHAT_HISTORY_TYPE.ACTOR);
@@ -288,12 +249,9 @@ describe('text', () => {
       expect(history.get().length).toEqual(1);
 
       history.update(
-        new InworldPacket({
-          packetId: getPacketId(),
-          routing,
-          date,
-          text: { text, final: false },
-          type: InworldPacketType.TEXT,
+        getTextPacket({
+          character: characters[0],
+          text,
         }),
       );
 
@@ -312,8 +270,8 @@ describe('text', () => {
       expect(history.get().length).toEqual(1);
 
       history.filter({
-        utteranceId: [packetId.utteranceId!],
-        interactionId: packetId.interactionId!,
+        utteranceId: [textPacket.packetId.utteranceId!],
+        interactionId: textPacket.packetId.interactionId!,
       });
 
       expect(history.get().length).toEqual(0);
@@ -544,12 +502,9 @@ describe('text', () => {
     });
 
     test('should return transcript with new line', () => {
-      const triggerPacket = new InworldPacket({
-        packetId: getPacketId(),
-        routing,
-        date,
+      const triggerPacket = getTriggerPacket({
+        character: characters[0],
         trigger: new TriggerEvent({ name: v4() }),
-        type: InworldPacketType.TRIGGER,
       });
       const history = createHistoryWithPacket(textPacket);
       history.addOrUpdate({
@@ -584,12 +539,9 @@ describe('narrated action', () => {
   });
 
   test('should replace placeholders for outgoing event', () => {
-    const narracterActionPacket = new InworldPacket({
-      packetId,
-      routing,
-      date,
-      narratedAction: { text: '{character} some context {player}.' },
-      type: InworldPacketType.NARRATED_ACTION,
+    const narracterActionPacket = getNarratedActionPacket({
+      character: characters[0],
+      action: { text: '{character} some context {player}.' },
     });
 
     const history = createHistoryWithPacket(narracterActionPacket);
@@ -669,7 +621,10 @@ describe('interaction end', () => {
     history.addOrUpdate({
       characters,
       grpcAudioPlayer,
-      packet: interactionEndPacket,
+      packet: getInteractionEndPacket({
+        character: characters[0],
+        packetId: incomingTextPacket.packetId,
+      }),
     });
 
     expect(history.get().length).toEqual(0);
@@ -713,7 +668,10 @@ describe('interaction end', () => {
     history.addOrUpdate({
       characters,
       grpcAudioPlayer,
-      packet: interactionEndPacket,
+      packet: getInteractionEndPacket({
+        character: characters[0],
+        packetId: incomingTextPacket.packetId,
+      }),
     });
 
     expect(history.get().length).toEqual(0);
@@ -737,7 +695,10 @@ describe('interaction end', () => {
     history.addOrUpdate({
       characters,
       grpcAudioPlayer,
-      packet: interactionEndPacket,
+      packet: getInteractionEndPacket({
+        character: characters[0],
+        packetId: incomingTextPacket.packetId,
+      }),
     });
 
     expect(history.get().length).toEqual(0);
@@ -759,7 +720,10 @@ describe('interaction end', () => {
     history.addOrUpdate({
       characters,
       grpcAudioPlayer,
-      packet: interactionEndPacket,
+      packet: getInteractionEndPacket({
+        character: characters[0],
+        packetId: incomingTextPacket.packetId,
+      }),
     });
 
     expect(history.get().length).toEqual(2);

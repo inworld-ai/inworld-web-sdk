@@ -11,20 +11,27 @@ import {
 } from '../../proto/ai/inworld/packets/packets.pb';
 import { InworldConversationEventType } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
+import { Character } from '../../src/entities/character.entity';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
 import { EventFactory } from '../../src/factories/event';
-import { capabilitiesProps, createCharacter } from '../helpers';
+import {
+  capabilitiesProps,
+  conversationId,
+  createCharacter,
+} from '../helpers/index';
 
 let factory: EventFactory;
-const conversationId = v4();
+let character: Character;
 
-beforeEach(() => {
+const beforeEachFn = () => {
+  character = createCharacter();
   factory = new EventFactory();
-});
+  factory.setCurrentCharacter(character);
+};
 
 test('should set and get character', () => {
-  const character = createCharacter();
-
+  character = createCharacter();
+  factory = new EventFactory();
   factory.setCurrentCharacter(character);
 
   const found = factory.getCurrentCharacter();
@@ -34,11 +41,7 @@ test('should set and get character', () => {
 });
 
 describe('event types', () => {
-  const character = createCharacter();
-
-  beforeEach(() => {
-    factory.setCurrentCharacter(character);
-  });
+  beforeEach(beforeEachFn);
 
   test('should generate audio event', () => {
     const chunk = v4();
@@ -373,11 +376,7 @@ describe('event types', () => {
 });
 
 describe('convert packet to external one', () => {
-  const character = createCharacter();
-
-  beforeEach(() => {
-    factory.setCurrentCharacter(character);
-  });
+  beforeEach(beforeEachFn);
 
   test('audio', () => {
     const packet: ProtoPacket = {

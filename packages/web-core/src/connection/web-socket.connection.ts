@@ -41,7 +41,10 @@ interface UpdateSessionProps {
   sessionContinuation?: SessionContinuation;
 }
 
-interface ConnectionProps<InworldPacketT, HistoryItemT> {
+interface ConnectionProps<
+  InworldPacketT extends InworldPacket = InworldPacket,
+  HistoryItemT extends HistoryItem = HistoryItem,
+> {
   config?: InternalClientConfiguration;
   onDisconnect: () => Awaitable<void>;
   onReady: () => Awaitable<void>;

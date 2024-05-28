@@ -1,7 +1,7 @@
 import '../../mocks/window.mock';
 
 import { GrpcAudioRecorder } from '../../../src/components/sound/grpc_audio.recorder';
-import { setTimeoutMock } from '../../helpers';
+import { setTimeoutMock } from '../../helpers/index';
 
 const timeoutMockCalls = (timeout: any) =>
   timeout.mock.calls.filter((ctx: any) => ctx[1] !== 0).length;

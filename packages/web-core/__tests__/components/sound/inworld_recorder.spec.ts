@@ -4,7 +4,7 @@ import { GrpcAudioPlayback } from '../../../src/components/sound/grpc_audio.play
 import { GrpcAudioRecorder } from '../../../src/components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../../../src/components/sound/grpc_web_rtc_loopback_bidi.session';
 import { InworldRecorder } from '../../../src/components/sound/inworld_recorder';
-import { setNavigatorProperty } from '../../helpers';
+import { setNavigatorProperty } from '../../helpers/index';
 
 const grpcAudioPlayer = new GrpcAudioPlayback();
 const grpcAudioRecorder = new GrpcAudioRecorder();

@@ -14,7 +14,7 @@ import {
   previousState,
   SCENE,
   user,
-} from '../helpers';
+} from '../helpers/index';
 
 jest.mock('../../src/services/connection.service');
 

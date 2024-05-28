@@ -26,7 +26,7 @@ import {
   createCharacter,
   generateSessionToken,
   SCENE,
-} from '../helpers';
+} from '../helpers/index';
 
 const agents = [createAgent(), createAgent()];
 const characters = convertAgentsToCharacters(agents);
