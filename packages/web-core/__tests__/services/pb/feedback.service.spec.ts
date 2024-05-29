@@ -18,6 +18,26 @@ const capabilities: CapabilitiesRequest = {
   emotions: true,
 };
 
+const createFeedback = async (props: {
+  service: FeedbackService;
+  interactionId: string;
+  interactionFeedback: InteractionFeedback;
+  correlationId?: string;
+}) =>
+  props.service.createInteractionFeedback({
+    session,
+    config: {
+      capabilities,
+      connection: {
+        gateway: { hostname: 'examples.com', ssl: true },
+      },
+    },
+    scene: SCENE,
+    correlationId: props.correlationId,
+    interactionId: props.interactionId,
+    interactionFeedback: props.interactionFeedback,
+  });
+
 describe('createInteractionFeedback', () => {
   let service: FeedbackService;
   let interactionId: string;
@@ -53,18 +73,11 @@ describe('createInteractionFeedback', () => {
 
     FeedbackPb.CreateInteractionFeedback = createInteractionFeedback;
 
-    const result = await service.createInteractionFeedback({
-      session,
-      config: {
-        capabilities,
-        connection: {
-          gateway: { hostname: 'examples.com', ssl: true },
-        },
-      },
-      scene: SCENE,
-      correlationId,
+    const result = await createFeedback({
+      service,
       interactionId,
       interactionFeedback,
+      correlationId,
     });
 
     expect(createInteractionFeedback).toHaveBeenCalledTimes(1);
@@ -85,15 +98,8 @@ describe('createInteractionFeedback', () => {
 
     FeedbackPb.CreateInteractionFeedback = createInteractionFeedback;
 
-    const result = await service.createInteractionFeedback({
-      session,
-      config: {
-        capabilities,
-        connection: {
-          gateway: { hostname: 'examples.com', ssl: true },
-        },
-      },
-      scene: SCENE,
+    const result = await createFeedback({
+      service,
       interactionId,
       interactionFeedback,
     });

@@ -11,19 +11,20 @@ import {
   SessionHistoryRequest,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import { HistoryItem } from '../components/history';
-import { Character } from '../entities/character.entity';
+import { SessionContinuationProps } from '../entities/continuation/session_continuation.entity';
 import { AdditionalPhonemeInfo } from '../entities/packets/audio.entity';
+import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { SessionToken } from '../entities/session_token.entity';
+import { ConversationService } from '../services/conversation.service';
 
 export interface Capabilities {
   audio?: boolean;
+  debugInfo?: boolean;
   emotions?: boolean;
   interruptions?: boolean;
-  multiAgent?: boolean;
   narratedActions?: boolean;
   phonemes?: boolean;
   silence?: boolean;
-  turnBasedStt?: boolean;
 }
 
 export interface UserProfileField {
@@ -128,7 +129,10 @@ export enum TtsPlaybackAction {
   UNMUTE = 'UNMUTE',
 }
 
-export interface Extension<InworldPacketT, HistoryItemT> {
+export interface Extension<
+  InworldPacketT extends InworldPacket = InworldPacket,
+  HistoryItemT extends HistoryItem = HistoryItem,
+> {
   convertPacketFromProto?: (proto: ProtoPacket) => InworldPacketT;
   beforeLoadScene?: (packets: ProtoPacket[]) => ProtoPacket[];
   afterLoadScene?: (res: SessionControlResponseEvent) => void;
@@ -145,12 +149,9 @@ export interface TriggerParameter {
   value: string;
 }
 
-export interface SendPacketParams {
-  characters?: Character[];
-}
-
-export interface SendTriggerPacketParams extends SendPacketParams {
+export interface SendTriggerPacketParams {
   parameters?: TriggerParameter[];
+  conversationId: string;
 }
 
 export enum InworldPacketType {
@@ -167,12 +168,52 @@ export enum InworldPacketType {
   SCENE_MUTATION_RESPONSE = 'SCENE_MUTATION_RESPONSE',
 }
 
-export enum InworlControlType {
+export enum InworlControlAction {
   UNKNOWN = 'UNKNOWN',
   INTERACTION_END = 'INTERACTION_END',
-  TTS_PLAYBACK_START = 'TTS_PLAYBACK_START',
-  TTS_PLAYBACK_END = 'TTS_PLAYBACK_END',
   TTS_PLAYBACK_MUTE = 'TTS_PLAYBACK_MUTE',
   TTS_PLAYBACK_UNMUTE = 'TTS_PLAYBACK_UNMUTE',
   WARNING = 'WARNING',
+  CONVERSATION_UPDATE = 'CONVERSATION_UPDATE',
+  CONVERSATION_EVENT = 'CONVERSATION_EVENT',
+}
+
+export enum InworldConversationEventType {
+  UNKNOWN = 'UNKNOWN',
+  STARTED = 'STARTED',
+  UPDATED = 'UPDATED',
+  EVICTED = 'EVICTED',
+}
+
+export enum ConversationState {
+  ACTIVE = 'ACTIVE',
+  PROCESSING = 'PROCESSING',
+  INACTIVE = 'INACTIVE',
+}
+
+export interface PacketQueueItem {
+  getPacket: () => ProtoPacket;
+  afterWriting: (packet: ProtoPacket) => void;
+}
+
+export interface SendPacketParams {
+  conversationId: string;
+}
+
+export interface ConversationMapItem<
+  InworldPacketT extends InworldPacket = InworldPacket,
+> {
+  service: ConversationService<InworldPacketT>;
+  state: ConversationState;
+}
+
+export interface HistoryChangedProps<HistoryItemT = HistoryItem> {
+  diff: HistoryItemT[];
+  conversationId?: string;
+}
+
+export interface ChangeSceneProps {
+  capabilities?: Capabilities;
+  sessionContinuation?: SessionContinuationProps;
+  gameSessionId?: string;
 }

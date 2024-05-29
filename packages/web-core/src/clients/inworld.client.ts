@@ -1,14 +1,13 @@
-import { CapabilitiesConfiguration } from '../../proto/ai/inworld/engine/configuration/configuration.pb';
 import { CancelResponses } from '../../proto/ai/inworld/packets/packets.pb';
 import { GRPC_HOSTNAME } from '../common/constants';
 import {
   Awaitable,
-  Capabilities,
   Client,
   ClientConfiguration,
   Extension,
   Gateway,
   GenerateSessionTokenFn,
+  HistoryChangedProps,
   InternalClientConfiguration,
   OnPhomeneFn,
   User,
@@ -22,6 +21,7 @@ import { HistoryItem } from '../components/history';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
+import { Capability } from '../entities/capability.entity';
 import {
   SessionContinuation,
   SessionContinuationProps,
@@ -50,7 +50,10 @@ export class InworldClient<
   private onMessage: ((message: InworldPacketT) => Awaitable<void>) | undefined;
   private onReady: (() => Awaitable<void>) | undefined;
   private onHistoryChange:
-    | ((history: HistoryItem[], diff: HistoryItem[]) => Awaitable<void>)
+    | ((
+        history: HistoryItem[],
+        props: HistoryChangedProps<HistoryItemT>,
+      ) => Awaitable<void>)
     | undefined;
   private onInterruption:
     | ((props: CancelResponses) => Awaitable<void>)
@@ -130,7 +133,10 @@ export class InworldClient<
   }
 
   setOnHistoryChange(
-    fn?: (history: HistoryItemT[], diff: HistoryItemT[]) => Awaitable<void>,
+    fn?: (
+      history: HistoryItemT[],
+      props: HistoryChangedProps<HistoryItemT>,
+    ) => Awaitable<void>,
   ) {
     this.onHistoryChange = fn;
 
@@ -231,33 +237,7 @@ export class InworldClient<
         ...connection,
         gateway: this.ensureGateway(gateway),
       },
-      capabilities: this.buildCapabilities(capabilities),
-    };
-  }
-
-  private buildCapabilities(
-    capabilities: Capabilities,
-  ): CapabilitiesConfiguration {
-    const {
-      audio = true,
-      emotions = false,
-      interruptions = false,
-      multiAgent = false,
-      narratedActions = false,
-      turnBasedStt = false,
-      phonemes: phonemeInfo = false,
-      silence: silenceEvents = false,
-    } = capabilities;
-
-    return {
-      audio,
-      emotions,
-      interruptions,
-      multiAgent,
-      narratedActions,
-      phonemeInfo,
-      silenceEvents,
-      turnBasedStt,
+      capabilities: Capability.toProto(capabilities),
     };
   }
 

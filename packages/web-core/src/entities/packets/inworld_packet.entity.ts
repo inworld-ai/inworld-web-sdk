@@ -5,7 +5,7 @@ import {
   LoadCharactersCharacterName,
 } from '../../../proto/ai/inworld/packets/packets.pb';
 import {
-  InworlControlType,
+  InworlControlAction,
   InworldPacketType,
 } from '../../common/data_structures';
 import { Character } from '../character.entity';
@@ -38,6 +38,8 @@ export interface InworldPacketProps {
 
 export interface SceneMutation {
   name?: string;
+  description?: string;
+  displayName?: string;
   characterNames?: string[];
   loadedCharacters?: Character[];
   addedCharacters?: Character[];
@@ -127,40 +129,28 @@ export class InworldPacket {
   isInteractionEnd() {
     return (
       this.isControl() &&
-      this.control.type === InworlControlType.INTERACTION_END
-    );
-  }
-
-  isTTSPlaybackStart() {
-    return (
-      this.isControl() &&
-      this.control.type === InworlControlType.TTS_PLAYBACK_START
-    );
-  }
-
-  isTTSPlaybackEnd() {
-    return (
-      this.isControl() &&
-      this.control.type === InworlControlType.TTS_PLAYBACK_END
+      this.control.action === InworlControlAction.INTERACTION_END
     );
   }
 
   isTTSPlaybackMute() {
     return (
       this.isControl() &&
-      this.control.type === InworlControlType.TTS_PLAYBACK_MUTE
+      this.control.action === InworlControlAction.TTS_PLAYBACK_MUTE
     );
   }
 
   isTTSPlaybackUnmute() {
     return (
       this.isControl() &&
-      this.control.type === InworlControlType.TTS_PLAYBACK_UNMUTE
+      this.control.action === InworlControlAction.TTS_PLAYBACK_UNMUTE
     );
   }
 
   isWarning() {
-    return this.isControl() && this.control.type === InworlControlType.WARNING;
+    return (
+      this.isControl() && this.control.action === InworlControlAction.WARNING
+    );
   }
 
   isSilence() {
@@ -181,6 +171,16 @@ export class InworldPacket {
 
   isSceneMutationResponse() {
     return this.type === InworldPacketType.SCENE_MUTATION_RESPONSE;
+  }
+
+  shouldHaveConversationId() {
+    return (
+      this.isAudio() ||
+      this.isText() ||
+      this.isTrigger() ||
+      this.isNarratedAction() ||
+      this.isSilence()
+    );
   }
 
   static fromProto(proto: ProtoPacket): InworldPacket {
@@ -233,6 +233,11 @@ export class InworldPacket {
               proto.sessionControlResponse.loadedScene.agents.map(
                 (agent: Agent) => Character.fromProto(agent),
               ),
+            name: proto.sessionControlResponse.loadedScene.sceneName,
+            description:
+              proto.sessionControlResponse.loadedScene.sceneDescription,
+            displayName:
+              proto.sessionControlResponse.loadedScene.sceneDisplayName,
           }),
           ...(proto.sessionControlResponse?.loadedCharacters && {
             addedCharacters:

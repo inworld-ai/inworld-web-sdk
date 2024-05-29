@@ -13,7 +13,10 @@ export class TriggerEvent {
     parameters?: TriggerParameter[];
   }) {
     this.name = name;
-    this.parameters = parameters;
+
+    if (parameters?.length) {
+      this.parameters = parameters;
+    }
   }
 
   static fromProto(proto: ProtoTriggerEvent) {

@@ -13,6 +13,7 @@ import {
   ClientConfiguration,
   ConnectionConfig,
   Extension,
+  HistoryChangedProps,
   StopAudioPlayback,
   TriggerParameter,
   User,
@@ -61,6 +62,7 @@ import { Actor, Routing } from './entities/packets/routing.entity';
 import { TextEvent } from './entities/packets/text.entity';
 import { TriggerEvent } from './entities/packets/trigger.entity';
 import { SessionToken } from './entities/session_token.entity';
+import { ConversationService } from './services/conversation.service';
 import {
   FeedbackDislikeProps,
   FeedbackLikeProps,
@@ -79,6 +81,7 @@ export {
   CHAT_HISTORY_TYPE,
   ClientConfiguration,
   ConnectionConfig,
+  ConversationService,
   DialogParticipant,
   DialogPhrase,
   DislikeType,
@@ -91,6 +94,7 @@ export {
   Feedback,
   FeedbackDislikeProps,
   FeedbackLikeProps,
+  HistoryChangedProps,
   HistoryInteractionEnd,
   HistoryItem,
   HistoryItemActor,

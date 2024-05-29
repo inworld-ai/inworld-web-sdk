@@ -3,7 +3,7 @@
   "coveragePathIgnorePatterns": ["<rootDir>//node_modules/", "<rootDir>/proto"],
   "modulePathIgnorePatterns": [
     "<rootDir>/__tests__/data_structures.ts",
-    "<rootDir>/__tests__/helpers.ts",
+    "<rootDir>/__tests__/helpers/",
     "<rootDir>/__tests__/mocks/",
     "<rootDir>/build/"
   ],
