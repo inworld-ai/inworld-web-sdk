@@ -14,11 +14,7 @@ import { protoTimestamp } from '../../src/common/helpers';
 import { Character } from '../../src/entities/character.entity';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
 import { EventFactory } from '../../src/factories/event';
-import {
-  capabilitiesProps,
-  conversationId,
-  createCharacter,
-} from '../helpers/index';
+import { capabilitiesProps, conversationId, createCharacter } from '../helpers';
 
 let factory: EventFactory;
 let character: Character;

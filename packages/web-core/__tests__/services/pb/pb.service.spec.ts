@@ -1,5 +1,5 @@
 import { PbFunc, PbService } from '../../../src/services/pb/pb.service';
-import { capabilitiesProps, session } from '../../helpers/index';
+import { capabilitiesProps, session } from '../../helpers';
 
 describe('PbService', () => {
   let service: PbService;

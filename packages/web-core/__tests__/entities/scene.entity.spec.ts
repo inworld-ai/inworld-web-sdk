@@ -3,7 +3,7 @@ import { v4 } from 'uuid';
 import { ActorType } from '../../proto/ai/inworld/packets/packets.pb';
 import { Character } from '../../src/entities/character.entity';
 import { Scene } from '../../src/entities/scene.entity';
-import { createAgent, createCharacter, SCENE } from '../helpers/index';
+import { createAgent, createCharacter, SCENE } from '../helpers';
 
 let characters: Array<Character> = [];
 let scene: Scene;

@@ -1,5 +1,5 @@
 import { interpolate, isIOSMobile } from '../../src/common/helpers';
-import { setNavigatorProperty } from '../helpers/index';
+import { setNavigatorProperty } from '../helpers';
 
 describe('interpolate', () => {
   test('should return 1', () => {

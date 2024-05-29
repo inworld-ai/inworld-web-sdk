@@ -24,7 +24,7 @@ import {
   session,
   simpleExtension,
   user,
-} from '../helpers/index';
+} from '../helpers';
 const { version } = require('../../package.json');
 
 const character = createCharacter();

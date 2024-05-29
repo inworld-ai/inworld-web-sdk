@@ -49,7 +49,7 @@ import {
   session,
   user,
   writeMock,
-} from '../helpers/index';
+} from '../helpers';
 
 const onError = jest.fn();
 const onMessage = jest.fn();

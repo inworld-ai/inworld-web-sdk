@@ -12,7 +12,7 @@ import * as fm from '../../../proto/fetch.pb';
 import { SCENE_PATTERN } from '../../../src/common/constants';
 import { Feedback } from '../../../src/entities/feedback.entity';
 import { FeedbackService } from '../../../src/services/pb/feedback.service';
-import { SCENE, session } from '../../helpers/index';
+import { SCENE, session } from '../../helpers';
 
 const capabilities: CapabilitiesRequest = {
   emotions: true,

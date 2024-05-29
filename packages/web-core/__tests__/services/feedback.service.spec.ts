@@ -17,7 +17,7 @@ import {
   generateSessionToken,
   SCENE,
   session,
-} from '../helpers/index';
+} from '../helpers';
 
 const grpcAudioPlayer = new GrpcAudioPlayback();
 const webRtcLoopbackBiDiSession = new GrpcWebRtcLoopbackBiDiSession();

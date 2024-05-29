@@ -51,7 +51,7 @@ import {
   setNavigatorProperty,
   setTimeoutMock,
   writeMock,
-} from '../helpers/index';
+} from '../helpers';
 
 const agents = [createAgent(), createAgent()];
 const characters = convertAgentsToCharacters(agents);

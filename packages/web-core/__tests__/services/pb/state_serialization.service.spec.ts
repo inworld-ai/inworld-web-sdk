@@ -6,7 +6,7 @@ import { CapabilitiesRequest } from '../../../proto/ai/inworld/engine/world-engi
 import * as fm from '../../../proto/fetch.pb';
 import { protoTimestamp } from '../../../src/common/helpers';
 import { StateSerializationService } from '../../../src/services/pb/state_serialization.service';
-import { previousStateUint8Array, SCENE, session } from '../../helpers/index';
+import { previousStateUint8Array, SCENE, session } from '../../helpers';
 
 describe('getSessionState', () => {
   let service: StateSerializationService;

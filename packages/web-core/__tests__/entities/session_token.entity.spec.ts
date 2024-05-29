@@ -1,5 +1,5 @@
 import { SessionToken } from '../../src/entities/session_token.entity';
-import { session } from '../helpers/index';
+import { session } from '../helpers';
 
 test('should get token fields', () => {
   const token = new SessionToken(session);

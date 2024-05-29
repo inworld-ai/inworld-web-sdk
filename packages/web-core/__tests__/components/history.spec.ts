@@ -29,7 +29,7 @@ import {
   getTriggerPacket,
   SCENE,
   user,
-} from '../helpers/index';
+} from '../helpers';
 
 const characters = [createCharacter(), createCharacter()];
 const packetId = getPacketId();
