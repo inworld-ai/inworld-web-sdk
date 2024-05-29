@@ -6,3 +6,5 @@ node_modules
 .env-bak*
 # Mac filesystem
 **/.DS_Store
+
+ yarn-error.log

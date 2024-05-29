@@ -2,6 +2,7 @@
 import { Mesh, Object3D, Object3DEventMap } from 'three';
 import { DRACOLoader, GLTF, GLTFLoader } from 'three-stdlib';
 
+import { log } from '../utils/Log';
 import { IFileLoader } from './IFileLoader';
 
 export interface GLTFModelLoaderProps {
@@ -38,18 +39,18 @@ export class GLTFModelLoader implements IFileLoader {
   }
 
   public load(callback: Function) {
-    // console.log('GLTFModelLoader load')
+    log('GLTFModelLoader load');
     this.callback = callback;
     this.loader.load(this.path, this.onLoad, this.onUpdate, this.onError);
   }
 
   private onError(error: ErrorEvent) {
-    console.log('GLTFModelLoader onError', error);
+    log('GLTFModelLoader onError', error);
     throw new Error('Error loading file ' + this.path + ' ' + error);
   }
 
   private onLoad(model: GLTF) {
-    // console.log('GLTFModelLoader onLoad')
+    log('GLTFModelLoader onLoad');
     this.model = model;
     this.model.scene.traverse((node) => {
       if ((node as Mesh).isMesh) {
@@ -62,6 +63,6 @@ export class GLTFModelLoader implements IFileLoader {
   }
 
   private onUpdate(event: ProgressEvent) {
-    // console.log('GLTFModelLoader onUpdate', event);
+    log('GLTFModelLoader onUpdate', event);
   }
 }

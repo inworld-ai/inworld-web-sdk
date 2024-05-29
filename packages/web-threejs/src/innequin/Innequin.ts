@@ -27,7 +27,6 @@ import {
 } from '../types/types';
 import { log } from '../utils/Log';
 import { InnequinAnimator } from './animator/InnequinAnimator';
-import { InnequinAssetController } from './controllers/InnequinAssetController';
 import {
   InnequinAnimationType,
   InnequinConfiguration,
@@ -131,6 +130,7 @@ export class Innequin {
   }
 
   loadAnimations() {
+    log('Innequin - Loading Animations');
     for (const animationName in this.config.innequin.animations) {
       const animation: InnequinAnimationType =
         this.config.innequin.animations[animationName];
@@ -155,11 +155,13 @@ export class Innequin {
 
   // Loads the config.json file with the animations, assets and skins character data as well as the global paths to asset files.
   loadConfig() {
+    log('Innequin - Loading Config');
     this.configFile = new JSONFileLoader({ fileURI: this.configURI });
     this.configFile.load(this.onLoadConfig);
   }
 
   loadModel() {
+    log('Innequin - Loading Model');
     const fileURI: string =
       this.baseURI +
       this.config.innequin.baseURIs.MODELS_BODY +
@@ -168,7 +170,7 @@ export class Innequin {
       path: fileURI,
       dracoPath: this.dracoURI,
     });
-    this.modelFile.load(this.onLoadModel);
+    this.modelFile.load(this.onLoadModel.bind(this));
   }
 
   loadVismeMaterials() {
@@ -269,11 +271,13 @@ export class Innequin {
     });
 
     // Hides all the accessories on the model.
-    InnequinAssetController.updateDisplayList(
-      this.getModel() as SkinnedMesh,
-      this.config.innequin.assets,
-    );
+    // Currently this is commented out awaiting future architecture
+    // InnequinAssetController.updateDisplayList(
+    //   this.getModel() as SkinnedMesh,
+    //   this.config.innequin.assets,
+    // );
 
+    log('Innequin - Model Loaded');
     this.loadAnimations();
   }
 

@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@release-it/keep-a-changelog": "^5.0.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/jest": "^29.5.12",
     "@typescript-eslint/eslint-plugin": "^7.3.0",
     "@typescript-eslint/parser": "^7.3.0",
@@ -36,10 +37,9 @@
     "jest-websocket-mock": "^2.5.0",
     "prettier": "^3.2.5",
     "release-it": "^17.1.1",
+    "rollup": "^4.16.1",
     "shx": "^0.3.4",
     "ts-jest": "^29.1.2",
-    "ts-loader": "^9.4.1",
-    "typescript": "^5.4.2",
-    "webpack": "^5.90.0"
+    "typescript": "^5.4.2"
   }
 }

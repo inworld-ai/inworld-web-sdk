@@ -71,7 +71,6 @@ function InnequinModel() {
 
   const onProgressInnequin = useCallback(
     (progress: number) => {
-      // console.log("Scene onProgressInnequin", progress);
       if (setLoadingPercent) setLoadingPercent(progress);
     },
     [setLoadingPercent],
