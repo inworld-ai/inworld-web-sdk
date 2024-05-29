@@ -9,6 +9,7 @@ coverage
 # Production
 build
 .eslintcache
+dist
 
 # Development folder for locally hosted assets
 /examples/*/public/assets/*
@@ -16,9 +17,14 @@ build
 # License files are copied into package folder upon building
 /packages/*/LICENSE.md
 
+# Minification of Packages folder
+/packages/*/dist
+
 # Mac filesystem
 **/.DS_Store
 
 # Environment Variable FIle
 .env*
 !.env-sample
+
+ yarn-error.log

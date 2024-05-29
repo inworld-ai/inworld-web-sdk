@@ -33,23 +33,17 @@
     "lint:fix": "yarn run lint:check --fix",
     "prettier:check": "yarn prettier --check \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
     "prettier:format": "yarn prettier --write \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
-    "docs": "npm run docs:clean && npm run docs:generate",
-    "docs:clean": "npx rimraf docs",
-    "docs:generate": "npx typedoc"
+    "minify": "rollup --config rollup.config.mjs"
   },
   "devDependencies": {
-    "@types/react": "^18.0.28",
-    "@types/react-dom": "^18.0.11",
-    "@types/three": "^0.160.0",
+    "@types/three": "^0.164.0",
     "@types/uuid": "^9.0.0",
-    "rimraf": "^5.0.5",
-    "typedoc": "^0.25.4",
-    "typedoc-theme-hierarchy": "^4.1.2"
+    "rimraf": "^5.0.5"
   },
   "dependencies": {
     "@inworld/web-core": "2.2.2",
-    "three": "^0.160.1",
-    "three-stdlib": "^2.29.4",
+    "three": "^0.164.1",
+    "three-stdlib": "^2.29.11",
     "uuid": "^9.0.1"
   }
 }

@@ -10,7 +10,7 @@ const { writeFile } = require('fs/promises');
  * @returns {Promise<void>} Promise of the main process
  */
 async function run() {
-  const ASSETS_VERSION = 'v3';
+  const ASSETS_VERSION = 'v4';
   const ASSETS_VERSION_FILENAME = 'version.json';
   const ASSETS_FILE_PATH = './public/assets/';
   const ASSETS_VERSION_FILE_PATH = path.join(

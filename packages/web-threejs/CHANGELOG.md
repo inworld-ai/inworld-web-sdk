@@ -1,3 +1,13 @@
+## [Unreleased]
+
+### Changed
+
+- Updated Three.js to 164.1
+
+### Added
+
+- Added package minification yarn command
+
 ## [1.4.0] - 2024-04-02
 
 ### Added

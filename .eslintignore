@@ -1,6 +1,7 @@
 coverage
 build
 proto
+dist
 node_modules
 .eslintcache
 /examples/*/public/assets/*
