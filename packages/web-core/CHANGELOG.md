@@ -1,4 +1,12 @@
+## [Unreleased]
+
+### Changed
+
+- Support new runtime protocol session configuration
+
 ## [2.6.0] - 2024-05-31
+
+### Added
 
 - Multi-character conversation support (2.0)
 

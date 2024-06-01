@@ -1,8 +1,8 @@
 import {
   ActorType,
   Agent,
+  CurrentSceneStatus,
   InworldPacket as ProtoPacket,
-  LoadedScene,
   SessionHistoryResponse,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import { Character } from './character.entity';
@@ -31,15 +31,13 @@ export class Scene {
   }
 
   static fromProto({
-    name,
-    loadedScene,
+    sceneStatus,
     sessionHistory,
   }: {
-    name: string;
-    loadedScene?: LoadedScene;
+    sceneStatus: CurrentSceneStatus;
     sessionHistory?: SessionHistoryResponse;
   }) {
-    const characters = (loadedScene?.agents ?? []).map((agent: Agent) =>
+    const characters = (sceneStatus?.agents ?? []).map((agent: Agent) =>
       Character.fromProto(agent),
     );
 
@@ -90,9 +88,9 @@ export class Scene {
       ) ?? [];
 
     return new Scene({
-      name,
-      description: loadedScene?.sceneDescription,
-      displayName: loadedScene?.sceneDisplayName,
+      name: sceneStatus.sceneName,
+      description: sceneStatus?.sceneDescription,
+      displayName: sceneStatus?.sceneDisplayName,
       characters,
       history,
     });

@@ -6,9 +6,10 @@ import {
 } from '../../proto/ai/inworld/engine/configuration/configuration.pb';
 import {
   Continuation,
+  CurrentSceneStatus,
   InworldPacket as ProtoPacket,
-  SessionControlResponseEvent,
   SessionHistoryRequest,
+  SessionHistoryResponse,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import { HistoryItem } from '../components/history';
 import { SessionContinuationProps } from '../entities/continuation/session_continuation.entity';
@@ -135,7 +136,7 @@ export interface Extension<
 > {
   convertPacketFromProto?: (proto: ProtoPacket) => InworldPacketT;
   beforeLoadScene?: (packets: ProtoPacket[]) => ProtoPacket[];
-  afterLoadScene?: (res: SessionControlResponseEvent) => void;
+  afterLoadScene?: (res: CurrentSceneStatus) => void;
   historyItem?: (packet: InworldPacketT, item: HistoryItem) => HistoryItemT;
 }
 
@@ -216,4 +217,9 @@ export interface ChangeSceneProps {
   capabilities?: Capabilities;
   sessionContinuation?: SessionContinuationProps;
   gameSessionId?: string;
+}
+
+export interface LoadedScene {
+  sceneStatus: CurrentSceneStatus;
+  sessionHistory?: SessionHistoryResponse;
 }

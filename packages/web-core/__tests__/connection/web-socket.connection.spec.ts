@@ -16,7 +16,7 @@ import {
   conversationId,
   createCharacter,
   emitHistoryResponseEvent,
-  emitSessionControlResponseEvent,
+  emitSceneStatusEvent,
   extension,
   phrases,
   previousDialog,
@@ -94,11 +94,7 @@ describe('open', () => {
         session,
       }),
       setTimeout(
-        () =>
-          setTimeout(
-            () => new Promise(emitSessionControlResponseEvent(server)),
-            0,
-          ),
+        () => setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
         0,
       ),
     ]);
@@ -116,11 +112,7 @@ describe('open', () => {
         session,
       }),
       setTimeout(
-        () =>
-          setTimeout(
-            () => new Promise(emitSessionControlResponseEvent(server)),
-            0,
-          ),
+        () => setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
         0,
       ),
     ]);
@@ -149,10 +141,7 @@ describe('open', () => {
           }),
           setTimeout(
             () =>
-              setTimeout(
-                () => new Promise(emitSessionControlResponseEvent(server)),
-                0,
-              ),
+              setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
             0,
           ),
         ]);
@@ -182,11 +171,7 @@ describe('open', () => {
         session,
       }),
       setTimeout(
-        () =>
-          setTimeout(
-            () => new Promise(emitSessionControlResponseEvent(server)),
-            0,
-          ),
+        () => setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
         0,
       ),
     ]);
@@ -217,19 +202,15 @@ describe('open', () => {
         client: sceneClient,
       }),
       setTimeout(
-        () =>
-          setTimeout(
-            () => new Promise(emitSessionControlResponseEvent(server)),
-            0,
-          ),
+        () => setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
         0,
       ),
     ]);
 
     await server.connected;
 
-    const actualClient = JSON.parse(write.mock.calls[1][0] as string)
-      .sessionControl?.clientConfiguration;
+    const actualClient = JSON.parse(write.mock.calls[0][0] as string).control
+      ?.sessionConfiguration?.clientConfiguration;
 
     expect(actualClient!.id).toEqual(CLIENT_ID);
     expect(actualClient!.version).toEqual(version);
@@ -249,19 +230,15 @@ describe('open', () => {
         session,
       }),
       setTimeout(
-        () =>
-          setTimeout(
-            () => new Promise(emitSessionControlResponseEvent(server)),
-            0,
-          ),
+        () => setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
         0,
       ),
     ]);
 
     await server.connected;
 
-    const actualClient = JSON.parse(write.mock.calls[1][0] as string)
-      .sessionControl?.clientConfiguration;
+    const actualClient = JSON.parse(write.mock.calls[0][0] as string).control
+      ?.sessionConfiguration?.clientConfiguration;
 
     expect(actualClient.id).toEqual(CLIENT_ID);
     expect(actualClient.version).toEqual(version);
@@ -281,13 +258,13 @@ describe('open', () => {
         user,
         session,
       }),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
 
     await server.connected;
 
-    const sentUser = JSON.parse(write.mock.calls[2][0] as string).sessionControl
-      ?.userConfiguration;
+    const sentUser = JSON.parse(write.mock.calls[0][0] as string).control
+      ?.sessionConfiguration?.userConfiguration;
 
     expect(sentUser.name).toEqual(user.fullName);
     expect(sentUser.id.length).not.toEqual(0);
@@ -304,13 +281,13 @@ describe('open', () => {
         user: { id: user.id },
         session,
       }),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
 
     await server.connected;
 
-    const sentUser = JSON.parse(write.mock.calls[2][0] as string).sessionControl
-      ?.userConfiguration;
+    const sentUser = JSON.parse(write.mock.calls[0][0] as string).control
+      ?.sessionConfiguration?.userConfiguration;
 
     expect(sentUser).toEqual({ id: user.id });
   });
@@ -326,13 +303,13 @@ describe('open', () => {
         user: { profile: user.profile },
         session,
       }),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
 
     await server.connected;
 
-    const sentUser = JSON.parse(write.mock.calls[2][0] as string).sessionControl
-      ?.userConfiguration;
+    const sentUser = JSON.parse(write.mock.calls[0][0] as string).control
+      ?.sessionConfiguration?.userConfiguration;
 
     expect(sentUser?.userSettings?.playerProfile?.fields[0]).toEqual({
       fieldId: user.profile!.fields[0].id,
@@ -353,13 +330,13 @@ describe('open', () => {
         }),
         session,
       }),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
 
     await server.connected;
 
-    const continuation = JSON.parse(write.mock.calls[2][0] as string)
-      .sessionControl?.continuation;
+    const continuation = JSON.parse(write.mock.calls[0][0] as string).control
+      ?.sessionConfiguration?.continuation;
 
     expect(continuation?.dialogHistory).toEqual(previousDialog.toProto());
     expect(continuation?.continuationType).toEqual(
@@ -378,13 +355,13 @@ describe('open', () => {
         sessionContinuation: new SessionContinuation({ previousState }),
         session,
       }),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
 
     await server.connected;
 
-    const continuation = JSON.parse(write.mock.calls[2][0] as string)
-      .sessionControl?.continuation;
+    const continuation = JSON.parse(write.mock.calls[0][0] as string).control
+      ?.sessionConfiguration?.continuation;
 
     expect(continuation?.externallySavedState).toEqual(previousState);
     expect(continuation?.continuationType).toEqual(
@@ -408,14 +385,13 @@ describe('open', () => {
         name: v4(),
         session,
       }),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
 
     await server.connected;
 
-    const sessionConfiguration = JSON.parse(write.mock.calls[1][0] as string)
-      .sessionControl?.sessionConfiguration;
-
+    const sessionConfiguration = JSON.parse(write.mock.calls[0][0] as string)
+      .control?.sessionConfiguration?.sessionConfiguration;
     expect(sessionConfiguration?.gameSessionId).toEqual(gameSessionId);
   });
 
@@ -432,7 +408,7 @@ describe('open', () => {
         sessionContinuation: new SessionContinuation({ previousState }),
         session,
       }),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
       setTimeout(() => new Promise(emitHistoryResponseEvent(server)), 0),
     ]);
 
@@ -455,7 +431,7 @@ describe('open', () => {
         name: v4(),
         session,
       }),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
       new Promise(emitHistoryResponseEvent(server)),
     ]);
 
@@ -486,7 +462,7 @@ describe('open', () => {
         name: v4(),
         session,
       }),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
 
     await server.connected;
@@ -502,7 +478,7 @@ describe('open', () => {
         name: v4(),
         session,
       }),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
 
     await server.connected;
@@ -558,11 +534,7 @@ describe('reopen', () => {
     await Promise.all([
       ws.reopenSession(session),
       setTimeout(
-        () =>
-          setTimeout(
-            () => new Promise(emitSessionControlResponseEvent(server)),
-            0,
-          ),
+        () => setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
         0,
       ),
     ]);
@@ -588,10 +560,7 @@ describe('reopen', () => {
           ws.reopenSession(session),
           setTimeout(
             () =>
-              setTimeout(
-                () => new Promise(emitSessionControlResponseEvent(server)),
-                0,
-              ),
+              setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
             0,
           ),
         ]);
@@ -618,11 +587,7 @@ describe('reopen', () => {
     await Promise.all([
       ws.reopenSession(session),
       setTimeout(
-        () =>
-          setTimeout(
-            () => new Promise(emitSessionControlResponseEvent(server)),
-            0,
-          ),
+        () => setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
         0,
       ),
     ]);
@@ -653,7 +618,7 @@ describe('update', () => {
         user: { profile: user.profile },
         session,
       }),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
 
     await server.connected;
@@ -665,7 +630,7 @@ describe('update', () => {
       previousState,
     });
 
-    expect(write).toHaveBeenCalledTimes(4);
+    expect(write).toHaveBeenCalledTimes(2);
 
     await Promise.all([
       ws.updateSession({
@@ -674,42 +639,27 @@ describe('update', () => {
         capabilities: newCapabilities,
         sessionContinuation,
       }),
-      setTimeout(
-        () => new Promise(emitSessionControlResponseEvent(server, newName)),
-        0,
-      ),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server, newName)), 0),
     ]);
 
-    expect(write).toHaveBeenCalledTimes(8);
+    expect(write).toHaveBeenCalledTimes(4);
 
     server.send({ result: textMessage });
 
-    expect(messages[0].sessionControlResponse?.loadedScene?.sceneName).toEqual(
-      newName,
-    );
-    expect(messages[1]).toEqual(textMessage);
+    expect(messages[2].control?.currentSceneStatus?.sceneName).toEqual(newName);
+    expect(messages[3]).toEqual(textMessage);
 
-    expect(JSON.parse(write.mock.calls[4][0] as string).sessionControl).toEqual(
-      {
-        capabilitiesConfiguration: newCapabilities,
+    expect(
+      JSON.parse(write.mock.calls[2][0] as string).control.sessionConfiguration,
+    ).toEqual({
+      capabilitiesConfiguration: newCapabilities,
+      sessionConfiguration: { gameSessionId },
+      continuation: {
+        continuationType:
+          ContinuationContinuationType.CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE,
+        externallySavedState: previousState,
       },
-    );
-    expect(JSON.parse(write.mock.calls[5][0] as string).sessionControl).toEqual(
-      {
-        sessionConfiguration: {
-          gameSessionId,
-        },
-      },
-    );
-    expect(JSON.parse(write.mock.calls[6][0] as string).sessionControl).toEqual(
-      {
-        continuation: {
-          externallySavedState: previousState,
-          continuationType:
-            ContinuationContinuationType.CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE,
-        },
-      },
-    );
+    });
   });
 
   test('should send history request', async () => {
@@ -731,7 +681,7 @@ describe('update', () => {
         user: { profile: user.profile },
         session,
       }),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
       setTimeout(() => new Promise(emitHistoryResponseEvent(server)), 0),
     ]);
 
@@ -744,7 +694,7 @@ describe('update', () => {
       previousState,
     });
 
-    expect(write).toHaveBeenCalledTimes(4);
+    expect(write).toHaveBeenCalledTimes(2);
 
     await Promise.all([
       ws.updateSession({
@@ -753,14 +703,11 @@ describe('update', () => {
         capabilities: newCapabilities,
         sessionContinuation,
       }),
-      setTimeout(
-        () => new Promise(emitSessionControlResponseEvent(server, newName)),
-        0,
-      ),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server, newName)), 0),
       setTimeout(() => new Promise(emitHistoryResponseEvent(server)), 0),
     ]);
 
-    expect(write).toHaveBeenCalledTimes(9);
+    expect(write).toHaveBeenCalledTimes(4);
   });
 });
 
@@ -773,7 +720,7 @@ describe('close', () => {
         name: v4(),
         session,
       }),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
 
     ws.write({
@@ -810,7 +757,7 @@ describe('write', () => {
         name: v4(),
         session,
       }),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
 
     ws.write({
@@ -821,7 +768,7 @@ describe('write', () => {
 
     await server.connected;
 
-    expect(send).toHaveBeenCalledTimes(4);
+    expect(send).toHaveBeenCalledTimes(3);
     expect(beforeWriting).toHaveBeenCalledTimes(1);
     expect(afterWriting).toHaveBeenCalledTimes(1);
   });
@@ -834,7 +781,7 @@ describe('write', () => {
         name: v4(),
         session,
       }),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
 
     ws.write({
@@ -843,6 +790,6 @@ describe('write', () => {
 
     await server.connected;
 
-    expect(send).toHaveBeenCalledTimes(4);
+    expect(send).toHaveBeenCalledTimes(3);
   });
 });

@@ -10,7 +10,7 @@ import {
   LoadCharactersCharacterName,
   MutationEvent,
   Routing,
-  SessionControlEvent,
+  SessionConfigurationPayload,
   TextEventSourceType,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import {
@@ -190,7 +190,7 @@ export class EventFactory {
   }
 
   static sessionControl(props: SessionControlProps): ProtoPacket {
-    const sessionControl = {
+    const sessionConfiguration = {
       ...(!!props.capabilities && {
         capabilitiesConfiguration: props.capabilities,
       }),
@@ -204,10 +204,7 @@ export class EventFactory {
         userConfiguration: props.userConfiguration,
       }),
       ...(!!props.continuation && { continuation: props.continuation }),
-      ...(!!props.sessionHistory && {
-        sessionHistoryRequest: props.sessionHistory,
-      }),
-    } as SessionControlEvent;
+    } as SessionConfigurationPayload;
 
     return {
       packetId: {
@@ -215,7 +212,18 @@ export class EventFactory {
       },
       timestamp: protoTimestamp(),
       routing: this.worldRouting(),
-      sessionControl,
+      ...(Object.keys(sessionConfiguration).length
+        ? {
+            control: {
+              action: ControlEventAction.SESSION_CONFIGURATION,
+              sessionConfiguration,
+            },
+          }
+        : {
+            ...(props.sessionHistory && {
+              sessionControl: { sessionHistoryRequest: props.sessionHistory },
+            }),
+          }),
     };
   }
 

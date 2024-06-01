@@ -84,6 +84,7 @@ export interface HistoryItemSceneChange {
   displayName?: string;
   loadedCharacters?: Character[];
   addedCharacters?: Character[];
+  removedCharacters?: Character[];
   conversationId?: string;
 }
 
@@ -256,14 +257,34 @@ export class InworldHistory<
         }
         break;
 
-      case packet.isSceneMutationResponse():
-        historyItem = this.combineSceneChangeItem(packet);
+      case packet.isSceneMutationRequest():
+        queueItem = this.combineSceneChangeItem(packet, characters);
+        break;
 
-        if (historyItem.to) {
-          this.scene = historyItem.to;
+      case packet.isSceneMutationResponse():
+        const sceneMutation = this.queue.findLast(
+          (item) => item.type === CHAT_HISTORY_TYPE.SCENE_CHANGE,
+        ) as HistoryItemSceneChange;
+
+        if (sceneMutation) {
+          const added =
+            packet.sceneMutation.loadedCharacters?.filter((l) =>
+              sceneMutation.addedCharacters.find(
+                (c) => c.resourceName === l.resourceName,
+              ),
+            ) ?? [];
+
+          sceneMutation.loadedCharacters =
+            packet.sceneMutation.loadedCharacters;
+          sceneMutation.addedCharacters = added;
+
+          this.history = [...this.history, ...[sceneMutation]];
+          this.queue = this.queue.filter(
+            (item) => item.type !== CHAT_HISTORY_TYPE.SCENE_CHANGE,
+          );
         }
 
-        break;
+        return sceneMutation ? [sceneMutation] : [];
 
       case packet.control?.action === InworlControlAction.CONVERSATION_UPDATE:
         const conversation = this.conversations.get(conversationId);
@@ -271,8 +292,8 @@ export class InworldHistory<
           ...this.combineConversationUpdateItem(packet),
           currentCharacters: conversation.service?.getCharacters(),
         });
-
         break;
+
       case packet.control?.action === InworlControlAction.CONVERSATION_EVENT:
         const updateItem = this.queue.find(
           (item) =>
@@ -314,7 +335,6 @@ export class InworldHistory<
 
             return [diff];
           }
-
           return [];
         }
     }
@@ -529,7 +549,17 @@ export class InworldHistory<
 
   private combineSceneChangeItem(
     packet: InworldPacketT,
+    characters: Character[],
   ): HistoryItemSceneChange {
+    const removedCharacters = packet.sceneMutation.removedCharacterIds?.length
+      ? characters.filter(
+          (character) =>
+            !packet.sceneMutation.removedCharacterIds?.find(
+              (id) => character.id === id,
+            ),
+        )
+      : [];
+
     return {
       id: v4(),
       date: new Date(packet.date),
@@ -541,12 +571,12 @@ export class InworldHistory<
         description: packet.sceneMutation.description,
         displayName: packet.sceneMutation.displayName,
       }),
-      ...(packet.sceneMutation?.loadedCharacters && {
-        loadedCharacters: packet.sceneMutation.loadedCharacters,
-      }),
-      ...(packet.sceneMutation?.addedCharacters && {
-        addedCharacters: packet.sceneMutation.addedCharacters,
-      }),
+      loadedCharacters: [],
+      addedCharacters:
+        packet.sceneMutation.addedCharacterNames?.map(
+          (resourceName) => ({ resourceName }) as Character,
+        ) || [],
+      removedCharacters,
     };
   }
 

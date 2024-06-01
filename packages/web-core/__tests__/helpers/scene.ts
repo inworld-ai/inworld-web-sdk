@@ -1,7 +1,10 @@
 import { WS } from 'jest-websocket-mock';
 import { v4 } from 'uuid';
 
-import { Agent } from '../../proto/ai/inworld/packets/packets.pb';
+import {
+  Agent,
+  ControlEventAction,
+} from '../../proto/ai/inworld/packets/packets.pb';
 import { Capabilities, Client, User } from '../../src/common/data_structures';
 import { Character } from '../../src/entities/character.entity';
 import {
@@ -91,10 +94,6 @@ export const convertAgentsToCharacters = (agents: Agent[]) => {
 
 export const agents = [createAgent(), createAgent()];
 
-export const sessionControlResponseEvent = (sceneName: string) => ({
-  loadedScene: { agents, sceneName },
-});
-
 export const historyResponseEvent = {
   sessionHistory: {
     sessionHistoryItems: agents.map((agent) => ({
@@ -117,11 +116,14 @@ export const historyResponseEvent = {
   },
 };
 
-export const emitSessionControlResponseEvent =
+export const emitSceneStatusEvent =
   (stream: WS, sceneName?: string) => (resolve: any) => {
     stream.send({
       result: {
-        sessionControlResponse: sessionControlResponseEvent(sceneName ?? SCENE),
+        control: {
+          action: ControlEventAction.CURRENT_SCENE_STATUS,
+          currentSceneStatus: { agents, sceneName: sceneName ?? SCENE },
+        },
       },
     });
     resolve(true);
