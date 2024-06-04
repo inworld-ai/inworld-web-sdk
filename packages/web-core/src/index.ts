@@ -41,6 +41,12 @@ import {
   SessionContinuation,
   SessionContinuationProps,
 } from './entities/continuation/session_continuation.entity';
+import {
+  ErrorReconnectionType,
+  ErrorResourceType,
+  ErrorType,
+  InworldError,
+} from './entities/error.entity';
 import { DislikeType, Feedback } from './entities/feedback.entity';
 import {
   AdditionalPhonemeInfo,
@@ -90,6 +96,9 @@ export {
   EmotionEvent,
   EmotionStrength,
   EmotionStrengthCode,
+  ErrorReconnectionType,
+  ErrorResourceType,
+  ErrorType,
   Extension,
   Feedback,
   FeedbackDislikeProps,
@@ -104,6 +113,7 @@ export {
   HistoryItemTriggerEvent,
   InworldClient,
   InworldConnectionService,
+  InworldError,
   InworldPacket,
   InworldTriggers,
   PacketId,

@@ -31,6 +31,7 @@ import {
 import { Capability } from '../entities/capability.entity';
 import { Character } from '../entities/character.entity';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
+import { InworldError } from '../entities/error.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { Scene } from '../entities/scene.entity';
 import { SessionToken } from '../entities/session_token.entity';
@@ -48,7 +49,7 @@ interface ConnectionProps<
   config?: InternalClientConfiguration;
   sessionContinuation?: SessionContinuation;
   onReady?: () => Awaitable<void>;
-  onError?: (err: Event | Error) => Awaitable<void>;
+  onError?: (err: InworldError) => Awaitable<void>;
   onMessage?: (packet: InworldPacketT) => Awaitable<void>;
   onWarning?: (packet: InworldPacketT) => Awaitable<void>;
   onDisconnect?: () => Awaitable<void>;
@@ -90,7 +91,7 @@ export class ConnectionService<
     | undefined;
 
   onDisconnect: () => Awaitable<void>;
-  onError: (err: Event | Error) => Awaitable<void>;
+  onError: (err: InworldError) => Awaitable<void>;
   onWarning: (message: InworldPacketT) => Awaitable<void>;
   onMessage: (packet: ProtoPacket) => Awaitable<void>;
   onReady: () => Awaitable<void>;
@@ -500,7 +501,7 @@ export class ConnectionService<
       await onDisconnect?.();
     };
 
-    this.onError = onError ?? ((event: Event | Error) => console.error(event));
+    this.onError = onError ?? ((err: InworldError) => console.error(err));
     this.onWarning =
       onWarning ??
       ((message: InworldPacketT) => {

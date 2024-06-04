@@ -102,6 +102,7 @@ export enum DataChunkDataType {
   STATE = "STATE",
   NVIDIA_A2F_ANIMATION = "NVIDIA_A2F_ANIMATION",
   NVIDIA_A2F_ANIMATION_HEADER = "NVIDIA_A2F_ANIMATION_HEADER",
+  INSPECT = "INSPECT",
 }
 
 export enum DataChunkAudioFormat {

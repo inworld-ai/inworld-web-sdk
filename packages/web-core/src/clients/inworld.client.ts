@@ -26,6 +26,7 @@ import {
   SessionContinuation,
   SessionContinuationProps,
 } from '../entities/continuation/session_continuation.entity';
+import { InworldError } from '../entities/error.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { isNaturalNumber } from '../guard/number';
 import { sceneHasValidFormat } from '../guard/scene';
@@ -45,7 +46,7 @@ export class InworldClient<
   private generateSessionToken: GenerateSessionTokenFn;
 
   private onDisconnect: () => Awaitable<void> | undefined;
-  private onError: ((err: Event | Error) => Awaitable<void>) | undefined;
+  private onError: ((err: InworldError) => Awaitable<void>) | undefined;
   private onWarning: ((message: InworldPacketT) => Awaitable<void>) | undefined;
   private onMessage: ((message: InworldPacketT) => Awaitable<void>) | undefined;
   private onReady: (() => Awaitable<void>) | undefined;
@@ -108,7 +109,7 @@ export class InworldClient<
     return this;
   }
 
-  setOnError(fn?: (err: Error) => Awaitable<void>) {
+  setOnError(fn?: (err: InworldError) => Awaitable<void>) {
     this.onError = fn;
 
     return this;

@@ -1,3 +1,4 @@
+import { InworldStatus as ProtoStatus } from '../../proto/ai/inworld/common/status.pb';
 import {
   CapabilitiesConfiguration,
   ClientConfiguration as ControlClientConfiguration,
@@ -216,4 +217,10 @@ export interface ChangeSceneProps {
   capabilities?: Capabilities;
   sessionContinuation?: SessionContinuationProps;
   gameSessionId?: string;
+}
+
+export interface ProtoError {
+  message: string;
+  code: string | undefined;
+  details: ProtoStatus[] | undefined;
 }

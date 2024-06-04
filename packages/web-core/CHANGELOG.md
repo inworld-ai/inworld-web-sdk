@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Added
+
+- Expose Inworld error codes
+
 ## [2.6.0] - 2024-05-31
 
 - Multi-character conversation support (2.0)

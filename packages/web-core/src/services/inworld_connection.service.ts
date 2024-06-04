@@ -17,6 +17,7 @@ import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_
 import { InworldPlayer } from '../components/sound/inworld_player';
 import { InworldRecorder } from '../components/sound/inworld_recorder';
 import { Character } from '../entities/character.entity';
+import { InworldError } from '../entities/error.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { EventFactory } from '../factories/event';
 import { characterHasValidFormat, sceneHasValidFormat } from '../guard/scene';
@@ -58,7 +59,7 @@ export class InworldConnectionService<
 
         if (!conversation) {
           this.connection.onError(
-            Error('No conversation is available to send audio.'),
+            new InworldError('No conversation is available to send audio.'),
           );
           return;
         }

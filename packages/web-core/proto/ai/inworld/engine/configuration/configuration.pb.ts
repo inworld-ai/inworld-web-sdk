@@ -20,6 +20,7 @@ export type CapabilitiesConfiguration = {
   ttsMp3?: boolean
   multiAgent?: boolean
   audio2Face?: boolean
+  inspect?: boolean
 }
 
 export type UserConfigurationUserSettingsPlayerProfilePlayerField = {
