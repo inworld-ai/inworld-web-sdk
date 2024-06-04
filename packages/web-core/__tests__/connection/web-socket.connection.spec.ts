@@ -9,6 +9,7 @@ import { CLIENT_ID } from '../../src/common/constants';
 import { Awaitable, ConnectionConfig } from '../../src/common/data_structures';
 import { WebSocketConnection } from '../../src/connection/web-socket.connection';
 import { SessionContinuation } from '../../src/entities/continuation/session_continuation.entity';
+import { InworldError } from '../../src/entities/error.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ExtendedHistoryItem, ExtendedInworldPacket } from '../data_structures';
 import {
@@ -146,8 +147,7 @@ describe('open', () => {
           ),
         ]);
       }),
-      // WebSocket onerror event gets called with an event of type error and not an error
-    ).rejects.toEqual(expect.objectContaining({ type: 'error' }));
+    ).rejects.toBeInstanceOf(InworldError);
   });
 
   test('should call onDisconnect', async () => {
@@ -508,7 +508,7 @@ describe('open', () => {
           0,
         ),
       ]),
-    ).rejects.toEqual(error);
+    ).rejects.toHaveProperty('message', error.message);
   });
 });
 
@@ -565,8 +565,7 @@ describe('reopen', () => {
           ),
         ]);
       }),
-      // WebSocket onerror event gets called with an event of type error and not an error
-    ).rejects.toEqual(expect.objectContaining({ type: 'error' }));
+    ).rejects.toBeInstanceOf(InworldError);
   });
 
   test('should call onDisconnect', async () => {

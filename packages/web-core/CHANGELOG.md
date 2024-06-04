@@ -7,6 +7,7 @@
 ### Changed
 
 - Support new runtime protocol session configuration
+- Expose Inworld error codes
 
 ## [2.6.0] - 2024-05-31
 

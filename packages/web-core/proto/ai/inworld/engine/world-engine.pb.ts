@@ -12,6 +12,15 @@ import * as AiInworldPacketsPackets from "../packets/packets.pb"
 import * as AiInworldVoicesBase_voice from "../voices/base_voice.pb"
 import * as AiInworldVoicesVoices from "../voices/voices.pb"
 
+type Absent<T, K extends keyof T> = { [k in Exclude<keyof T, K>]?: undefined };
+type OneOf<T> =
+  | { [k in keyof T]?: undefined }
+  | (
+    keyof T extends infer K ?
+      (K extends string & keyof T ? { [k in K]: T[K] } & Absent<T, K>
+        : never)
+    : never);
+
 export enum VoicePreset {
   VOICE_PRESET_UNSPECIFIED = "VOICE_PRESET_UNSPECIFIED",
   VOICE_PRESET_FEMALE_1 = "VOICE_PRESET_FEMALE_1",
@@ -54,6 +63,7 @@ export enum PreviousDialogDialogParticipant {
   UNKNOWN = "UNKNOWN",
   PLAYER = "PLAYER",
   CHARACTER = "CHARACTER",
+  WORLD = "WORLD",
 }
 
 export enum PreviousStateStateHolderStateFormat {
@@ -83,6 +93,7 @@ export type CapabilitiesRequest = {
   ttsMp3?: boolean
   multiAgent?: boolean
   audio2Face?: boolean
+  inspect?: boolean
 }
 
 export type UserRequest = {
@@ -135,10 +146,14 @@ export type SessionContinuation = {
   previousState?: Uint8Array
 }
 
-export type PreviousDialogPhrase = {
+
+type BasePreviousDialogPhrase = {
   talker?: PreviousDialogDialogParticipant
-  phrase?: string
+  talkerDisplayName?: string
 }
+
+export type PreviousDialogPhrase = BasePreviousDialogPhrase
+  & OneOf<{ phrase: string; narrativeAction: string }>
 
 export type PreviousDialog = {
   phrases?: PreviousDialogPhrase[]

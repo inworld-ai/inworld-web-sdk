@@ -10,9 +10,14 @@ export type GetSessionStateRequest = {
   name?: string
 }
 
+export type SessionStateVersion = {
+  interactionId?: string
+}
+
 export type SessionState = {
   state?: Uint8Array
   creationTime?: GoogleProtobufTimestamp.Timestamp
+  version?: SessionStateVersion
 }
 
 export class StateSerialization {
