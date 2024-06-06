@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Added
+
+- Support Push-to-talk feature
+
 ### Changed
 
 - Support new runtime protocol session configuration

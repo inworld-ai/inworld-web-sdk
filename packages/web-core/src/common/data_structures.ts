@@ -12,6 +12,7 @@ import {
   SessionHistoryResponse,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import { HistoryItem } from '../components/history';
+import { Character } from '../entities/character.entity';
 import { SessionContinuationProps } from '../entities/continuation/session_continuation.entity';
 import { AdditionalPhonemeInfo } from '../entities/packets/audio.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
@@ -150,11 +151,6 @@ export interface TriggerParameter {
   value: string;
 }
 
-export interface SendTriggerPacketParams {
-  parameters?: TriggerParameter[];
-  conversationId: string;
-}
-
 export enum InworldPacketType {
   UNKNOWN = 'UNKNOWN',
   TEXT = 'TEXT',
@@ -197,8 +193,27 @@ export interface PacketQueueItem {
   afterWriting: (packet: ProtoPacket) => void;
 }
 
+export enum MicrophoneMode {
+  UNSPECIFIED = 'UNSPECIFIED',
+  OPEN_MIC = 'OPEN_MIC',
+  EXPECT_AUDIO_END = 'EXPECT_AUDIO_END',
+}
+
 export interface SendPacketParams {
   conversationId: string;
+}
+
+export interface SendTriggerPacketParams extends SendPacketParams {
+  parameters?: TriggerParameter[];
+  character?: Character;
+}
+
+export interface SendAudioSessionStartPacketParams extends SendPacketParams {
+  mode?: MicrophoneMode;
+}
+
+export interface AudioSessionStartPacketParams {
+  mode?: MicrophoneMode;
 }
 
 export interface ConversationMapItem<

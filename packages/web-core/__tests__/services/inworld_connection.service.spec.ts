@@ -3,6 +3,7 @@ import '../mocks/window.mock';
 import { v4 } from 'uuid';
 
 import {
+  AudioSessionStartPayloadMicrophoneMode,
   ControlEventAction,
   DataChunkDataType,
 } from '../../proto/ai/inworld/packets/packets.pb';
@@ -13,6 +14,7 @@ import {
   ConversationState,
   InworldPacketType,
   LoadedScene,
+  MicrophoneMode,
   TtsPlaybackAction,
 } from '../../src/common/data_structures';
 import {
@@ -519,6 +521,45 @@ describe('send', () => {
       expect(write.mock.calls[1][0].getPacket().control?.action).toEqual(
         ControlEventAction.AUDIO_SESSION_START,
       );
+      expect(packet!.isControl()).toEqual(true);
+      expect(service.getConversations()).toEqual([
+        {
+          conversationId,
+          characters: [characters[0]],
+        },
+      ]);
+    });
+
+    test('should send audio session start for push-to-talk', async () => {
+      jest
+        .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+        .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementation(writeMock);
+      const mode = MicrophoneMode.OPEN_MIC;
+
+      const [packet] = await Promise.all([
+        service.sendAudioSessionStart({ mode }),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(write.mock.calls[0][0].getPacket().control?.action).toEqual(
+        ControlEventAction.CONVERSATION_UPDATE,
+      );
+      expect(write.mock.calls[1][0].getPacket().control).toEqual({
+        action: ControlEventAction.AUDIO_SESSION_START,
+        audioSessionStart: {
+          mode: AudioSessionStartPayloadMicrophoneMode.OPEN_MIC,
+        },
+      });
       expect(packet!.isControl()).toEqual(true);
       expect(service.getConversations()).toEqual([
         {

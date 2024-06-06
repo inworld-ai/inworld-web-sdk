@@ -1,5 +1,6 @@
 import { InworldPacket as ProtoPacket } from '../../proto/ai/inworld/packets/packets.pb';
 import {
+  AudioSessionStartPacketParams,
   AudioSessionState,
   CancelResponsesProps,
   ChangeSceneProps,
@@ -224,7 +225,7 @@ export class InworldConnectionService<
     }
   }
 
-  async sendAudioSessionStart() {
+  async sendAudioSessionStart(params?: AudioSessionStartPacketParams) {
     if (this.connection.getAudioSessionAction() === AudioSessionState.START) {
       throw Error('Audio session is already started');
     }
@@ -233,7 +234,7 @@ export class InworldConnectionService<
 
     await this.ensureOneToOneConversation();
 
-    return this.oneToOneConversation.sendAudioSessionStart(true);
+    return this.oneToOneConversation.sendAudioSessionStart(params, true);
   }
 
   async sendAudioSessionEnd() {
