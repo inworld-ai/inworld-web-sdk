@@ -8,9 +8,14 @@ import {
   ControlEventAction,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
-  SessionControlResponseEvent,
+  TextEventSourceType,
 } from '../../proto/ai/inworld/packets/packets.pb';
-import { TtsPlaybackAction } from '../../src/common/data_structures';
+import { ConversationService } from '../../src';
+import {
+  ConversationState,
+  HistoryChangedProps,
+  LoadedScene,
+} from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
 import {
   CHAT_HISTORY_TYPE,
@@ -23,6 +28,7 @@ import { Player } from '../../src/components/sound/player';
 import { WebSocketConnection } from '../../src/connection/web-socket.connection';
 import { Character } from '../../src/entities/character.entity';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
+import { Actor } from '../../src/entities/packets/routing.entity';
 import { SessionToken } from '../../src/entities/session_token.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
@@ -32,10 +38,11 @@ import {
 } from '../../src/services/pb/state_serialization.service';
 import {
   capabilitiesProps,
+  conversationId,
   convertAgentsToCharacters,
   convertPacketFromProto,
   createAgent,
-  emitSessionControlResponseEvent,
+  emitSceneStatusEvent,
   generateSessionToken,
   previousState,
   SCENE,
@@ -55,8 +62,27 @@ const webRtcLoopbackBiDiSession = new GrpcWebRtcLoopbackBiDiSession();
 const eventFactory = new EventFactory();
 eventFactory.setCurrentCharacter(characters[0]);
 
-const textEvent = eventFactory.text(v4());
-const audioEvent = eventFactory.dataChunk(v4(), DataChunkDataType.AUDIO);
+const textEvent: ProtoPacket = {
+  packetId: {
+    packetId: v4(),
+    interactionId: v4(),
+    utteranceId: v4(),
+    correlationId: v4(),
+  },
+  routing: {
+    source: { type: ActorType.PLAYER },
+    target: { type: ActorType.AGENT, name: characters[0].id },
+  },
+  text: {
+    sourceType: TextEventSourceType.TYPED_IN,
+    text: v4(),
+    final: true,
+  },
+  timestamp: protoTimestamp(),
+};
+const audioEvent = eventFactory.dataChunk(v4(), DataChunkDataType.AUDIO, {
+  conversationId,
+});
 const warningEvent: ProtoPacket = {
   packetId: {
     ...textEvent.packetId,
@@ -131,6 +157,7 @@ test('should close', async () => {
 
       expect(connection.isActive()).toEqual(false);
       expect(close).toHaveBeenCalledTimes(1);
+      expect(onDisconnect).toHaveBeenCalledTimes(1);
     },
     onError,
     onMessage,
@@ -141,6 +168,31 @@ test('should close', async () => {
   });
 
   await connection.open();
+});
+
+test('should set and get current audio conversation', () => {
+  const connection = new ConnectionService();
+  const conversation = new ConversationService(connection, {
+    participants: characters.map((c) => c.resourceName),
+    addCharacters: jest.fn(),
+  });
+
+  connection.setCurrentAudioConversation(conversation);
+
+  expect(connection.getCurrentAudioConversation()).toEqual(conversation);
+});
+
+test('should set and get current character', async () => {
+  jest
+    .spyOn(ConnectionService.prototype, 'open')
+    .mockImplementationOnce(jest.fn());
+
+  const connection = new ConnectionService();
+  const character = characters[0];
+
+  connection.setCurrentCharacter(character);
+
+  expect(await connection.getCurrentCharacter()).toEqual(character);
 });
 
 describe('history', () => {
@@ -250,13 +302,48 @@ describe('open', () => {
     jest.spyOn(Player.prototype, 'setStream').mockImplementation(jest.fn());
   });
 
-  test('should execute without errors', async () => {
+  test('should execute without errors123', async () => {
     const openSession = jest
       .spyOn(WebSocketConnection.prototype, 'openSession')
       .mockImplementationOnce(() =>
         Promise.resolve({
-          loadedScene: { agents },
-        } as SessionControlResponseEvent),
+          sceneStatus: { agents },
+          sessionHistory: {
+            sessionHistoryItems: [
+              {
+                agent: {
+                  agentId: agents[0].agentId,
+                },
+                packets: [
+                  {
+                    packetId: { packetId: v4() },
+                    routing: {
+                      targets: [
+                        {
+                          type: ActorType.AGENT,
+                        },
+                      ],
+                      source: {
+                        type: ActorType.PLAYER,
+                      },
+                    },
+                  },
+                  {
+                    packetId: { packetId: v4() },
+                    routing: {
+                      target: {
+                        type: ActorType.PLAYER,
+                      },
+                      source: {
+                        type: ActorType.AGENT,
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        } as unknown as LoadedScene),
       );
     const setCharacters = jest.spyOn(EventFactory.prototype, 'setCharacters');
 
@@ -300,7 +387,7 @@ describe('open', () => {
     jest
       .spyOn(WebSocketConnection.prototype, 'openSession')
       .mockImplementationOnce(() =>
-        Promise.resolve({ agents } as SessionControlResponseEvent),
+        Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
       );
 
     const generateSessionToken = jest.fn(() => Promise.resolve(session));
@@ -348,7 +435,7 @@ describe('open', () => {
     jest
       .spyOn(WebSocketConnection.prototype, 'openSession')
       .mockImplementationOnce(() =>
-        Promise.resolve({ agents } as SessionControlResponseEvent),
+        Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
       );
 
     await connection.open();
@@ -407,7 +494,7 @@ describe('open manually', () => {
     jest
       .spyOn(WebSocketConnection.prototype, 'openSession')
       .mockImplementationOnce(() =>
-        Promise.resolve({ agents } as SessionControlResponseEvent),
+        Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
       );
 
     await connection.openManually();
@@ -434,9 +521,11 @@ describe('open manually', () => {
       .spyOn(WebSocketConnection.prototype, 'openSession')
       .mockImplementationOnce(() =>
         Promise.resolve({
-          characters,
-          history: [incomingTextEvent],
-        } as SessionControlResponseEvent),
+          sceneStatus: { agents },
+          sessionHistory: {
+            sessionHistoryItems: [incomingTextEvent],
+          },
+        } as LoadedScene),
       );
 
     connection = new ConnectionService({
@@ -450,10 +539,10 @@ describe('open manually', () => {
       onError,
       onMessage,
       onDisconnect,
-      onHistoryChange: (history: HistoryItem[], diff: HistoryItem[]) => {
+      onHistoryChange: (history: HistoryItem[], props: HistoryChangedProps) => {
         const result = [convertPacketFromProto(incomingTextEvent)];
 
-        expect(diff).toEqual(result);
+        expect(props.diff).toEqual(result);
         expect(history).toEqual(result);
       },
       grpcAudioPlayer,
@@ -496,6 +585,9 @@ describe('send', () => {
     });
 
     jest.spyOn(Player.prototype, 'setStream').mockImplementation(jest.fn());
+    jest
+      .spyOn(ConversationService.prototype, 'getConversationId')
+      .mockImplementation(() => conversationId);
   });
 
   afterEach(() => {
@@ -543,9 +635,7 @@ describe('send', () => {
     jest
       .spyOn(WebSocketConnection.prototype, 'openSession')
       .mockImplementationOnce(() =>
-        Promise.resolve({
-          loadedScene: { agents },
-        } as SessionControlResponseEvent),
+        Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
       );
 
     connection = new ConnectionService({
@@ -568,11 +658,11 @@ describe('send', () => {
             date: new Date(textEvent.timestamp),
             interactionId: textEvent.packetId.interactionId,
             isRecognizing: false,
-            source: {
+            source: new Actor({
               isCharacter: false,
               isPlayer: true,
-              name: undefined,
-            },
+              name: '',
+            }),
             scene: SCENE,
             text: textEvent.text.text,
             type: CHAT_HISTORY_TYPE.ACTOR,
@@ -587,7 +677,7 @@ describe('send', () => {
 
     await Promise.all([
       connection.send(() => textEvent),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
 
     expect(open).toHaveBeenCalledTimes(1);
@@ -604,7 +694,7 @@ describe('send', () => {
     const open = jest
       .spyOn(WebSocketConnection.prototype, 'openSession')
       .mockImplementationOnce(() =>
-        Promise.resolve({ agents } as SessionControlResponseEvent),
+        Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
       );
     jest
       .spyOn(EventFactory.prototype, 'getCurrentCharacter')
@@ -618,13 +708,30 @@ describe('send', () => {
             packetId: audioEvent.packetId!.packetId,
             interactionId,
             utteranceId,
+            conversationId,
           },
         }),
       ]);
 
+    connection.conversations.set(conversationId, {
+      service: new ConversationService(connection, {
+        participants: [characters[0].resourceName],
+        conversationId,
+        addCharacters: jest.fn(),
+      }),
+      state: ConversationState.ACTIVE,
+    });
+    jest
+      .spyOn(connection, 'getCharactersByResourceNames')
+      .mockImplementation((names: string[]) =>
+        characters.filter((character) =>
+          names.includes(character.resourceName),
+        ),
+      );
+
     await Promise.all([
       connection.send(() => textEvent),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
 
     expect(open).toHaveBeenCalledTimes(1);
@@ -635,80 +742,6 @@ describe('send', () => {
       interactionId,
       utteranceId: [utteranceId],
     });
-  });
-
-  test('should add playback mute event to queue in case of auto reconnect', async () => {
-    const open = jest.spyOn(ConnectionService.prototype, 'open');
-    const write = jest
-      .spyOn(WebSocketConnection.prototype, 'write')
-      .mockImplementation(writeMock);
-    jest
-      .spyOn(WebSocketConnection.prototype, 'openSession')
-      .mockImplementationOnce(() =>
-        Promise.resolve({ agents } as SessionControlResponseEvent),
-      );
-    jest
-      .spyOn(ConnectionService.prototype, 'getTtsPlaybackAction')
-      .mockImplementationOnce(() => TtsPlaybackAction.MUTE);
-
-    connection = new ConnectionService({
-      name: SCENE,
-      config: {
-        connection: { gateway: { hostname: '' } },
-        capabilities: capabilitiesProps,
-      },
-      user,
-      grpcAudioPlayer,
-      generateSessionToken,
-      webRtcLoopbackBiDiSession,
-    });
-
-    await Promise.all([
-      connection.send(() => textEvent),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
-    ]);
-
-    expect(open).toHaveBeenCalledTimes(1);
-    expect(write).toHaveBeenCalledTimes(2);
-    expect(write.mock.calls[0][0].getPacket().control?.action).toEqual(
-      ControlEventAction.TTS_PLAYBACK_MUTE,
-    );
-    expect(write.mock.calls[1][0].getPacket().text?.text).toEqual(
-      textEvent.text?.text,
-    );
-  });
-
-  test('should not add playback mute event to queue in case of manual reconnect', async () => {
-    connection = new ConnectionService({
-      name: SCENE,
-      config: {
-        connection: { gateway: { hostname: HOSTNAME }, autoReconnect: false },
-        capabilities: capabilitiesProps,
-      },
-      user,
-      grpcAudioPlayer,
-      generateSessionToken,
-      webRtcLoopbackBiDiSession,
-    });
-
-    const write = jest.spyOn(WebSocketConnection.prototype, 'write');
-
-    jest
-      .spyOn(WebSocketConnection.prototype, 'openSession')
-      .mockImplementationOnce(() =>
-        Promise.resolve({ agents } as SessionControlResponseEvent),
-      );
-
-    jest
-      .spyOn(ConnectionService.prototype, 'getTtsPlaybackAction')
-      .mockImplementationOnce(() => TtsPlaybackAction.MUTE);
-
-    await Promise.all([
-      connection.open(),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
-    ]);
-
-    expect(write).toHaveBeenCalledTimes(0);
   });
 });
 
@@ -771,20 +804,49 @@ describe('onMessage', () => {
           ...audioEvent,
           packetId: {
             ...textEvent.packetId,
+            conversationId,
           },
         }),
       ]);
     jest.spyOn(connection, 'isActive').mockImplementation(() => true);
+    jest
+      .spyOn(ConversationService.prototype, 'getConversationId')
+      .mockImplementation(() => conversationId);
+
+    connection.conversations.set(conversationId, {
+      service: new ConversationService(connection, {
+        participants: [characters[0].resourceName],
+        conversationId,
+        addCharacters: jest.fn(),
+      }),
+      state: ConversationState.ACTIVE,
+    });
+
+    jest
+      .spyOn(connection, 'getCharactersByResourceNames')
+      .mockImplementation((names: string[]) =>
+        characters.filter((character) =>
+          names.includes(character.resourceName),
+        ),
+      );
 
     await Promise.all([
       connection.open(),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
     await server.connected;
 
     await connection.send(() => textEvent);
 
-    server.send({ result: incomingTextEvent });
+    server.send({
+      result: {
+        ...incomingTextEvent,
+        packetId: {
+          ...incomingTextEvent.packetId,
+          conversationId,
+        },
+      },
+    });
 
     expect(cancelResponse).toHaveBeenCalledTimes(2);
   });
@@ -806,7 +868,7 @@ describe('onMessage', () => {
 
     await Promise.all([
       connection.open(),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
     await server.connected;
 
@@ -843,7 +905,7 @@ describe('onMessage', () => {
 
     await Promise.all([
       connection.open(),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
     await server.connected;
 
@@ -883,7 +945,7 @@ describe('onMessage', () => {
 
     await Promise.all([
       connection.open(),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
 
     await server.connected;
@@ -921,7 +983,7 @@ describe('onMessage', () => {
 
     await Promise.all([
       connection.open(),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
     ]);
     await server.connected;
 
@@ -944,68 +1006,9 @@ describe('onMessage', () => {
           },
         ],
       },
-      sessionControlResponse: {
-        loadedScene: { agents: newAgents },
-      },
-    };
-
-    server.send({ result: packet });
-  });
-
-  test('should add characters to scene', async () => {
-    const newAgents = [createAgent(), createAgent()];
-    let currentCharacters: Character[];
-
-    connection = new ConnectionService({
-      name: SCENE,
-      config: {
-        connection: { gateway: { hostname: HOSTNAME }, autoReconnect: false },
-        capabilities: capabilitiesProps,
-      },
-      user,
-      onError,
-      onMessage: async (packet) => {
-        const newCharacters = await connection.getCharacters();
-
-        expect(packet.isSceneMutationResponse()).toEqual(true);
-        expect(newCharacters[0].id).toEqual(currentCharacters[0].id);
-        expect(newCharacters[1].id).toEqual(currentCharacters[1].id);
-        expect(newCharacters[2].id).toEqual(newAgents[0].agentId);
-        expect(newCharacters[3].id).toEqual(newAgents[1].agentId);
-      },
-      onDisconnect,
-      grpcAudioPlayer,
-      generateSessionToken,
-      webRtcLoopbackBiDiSession,
-    });
-
-    await Promise.all([
-      connection.open(),
-      setTimeout(() => new Promise(emitSessionControlResponseEvent(server)), 0),
-    ]);
-    await server.connected;
-
-    currentCharacters = await connection.getCharacters();
-
-    const packet: ProtoPacket = {
-      packetId: {
-        ...textEvent.packetId,
-        utteranceId: v4(),
-      },
-      routing: {
-        source: {
-          name: v4(),
-          type: ActorType.AGENT,
-        },
-        targets: [
-          {
-            name: characters[0].id,
-            type: ActorType.PLAYER,
-          },
-        ],
-      },
-      sessionControlResponse: {
-        loadedCharacters: { agents: newAgents },
+      control: {
+        action: ControlEventAction.CURRENT_SCENE_STATUS,
+        currentSceneStatus: { agents: newAgents },
       },
     };
 
@@ -1013,7 +1016,64 @@ describe('onMessage', () => {
   });
 });
 
-describe('loadCharacters', () => {
+describe('onDisconnect', () => {
+  test('should inactivate conversations', async () => {
+    const connection = new ConnectionService();
+    const conversationId1 = v4();
+    const conversationId2 = v4();
+
+    connection.conversations.set(conversationId1, {
+      service: new ConversationService(connection, {
+        participants: characters.map((character) => character.resourceName),
+        conversationId: conversationId1,
+        addCharacters: jest.fn(),
+      }),
+      state: ConversationState.ACTIVE,
+    });
+    connection.conversations.set(conversationId2, {
+      service: new ConversationService(connection, {
+        participants: characters.map((character) => character.resourceName),
+        conversationId: conversationId2,
+        addCharacters: jest.fn(),
+      }),
+      state: ConversationState.PROCESSING,
+    });
+
+    await connection.onDisconnect();
+
+    expect(connection.conversations.get(conversationId1)?.state).toEqual(
+      ConversationState.INACTIVE,
+    );
+    expect(connection.conversations.get(conversationId2)?.state).toEqual(
+      ConversationState.INACTIVE,
+    );
+  });
+});
+
+describe('onWarning', () => {
+  test('should use console.warn by default', () => {
+    const connection = new ConnectionService();
+    const description = v4();
+
+    jest.spyOn(console, 'warn').mockImplementationOnce(jest.fn());
+
+    connection.onWarning({ control: { description } } as InworldPacket);
+
+    expect(console.warn).toHaveBeenCalledTimes(1);
+  });
+
+  test('should print nothing if control is empty', () => {
+    const connection = new ConnectionService();
+
+    jest.spyOn(console, 'warn').mockImplementationOnce(jest.fn());
+
+    connection.onWarning({} as InworldPacket);
+
+    expect(console.warn).toHaveBeenCalledTimes(0);
+  });
+});
+
+describe('load scene', () => {
   test("should load scene if it's required", async () => {
     const setCurrentCharacter = jest.spyOn(
       EventFactory.prototype,
@@ -1036,14 +1096,10 @@ describe('loadCharacters', () => {
     const openSession = jest
       .spyOn(WebSocketConnection.prototype, 'openSession')
       .mockImplementationOnce(() =>
-        Promise.resolve({
-          loadedScene: { agents },
-        } as SessionControlResponseEvent),
+        Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
       )
       .mockImplementationOnce(() =>
-        Promise.resolve({
-          loadedScene: { agents },
-        } as SessionControlResponseEvent),
+        Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
       );
     const setCharacters = jest.spyOn(EventFactory.prototype, 'setCharacters');
 
@@ -1082,6 +1138,9 @@ describe('interrupt', () => {
     const send = jest
       .spyOn(ConnectionService.prototype, 'send')
       .mockImplementationOnce(jest.fn());
+    jest
+      .spyOn(ConversationService.prototype, 'getConversationId')
+      .mockImplementation(() => conversationId);
 
     const HOSTNAME = 'localhost:1235';
     const connection = new ConnectionService({
@@ -1098,6 +1157,22 @@ describe('interrupt', () => {
       grpcAudioPlayer,
       generateSessionToken,
       webRtcLoopbackBiDiSession,
+    });
+    jest
+      .spyOn(connection, 'getCharactersByResourceNames')
+      .mockImplementation((names: string[]) =>
+        characters.filter((character) =>
+          names.includes(character.resourceName),
+        ),
+      );
+
+    connection.conversations.set(conversationId, {
+      service: new ConversationService(connection, {
+        participants: [characters[0].resourceName],
+        conversationId,
+        addCharacters: jest.fn(),
+      }),
+      state: ConversationState.ACTIVE,
     });
 
     await connection.interrupt();

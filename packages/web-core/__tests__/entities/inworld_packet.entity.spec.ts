@@ -1,7 +1,7 @@
 import { v4 } from 'uuid';
 
 import {
-  InworlControlType,
+  InworlControlAction,
   InworldPacketType,
 } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
@@ -158,20 +158,22 @@ describe('scene mutation', () => {
   });
 
   test('should get character add event request', () => {
-    const characterNames = [v4(), v4()];
+    const addedCharacterNames = [v4(), v4()];
     const packet = new InworldPacket({
       packetId,
       routing,
       date,
       type: InworldPacketType.SCENE_MUTATION_REQUEST,
-      sceneMutation: { characterNames },
+      sceneMutation: { addedCharacterNames },
     });
 
     expect(packet.isSceneMutationRequest()).toEqual(true);
     expect(packet.routing).toEqual(routing);
     expect(packet.date).toEqual(date);
     expect(packet.packetId).toEqual(packetId);
-    expect(packet.sceneMutation.characterNames).toEqual(characterNames);
+    expect(packet.sceneMutation.addedCharacterNames).toEqual(
+      addedCharacterNames,
+    );
   });
 
   test('should get scene change event response', () => {
@@ -191,19 +193,22 @@ describe('scene mutation', () => {
   });
 
   test('should get character add event response', () => {
+    const addedCharacterNames = characters.map((c) => c.displayName);
     const packet = new InworldPacket({
       packetId,
       routing,
       date,
       type: InworldPacketType.SCENE_MUTATION_RESPONSE,
-      sceneMutation: { addedCharacters: characters },
+      sceneMutation: { addedCharacterNames },
     });
 
     expect(packet.isSceneMutationResponse()).toEqual(true);
     expect(packet.routing).toEqual(routing);
     expect(packet.date).toEqual(date);
     expect(packet.packetId).toEqual(packetId);
-    expect(packet.sceneMutation.addedCharacters).toEqual(characters);
+    expect(packet.sceneMutation.addedCharacterNames).toEqual(
+      addedCharacterNames,
+    );
   });
 });
 
@@ -214,7 +219,9 @@ describe('control', () => {
       routing,
       date,
       type: InworldPacketType.CONTROL,
-      control: new ControlEvent({ type: InworlControlType.INTERACTION_END }),
+      control: new ControlEvent({
+        action: InworlControlAction.INTERACTION_END,
+      }),
     });
 
     expect(packet.isControl()).toEqual(true);
@@ -230,7 +237,7 @@ describe('control', () => {
       routing,
       date,
       type: InworldPacketType.CONTROL,
-      control: new ControlEvent({ type: InworlControlType.WARNING }),
+      control: new ControlEvent({ action: InworlControlAction.WARNING }),
     });
 
     expect(packet.isControl()).toEqual(true);

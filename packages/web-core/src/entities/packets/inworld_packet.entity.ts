@@ -1,11 +1,12 @@
 import {
   Agent,
+  ControlEventAction,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
   LoadCharactersCharacterName,
 } from '../../../proto/ai/inworld/packets/packets.pb';
 import {
-  InworlControlType,
+  InworlControlAction,
   InworldPacketType,
 } from '../../common/data_structures';
 import { Character } from '../character.entity';
@@ -38,9 +39,11 @@ export interface InworldPacketProps {
 
 export interface SceneMutation {
   name?: string;
-  characterNames?: string[];
+  description?: string;
+  displayName?: string;
+  addedCharacterNames?: string[];
+  removedCharacterIds?: string[];
   loadedCharacters?: Character[];
-  addedCharacters?: Character[];
 }
 
 export class InworldPacket {
@@ -127,40 +130,28 @@ export class InworldPacket {
   isInteractionEnd() {
     return (
       this.isControl() &&
-      this.control.type === InworlControlType.INTERACTION_END
-    );
-  }
-
-  isTTSPlaybackStart() {
-    return (
-      this.isControl() &&
-      this.control.type === InworlControlType.TTS_PLAYBACK_START
-    );
-  }
-
-  isTTSPlaybackEnd() {
-    return (
-      this.isControl() &&
-      this.control.type === InworlControlType.TTS_PLAYBACK_END
+      this.control.action === InworlControlAction.INTERACTION_END
     );
   }
 
   isTTSPlaybackMute() {
     return (
       this.isControl() &&
-      this.control.type === InworlControlType.TTS_PLAYBACK_MUTE
+      this.control.action === InworlControlAction.TTS_PLAYBACK_MUTE
     );
   }
 
   isTTSPlaybackUnmute() {
     return (
       this.isControl() &&
-      this.control.type === InworlControlType.TTS_PLAYBACK_UNMUTE
+      this.control.action === InworlControlAction.TTS_PLAYBACK_UNMUTE
     );
   }
 
   isWarning() {
-    return this.isControl() && this.control.type === InworlControlType.WARNING;
+    return (
+      this.isControl() && this.control.action === InworlControlAction.WARNING
+    );
   }
 
   isSilence() {
@@ -181,6 +172,16 @@ export class InworldPacket {
 
   isSceneMutationResponse() {
     return this.type === InworldPacketType.SCENE_MUTATION_RESPONSE;
+  }
+
+  shouldHaveConversationId() {
+    return (
+      this.isAudio() ||
+      this.isText() ||
+      this.isTrigger() ||
+      this.isNarratedAction() ||
+      this.isSilence()
+    );
   }
 
   static fromProto(proto: ProtoPacket): InworldPacket {
@@ -224,21 +225,22 @@ export class InworldPacket {
             name: proto.mutation.loadScene.name,
           }),
           ...(proto.mutation?.loadCharacters && {
-            characterNames: proto.mutation.loadCharacters.name.map(
+            addedCharacterNames: proto.mutation.loadCharacters.name.map(
               (c: LoadCharactersCharacterName) => c.name,
             ),
           }),
-          ...(proto.sessionControlResponse?.loadedScene && {
-            loadedCharacters:
-              proto.sessionControlResponse.loadedScene.agents.map(
-                (agent: Agent) => Character.fromProto(agent),
-              ),
+          ...(proto.mutation?.unloadCharacters && {
+            removedCharacterIds: proto.mutation.unloadCharacters.agents.map(
+              (c: Agent) => c.agentId,
+            ),
           }),
-          ...(proto.sessionControlResponse?.loadedCharacters && {
-            addedCharacters:
-              proto.sessionControlResponse.loadedCharacters.agents.map(
-                (agent: Agent) => Character.fromProto(agent),
-              ),
+          ...(proto.control?.currentSceneStatus && {
+            name: proto.control.currentSceneStatus.sceneName,
+            description: proto.control.currentSceneStatus.sceneDescription,
+            displayName: proto.control.currentSceneStatus.sceneDisplayName,
+            loadedCharacters: proto.control.currentSceneStatus.agents.map(
+              (agent: Agent) => Character.fromProto(agent),
+            ),
           }),
         },
       }),
@@ -246,7 +248,17 @@ export class InworldPacket {
   }
 
   private static getType(packet: ProtoPacket) {
-    if (packet.text) {
+    if (
+      packet.mutation?.loadScene ||
+      packet.mutation?.loadCharacters ||
+      packet.mutation?.unloadCharacters
+    ) {
+      return InworldPacketType.SCENE_MUTATION_REQUEST;
+    } else if (
+      packet.control?.action === ControlEventAction.CURRENT_SCENE_STATUS
+    ) {
+      return InworldPacketType.SCENE_MUTATION_RESPONSE;
+    } else if (packet.text) {
       return InworldPacketType.TEXT;
     } else if (
       packet.dataChunk &&
@@ -268,13 +280,6 @@ export class InworldPacket {
       return InworldPacketType.CANCEL_RESPONSE;
     } else if (packet.action?.narratedAction) {
       return InworldPacketType.NARRATED_ACTION;
-    } else if (
-      packet.sessionControlResponse?.loadedScene ||
-      packet.sessionControlResponse?.loadedCharacters
-    ) {
-      return InworldPacketType.SCENE_MUTATION_RESPONSE;
-    } else if (packet.mutation?.loadScene || packet.mutation?.loadCharacters) {
-      return InworldPacketType.SCENE_MUTATION_REQUEST;
     } else {
       return InworldPacketType.UNKNOWN;
     }

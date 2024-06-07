@@ -23,11 +23,11 @@ export class Actor {
     this.isCharacter = isCharacter;
   }
 
-  static fromProto(proto: ProtoActor) {
-    const type = proto.type;
+  static fromProto(proto?: ProtoActor) {
+    const type = proto?.type;
 
     return new Actor({
-      name: proto.name,
+      name: proto?.name ?? '',
       isPlayer: type === ProtoActorType.PLAYER,
       isCharacter: type === ProtoActorType.AGENT,
     });
@@ -43,11 +43,11 @@ export class Routing {
     this.targets = targets;
   }
 
-  static fromProto(proto: ProtoRouting) {
-    const targets = proto.target?.type ? [proto.target] : proto.targets;
+  static fromProto(proto?: ProtoRouting) {
+    const targets = proto?.target?.type ? [proto.target] : proto?.targets ?? [];
 
     return new Routing({
-      source: Actor.fromProto(proto.source),
+      source: Actor.fromProto(proto?.source),
       targets: targets.map((target) => Actor.fromProto(target)),
     });
   }

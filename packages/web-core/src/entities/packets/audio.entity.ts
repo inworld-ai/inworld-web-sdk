@@ -23,7 +23,10 @@ export class AudioEvent {
     additionalPhonemeInfo?: AdditionalPhonemeInfo[];
   }) {
     this.chunk = chunk;
-    this.additionalPhonemeInfo = additionalPhonemeInfo;
+
+    if (additionalPhonemeInfo?.length) {
+      this.additionalPhonemeInfo = additionalPhonemeInfo;
+    }
   }
 
   static fromProto(proto: DataChunk) {
