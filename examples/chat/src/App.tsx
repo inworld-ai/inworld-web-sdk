@@ -67,6 +67,7 @@ function App() {
   const [emotionEvent, setEmotionEvent] = useState<EmotionEvent>();
   const [avatars, setAvatars] = useState<string[]>([]);
   const [emotions, setEmotions] = useState<EmotionsMap>({});
+  const [stopRecording, setStopRecording] = useState<Boolean>(false);
 
   const stateRef = useRef<CurrentContext>();
   stateRef.current = {
@@ -134,7 +135,7 @@ function App() {
         capabilities: {
           ...(textMode ? { interruptions: true } : { phonemes: true }),
           emotions: true,
-          multiAgent: form.chatView === CHAT_VIEW.MULTI_AGENT_TEXT,
+          debugInfo: true,
           narratedActions: true,
         },
         ...(previousDialog.length && { continuation: { previousDialog } }),
@@ -156,6 +157,7 @@ function App() {
         },
         onDisconnect: () => {
           console.log('Disconnect!');
+          setStopRecording(true);
         },
         onMessage: (inworldPacket: InworldPacket) => {
           if (
@@ -315,6 +317,8 @@ function App() {
               connection={connection!}
               emotions={emotions}
               onRestore={openConnection}
+              stopRecording={stopRecording}
+              onStartRecording={() => setStopRecording(false)}
             />
           </ChatWrapper>
         </MainWrapper>
