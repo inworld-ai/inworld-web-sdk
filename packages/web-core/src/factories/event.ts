@@ -285,19 +285,13 @@ export class EventFactory {
       | ControlEventAction.AUDIO_SESSION_END,
     params: SendAudioSessionStartPacketParams,
   ): ProtoPacket {
-    let protoMode;
+    let mode;
 
-    if (action === ControlEventAction.AUDIO_SESSION_START && params.mode) {
-      switch (params.mode) {
-        case MicrophoneMode.EXPECT_AUDIO_END:
-          protoMode = AudioSessionStartPayloadMicrophoneMode.EXPECT_AUDIO_END;
-          break;
-        case MicrophoneMode.OPEN_MIC:
-          protoMode = AudioSessionStartPayloadMicrophoneMode.OPEN_MIC;
-          break;
-        default:
-          protoMode = AudioSessionStartPayloadMicrophoneMode.UNSPECIFIED;
-      }
+    if (action === ControlEventAction.AUDIO_SESSION_START) {
+      mode =
+        params.mode === MicrophoneMode.EXPECT_AUDIO_END
+          ? AudioSessionStartPayloadMicrophoneMode.EXPECT_AUDIO_END
+          : AudioSessionStartPayloadMicrophoneMode.OPEN_MIC;
     }
 
     return {
@@ -308,7 +302,7 @@ export class EventFactory {
       }),
       control: {
         action,
-        ...(protoMode && { audioSessionStart: { mode: protoMode } }),
+        ...(mode && { audioSessionStart: { mode } }),
       },
     };
   }

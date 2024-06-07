@@ -70,6 +70,9 @@ describe('event types', () => {
     expect(event).toHaveProperty('timestamp');
     expect(event.control).toEqual({
       action: ControlEventAction.AUDIO_SESSION_START,
+      audioSessionStart: {
+        mode: AudioSessionStartPayloadMicrophoneMode.OPEN_MIC,
+      },
     });
     expect(event.routing?.target).toBeFalsy();
     expect(event.packetId).toHaveProperty('packetId');
@@ -87,10 +90,6 @@ describe('event types', () => {
     {
       input: MicrophoneMode.OPEN_MIC,
       expected: AudioSessionStartPayloadMicrophoneMode.OPEN_MIC,
-    },
-    {
-      input: MicrophoneMode.UNSPECIFIED,
-      expected: AudioSessionStartPayloadMicrophoneMode.UNSPECIFIED,
     },
   ])(
     'should generate audio session start with microphone $input',
