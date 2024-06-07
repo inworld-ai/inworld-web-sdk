@@ -33,7 +33,7 @@ import {
 import { Capability } from '../entities/capability.entity';
 import { Character } from '../entities/character.entity';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
-import { InworldError } from '../entities/error.entity';
+import { ErrorType, InworldError } from '../entities/error.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { Scene } from '../entities/scene.entity';
 import { SessionToken } from '../entities/session_token.entity';
@@ -498,7 +498,15 @@ export class ConnectionService<
       await onDisconnect?.();
     };
 
-    this.onError = onError ?? ((err: InworldError) => console.error(err));
+    this.onError = (err: InworldError) => {
+      const handler = onError ?? console.error;
+
+      if (err.details?.[0].errorType === ErrorType.AUDIO_SESSION_EXPIRED) {
+        this.setAudioSessionAction(AudioSessionState.UNKNOWN);
+      }
+
+      handler(err);
+    };
     this.onWarning =
       onWarning ??
       ((message: InworldPacketT) => {
