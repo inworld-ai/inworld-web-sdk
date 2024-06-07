@@ -88,7 +88,7 @@ export class WebSocketConnection<
       const [err, packet] = this.parseEvent(event);
 
       if (err) {
-        this.connectionProps.onError(err);
+        this.onError(err);
       } else if (packet) {
         this.connectionProps.onMessage(packet);
       }

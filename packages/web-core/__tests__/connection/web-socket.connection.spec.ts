@@ -2,6 +2,11 @@ import WS from 'jest-websocket-mock';
 import { v4 } from 'uuid';
 
 import {
+  ErrorType as ProtoErrorType,
+  InworldStatus,
+  ReconnectionType as ProtoErrorReconnectionType,
+} from '../../proto/ai/inworld/common/status.pb';
+import {
   ContinuationContinuationType,
   InworldPacket as ProtoPacket,
 } from '../../proto/ai/inworld/packets/packets.pb';
@@ -118,7 +123,19 @@ describe('open', () => {
       ),
     ]);
 
-    server.send({ error: 'Error' });
+    server.send({
+      error: {
+        message: 'Error',
+        code: '1',
+        details: [
+          {
+            errorType: ProtoErrorType.AUDIO_SESSION_EXPIRED,
+            reconnectType: ProtoErrorReconnectionType.IMMEDIATE,
+            maxRetries: 1,
+          } as InworldStatus,
+        ],
+      },
+    });
 
     expect(onError).toHaveBeenCalledTimes(1);
   });
