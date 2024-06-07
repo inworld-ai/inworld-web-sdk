@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+
+- Issues with Innequin not aligning with his bones
+
 ## [1.5.0] - 2024-05-29
 
 ### Changed

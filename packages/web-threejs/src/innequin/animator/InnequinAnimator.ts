@@ -76,8 +76,11 @@ export class InnequinAnimator {
     this.isReady = false;
     this.isModelLoaded = false;
 
+    this.onPlayGesture = this.onPlayGesture.bind(this);
     this.onPlayHello = this.onPlayHello.bind(this);
     this.onPlayIdle = this.onPlayIdle.bind(this);
+    this.onPlayIntro = this.onPlayIntro.bind(this);
+    this.onPlayOutro = this.onPlayOutro.bind(this);
     this.onReady = this.onReady.bind(this);
 
     this.init();
@@ -89,9 +92,87 @@ export class InnequinAnimator {
   }
 
   playAnimation(animation: string) {
-    // console.log('Animator playAnimation:', animation);
     this.gesture = animation;
     this.updateGesture();
+  }
+
+  randomGesture(maxDuration: number) {
+    const emotionGestures = this.props.animationGestures.filter(
+      (gesture) =>
+        gesture.emotion === this.emotionState &&
+        gesture.duration < maxDuration - ANIMATION_FADE_TIME_S,
+    );
+    if (
+      emotionGestures.length > 0 &&
+      this.animationState === ANIMATION_TYPE.IDLE &&
+      this.gestureDebounce === 0
+    ) {
+      let newGesturePass = false;
+      let timeout = 3;
+      while (!newGesturePass) {
+        timeout--;
+        if (timeout === 0) return; // To prevent a looping issue
+        let newGesture =
+          emotionGestures[Math.floor(Math.random() * emotionGestures.length)]
+            .name;
+        if (this.gestureOld !== newGesture) {
+          newGesturePass = true;
+          this.gesture = newGesture;
+          this.updateGesture();
+        }
+      }
+    } else {
+      this.gesture = '';
+    }
+  }
+
+  onPlayGesture() {
+    log('Innequin - Playing Gesture:', this.gesture);
+    if (
+      this.isReady &&
+      this.animationMixer &&
+      this.animationState === ANIMATION_TYPE.IDLE
+    ) {
+      this.animationState = ANIMATION_TYPE.GESTURE;
+      this.gestureDebounce = Math.floor(
+        Math.random() *
+          (ANIMATION_GESTURE_DEBOUNCE_MAX_S -
+            ANIMATION_GESTURE_DEBOUNCE_MIN_S +
+            1) +
+          ANIMATION_GESTURE_DEBOUNCE_MIN_S,
+      );
+      this.animationMixer
+        .clipAction(this.props.animationClips[this.animationName]!)
+        .fadeOut(ANIMATION_FADE_TIME_S);
+      const animationKeys: string[] = Object.keys(this.animations);
+      const newIndex = animationKeys.findIndex(
+        (animation) => animation === this.gesture,
+      );
+      let action = this.animationMixer
+        .clipAction(this.props.animationClips[animationKeys[newIndex]]!)
+        .reset()
+        .fadeIn(ANIMATION_FADE_TIME_S);
+      action.loop = LoopOnce;
+      action.clampWhenFinished = true;
+      action.play();
+      const newEmotion = this.emotionStateOld !== this.emotionState;
+      this.emotionStateOld = this.emotionState;
+      this.animationName = animationKeys[newIndex];
+      const emotionGesture = this.props.animationGestures.find(
+        (animationGestures) => animationGestures.name === this.gesture,
+      );
+      if (newEmotion) {
+        setTimeout(
+          this.onPlayIntro,
+          (emotionGesture?.duration! - ANIMATION_FADE_TIME_S) * 1000,
+        );
+      } else {
+        setTimeout(
+          this.onPlayIdle,
+          (emotionGesture?.duration! - ANIMATION_FADE_TIME_S) * 1000,
+        );
+      }
+    }
   }
 
   onPlayHello() {
@@ -143,7 +224,7 @@ export class InnequinAnimator {
     }
   }
 
-  playIntro() {
+  onPlayIntro() {
     if (
       this.isReady &&
       this.animationMixer &&
@@ -181,7 +262,7 @@ export class InnequinAnimator {
     }
   }
 
-  playOutro() {
+  onPlayOutro() {
     if (
       this.isReady &&
       this.animationMixer &&
@@ -215,95 +296,10 @@ export class InnequinAnimator {
       this.emotionStateOld = this.emotionState;
       this.animationName = animationKeys[newIndex];
       if (this.emotionState === EMOTIONS_BODY.NEUTRAL) {
-        setTimeout(
-          this.onPlayIdle.bind(this),
-          (durTime - ANIMATION_FADE_TIME_S) * 1000,
-        );
+        setTimeout(this.onPlayIdle, (durTime - ANIMATION_FADE_TIME_S) * 1000);
       } else {
-        setTimeout(
-          this.playIntro.bind(this),
-          (durTime - ANIMATION_FADE_TIME_S) * 1000,
-        );
+        setTimeout(this.onPlayIntro, (durTime - ANIMATION_FADE_TIME_S) * 1000);
       }
-    }
-  }
-
-  playGesture() {
-    log('Innequin - Playing Gesture:', this.gesture);
-    if (
-      this.isReady &&
-      this.animationMixer &&
-      this.animationState === ANIMATION_TYPE.IDLE
-    ) {
-      this.animationState = ANIMATION_TYPE.GESTURE;
-      this.gestureDebounce = Math.floor(
-        Math.random() *
-          (ANIMATION_GESTURE_DEBOUNCE_MAX_S -
-            ANIMATION_GESTURE_DEBOUNCE_MIN_S +
-            1) +
-          ANIMATION_GESTURE_DEBOUNCE_MIN_S,
-      );
-      this.animationMixer
-        .clipAction(this.props.animationClips[this.animationName]!)
-        .fadeOut(ANIMATION_FADE_TIME_S);
-      const animationKeys: string[] = Object.keys(this.animations);
-      const newIndex = animationKeys.findIndex(
-        (animation) => animation === this.gesture,
-      );
-      let action = this.animationMixer
-        .clipAction(this.props.animationClips[animationKeys[newIndex]]!)
-        .reset()
-        .fadeIn(ANIMATION_FADE_TIME_S);
-      action.loop = LoopOnce;
-      action.clampWhenFinished = true;
-      action.play();
-      const newEmotion = this.emotionStateOld !== this.emotionState;
-      this.emotionStateOld = this.emotionState;
-      this.animationName = animationKeys[newIndex];
-      const emotionGesture = this.props.animationGestures.find(
-        (animationGestures) => animationGestures.name === this.gesture,
-      );
-      if (newEmotion) {
-        setTimeout(
-          this.playIntro.bind(this),
-          (emotionGesture?.duration! - ANIMATION_FADE_TIME_S) * 1000,
-        );
-      } else {
-        setTimeout(
-          this.onPlayIdle.bind(this),
-          (emotionGesture?.duration! - ANIMATION_FADE_TIME_S) * 1000,
-        );
-      }
-    }
-  }
-
-  randomGesture(maxDuration: number) {
-    const emotionGestures = this.props.animationGestures.filter(
-      (gesture) =>
-        gesture.emotion === this.emotionState &&
-        gesture.duration < maxDuration - ANIMATION_FADE_TIME_S,
-    );
-    if (
-      emotionGestures.length > 0 &&
-      this.animationState === ANIMATION_TYPE.IDLE &&
-      this.gestureDebounce === 0
-    ) {
-      let newGesturePass = false;
-      let timeout = 3;
-      while (!newGesturePass) {
-        timeout--;
-        if (timeout === 0) return; // To prevent a looping issue
-        let newGesture =
-          emotionGestures[Math.floor(Math.random() * emotionGestures.length)]
-            .name;
-        if (this.gestureOld !== newGesture) {
-          newGesturePass = true;
-          this.gesture = newGesture;
-          this.updateGesture();
-        }
-      }
-    } else {
-      this.gesture = '';
     }
   }
 
@@ -339,9 +335,9 @@ export class InnequinAnimator {
       this.animationState === ANIMATION_TYPE.IDLE
     ) {
       if (this.emotionStateOld === EMOTIONS_BODY.NEUTRAL) {
-        this.playIntro();
+        this.onPlayIntro();
       } else {
-        this.playOutro();
+        this.onPlayOutro();
       }
     }
   }
@@ -390,7 +386,7 @@ export class InnequinAnimator {
       this.animationState === ANIMATION_TYPE.IDLE
     ) {
       this.gestureOld = this.gesture;
-      this.playGesture();
+      this.onPlayGesture();
     }
   }
 }
