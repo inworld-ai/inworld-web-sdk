@@ -16,7 +16,7 @@ export class GLTFModelLoader implements IFileLoader {
   loader: GLTFLoader;
   callback?: Function;
   isLoaded: Boolean = false;
-  model?: GLTF;
+  gltf?: GLTF;
 
   constructor(props: GLTFModelLoaderProps) {
     this.path = props.path;
@@ -32,14 +32,14 @@ export class GLTFModelLoader implements IFileLoader {
   }
 
   public getGLTF(): GLTF | undefined {
-    if (!this.model) {
+    if (!this.gltf) {
       throw new Error('GLTFModelLoader model not loaded');
     }
-    return this.model;
+    return this.gltf;
   }
 
   public load(callback: Function) {
-    log('GLTFModelLoader load');
+    // log('GLTFModelLoader load');
     this.callback = callback;
     this.loader.load(this.path, this.onLoad, this.onUpdate, this.onError);
   }
@@ -49,20 +49,20 @@ export class GLTFModelLoader implements IFileLoader {
     throw new Error('Error loading file ' + this.path + ' ' + error);
   }
 
-  private onLoad(model: GLTF) {
-    log('GLTFModelLoader onLoad');
-    this.model = model;
-    this.model.scene.traverse((node) => {
-      if ((node as Mesh).isMesh) {
-        node.castShadow = true;
-        node.receiveShadow = true;
-      }
-    });
+  private onLoad(gltf: GLTF) {
+    // log('GLTFModelLoader onLoad');
+    this.gltf = gltf;
+    // this.gltf.scene.traverse((node) => {
+    //   if ((node as Mesh).isMesh) {
+    //     node.castShadow = true;
+    //     node.receiveShadow = true;
+    //   }
+    // });
     this.isLoaded = true;
     this.callback!();
   }
 
   private onUpdate(event: ProgressEvent) {
-    log('GLTFModelLoader onUpdate', event);
+    // log('GLTFModelLoader onUpdate', event);
   }
 }

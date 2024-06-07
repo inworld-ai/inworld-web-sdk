@@ -75,6 +75,11 @@ export class InnequinAnimator {
     this.facial = new InnequinFacial({ ...this.props });
     this.isReady = false;
     this.isModelLoaded = false;
+
+    this.onPlayHello = this.onPlayHello.bind(this);
+    this.onPlayIdle = this.onPlayIdle.bind(this);
+    this.onReady = this.onReady.bind(this);
+
     this.init();
   }
 
@@ -89,7 +94,7 @@ export class InnequinAnimator {
     this.updateGesture();
   }
 
-  playHello() {
+  onPlayHello() {
     log('Innequin - Playing Hello', this.animationName);
     if (this.animationState === ANIMATION_TYPE.HELLO) {
       let action = this.animationMixer.clipAction(
@@ -99,7 +104,7 @@ export class InnequinAnimator {
       action.clampWhenFinished = true;
       action.play();
       setTimeout(
-        this.playIdle.bind(this),
+        this.onPlayIdle,
         (this.props.animationClips[this.animationName]!.duration -
           ANIMATION_FADE_TIME_S) *
           1000,
@@ -108,7 +113,7 @@ export class InnequinAnimator {
     }
   }
 
-  playIdle() {
+  onPlayIdle() {
     log('Innequin - Playing Idle:', this.emotionState);
     if (
       this.isReady &&
@@ -170,7 +175,7 @@ export class InnequinAnimator {
       this.emotionStateOld = this.emotionState;
       this.animationName = animationKeys[newIndex];
       setTimeout(
-        this.playIdle.bind(this),
+        this.onPlayIdle.bind(this),
         (durTime - ANIMATION_FADE_TIME_S) * 1000,
       );
     }
@@ -211,7 +216,7 @@ export class InnequinAnimator {
       this.animationName = animationKeys[newIndex];
       if (this.emotionState === EMOTIONS_BODY.NEUTRAL) {
         setTimeout(
-          this.playIdle.bind(this),
+          this.onPlayIdle.bind(this),
           (durTime - ANIMATION_FADE_TIME_S) * 1000,
         );
       } else {
@@ -265,7 +270,7 @@ export class InnequinAnimator {
         );
       } else {
         setTimeout(
-          this.playIdle.bind(this),
+          this.onPlayIdle.bind(this),
           (emotionGesture?.duration! - ANIMATION_FADE_TIME_S) * 1000,
         );
       }
@@ -302,9 +307,10 @@ export class InnequinAnimator {
     }
   }
 
-  ready() {
+  onReady() {
+    log('InnequinAnimtaor - Ready');
     this.isReady = true;
-    this.playHello();
+    this.onPlayHello();
   }
 
   setEmotion(emotion: EmotionBehaviorCode) {
