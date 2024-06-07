@@ -5,7 +5,6 @@ import { v4 } from 'uuid';
 import {
   ControlEventAction,
   DataChunkDataType,
-  SessionControlResponseEvent,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import { ProtoPacket } from '../../src';
 import {
@@ -13,6 +12,7 @@ import {
   ConversationMapItem,
   ConversationState,
   InworldPacketType,
+  LoadedScene,
   TtsPlaybackAction,
 } from '../../src/common/data_structures';
 import {
@@ -644,7 +644,7 @@ describe('send', () => {
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
         .mockImplementationOnce(() =>
-          Promise.resolve({ agents } as SessionControlResponseEvent),
+          Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
         );
       jest
         .spyOn(EventFactory.prototype, 'getCharacters')
@@ -796,7 +796,7 @@ describe('send', () => {
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
         .mockImplementationOnce(() =>
-          Promise.resolve({ agents } as SessionControlResponseEvent),
+          Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
         );
       jest
         .spyOn(EventFactory.prototype, 'getCharacters')
@@ -815,7 +815,7 @@ describe('send', () => {
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
         .mockImplementationOnce(() =>
-          Promise.resolve({ agents } as SessionControlResponseEvent),
+          Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
         );
       jest
         .spyOn(EventFactory.prototype, 'getCharacters')
@@ -833,7 +833,7 @@ describe('send', () => {
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
         .mockImplementationOnce(() =>
-          Promise.resolve({ agents } as SessionControlResponseEvent),
+          Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
         );
       jest
         .spyOn(EventFactory.prototype, 'getCharacters')
@@ -854,7 +854,7 @@ describe('send', () => {
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
         .mockImplementationOnce(() =>
-          Promise.resolve({ agents } as SessionControlResponseEvent),
+          Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
         );
       jest
         .spyOn(EventFactory.prototype, 'getCharacters')
@@ -870,10 +870,9 @@ describe('send', () => {
         new Promise((resolve: any) => {
           setTimeout(() => {
             connection.onMessage!({
-              sessionControlResponse: {
-                loadedCharacters: {
-                  agents,
-                },
+              control: {
+                action: ControlEventAction.CURRENT_SCENE_STATUS,
+                currentSceneStatus: { agents },
               },
               packetId: { packetId: v4() },
             } as ProtoPacket);
@@ -884,14 +883,17 @@ describe('send', () => {
 
       expect(open).toHaveBeenCalledTimes(0);
       expect(write).toHaveBeenCalledTimes(1);
-      expect(packet?.sceneMutation).toHaveProperty('characterNames', names);
+      expect(packet?.sceneMutation).toHaveProperty(
+        'addedCharacterNames',
+        names,
+      );
     });
 
     test('should remove character', async () => {
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
         .mockImplementationOnce(() =>
-          Promise.resolve({ agents } as SessionControlResponseEvent),
+          Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
         );
       jest
         .spyOn(EventFactory.prototype, 'getCharacters')
@@ -930,7 +932,7 @@ describe('send', () => {
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
         .mockImplementationOnce(() =>
-          Promise.resolve({ agents } as SessionControlResponseEvent),
+          Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
         );
       jest
         .spyOn(EventFactory.prototype, 'getCharacters')
@@ -950,7 +952,7 @@ describe('send', () => {
       jest
         .spyOn(WebSocketConnection.prototype, 'openSession')
         .mockImplementationOnce(() =>
-          Promise.resolve({ agents } as SessionControlResponseEvent),
+          Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
         );
       jest
         .spyOn(EventFactory.prototype, 'getCharacters')

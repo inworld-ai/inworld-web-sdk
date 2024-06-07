@@ -5,9 +5,9 @@ import { ExtendedHistoryItem, ExtendedInworldPacket } from '../data_structures';
 
 const beforeLoadScene = (packets: ProtoPacket[]) => {
   return packets.map((packet: ProtoPacket) => {
-    if (packet.sessionControl?.capabilitiesConfiguration) {
-      packet.sessionControl.capabilitiesConfiguration = {
-        ...packet.sessionControl.capabilitiesConfiguration,
+    if (packet.control?.sessionConfiguration?.capabilitiesConfiguration) {
+      packet.control.sessionConfiguration.capabilitiesConfiguration = {
+        ...packet.control.sessionConfiguration.capabilitiesConfiguration,
         regenerateResponse: true,
       };
     }

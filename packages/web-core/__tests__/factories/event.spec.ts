@@ -218,9 +218,9 @@ describe('event types', () => {
 
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
-    expect(event.sessionControl?.capabilitiesConfiguration).toEqual(
-      capabilitiesProps,
-    );
+    expect(
+      event.control?.sessionConfiguration?.capabilitiesConfiguration,
+    ).toEqual(capabilitiesProps);
     expect(event.routing?.target?.type).toEqual(ActorType.WORLD);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
@@ -234,7 +234,7 @@ describe('event types', () => {
 
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
-    expect(event.sessionControl?.sessionConfiguration).toEqual(
+    expect(event.control?.sessionConfiguration?.sessionConfiguration).toEqual(
       sessionConfiguration,
     );
     expect(event.routing?.target?.type).toEqual(ActorType.WORLD);
@@ -254,7 +254,7 @@ describe('event types', () => {
 
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
-    expect(event.sessionControl?.clientConfiguration).toEqual(
+    expect(event.control?.sessionConfiguration?.clientConfiguration).toEqual(
       clientConfiguration,
     );
     expect(event.routing?.target?.type).toEqual(ActorType.WORLD);
@@ -274,7 +274,9 @@ describe('event types', () => {
 
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
-    expect(event.sessionControl?.userConfiguration).toEqual(userConfiguration);
+    expect(event.control?.sessionConfiguration?.userConfiguration).toEqual(
+      userConfiguration,
+    );
     expect(event.routing?.target?.type).toEqual(ActorType.WORLD);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
@@ -299,7 +301,9 @@ describe('event types', () => {
 
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
-    expect(event.sessionControl?.continuation).toEqual(continuation);
+    expect(event.control?.sessionConfiguration?.continuation).toEqual(
+      continuation,
+    );
     expect(event.routing?.target?.type).toEqual(ActorType.WORLD);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();
@@ -317,7 +321,9 @@ describe('event types', () => {
 
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
-    expect(event.sessionControl?.continuation).toEqual(continuation);
+    expect(event.control?.sessionConfiguration?.continuation).toEqual(
+      continuation,
+    );
     expect(event.routing?.target?.type).toEqual(ActorType.WORLD);
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.utteranceId).toBeUndefined();

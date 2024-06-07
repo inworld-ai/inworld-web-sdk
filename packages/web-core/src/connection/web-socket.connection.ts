@@ -6,15 +6,16 @@ import { ClientRequest } from '../../proto/ai/inworld/engine/world-engine.pb';
 import {
   Continuation,
   ContinuationContinuationType,
+  ControlEventAction,
+  CurrentSceneStatus,
   InworldPacket as ProtoPacket,
-  LoadedScene,
-  SessionControlResponseEvent,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import { CLIENT_ID } from '../common/constants';
 import {
   Awaitable,
   Extension,
   InternalClientConfiguration,
+  LoadedScene,
   User,
 } from '../common/data_structures';
 import { HistoryItem } from '../components/history';
@@ -62,11 +63,9 @@ export interface QueueItem<InworldPacketT> {
 export interface Connection<InworldPacketT> {
   close(): void;
   isActive: () => boolean;
-  openSession(props: OpenSessionProps): Promise<SessionControlResponseEvent>;
+  openSession(props: OpenSessionProps): Promise<LoadedScene>;
   reopenSession(session: SessionToken): Promise<void>;
-  updateSession(
-    props: UpdateSessionProps,
-  ): Promise<SessionControlResponseEvent>;
+  updateSession(props: UpdateSessionProps): Promise<LoadedScene>;
   write(item: QueueItem<InworldPacketT>): void;
 }
 
@@ -98,9 +97,7 @@ export class WebSocketConnection<
     return this.ws?.readyState === WebSocket.OPEN;
   }
 
-  async openSession(
-    props: OpenSessionProps,
-  ): Promise<SessionControlResponseEvent> {
+  async openSession(props: OpenSessionProps): Promise<LoadedScene> {
     const ws = await this.combineWebSocket(props.session);
 
     const finalPackets = this.getPackets({
@@ -115,7 +112,7 @@ export class WebSocketConnection<
 
     const needHistory =
       this.connectionProps.config.history?.previousState &&
-      !!finalPackets.find((p) => p.sessionControl?.continuation);
+      !!finalPackets.find((p) => p.control?.sessionConfiguration?.continuation);
     const write = this.write.bind({
       ws,
       extension: this.extension,
@@ -159,7 +156,7 @@ export class WebSocketConnection<
     });
   }
 
-  async updateSession(props: UpdateSessionProps) {
+  async updateSession(props: UpdateSessionProps): Promise<LoadedScene> {
     this.ws.removeEventListener('message', this.onMessage);
     const finalPackets = this.getPackets({
       capabilities: props.capabilities,
@@ -176,7 +173,10 @@ export class WebSocketConnection<
       !!finalPackets.find((p) => p.sessionControl?.continuation);
 
     for (const packet of finalPackets) {
-      write({ getPacket: () => packet });
+      write({
+        getPacket: () => packet,
+        afterWriting: () => this.connectionProps.onMessage(packet),
+      });
     }
 
     return new Promise((resolve, reject) =>
@@ -266,12 +266,12 @@ export class WebSocketConnection<
     needHistory: boolean;
     ws: WebSocket;
     write: (item: QueueItem<InworldPacketT>) => void;
-    resolve: (value: SessionControlResponseEvent) => void;
+    resolve: (value: LoadedScene) => void;
     reject: (reason: Error) => void;
   }) {
     const { parseEvent, onMessage } = this;
     let historyLoaded = true;
-    let loadedScene: LoadedScene;
+    let sceneStatus: CurrentSceneStatus;
 
     return function (event: MessageEvent) {
       const [err, packet] = parseEvent(event);
@@ -279,22 +279,21 @@ export class WebSocketConnection<
       if (err) {
         reject(err);
       } else if (
-        (!loadedScene && packet?.sessionControlResponse) ||
+        (!sceneStatus &&
+          packet?.control?.action ===
+            ControlEventAction.CURRENT_SCENE_STATUS) ||
         (!historyLoaded && packet?.sessionControlResponse?.sessionHistory)
       ) {
-        if (
-          !firstLoad &&
-          !loadedScene &&
-          packet?.sessionControlResponse.loadedScene
-        ) {
+        if (!firstLoad && !sceneStatus && packet?.control.currentSceneStatus) {
           onMessage(event);
         }
 
-        loadedScene = loadedScene ?? packet?.sessionControlResponse.loadedScene;
-        historyLoaded =
-          !!packet?.sessionControlResponse?.sessionHistory || !needHistory;
+        const sessionHistory = packet?.sessionControlResponse?.sessionHistory;
 
-        if (!!loadedScene && !historyLoaded && needHistory) {
+        sceneStatus = sceneStatus ?? packet?.control.currentSceneStatus;
+        historyLoaded = !!sessionHistory || !needHistory;
+
+        if (!!sceneStatus && !historyLoaded && needHistory) {
           write({
             getPacket: () =>
               EventFactory.sessionControl({ sessionHistory: {} }),
@@ -304,9 +303,9 @@ export class WebSocketConnection<
           ws.addEventListener('message', onMessage);
 
           resolve({
-            loadedScene,
-            sessionHistory: packet?.sessionControlResponse?.sessionHistory,
-          } as SessionControlResponseEvent);
+            sceneStatus,
+            sessionHistory,
+          } as LoadedScene);
         }
       }
     };
@@ -321,55 +320,30 @@ export class WebSocketConnection<
     gameSessionId?: string;
     useDefaultClient?: boolean;
   }) {
-    const packets: ProtoPacket[] = [];
-
-    if (props.capabilities) {
-      packets.push(
-        EventFactory.sessionControl({
-          capabilities: props.capabilities,
-        }),
-      );
-    }
-
-    if (props.gameSessionId) {
-      packets.push(
-        EventFactory.sessionControl({
-          sessionConfiguration: {
-            gameSessionId: props.gameSessionId,
-          },
-        }),
-      );
-    }
-
-    if (props.client || props.useDefaultClient) {
-      packets.push(
-        EventFactory.sessionControl({
-          clientConfiguration: this.getClient({
-            client: props.client,
-          }),
-        }),
-      );
-    }
-
-    if (props.user) {
-      packets.push(
-        EventFactory.sessionControl({
-          userConfiguration: this.getUserConfiguration({
-            user: props.user,
-          }),
-        }),
-      );
-    }
-
     const continuation = this.getContinuation({
       sessionContinuation: props.sessionContinuation,
     });
 
-    if (continuation) {
-      packets.push(EventFactory.sessionControl({ continuation }));
-    }
-
-    packets.push(EventFactory.loadScene(props.name));
+    const packets: ProtoPacket[] = [
+      EventFactory.sessionControl({
+        ...(props.capabilities && {
+          capabilities: props.capabilities,
+        }),
+        ...(props.gameSessionId && {
+          sessionConfiguration: { gameSessionId: props.gameSessionId },
+        }),
+        ...((props.client || props.useDefaultClient) && {
+          clientConfiguration: this.getClient({
+            client: props.client,
+          }),
+        }),
+        ...(props.user && {
+          userConfiguration: this.getUserConfiguration(props),
+        }),
+        ...(continuation && { continuation }),
+      }),
+      EventFactory.loadScene(props.name),
+    ];
 
     return this.extension.beforeLoadScene?.(packets) || packets;
   }

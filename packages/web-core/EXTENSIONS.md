@@ -26,34 +26,38 @@ Here are several ways to enhance the functionality of the Inworld AI Web SDK:
 
   const beforeLoadScene = (packets: ProtoPacket[]) => {
     return packets.map((packet: ProtoPacket) => {
+      const sessionConfiguration = packet.control?.sessionConfiguration;
+
+      if (!sessionConfiguration) return packet;
+
       // Consistently present
-      if (packet.sessionControl?.capabilitiesConfiguration) {
-        packet.sessionControl.capabilitiesConfiguration = {
-          ...packet.sessionControl.capabilitiesConfiguration,
+      if (sessionConfiguration.capabilitiesConfiguration) {
+        sessionConfiguration.capabilitiesConfiguration = {
+          ...sessionConfiguration.capabilitiesConfiguration,
           regenerateResponse: true,
         };
       }
 
      // Consistently present.
-      if (packet.sessionControl?.clientConfiguration) {
-        packet.sessionControl.clientConfiguration = {
-          ...packet.sessionControl.clientConfiguration,
+      if (sessionConfiguration.clientConfiguration) {
+        sessionConfiguration.clientConfiguration = {
+          ...sessionConfiguration.clientConfiguration,
           id: 'custom-id',
         };
       }
 
       // Consistently present.
-      if (packet.sessionControl?.userConfiguration) {
+      if (sessionConfiguration.userConfiguration) {
         // Do something here.
       }
 
       // Consistently present.
-      if (packet.sessionControl?.sessionConfiguration) {
+      if (sessionConfiguration.sessionConfiguration) {
         // Do something here.
       }
 
       // Optional. It's present if continutation was set using setContinuation method.
-      if (packet.sessionControl?.continuation) {
+      if (sessionConfiguration.continuation) {
         // Do something here.
       }
 

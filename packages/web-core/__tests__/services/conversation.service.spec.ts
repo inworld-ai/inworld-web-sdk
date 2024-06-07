@@ -2,14 +2,12 @@ import '../mocks/window.mock';
 
 import { v4 } from 'uuid';
 
-import {
-  ActorType,
-  SessionControlResponseEvent,
-} from '../../proto/ai/inworld/packets/packets.pb';
+import { ActorType } from '../../proto/ai/inworld/packets/packets.pb';
 import { ConversationService } from '../../src';
 import {
   AudioSessionState,
   ConversationState,
+  LoadedScene,
 } from '../../src/common/data_structures';
 import { MULTI_CHAR_NARRATED_ACTIONS } from '../../src/common/errors';
 import { InworldHistory } from '../../src/components/history';
@@ -178,7 +176,7 @@ describe('update participants', () => {
       .spyOn(WebSocketConnection.prototype, 'openSession')
       .mockImplementationOnce(() =>
         Promise.resolve({
-          loadedScene: { agents },
+          sceneStatus: { agents },
           sessionHistory: {
             sessionHistoryItems: [
               {
@@ -214,7 +212,7 @@ describe('update participants', () => {
               },
             ],
           },
-        } as unknown as SessionControlResponseEvent),
+        } as unknown as LoadedScene),
       );
     jest
       .spyOn(ConversationService.prototype, 'getConversationId')

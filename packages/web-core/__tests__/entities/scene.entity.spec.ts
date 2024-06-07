@@ -1,6 +1,7 @@
 import { v4 } from 'uuid';
 
 import { ActorType } from '../../proto/ai/inworld/packets/packets.pb';
+import { LoadedScene } from '../../src/common/data_structures';
 import { Character } from '../../src/entities/character.entity';
 import { Scene } from '../../src/entities/scene.entity';
 import { createAgent, createCharacter, SCENE } from '../helpers';
@@ -23,8 +24,10 @@ test('should convert proto to scene', () => {
   const agents = [createAgent(), createAgent()];
 
   const proto = {
-    name: SCENE,
-    loadedScene: { agents },
+    sceneStatus: {
+      sceneName: SCENE,
+      agents,
+    },
     sessionHistory: {
       sessionHistoryItems: [
         {
@@ -82,8 +85,7 @@ test('should convert proto to scene with empty agentId', () => {
   const agents = [createAgent(), createAgent()];
 
   const proto = {
-    name: SCENE,
-    loadedScene: { agents },
+    sceneStatus: { name: SCENE, agents },
     sessionHistory: {
       sessionHistoryItems: [
         {
@@ -124,7 +126,7 @@ test('should convert proto to scene with empty agentId', () => {
         },
       ],
     },
-  };
+  } as LoadedScene;
   const scene = Scene.fromProto(proto);
 
   expect(scene.characters[0].id).toEqual(agents[0].agentId);
@@ -136,7 +138,9 @@ test('should convert proto to scene with empty agentId', () => {
 
 test('should convert proto to scene without history items and agents', () => {
   const proto = {
-    name: SCENE,
+    sceneStatus: {
+      sceneName: SCENE,
+    },
     sessionHistory: {
       sessionHistoryItems: [{}],
     },

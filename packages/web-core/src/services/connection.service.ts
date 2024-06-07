@@ -1,5 +1,6 @@
 import { ClientRequest } from '../../proto/ai/inworld/engine/world-engine.pb';
 import {
+  ControlEventAction,
   InworldPacket as ProtoPacket,
   SessionControlResponseEvent,
 } from '../../proto/ai/inworld/packets/packets.pb';
@@ -17,6 +18,7 @@ import {
   HistoryChangedProps,
   InternalClientConfiguration,
   InworldConversationEventType,
+  LoadedScene,
   User,
 } from '../common/data_structures';
 import { HistoryItem, InworldHistory } from '../components/history';
@@ -73,7 +75,6 @@ export class ConnectionService<
 
   private scene: Scene | undefined;
   private sceneIsLoaded = false;
-  private nextSceneName: string | undefined;
   private session: SessionToken;
   private connection: Connection<InworldPacketT>;
   private connectionProps: ConnectionProps<InworldPacketT, HistoryItemT>;
@@ -135,10 +136,6 @@ export class ConnectionService<
 
   getSceneName() {
     return this.scene.name;
-  }
-
-  setNextSceneName(name?: string) {
-    this.nextSceneName = name;
   }
 
   getCurrentAudioConversation() {
@@ -526,12 +523,13 @@ export class ConnectionService<
       }
 
       // Update session state.
-      if (packet.sessionControlResponse) {
-        if (packet.sessionControlResponse.loadedScene) {
-          this.setSceneFromProtoEvent(packet.sessionControlResponse);
-        } else if (packet.sessionControlResponse?.loadedCharacters) {
-          this.addCharactersToScene(packet.sessionControlResponse);
-        }
+      if (
+        packet.control?.action === ControlEventAction.CURRENT_SCENE_STATUS &&
+        packet.control.currentSceneStatus
+      ) {
+        this.setSceneFromProtoEvent({
+          sceneStatus: packet.control.currentSceneStatus,
+        } as LoadedScene);
       }
 
       // Update conversation state.
@@ -619,7 +617,7 @@ export class ConnectionService<
     const { config, webRtcLoopbackBiDiSession, grpcAudioPlayer } =
       this.connectionProps;
 
-    this.connection = new WebSocketConnection({
+    this.connection = new WebSocketConnection<InworldPacketT, HistoryItemT>({
       config,
       onDisconnect: this.onDisconnect,
       onReady: async () => {
@@ -731,18 +729,14 @@ export class ConnectionService<
     factory.setCharacters(this.scene.characters);
   }
 
-  private setSceneFromProtoEvent(proto: SessionControlResponseEvent) {
-    const name = this.nextSceneName || this.scene.name;
-
+  private setSceneFromProtoEvent(proto: LoadedScene) {
     this.sceneIsLoaded = true;
     this.scene = Scene.fromProto({
-      name,
-      loadedScene: proto.loadedScene,
+      sceneStatus: proto.sceneStatus,
       sessionHistory: proto.sessionHistory,
     });
 
-    this.setNextSceneName(undefined);
-    this.connectionProps.extension?.afterLoadScene?.(proto);
+    this.connectionProps.extension?.afterLoadScene?.(proto.sceneStatus);
     this.ensureCurrentCharacter();
   }
 
