@@ -12,6 +12,7 @@ import {
 } from '../../proto/ai/inworld/packets/packets.pb';
 import { CLIENT_ID } from '../../src/common/constants';
 import { Awaitable, ConnectionConfig } from '../../src/common/data_structures';
+import { protoTimestamp } from '../../src/common/helpers';
 import { WebSocketConnection } from '../../src/connection/web-socket.connection';
 import { SessionContinuation } from '../../src/entities/continuation/session_continuation.entity';
 import { InworldError } from '../../src/entities/error.entity';
@@ -132,6 +133,7 @@ describe('open', () => {
             errorType: ProtoErrorType.AUDIO_SESSION_EXPIRED,
             reconnectType: ProtoErrorReconnectionType.IMMEDIATE,
             maxRetries: 1,
+            reconnectTime: protoTimestamp(),
           } as InworldStatus,
         ],
       },

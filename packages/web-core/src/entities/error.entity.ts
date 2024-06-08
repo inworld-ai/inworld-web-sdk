@@ -38,6 +38,7 @@ interface ResourceNotFoundDetails {
 
 interface InworldStatus {
   errorType?: ErrorType;
+  reconnectTime?: string;
   reconnectType?: ErrorReconnectionType;
   maxRetries?: number;
   resourceNotFound?: ResourceNotFoundDetails;
@@ -58,6 +59,7 @@ export class InworldError {
     const details = proto.details?.map((d) => ({
       errorType: this.getErrorType(d.errorType),
       reconnectType: this.getErrorReconnectionType(d.reconnectType),
+      reconnectTime: d.reconnectTime,
       maxRetries: d.maxRetries,
       ...(d.resourceNotFound && {
         resourceNotFound: {

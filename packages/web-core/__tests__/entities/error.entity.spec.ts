@@ -6,6 +6,7 @@ import {
   ResourceType as ProtoErrorResourceType,
 } from '../../proto/ai/inworld/common/status.pb';
 import { ProtoError } from '../../src/common/data_structures';
+import { protoTimestamp } from '../../src/common/helpers';
 import {
   ErrorReconnectionType,
   ErrorResourceType,
@@ -121,6 +122,9 @@ test.each(reconnectTypeTestTable)(
       details: [
         {
           reconnectType: input,
+          ...(input === ProtoErrorReconnectionType.TIMEOUT && {
+            reconnectTime: protoTimestamp(),
+          }),
         },
       ],
     } as ProtoError;
