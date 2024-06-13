@@ -41,8 +41,8 @@
     "rimraf": "^5.0.5"
   },
   "dependencies": {
-    "@inworld/web-core": "2.2.2",
-    "three": "^0.164.1",
+    "@inworld/web-core": "2.6.0",
+    "three": "^0.164.0",
     "three-stdlib": "^2.29.11",
     "uuid": "^9.0.1"
   }

@@ -75,6 +75,14 @@ export class InnequinAnimator {
     this.facial = new InnequinFacial({ ...this.props });
     this.isReady = false;
     this.isModelLoaded = false;
+
+    this.onPlayGesture = this.onPlayGesture.bind(this);
+    this.onPlayHello = this.onPlayHello.bind(this);
+    this.onPlayIdle = this.onPlayIdle.bind(this);
+    this.onPlayIntro = this.onPlayIntro.bind(this);
+    this.onPlayOutro = this.onPlayOutro.bind(this);
+    this.onReady = this.onReady.bind(this);
+
     this.init();
   }
 
@@ -84,146 +92,41 @@ export class InnequinAnimator {
   }
 
   playAnimation(animation: string) {
-    // console.log('Animator playAnimation:', animation);
     this.gesture = animation;
     this.updateGesture();
   }
 
-  playHello() {
-    log('Innequin - Playing Hello', this.animationName);
-    if (this.animationState === ANIMATION_TYPE.HELLO) {
-      let action = this.animationMixer.clipAction(
-        this.props.animationClips[this.animationName]!,
-      );
-      action.loop = LoopOnce;
-      action.clampWhenFinished = true;
-      action.play();
-      setTimeout(
-        this.playIdle.bind(this),
-        (this.props.animationClips[this.animationName]!.duration -
-          ANIMATION_FADE_TIME_S) *
-          1000,
-      );
-      this.isPlaying = true;
-    }
-  }
-
-  playIdle() {
-    log('Innequin - Playing Idle:', this.emotionState);
+  randomGesture(maxDuration: number) {
+    const emotionGestures = this.props.animationGestures.filter(
+      (gesture) =>
+        gesture.emotion === this.emotionState &&
+        gesture.duration < maxDuration - ANIMATION_FADE_TIME_S,
+    );
     if (
-      this.isReady &&
-      this.animationMixer &&
-      this.animationState !== ANIMATION_TYPE.IDLE
+      emotionGestures.length > 0 &&
+      this.animationState === ANIMATION_TYPE.IDLE &&
+      this.gestureDebounce === 0
     ) {
-      this.animationState = ANIMATION_TYPE.IDLE;
-      if (this.gestureDebounce === 0) {
-        this.gestureDebounce = 1;
+      let newGesturePass = false;
+      let timeout = 3;
+      while (!newGesturePass) {
+        timeout--;
+        if (timeout === 0) return; // To prevent a looping issue
+        let newGesture =
+          emotionGestures[Math.floor(Math.random() * emotionGestures.length)]
+            .name;
+        if (this.gestureOld !== newGesture) {
+          newGesturePass = true;
+          this.gesture = newGesture;
+          this.updateGesture();
+        }
       }
-      this.animationMixer
-        .clipAction(this.props.animationClips[this.animationName]!)
-        .fadeOut(ANIMATION_FADE_TIME_S);
-      const animationKeys: string[] = Object.keys(this.animations);
-      const newIndex = animationKeys.findIndex(
-        (animation) =>
-          animation.toLowerCase().includes(this.emotionState.toLowerCase()) &&
-          animation.toLowerCase().includes(ANIMATION_TYPE.IDLE),
-      );
-      this.animationMixer
-        .clipAction(this.props.animationClips[animationKeys[newIndex]]!)
-        .reset()
-        .fadeIn(ANIMATION_FADE_TIME_S)
-        .play();
-      this.emotionStateOld = this.emotionState;
-      this.animationName = animationKeys[newIndex];
+    } else {
+      this.gesture = '';
     }
   }
 
-  playIntro() {
-    if (
-      this.isReady &&
-      this.animationMixer &&
-      this.animationState !== ANIMATION_TYPE.INTRO
-    ) {
-      log('Innequin - Playing Intro:', this.emotionState);
-      this.animationState = ANIMATION_TYPE.INTRO;
-      if (this.gestureDebounce === 0) {
-        this.gestureDebounce = 1;
-      }
-      this.animationMixer
-        .clipAction(this.props.animationClips[this.animationName]!)
-        .fadeOut(ANIMATION_FADE_TIME_S);
-      const animationKeys: string[] = Object.keys(this.animations);
-      const newIndex = animationKeys.findIndex(
-        (animation) =>
-          animation.toLowerCase().includes(this.emotionState.toLowerCase()) &&
-          animation.toLowerCase().includes(ANIMATION_TYPE.INTRO),
-      );
-      const durTime =
-        this.props.animationClips[animationKeys[newIndex]]!.duration;
-      let action = this.animationMixer
-        .clipAction(this.props.animationClips[animationKeys[newIndex]]!)
-        .reset()
-        .fadeIn(ANIMATION_FADE_TIME_S);
-      action.loop = LoopOnce;
-      action.clampWhenFinished = true;
-      action.play();
-      this.emotionStateOld = this.emotionState;
-      this.animationName = animationKeys[newIndex];
-      setTimeout(
-        this.playIdle.bind(this),
-        (durTime - ANIMATION_FADE_TIME_S) * 1000,
-      );
-    }
-  }
-
-  playOutro() {
-    if (
-      this.isReady &&
-      this.animationMixer &&
-      this.animationState !== ANIMATION_TYPE.OUTRO
-    ) {
-      log('Innequin - Playing Outro:', this.emotionState);
-      this.animationState = ANIMATION_TYPE.OUTRO;
-      if (this.gestureDebounce === 0) {
-        this.gestureDebounce = 1;
-      }
-      this.animationMixer
-        .clipAction(this.props.animationClips[this.animationName]!)
-        .fadeOut(ANIMATION_FADE_TIME_S);
-      const animationKeys: string[] = Object.keys(this.animations);
-      const newIndex = animationKeys.findIndex(
-        (animation) =>
-          animation
-            .toLowerCase()
-            .includes(this.emotionStateOld.toLowerCase()) &&
-          animation.toLowerCase().includes(ANIMATION_TYPE.OUTRO),
-      );
-      const durTime =
-        this.props.animationClips[animationKeys[newIndex]]!.duration;
-      let action = this.animationMixer
-        .clipAction(this.props.animationClips[animationKeys[newIndex]]!)
-        .reset()
-        .fadeIn(ANIMATION_FADE_TIME_S);
-      action.loop = LoopOnce;
-      action.clampWhenFinished = true;
-      action.play();
-      this.emotionStateOld = this.emotionState;
-      this.animationName = animationKeys[newIndex];
-      if (this.emotionState === EMOTIONS_BODY.NEUTRAL) {
-        setTimeout(
-          this.playIdle.bind(this),
-          (durTime - ANIMATION_FADE_TIME_S) * 1000,
-        );
-      } else {
-        setTimeout(
-          this.playIntro.bind(this),
-          (durTime - ANIMATION_FADE_TIME_S) * 1000,
-        );
-      }
-    }
-  }
-
-  playGesture() {
+  onPlayGesture() {
     log('Innequin - Playing Gesture:', this.gesture);
     if (
       this.isReady &&
@@ -260,51 +163,150 @@ export class InnequinAnimator {
       );
       if (newEmotion) {
         setTimeout(
-          this.playIntro.bind(this),
+          this.onPlayIntro,
           (emotionGesture?.duration! - ANIMATION_FADE_TIME_S) * 1000,
         );
       } else {
         setTimeout(
-          this.playIdle.bind(this),
+          this.onPlayIdle,
           (emotionGesture?.duration! - ANIMATION_FADE_TIME_S) * 1000,
         );
       }
     }
   }
 
-  randomGesture(maxDuration: number) {
-    const emotionGestures = this.props.animationGestures.filter(
-      (gesture) =>
-        gesture.emotion === this.emotionState &&
-        gesture.duration < maxDuration - ANIMATION_FADE_TIME_S,
-    );
-    if (
-      emotionGestures.length > 0 &&
-      this.animationState === ANIMATION_TYPE.IDLE &&
-      this.gestureDebounce === 0
-    ) {
-      let newGesturePass = false;
-      let timeout = 3;
-      while (!newGesturePass) {
-        timeout--;
-        if (timeout === 0) return; // To prevent a looping issue
-        let newGesture =
-          emotionGestures[Math.floor(Math.random() * emotionGestures.length)]
-            .name;
-        if (this.gestureOld !== newGesture) {
-          newGesturePass = true;
-          this.gesture = newGesture;
-          this.updateGesture();
-        }
-      }
-    } else {
-      this.gesture = '';
+  onPlayHello() {
+    log('Innequin - Playing Hello', this.animationName);
+    if (this.animationState === ANIMATION_TYPE.HELLO) {
+      let action = this.animationMixer.clipAction(
+        this.props.animationClips[this.animationName]!,
+      );
+      action.loop = LoopOnce;
+      action.clampWhenFinished = true;
+      action.play();
+      setTimeout(
+        this.onPlayIdle,
+        (this.props.animationClips[this.animationName]!.duration -
+          ANIMATION_FADE_TIME_S) *
+          1000,
+      );
+      this.isPlaying = true;
     }
   }
 
-  ready() {
+  onPlayIdle() {
+    log('Innequin - Playing Idle:', this.emotionState);
+    if (
+      this.isReady &&
+      this.animationMixer &&
+      this.animationState !== ANIMATION_TYPE.IDLE
+    ) {
+      this.animationState = ANIMATION_TYPE.IDLE;
+      if (this.gestureDebounce === 0) {
+        this.gestureDebounce = 1;
+      }
+      this.animationMixer
+        .clipAction(this.props.animationClips[this.animationName]!)
+        .fadeOut(ANIMATION_FADE_TIME_S);
+      const animationKeys: string[] = Object.keys(this.animations);
+      const newIndex = animationKeys.findIndex(
+        (animation) =>
+          animation.toLowerCase().includes(this.emotionState.toLowerCase()) &&
+          animation.toLowerCase().includes(ANIMATION_TYPE.IDLE),
+      );
+      this.animationMixer
+        .clipAction(this.props.animationClips[animationKeys[newIndex]]!)
+        .reset()
+        .fadeIn(ANIMATION_FADE_TIME_S)
+        .play();
+      this.emotionStateOld = this.emotionState;
+      this.animationName = animationKeys[newIndex];
+    }
+  }
+
+  onPlayIntro() {
+    if (
+      this.isReady &&
+      this.animationMixer &&
+      this.animationState !== ANIMATION_TYPE.INTRO
+    ) {
+      log('Innequin - Playing Intro:', this.emotionState);
+      this.animationState = ANIMATION_TYPE.INTRO;
+      if (this.gestureDebounce === 0) {
+        this.gestureDebounce = 1;
+      }
+      this.animationMixer
+        .clipAction(this.props.animationClips[this.animationName]!)
+        .fadeOut(ANIMATION_FADE_TIME_S);
+      const animationKeys: string[] = Object.keys(this.animations);
+      const newIndex = animationKeys.findIndex(
+        (animation) =>
+          animation.toLowerCase().includes(this.emotionState.toLowerCase()) &&
+          animation.toLowerCase().includes(ANIMATION_TYPE.INTRO),
+      );
+      const durTime =
+        this.props.animationClips[animationKeys[newIndex]]!.duration;
+      let action = this.animationMixer
+        .clipAction(this.props.animationClips[animationKeys[newIndex]]!)
+        .reset()
+        .fadeIn(ANIMATION_FADE_TIME_S);
+      action.loop = LoopOnce;
+      action.clampWhenFinished = true;
+      action.play();
+      this.emotionStateOld = this.emotionState;
+      this.animationName = animationKeys[newIndex];
+      setTimeout(
+        this.onPlayIdle.bind(this),
+        (durTime - ANIMATION_FADE_TIME_S) * 1000,
+      );
+    }
+  }
+
+  onPlayOutro() {
+    if (
+      this.isReady &&
+      this.animationMixer &&
+      this.animationState !== ANIMATION_TYPE.OUTRO
+    ) {
+      log('Innequin - Playing Outro:', this.emotionState);
+      this.animationState = ANIMATION_TYPE.OUTRO;
+      if (this.gestureDebounce === 0) {
+        this.gestureDebounce = 1;
+      }
+      this.animationMixer
+        .clipAction(this.props.animationClips[this.animationName]!)
+        .fadeOut(ANIMATION_FADE_TIME_S);
+      const animationKeys: string[] = Object.keys(this.animations);
+      const newIndex = animationKeys.findIndex(
+        (animation) =>
+          animation
+            .toLowerCase()
+            .includes(this.emotionStateOld.toLowerCase()) &&
+          animation.toLowerCase().includes(ANIMATION_TYPE.OUTRO),
+      );
+      const durTime =
+        this.props.animationClips[animationKeys[newIndex]]!.duration;
+      let action = this.animationMixer
+        .clipAction(this.props.animationClips[animationKeys[newIndex]]!)
+        .reset()
+        .fadeIn(ANIMATION_FADE_TIME_S);
+      action.loop = LoopOnce;
+      action.clampWhenFinished = true;
+      action.play();
+      this.emotionStateOld = this.emotionState;
+      this.animationName = animationKeys[newIndex];
+      if (this.emotionState === EMOTIONS_BODY.NEUTRAL) {
+        setTimeout(this.onPlayIdle, (durTime - ANIMATION_FADE_TIME_S) * 1000);
+      } else {
+        setTimeout(this.onPlayIntro, (durTime - ANIMATION_FADE_TIME_S) * 1000);
+      }
+    }
+  }
+
+  onReady() {
+    log('InnequinAnimtaor - Ready');
     this.isReady = true;
-    this.playHello();
+    this.onPlayHello();
   }
 
   setEmotion(emotion: EmotionBehaviorCode) {
@@ -333,9 +335,9 @@ export class InnequinAnimator {
       this.animationState === ANIMATION_TYPE.IDLE
     ) {
       if (this.emotionStateOld === EMOTIONS_BODY.NEUTRAL) {
-        this.playIntro();
+        this.onPlayIntro();
       } else {
-        this.playOutro();
+        this.onPlayOutro();
       }
     }
   }
@@ -384,7 +386,7 @@ export class InnequinAnimator {
       this.animationState === ANIMATION_TYPE.IDLE
     ) {
       this.gestureOld = this.gesture;
-      this.playGesture();
+      this.onPlayGesture();
     }
   }
 }

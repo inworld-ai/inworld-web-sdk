@@ -96,11 +96,15 @@ export class Innequin {
       this.bodySkinNameInit = props.skinName;
     }
     this.isSkinLoading = false;
-    this.onLoadProgress = this.onLoadProgress.bind(this);
+
+    this.onLoadAnimations = this.onLoadAnimations.bind(this);
+    this.onLoadComplete = this.onLoadComplete.bind(this);
     this.onLoadConfig = this.onLoadConfig.bind(this);
     this.onLoadModel = this.onLoadModel.bind(this);
-    this.onLoadAnimations = this.onLoadAnimations.bind(this);
+    this.onLoadProgress = this.onLoadProgress.bind(this);
+    this.onLoadSkin = this.onLoadSkin.bind(this);
     this.onLoadVismeMaterials = this.onLoadVismeMaterials.bind(this);
+
     this.init();
   }
 
@@ -170,7 +174,7 @@ export class Innequin {
       path: fileURI,
       dracoPath: this.dracoURI,
     });
-    this.modelFile.load(this.onLoadModel.bind(this));
+    this.modelFile.load(this.onLoadModel);
   }
 
   loadVismeMaterials() {
@@ -212,109 +216,10 @@ export class Innequin {
   playAnimation(animation: string) {
     if (this.animationClips[animation]) {
       this.animator.playAnimation(animation);
-    }
-  }
-
-  onLoadAnimations() {
-    for (const animationName in this.animationLoaders) {
-      const animation: InnequinAnimationType =
-        this.config.innequin.animations[animationName];
-      this.animationClips[this.animationLoaders[animationName]!.name] =
-        this.animationLoaders[animationName]!.animationClip!;
-      if (animation.type === ANIMATION_TYPE.GESTURE) {
-        const animationGesture: AnimationGesture = {
-          name: this.animationLoaders[animationName]!.name,
-          duration:
-            this.animationLoaders[animationName]!.animationClip!.duration,
-          emotion: animation.emotion,
-        };
-        this.animationGestures.push(animationGesture);
-      }
-    }
-    log('Innequin - Animations Loaded.');
-    this.loadVismeMaterials();
-  }
-
-  onLoadComplete() {
-    this.onLoad(this.config);
-    log('Innequin - Character Loaded.');
-    this.animator.ready();
-  }
-
-  onLoadConfig(config: InnequinConfiguration) {
-    log('Innequin - Config Loaded.');
-    this.config = config;
-    this.configFile = null;
-    this.bodySkinName = this.config.innequin.defaults.SKIN;
-    this.loadModel();
-  }
-
-  onLoadModel() {
-    // This next block parses the model and locates the detected
-    // meshes needed to run Innequin
-    let skeleton: SkinnedMesh | undefined;
-    this.getModel().traverse((child) => {
-      if (child.name === 'Armature') {
-        skeleton = child as SkinnedMesh;
-      }
-    });
-
-    if (!skeleton) throw new Error('Innequin - Error skeleton not found');
-
-    skeleton.traverse((child) => {
-      for (let i = 0; i < MESH_IDS.length; i++) {
-        if (child.name === MESH_IDS[i].meshName) {
-          this.addMesh(child as SkinnedMesh, MESH_IDS[i].meshType);
-          break;
-        }
-      }
-    });
-
-    // Hides all the accessories on the model.
-    // Currently this is commented out awaiting future architecture
-    // InnequinAssetController.updateDisplayList(
-    //   this.getModel() as SkinnedMesh,
-    //   this.config.innequin.assets,
-    // );
-
-    log('Innequin - Model Loaded');
-    this.loadAnimations();
-  }
-
-  onLoadProgress(progress: number) {
-    log('-----> Loading Progress:', progress);
-    this.onProgress(progress);
-  }
-
-  onLoadSkin() {
-    log('-----> Loading Complete.');
-    this.isSkinLoading = false;
-    this.updateBodySkin();
-    // If this is the pre-load skin change then load complete after.
-    if (!this.animator.isReady) {
-      this.onLoadComplete();
-    }
-  }
-
-  onLoadVismeMaterials() {
-    log('Innequin - Visemes Textures Loaded.');
-    this.animator = new InnequinAnimator({
-      animations: this.config.innequin.animations,
-      animationClips: this.animationClips,
-      animationGestures: this.animationGestures,
-      facialMaterials: this.facialMaterialLoaders,
-      defaultAnimation: this.config.innequin.defaults.INTRO_ANIMATION,
-      defaultEmotion: this.config.innequin.defaults.EMOTION,
-      model: this.getScene(),
-      modelMeshes: this.modelMeshes,
-    });
-    if (
-      this.bodySkinNameInit &&
-      this.bodySkinNameInit !== this.config.innequin.defaults.SKIN
-    ) {
-      this.setSkin(this.bodySkinNameInit);
     } else {
-      this.onLoadComplete();
+      throw new Error(
+        'ERROR Innequin playAnimation. Animation not found: ' + animation,
+      );
     }
   }
 
@@ -397,5 +302,108 @@ export class Innequin {
       });
     }
     this.modelMeshes[type] = mesh;
+  }
+
+  onLoadAnimations() {
+    for (const animationName in this.animationLoaders) {
+      const animation: InnequinAnimationType =
+        this.config.innequin.animations[animationName];
+      this.animationClips[this.animationLoaders[animationName]!.name] =
+        this.animationLoaders[animationName]!.animationClip!;
+      if (animation.type === ANIMATION_TYPE.GESTURE) {
+        const animationGesture: AnimationGesture = {
+          name: this.animationLoaders[animationName]!.name,
+          duration:
+            this.animationLoaders[animationName]!.animationClip!.duration,
+          emotion: animation.emotion,
+        };
+        this.animationGestures.push(animationGesture);
+      }
+    }
+    log('Innequin - Animations Loaded.');
+    this.loadVismeMaterials();
+  }
+
+  onLoadComplete() {
+    this.onLoad(this.config);
+    log('Innequin - Character Loaded.');
+    this.animator.onReady();
+  }
+
+  onLoadConfig(config: InnequinConfiguration) {
+    log('Innequin - Config Loaded.');
+    this.config = config;
+    this.configFile = null;
+    this.bodySkinName = this.config.innequin.defaults.SKIN;
+    this.loadModel();
+  }
+
+  onLoadModel() {
+    // This next block parses the model and locates the detected
+    // meshes needed to run Innequin
+    let skeleton: SkinnedMesh | undefined;
+    this.getModel().traverse((child) => {
+      if (child.name === 'Armature') {
+        skeleton = child as SkinnedMesh;
+      }
+    });
+
+    if (!skeleton) throw new Error('Innequin - Error skeleton not found');
+
+    skeleton.traverse((child) => {
+      for (let i = 0; i < MESH_IDS.length; i++) {
+        if (child.name === MESH_IDS[i].meshName) {
+          this.addMesh(child as SkinnedMesh, MESH_IDS[i].meshType);
+          break;
+        }
+      }
+    });
+
+    // Hides all the accessories on the model.
+    // Currently this is commented out awaiting future architecture
+    // InnequinAssetController.updateDisplayList(
+    //   this.getModel() as SkinnedMesh,
+    //   this.config.innequin.assets,
+    // );
+
+    log('Innequin - Model Loaded');
+    this.loadAnimations();
+  }
+
+  onLoadProgress(progress: number) {
+    log('-----> Loading Progress:', progress);
+    this.onProgress(progress);
+  }
+
+  onLoadSkin() {
+    log('-----> Loading Complete.');
+    this.isSkinLoading = false;
+    this.updateBodySkin();
+    // If this is the pre-load skin change then load complete after.
+    if (!this.animator.isReady) {
+      this.onLoadComplete();
+    }
+  }
+
+  onLoadVismeMaterials() {
+    log('Innequin - Visemes Textures Loaded.');
+    this.animator = new InnequinAnimator({
+      animations: this.config.innequin.animations,
+      animationClips: this.animationClips,
+      animationGestures: this.animationGestures,
+      facialMaterials: this.facialMaterialLoaders,
+      defaultAnimation: this.config.innequin.defaults.INTRO_ANIMATION,
+      defaultEmotion: this.config.innequin.defaults.EMOTION,
+      model: this.getModel(),
+      modelMeshes: this.modelMeshes,
+    });
+    if (
+      this.bodySkinNameInit &&
+      this.bodySkinNameInit !== this.config.innequin.defaults.SKIN
+    ) {
+      this.setSkin(this.bodySkinNameInit);
+    } else {
+      this.onLoadComplete();
+    }
   }
 }
