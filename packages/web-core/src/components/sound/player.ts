@@ -17,7 +17,13 @@ export class Player {
     document.body.append(this.audioElement);
   }
 
+  getStream() {
+    console.log('player: getStream');
+    return this.mediaStream;
+  }
+
   setStream(stream: MediaStream) {
+    console.log('player: setStream');
     this.mediaStream = stream;
     this.audioElement.srcObject = stream;
     this.audioElement.autoplay = true;

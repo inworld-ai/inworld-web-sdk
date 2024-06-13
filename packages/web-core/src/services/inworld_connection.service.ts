@@ -37,7 +37,8 @@ export class InworldConnectionService<
   InworldPacketT extends InworldPacket = InworldPacket,
 > {
   readonly feedback: FeedbackService<InworldPacketT>;
-  private connection: ConnectionService<InworldPacketT>;
+  // MARK AUDIO - WAS PRIVATE
+  connection: ConnectionService<InworldPacketT>;
   private grpcAudioPlayer: GrpcAudioPlayback<InworldPacketT>;
   private oneToOneConversation: ConversationService<InworldPacketT>;
 

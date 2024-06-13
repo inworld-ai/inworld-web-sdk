@@ -16,6 +16,11 @@ export class InworldPlayer<
     return this.grpcAudioPlayer.getMute();
   }
 
+  getStream() {
+    console.log('InworldPlayer: getStream');
+    return this.player.getStream();
+  }
+
   mute(mute: boolean) {
     this.grpcAudioPlayer.mute(mute);
   }

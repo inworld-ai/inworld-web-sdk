@@ -25,7 +25,13 @@ export class InworldRecorder {
     this.webRtcLoopbackBiDiSession = props.webRtcLoopbackBiDiSession;
   }
 
+  getStream() {
+    console.log('InworldRecorder: getStream');
+    return this.grpcAudioPlayer.getPlaybackStream();
+  }
+
   async start() {
+    console.log('InworldRecorder: start');
     const audio: MediaTrackConstraintsWithSuppress = {
       sampleRate: 16000,
       echoCancellation: { ideal: true },
