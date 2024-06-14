@@ -67,7 +67,7 @@ function App() {
   const [emotionEvent, setEmotionEvent] = useState<EmotionEvent>();
   const [avatars, setAvatars] = useState<string[]>([]);
   const [emotions, setEmotions] = useState<EmotionsMap>({});
-  const [stopRecording, setStopRecording] = useState<Boolean>(false);
+  const [stopRecording, setStopRecording] = useState<boolean>(false);
 
   const stateRef = useRef<CurrentContext>();
   stateRef.current = {
@@ -103,7 +103,7 @@ function App() {
   };
 
   const onHistoryChange = useCallback((history: HistoryItem[]) => {
-    setChatHistory(history);
+    setChatHistory([...prevChatHistory, ...history]);
   }, []);
 
   const openConnection = useCallback(
@@ -312,7 +312,7 @@ function App() {
             <Chat
               characters={characters}
               chatView={chatView}
-              chatHistory={[...prevChatHistory, ...chatHistory]}
+              chatHistory={chatHistory}
               prevTranscripts={prevTranscripts}
               connection={connection!}
               emotions={emotions}
