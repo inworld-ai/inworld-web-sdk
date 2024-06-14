@@ -127,9 +127,9 @@ export function Chat(props: ChatProps) {
 
   const stopRecording = useCallback(() => {
     setRecorderdingStatus(RECORDING_STATUS.STOPPED);
-    connection.recorder.stop();
 
     if (connection.recorder.isRecording()) {
+      connection.recorder.stop();
       connection.sendAudioSessionEnd();
     }
   }, [connection]);
