@@ -11,8 +11,6 @@
   },
   "hooks": {
     "before:init": [
-      "git pull",
-      "yarn install",
       "yarn build",
       "yarn lint:check",
       "yarn prettier:check",
