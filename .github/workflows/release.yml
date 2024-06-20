@@ -36,7 +36,6 @@ jobs:
         with:
           package: '@inworld/web-core'
       - name: Run build @inworld/web-threejs
-        if: inputs.package == '@inworld/web-threejs'
         uses: ./.github/actions/build_package
         with:
           package: '@inworld/web-threejs'
