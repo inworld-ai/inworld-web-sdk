@@ -5,6 +5,7 @@ import {
   InworldPacket as ProtoPacket,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import {
+  AudioSessionStartPacketParams,
   AudioSessionState,
   CancelResponsesProps,
   ConversationState,
@@ -177,7 +178,10 @@ export class ConversationService<
     );
   }
 
-  async sendAudioSessionStart(force?: boolean) {
+  async sendAudioSessionStart(
+    params?: AudioSessionStartPacketParams,
+    force?: boolean,
+  ) {
     if (
       !force &&
       this.connection.getAudioSessionAction() === AudioSessionState.START
@@ -189,9 +193,10 @@ export class ConversationService<
     this.connection.setCurrentAudioConversation(this);
 
     return this.ensureConversation(() =>
-      this.connection
-        .getEventFactory()
-        .audioSessionStart({ conversationId: this.getConversationId() }),
+      this.connection.getEventFactory().audioSessionStart({
+        conversationId: this.getConversationId(),
+        mode: params?.mode,
+      }),
     );
   }
 

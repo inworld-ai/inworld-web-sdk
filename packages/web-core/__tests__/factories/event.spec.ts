@@ -3,13 +3,17 @@ import { v4 } from 'uuid';
 import {
   Actor,
   ActorType,
+  AudioSessionStartPayloadMicrophoneMode,
   ContinuationContinuationType,
   ControlEventAction,
   ConversationEventPayloadConversationEventType,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
 } from '../../proto/ai/inworld/packets/packets.pb';
-import { InworldConversationEventType } from '../../src/common/data_structures';
+import {
+  InworldConversationEventType,
+  MicrophoneMode,
+} from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
 import { Character } from '../../src/entities/character.entity';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
@@ -66,6 +70,9 @@ describe('event types', () => {
     expect(event).toHaveProperty('timestamp');
     expect(event.control).toEqual({
       action: ControlEventAction.AUDIO_SESSION_START,
+      audioSessionStart: {
+        mode: AudioSessionStartPayloadMicrophoneMode.OPEN_MIC,
+      },
     });
     expect(event.routing?.target).toBeFalsy();
     expect(event.packetId).toHaveProperty('packetId');
@@ -74,6 +81,36 @@ describe('event types', () => {
     expect(event.packetId?.correlationId).toBeUndefined();
     expect(event.packetId?.conversationId).toEqual(conversationId);
   });
+
+  test.each([
+    {
+      input: MicrophoneMode.EXPECT_AUDIO_END,
+      expected: AudioSessionStartPayloadMicrophoneMode.EXPECT_AUDIO_END,
+    },
+    {
+      input: MicrophoneMode.OPEN_MIC,
+      expected: AudioSessionStartPayloadMicrophoneMode.OPEN_MIC,
+    },
+  ])(
+    'should generate audio session start with microphone $input',
+    ({ input, expected }) => {
+      const event = factory.audioSessionStart({
+        conversationId,
+        mode: input,
+      });
+
+      expect(event.control?.action).toEqual(
+        ControlEventAction.AUDIO_SESSION_START,
+      );
+      expect(event.control?.audioSessionStart?.mode).toEqual(expected);
+      expect(event.routing?.target).toBeFalsy();
+      expect(event.packetId).toHaveProperty('packetId');
+      expect(event.packetId?.utteranceId).toBeUndefined();
+      expect(event.packetId?.interactionId).toBeUndefined();
+      expect(event.packetId?.correlationId).toBeUndefined();
+      expect(event.packetId?.conversationId).toEqual(conversationId);
+    },
+  );
 
   test('should generate audio session end', () => {
     const event = factory.audioSessionEnd({ conversationId });

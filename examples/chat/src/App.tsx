@@ -67,6 +67,7 @@ function App() {
   const [emotionEvent, setEmotionEvent] = useState<EmotionEvent>();
   const [avatars, setAvatars] = useState<string[]>([]);
   const [emotions, setEmotions] = useState<EmotionsMap>({});
+  const [stopRecording, setStopRecording] = useState<boolean>(false);
 
   const stateRef = useRef<CurrentContext>();
   stateRef.current = {
@@ -102,7 +103,7 @@ function App() {
   };
 
   const onHistoryChange = useCallback((history: HistoryItem[]) => {
-    setChatHistory(history);
+    setChatHistory([...prevChatHistory, ...history]);
   }, []);
 
   const openConnection = useCallback(
@@ -134,7 +135,7 @@ function App() {
         capabilities: {
           ...(textMode ? { interruptions: true } : { phonemes: true }),
           emotions: true,
-          multiAgent: form.chatView === CHAT_VIEW.MULTI_AGENT_TEXT,
+          debugInfo: true,
           narratedActions: true,
         },
         ...(previousDialog.length && { continuation: { previousDialog } }),
@@ -156,6 +157,7 @@ function App() {
         },
         onDisconnect: () => {
           console.log('Disconnect!');
+          setStopRecording(true);
         },
         onMessage: (inworldPacket: InworldPacket) => {
           if (
@@ -310,11 +312,13 @@ function App() {
             <Chat
               characters={characters}
               chatView={chatView}
-              chatHistory={[...prevChatHistory, ...chatHistory]}
+              chatHistory={chatHistory}
               prevTranscripts={prevTranscripts}
               connection={connection!}
               emotions={emotions}
               onRestore={openConnection}
+              stopRecording={stopRecording}
+              onStartRecording={() => setStopRecording(false)}
             />
           </ChatWrapper>
         </MainWrapper>

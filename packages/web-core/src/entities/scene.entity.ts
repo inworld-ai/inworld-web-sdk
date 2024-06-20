@@ -37,7 +37,7 @@ export class Scene {
     sceneStatus: CurrentSceneStatus;
     sessionHistory?: SessionHistoryResponse;
   }) {
-    const characters = (sceneStatus?.agents ?? []).map((agent: Agent) =>
+    const characters = (sceneStatus.agents ?? []).map((agent: Agent) =>
       Character.fromProto(agent),
     );
 
@@ -89,8 +89,8 @@ export class Scene {
 
     return new Scene({
       name: sceneStatus.sceneName,
-      description: sceneStatus?.sceneDescription,
-      displayName: sceneStatus?.sceneDisplayName,
+      description: sceneStatus.sceneDescription,
+      displayName: sceneStatus.sceneDisplayName,
       characters,
       history,
     });

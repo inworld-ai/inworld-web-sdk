@@ -3,6 +3,7 @@ import '../mocks/window.mock';
 import { v4 } from 'uuid';
 
 import {
+  AudioSessionStartPayloadMicrophoneMode,
   ControlEventAction,
   DataChunkDataType,
 } from '../../proto/ai/inworld/packets/packets.pb';
@@ -13,6 +14,7 @@ import {
   ConversationState,
   InworldPacketType,
   LoadedScene,
+  MicrophoneMode,
   TtsPlaybackAction,
 } from '../../src/common/data_structures';
 import {
@@ -528,6 +530,45 @@ describe('send', () => {
       ]);
     });
 
+    test('should send audio session start for push-to-talk', async () => {
+      jest
+        .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+        .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementation(writeMock);
+      const mode = MicrophoneMode.OPEN_MIC;
+
+      const [packet] = await Promise.all([
+        service.sendAudioSessionStart({ mode }),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(write.mock.calls[0][0].getPacket().control?.action).toEqual(
+        ControlEventAction.CONVERSATION_UPDATE,
+      );
+      expect(write.mock.calls[1][0].getPacket().control).toEqual({
+        action: ControlEventAction.AUDIO_SESSION_START,
+        audioSessionStart: {
+          mode: AudioSessionStartPayloadMicrophoneMode.OPEN_MIC,
+        },
+      });
+      expect(packet!.isControl()).toEqual(true);
+      expect(service.getConversations()).toEqual([
+        {
+          conversationId,
+          characters: [characters[0]],
+        },
+      ]);
+    });
+
     test('should throw error if audio session was started twice', async () => {
       const conversationService = new ConversationService(connection, {
         participants: [characters[0].resourceName],
@@ -900,7 +941,7 @@ describe('send', () => {
         .mockReturnValueOnce(characters);
       jest
         .spyOn(InworldConnectionService.prototype, 'getCharacters')
-        .mockImplementation(() => Promise.resolve(characters));
+        .mockImplementationOnce(() => Promise.resolve(characters));
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
         .mockImplementationOnce(writeMock);
@@ -1153,12 +1194,29 @@ describe('character', () => {
   });
 
   test('should set current character', async () => {
-    const setCurrentCharacter = jest.spyOn(eventFactory, 'setCurrentCharacter');
+    jest
+      .spyOn(service, 'getCurrentCharacter')
+      .mockImplementationOnce(() => Promise.resolve(undefined!));
+    const setCurrentCharacter = jest
+      .spyOn(eventFactory, 'setCurrentCharacter')
+      .mockImplementation(jest.fn());
+    const updateParticipants = jest
+      .spyOn(ConversationService.prototype, 'updateParticipants')
+      .mockImplementation(jest.fn());
 
-    service.setCurrentCharacter(characters[0]);
+    await service.setCurrentCharacter(characters[0]);
+    expect(setCurrentCharacter.mock.calls[0][0]).toEqual(characters[0]);
 
-    expect(setCurrentCharacter).toHaveBeenCalledTimes(1);
-    expect(setCurrentCharacter).toHaveBeenCalledWith(characters[0]);
+    const conversationService = await service.getCurrentConversation();
+
+    connection.conversations.set(conversationService.getConversationId(), {
+      service: conversationService,
+      state: ConversationState.ACTIVE,
+    });
+
+    await service.setCurrentCharacter(characters[1]);
+
+    expect(updateParticipants).toHaveBeenCalledTimes(1);
   });
 
   test('should change current character for existing one-to-one conversation', async () => {

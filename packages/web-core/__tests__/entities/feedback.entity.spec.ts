@@ -6,24 +6,31 @@ import {
 } from '../../proto/ai/inworld/engine/v1/feedback.pb';
 import { DislikeType, Feedback } from '../../src/entities/feedback.entity';
 
-const isLike = true;
-const comment = v4();
-const name = v4();
+let name: string;
+let isLike: boolean;
+let comment: string;
+let feedback: Feedback;
 
-const feedback = new Feedback({
-  isLike,
-  comment,
-  types: [
-    DislikeType.INCORRECT_USE_KNOWLEDGE,
-    DislikeType.UNSAFE,
-    DislikeType.UNTRUE,
-    DislikeType.IRRELEVANT,
-    DislikeType.UNEXPECTED_ACTION,
-    DislikeType.UNEXPECTED_GOAL_BEHAVIOR,
-    DislikeType.REPETITION,
-    DislikeType.UNSPECIFIED,
-  ],
-  name,
+beforeEach(() => {
+  isLike = true;
+  comment = v4();
+  name = v4();
+
+  feedback = new Feedback({
+    isLike,
+    comment,
+    types: [
+      DislikeType.INCORRECT_USE_KNOWLEDGE,
+      DislikeType.UNSAFE,
+      DislikeType.UNTRUE,
+      DislikeType.IRRELEVANT,
+      DislikeType.UNEXPECTED_ACTION,
+      DislikeType.UNEXPECTED_GOAL_BEHAVIOR,
+      DislikeType.REPETITION,
+      DislikeType.UNSPECIFIED,
+    ],
+    name,
+  });
 });
 
 test('should get feedback fields with all set data', () => {

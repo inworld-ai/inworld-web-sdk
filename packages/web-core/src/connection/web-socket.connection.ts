@@ -16,10 +16,12 @@ import {
   Extension,
   InternalClientConfiguration,
   LoadedScene,
+  ProtoError,
   User,
 } from '../common/data_structures';
 import { HistoryItem } from '../components/history';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
+import { InworldError } from '../entities/error.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { SessionToken } from '../entities/session_token.entity';
 import { EventFactory } from '../factories/event';
@@ -49,7 +51,7 @@ interface ConnectionProps<
   config?: InternalClientConfiguration;
   onDisconnect: () => Awaitable<void>;
   onReady: () => Awaitable<void>;
-  onError: (err: Event | Error) => Awaitable<void>;
+  onError: (err: InworldError) => Awaitable<void>;
   onMessage: (packet: ProtoPacket) => Awaitable<void>;
   extension: Extension<InworldPacketT, HistoryItemT>;
 }
@@ -78,6 +80,7 @@ export class WebSocketConnection<
   private ws: WebSocket;
   private extension: Extension<InworldPacketT, HistoryItemT>;
   private onMessage: (event: MessageEvent) => void;
+  private onError: (err: Event | InworldError) => void;
 
   constructor(props: ConnectionProps<InworldPacketT, HistoryItemT>) {
     this.connectionProps = props;
@@ -85,9 +88,16 @@ export class WebSocketConnection<
       const [err, packet] = this.parseEvent(event);
 
       if (err) {
-        this.connectionProps.onError(err);
+        this.onError(err);
       } else if (packet) {
         this.connectionProps.onMessage(packet);
+      }
+    };
+    this.onError = (err: Event | InworldError) => {
+      if (err instanceof InworldError) {
+        this.connectionProps.onError(err);
+      } else {
+        this.connectionProps.onError(new InworldError(err.toString()));
       }
     };
     this.extension = props.extension;
@@ -200,7 +210,7 @@ export class WebSocketConnection<
       this.connectionProps.onDisconnect();
     }
 
-    this.ws?.removeEventListener('error', this.connectionProps.onError);
+    this.ws?.removeEventListener('error', this.onError);
     this.ws?.removeEventListener('close', this.connectionProps.onDisconnect);
     this.ws?.removeEventListener('message', this.onMessage);
 
@@ -216,7 +226,7 @@ export class WebSocketConnection<
   }
 
   private async combineWebSocket(session: SessionToken) {
-    const { onDisconnect, onError } = this.connectionProps;
+    const { onDisconnect } = this.connectionProps;
     const { hostname, ssl } = this.connectionProps.config.connection.gateway;
 
     const url = `${
@@ -229,14 +239,14 @@ export class WebSocketConnection<
       ws.addEventListener('close', onDisconnect);
     }
 
-    if (onError) {
-      ws.addEventListener('error', onError);
-    }
+    ws.addEventListener('error', this.onError);
 
     return ws;
   }
 
-  private parseEvent(event: MessageEvent) {
+  private parseEvent(
+    event: MessageEvent,
+  ): [InworldError, ProtoPacket] | [undefined, ProtoPacket] | [InworldError] {
     let payload;
 
     try {
@@ -244,13 +254,13 @@ export class WebSocketConnection<
     } catch {}
 
     if (!payload) {
-      return [new Error('Invalid JSON received as WS event data')];
+      return [new InworldError('Invalid JSON received as WS event data')];
     } else if (payload.error) {
-      return [payload.error];
+      return [InworldError.fromProto(payload.error as ProtoError)];
     }
 
     if (payload.result) {
-      return [null, payload.result as ProtoPacket];
+      return [undefined, payload.result as ProtoPacket];
     }
   }
 
@@ -267,7 +277,7 @@ export class WebSocketConnection<
     ws: WebSocket;
     write: (item: QueueItem<InworldPacketT>) => void;
     resolve: (value: LoadedScene) => void;
-    reject: (reason: Error) => void;
+    reject: (reason: InworldError) => void;
   }) {
     const { parseEvent, onMessage } = this;
     let historyLoaded = true;

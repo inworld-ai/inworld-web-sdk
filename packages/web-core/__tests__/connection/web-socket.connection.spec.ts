@@ -2,13 +2,20 @@ import WS from 'jest-websocket-mock';
 import { v4 } from 'uuid';
 
 import {
+  ErrorType as ProtoErrorType,
+  InworldStatus,
+  ReconnectionType as ProtoErrorReconnectionType,
+} from '../../proto/ai/inworld/common/status.pb';
+import {
   ContinuationContinuationType,
   InworldPacket as ProtoPacket,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import { CLIENT_ID } from '../../src/common/constants';
 import { Awaitable, ConnectionConfig } from '../../src/common/data_structures';
+import { protoTimestamp } from '../../src/common/helpers';
 import { WebSocketConnection } from '../../src/connection/web-socket.connection';
 import { SessionContinuation } from '../../src/entities/continuation/session_continuation.entity';
+import { InworldError } from '../../src/entities/error.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ExtendedHistoryItem, ExtendedInworldPacket } from '../data_structures';
 import {
@@ -117,7 +124,20 @@ describe('open', () => {
       ),
     ]);
 
-    server.send({ error: 'Error' });
+    server.send({
+      error: {
+        message: 'Error',
+        code: '1',
+        details: [
+          {
+            errorType: ProtoErrorType.AUDIO_SESSION_EXPIRED,
+            reconnectType: ProtoErrorReconnectionType.IMMEDIATE,
+            maxRetries: 1,
+            reconnectTime: protoTimestamp(),
+          } as InworldStatus,
+        ],
+      },
+    });
 
     expect(onError).toHaveBeenCalledTimes(1);
   });
@@ -146,8 +166,7 @@ describe('open', () => {
           ),
         ]);
       }),
-      // WebSocket onerror event gets called with an event of type error and not an error
-    ).rejects.toEqual(expect.objectContaining({ type: 'error' }));
+    ).rejects.toBeInstanceOf(InworldError);
   });
 
   test('should call onDisconnect', async () => {
@@ -508,7 +527,7 @@ describe('open', () => {
           0,
         ),
       ]),
-    ).rejects.toEqual(error);
+    ).rejects.toHaveProperty('message', error.message);
   });
 });
 
@@ -565,8 +584,7 @@ describe('reopen', () => {
           ),
         ]);
       }),
-      // WebSocket onerror event gets called with an event of type error and not an error
-    ).rejects.toEqual(expect.objectContaining({ type: 'error' }));
+    ).rejects.toBeInstanceOf(InworldError);
   });
 
   test('should call onDisconnect', async () => {
