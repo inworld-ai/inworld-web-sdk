@@ -31,14 +31,8 @@ jobs:
         with:
           ref: main
           ssh-key: ${{ secrets.GH_SERVICE_ACCOUNT_SSH_KEY }}
-      - name: Run build @inworld/web-core
+      - name: Run build
         uses: ./.github/actions/build_package
-        with:
-          package: '@inworld/web-core'
-      - name: Run build @inworld/web-threejs
-        uses: ./.github/actions/build_package
-        with:
-          package: '@inworld/web-threejs'
       - name: Bump version
         run: |
           yarn workspace ${{ inputs.package }} release:bump ${{ inputs.increment }} --ci
@@ -55,8 +49,6 @@ jobs:
           ref: main
       - name: Run build
         uses: ./.github/actions/build_package
-        with:
-          package: ${{ inputs.package }}
       - run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
       - name: Publish to npm
         run: yarn workspace ${{ inputs.package }} release:publish
