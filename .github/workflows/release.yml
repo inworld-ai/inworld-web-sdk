@@ -51,7 +51,7 @@ jobs:
         uses: ./.github/actions/build_package
         with:
           mode: 'prod'
-      - run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+      - run: echo "npmAuthToken:" "${{ secrets.NPM_TOKEN }}" >> .yarnrc.yml
       - name: Publish to npm
         run: npx yarn workspace ${{ inputs.package }} release:publish
 
