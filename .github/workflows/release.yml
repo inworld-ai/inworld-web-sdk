@@ -35,7 +35,7 @@ jobs:
         uses: ./.github/actions/build_package
       - name: Bump version
         run: |
-          yarn workspace ${{ inputs.package }} release:bump ${{ inputs.increment }} --ci
+          npx yarn workspace ${{ inputs.package }} release:bump ${{ inputs.increment }} --ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -49,9 +49,11 @@ jobs:
           ref: main
       - name: Run build
         uses: ./.github/actions/build_package
+        with:
+          mode: 'prod'
       - run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
       - name: Publish to npm
-        run: yarn workspace ${{ inputs.package }} release:publish
+        run: npx yarn workspace ${{ inputs.package }} release:publish
 
   release-notification:
     runs-on: [self-hosted, kubernetes, nodocker]
