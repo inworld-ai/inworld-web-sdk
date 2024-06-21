@@ -515,7 +515,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inworld/web-core@npm:2.6.0, @inworld/web-core@workspace:packages/web-core":
+"@inworld/web-core@npm:2.6.0":
+  version: 2.6.0
+  resolution: "@inworld/web-core@npm:2.6.0"
+  dependencies:
+    base64-arraybuffer: "npm:^1.0.2"
+    defer-promise: "npm:^3.0.0"
+    uuid: "npm:^9.0.0"
+  checksum: 10c0/eb324e28b47a08774aed49e3973260dbf6740ce8560db48c0149337151b67b89826558ca9ae07722c462f8e86f0c963dd12325f6488b92aefc1a6d777b044abb
+  languageName: node
+  linkType: hard
+
+"@inworld/web-core@workspace:packages/web-core":
   version: 0.0.0-use.local
   resolution: "@inworld/web-core@workspace:packages/web-core"
   dependencies:

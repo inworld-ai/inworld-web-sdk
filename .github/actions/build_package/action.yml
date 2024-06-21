@@ -1,5 +1,9 @@
 name: build-package
 
+inputs:
+  mode:
+    description: 'prod or undefined'
+
 runs:
   using: "composite"
   steps:
@@ -7,9 +11,14 @@ runs:
       uses: actions/setup-node@v3
       with:
         node-version: '18.x'
-    - name: Install dependencies
+    - name: Install dev dependencies
+      if: inputs.mode != 'prod'
       shell: bash
       run: yarn install
+    - name: Install production dependencies
+      if: inputs.mode == 'prod'
+      shell: bash
+      run: yarn workspaces focus -A
     - name: Build
       shell: bash
       run: yarn build
