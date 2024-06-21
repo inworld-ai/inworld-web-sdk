@@ -12,4 +12,5 @@ jest.config.json
 /docs
 EXTENSIONS.md
 /dist
- yarn-error.log
+yarn-error.log
+rollup.config.js

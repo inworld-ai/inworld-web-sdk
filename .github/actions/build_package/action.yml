@@ -1,10 +1,5 @@
 name: build-package
 
-inputs:
-  package:
-    description: 'Package name'
-    required: true
-
 runs:
   using: "composite"
   steps:
@@ -12,21 +7,9 @@ runs:
       uses: actions/setup-node@v3
       with:
         node-version: '18.x'
-    - name: Get yarn cache directory path
-      id: yarn-cache-dir-path
-      shell: bash
-      run: echo "dir=$(yarn cache dir)" >> "$GITHUB_OUTPUT"
-    - name: Use yarn cache directory
-      uses: actions/cache@v3
-      id: yarn-cache
-      with:
-        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-yarn-
     - name: Install dependencies
       shell: bash
-      run: yarn install --ignore-scripts
+      run: yarn install
     - name: Build
       shell: bash
-      run: yarn workspace ${{ inputs.package }} build
+      run: yarn build

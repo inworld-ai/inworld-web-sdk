@@ -1,9 +1,19 @@
 coverage
 build
-node_modules
 .eslintcache
 .env
 .env-bak*
+
+# dependencies
+node_modules
+.yarn/*
+!.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
 # Mac filesystem
 **/.DS_Store
 

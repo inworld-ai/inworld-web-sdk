@@ -26,12 +26,12 @@
   "scripts": {
     "build": "tsc -p . && shx cp -r ../../LICENSE.md ./ && tsc-alias -p tsconfig.json",
     "release:pack": "yarn build && yarn pack",
-    "release:publish": "yarn build && yarn publish",
+    "release:publish": "yarn build && yarn npm publish",
     "release:bump": "release-it",
     "lint:check": "eslint --cache  \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.eslintrc.json",
     "lint:fix": "yarn run lint:check --fix",
-    "prettier:check": "yarn prettier --check \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
-    "prettier:format": "yarn prettier --write \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
+    "prettier:check": "prettier --check \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
+    "prettier:format": "prettier --write \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
     "test": "jest --no-cache --reporters=default",
     "test:coverage": "jest --coverage",
     "minify": "rollup --config rollup.config.mjs"

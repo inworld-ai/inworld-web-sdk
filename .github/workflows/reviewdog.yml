@@ -24,13 +24,6 @@ jobs:
       - name: Run Web Core build
         if: steps.changes.outputs.changed == 'true'
         uses: ./.github/actions/build_package
-        with:
-          package: '@inworld/web-core'
-      - name: Run Web Threejs build
-        if: steps.changes.outputs.changed == 'true'
-        uses: ./.github/actions/build_package
-        with:
-          package: '@inworld/web-threejs'
       - name: Review source code
         if: steps.changes.outputs.changed == 'true'
         uses: reviewdog/action-eslint@v1
