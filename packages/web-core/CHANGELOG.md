@@ -12,6 +12,7 @@
 
 - Await for CLOSED WebSocket connection state after CLOSING one
 - Allow to change scene user parameters
+- Improve connection management
 
 ### Added
 

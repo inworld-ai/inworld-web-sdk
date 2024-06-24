@@ -84,7 +84,7 @@ export class ConversationService<
 
   async updateParticipants(participants: string[]) {
     const conversationId = this.getConversationId();
-    const conversation = this.connection.conversations.get(conversationId);
+    let conversation = this.connection.conversations.get(conversationId);
 
     if (!conversation) {
       throw Error(`Conversation ${conversationId} not found`);
@@ -102,6 +102,7 @@ export class ConversationService<
       service: conversation.service,
       state: ConversationState.PROCESSING,
     });
+    conversation = this.connection.conversations.get(conversationId);
 
     let needToReacreateAudioSession = false;
 
@@ -120,10 +121,10 @@ export class ConversationService<
 
     if (charactersToAdd.length) {
       await this.addCharacters(charactersToAdd);
+      characters = (await this.connection.getCharacters()).filter((c) =>
+        charactersNamesOnly.includes(c.resourceName),
+      );
     }
-    characters = (await this.connection.getCharacters()).filter((c) =>
-      charactersNamesOnly.includes(c.resourceName),
-    );
 
     // Update conversation
     const conversationParticipants = characters.map((c) => c.id);
@@ -232,17 +233,8 @@ export class ConversationService<
   }
 
   async sendCancelResponse(cancelResponses?: CancelResponsesProps) {
-    const characters = this.getCharacters();
-
-    if (characters.length != 1) {
-      return;
-    }
-
     return this.ensureConversation(() =>
-      this.connection.getEventFactory().cancelResponse({
-        ...cancelResponses,
-        character: characters[0],
-      }),
+      this.connection.getEventFactory().cancelResponse(cancelResponses),
     );
   }
 

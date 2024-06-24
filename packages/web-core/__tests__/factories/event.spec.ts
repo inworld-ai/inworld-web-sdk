@@ -250,18 +250,16 @@ describe('event types', () => {
     const event = factory.cancelResponse({
       interactionId,
       utteranceId,
-      character,
     });
 
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
-    expect(event.mutation.cancelResponses).toEqual({
+    expect(event.mutation?.cancelResponses).toEqual({
       interactionId,
       utteranceId,
     });
     expect(event.routing?.target).toEqual({
-      name: character.id,
-      type: ActorType.AGENT,
+      type: ActorType.WORLD,
     });
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.interactionId).toBeUndefined();

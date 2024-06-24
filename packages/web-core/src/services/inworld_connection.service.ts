@@ -26,7 +26,9 @@ import { characterHasValidFormat, sceneHasValidFormat } from '../guard/scene';
 import { ConnectionService } from './connection.service';
 import { ConversationService } from './conversation.service';
 import { EntityService } from './entity.service';
-import { FeedbackService } from './feedback.service';
+import { SessionStateService } from './session_state.service';
+import { FeedbackService } from './wrappers/feedback.service';
+import { StateSerializationService } from './wrappers/state_serialization.service';
 
 interface InworldConnectionServiceProps<
   InworldPacketT extends InworldPacket = InworldPacket,
@@ -40,53 +42,46 @@ interface InworldConnectionServiceProps<
 export class InworldConnectionService<
   InworldPacketT extends InworldPacket = InworldPacket,
 > {
-  readonly feedback: FeedbackService<InworldPacketT>;
-  readonly entity: EntityService<InworldPacketT>;
-
   private connection: ConnectionService<InworldPacketT>;
   private grpcAudioPlayer: GrpcAudioPlayback<InworldPacketT>;
   private oneToOneConversation: ConversationService<InworldPacketT>;
 
-  player: InworldPlayer<InworldPacketT>;
-  recorder: InworldRecorder;
+  readonly feedback: FeedbackService<InworldPacketT>;
+  readonly entity: EntityService<InworldPacketT>;
+  readonly stateSerialization: StateSerializationService<InworldPacketT>;
+  readonly sessionState: SessionStateService;
+
+  readonly player: InworldPlayer<InworldPacketT>;
+  readonly recorder: InworldRecorder;
 
   constructor(props: InworldConnectionServiceProps<InworldPacketT>) {
     this.connection = props.connection;
     this.grpcAudioPlayer = props.grpcAudioPlayer;
     this.feedback = new FeedbackService(props.connection);
     this.entity = new EntityService(props.connection);
+    this.stateSerialization = new StateSerializationService(props.connection);
 
     this.player = new InworldPlayer<InworldPacketT>({
       grpcAudioPlayer: this.grpcAudioPlayer,
     });
     this.recorder = new InworldRecorder({
-      listener: async (base64AudioChunk: string) => {
-        const conversation = this.connection.getCurrentAudioConversation();
-
-        if (!conversation) {
-          this.connection.onError(
-            new InworldError('No conversation is available to send audio.'),
-          );
-          return;
-        }
-
-        if (
-          !this.connection.isActive() &&
-          this.connection.getAudioSessionAction() !== AudioSessionState.START
-        ) {
-          await conversation.sendAudioSessionStart();
-        }
-
-        conversation.sendAudio(base64AudioChunk);
-      },
+      listener: this.recorderListener.bind(this),
       grpcAudioPlayer: this.grpcAudioPlayer,
       grpcAudioRecorder: props.grpcAudioRecorder,
       webRtcLoopbackBiDiSession: props.webRtcLoopbackBiDiSession,
     });
+    this.sessionState = new SessionStateService(
+      this.connection,
+      this.stateSerialization,
+    );
   }
 
   async getSessionState() {
-    return this.connection.getSessionState();
+    console.warn(
+      'getSessionState is deprecated. Please use stateSerialization.get instead.',
+    );
+
+    return this.stateSerialization.get();
   }
 
   async open() {
@@ -94,10 +89,15 @@ export class InworldConnectionService<
   }
 
   async close() {
-    this.player.clear();
+    // Stop recorder and close connection.
     this.recorder.stop();
+    this.connection.close();
+
+    // Stop player and clear all audio chunks.
     await this.player.stop();
-    await this.connection.close();
+    this.player.clear();
+
+    this.sessionState.destroy();
   }
 
   isActive() {
@@ -113,11 +113,11 @@ export class InworldConnectionService<
   }
 
   getCharacterById(id: string) {
-    return this.connection.getCharactersByIds([id])?.[0];
+    return this.connection.getCharactersByIds([id])[0];
   }
 
   getCharacterByResourceName(name: string) {
-    return this.connection.getCharactersByResourceNames([name])?.[0];
+    return this.connection.getCharactersByResourceNames([name])[0];
   }
 
   async setCurrentCharacter(character: Character) {
@@ -128,7 +128,6 @@ export class InworldConnectionService<
         this.connection,
         {
           participants: [character.resourceName, ConversationParticipant.USER],
-          conversationId: this.oneToOneConversation?.getConversationId(),
           addCharacters: this.addCharacters.bind(this),
         },
       );
@@ -149,6 +148,10 @@ export class InworldConnectionService<
     }
   }
 
+  clearState() {
+    this.sessionState.clear();
+  }
+
   getHistory() {
     return this.oneToOneConversation?.getHistory() ?? [];
   }
@@ -163,7 +166,7 @@ export class InworldConnectionService<
     this.connection.clearHistory();
 
     if (diff.length > 0) {
-      this.connection.onHistoryChange([], { diff });
+      this.connection.onHistoryChange?.([], { diff: { removed: diff } });
     }
   }
 
@@ -419,5 +422,25 @@ export class InworldConnectionService<
         state: ConversationState.INACTIVE,
       });
     }
+  }
+
+  private async recorderListener(base64AudioChunk: string) {
+    const conversation = this.connection.getCurrentAudioConversation();
+
+    if (!conversation) {
+      this.connection.onError(
+        new InworldError('No conversation is available to send audio.'),
+      );
+      return;
+    }
+
+    if (
+      !this.connection.isActive() &&
+      this.connection.getAudioSessionAction() !== AudioSessionState.START
+    ) {
+      await conversation.sendAudioSessionStart();
+    }
+
+    conversation.sendAudio(base64AudioChunk);
   }
 }
