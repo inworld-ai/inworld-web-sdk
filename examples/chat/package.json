@@ -53,5 +53,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "resolutions": {
+    "@inworld/web-core": "portal:/Users/tshashkova/projects/inworld-web-sdk/packages/web-core"
   }
 }

@@ -2,9 +2,13 @@ import '../mocks/window.mock';
 
 import { v4 } from 'uuid';
 
+import { Actor, ConversationService } from '../../src';
 import {
   ConversationMapItem,
+  ConversationState,
   Extension,
+  InworlControlAction,
+  InworldConversationEventType,
   InworldPacketType,
   User,
 } from '../../src/common/data_structures';
@@ -15,11 +19,15 @@ import {
   InworldHistory,
 } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
+import { ControlEvent } from '../../src/entities/packets/control.entity';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
 import { TriggerEvent } from '../../src/entities/packets/trigger.entity';
+import { ConnectionService } from '../../src/services/connection.service';
 import { ExtendedHistoryItem } from '../data_structures';
 import {
+  conversationId,
   createCharacter,
+  getAudioPacket,
   getEmotionPacket,
   getInteractionEndPacket,
   getNarratedActionPacket,
@@ -191,6 +199,31 @@ describe('text', () => {
       expect(history.get().length).toEqual(1);
       expect(item.character!.id).toEqual(characters[0].id);
     });
+
+    test('should add audio packet to history before text', () => {
+      const audioPacket = getAudioPacket({
+        character: characters[0],
+        packetId: {
+          ...packetId,
+          utteranceId: incomingTextPacket.packetId.utteranceId,
+        },
+      });
+
+      const history = createHistoryWithPacket(audioPacket);
+      history.update(audioPacket);
+
+      jest
+        .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
+        .mockImplementation(() => false);
+
+      history.addOrUpdate({
+        characters,
+        grpcAudioPlayer,
+        packet: incomingTextPacket,
+      });
+
+      expect(history.get().length).toEqual(1);
+    });
   });
 
   describe('display', () => {
@@ -270,10 +303,8 @@ describe('text', () => {
       expect(history.get().length).toEqual(1);
 
       history.filter({
-        utteranceId: [textPacket.packetId.utteranceId!],
-        interactionId: textPacket.packetId.interactionId!,
+        history: (item) => item.id !== textPacket.packetId.utteranceId,
       });
-
       expect(history.get().length).toEqual(0);
     });
 
@@ -287,8 +318,10 @@ describe('text', () => {
       expect(history.get().length).toEqual(0);
 
       history.filter({
-        utteranceId: [packetId.utteranceId!],
-        interactionId: packetId.interactionId!,
+        history: (item) => item.id !== packetId.utteranceId,
+        queue: (item) =>
+          item.id !== packetId.utteranceId &&
+          item.interactionId !== packetId.interactionId,
       });
 
       expect(history.get().length).toEqual(0);
@@ -298,7 +331,7 @@ describe('text', () => {
       expect(history.get().length).toEqual(0);
     });
 
-    test('should filter queue by diferrent interactionId', () => {
+    test('should filter queue by different interactionId', () => {
       jest
         .spyOn(grpcAudioPlayer, 'hasPacketInQueue')
         .mockImplementationOnce(() => true);
@@ -308,10 +341,10 @@ describe('text', () => {
       expect(history.get().length).toEqual(0);
 
       history.filter({
-        utteranceId: [packetId.utteranceId!],
-        interactionId: v4(),
+        history: (item) => item.id !== packetId.utteranceId,
+        queue: (item) =>
+          item.id !== packetId.utteranceId && item.interactionId !== v4(),
       });
-
       expect(history.get().length).toEqual(0);
 
       history.display(textPacket);
@@ -727,5 +760,79 @@ describe('interaction end', () => {
     });
 
     expect(history.get().length).toEqual(2);
+  });
+});
+
+describe('conversation', () => {
+  test('should add packet to history', () => {
+    const conversationUpdatePacket = new InworldPacket({
+      packetId: getPacketId({ conversationId }),
+      routing,
+      date,
+      type: InworldPacketType.CONTROL,
+      control: new ControlEvent({
+        action: InworlControlAction.CONVERSATION_UPDATE,
+        conversation: {
+          participants: characters.map(
+            (character) =>
+              new Actor({
+                name: character.id,
+                isCharacter: true,
+                isPlayer: false,
+              }),
+          ),
+        },
+      }),
+    });
+    const conversationEventPacket = new InworldPacket({
+      packetId: getPacketId({ conversationId }),
+      routing,
+      date,
+      type: InworldPacketType.CONTROL,
+      control: new ControlEvent({
+        action: InworlControlAction.CONVERSATION_EVENT,
+        conversation: {
+          participants: characters.map(
+            (character) =>
+              new Actor({
+                name: character.id,
+                isCharacter: true,
+                isPlayer: false,
+              }),
+          ),
+          type: InworldConversationEventType.STARTED,
+        },
+      }),
+    });
+    const conversations = new Map<string, ConversationMapItem>();
+    conversations.set(conversationId, {
+      service: new ConversationService(new ConnectionService(), {
+        participants: [characters[0].resourceName],
+        conversationId,
+        addCharacters: jest.fn(),
+      }),
+      state: ConversationState.ACTIVE,
+    });
+    const history = new InworldHistory({
+      user,
+      scene: SCENE,
+      conversations,
+    });
+
+    expect(
+      history.addOrUpdate({
+        characters,
+        grpcAudioPlayer,
+        packet: conversationUpdatePacket,
+      }).length,
+    ).toEqual(0);
+    expect(
+      history.addOrUpdate({
+        characters,
+        grpcAudioPlayer,
+        packet: conversationEventPacket,
+      }).length,
+    ).toEqual(1);
+    expect(history.get().length).toEqual(1);
   });
 });

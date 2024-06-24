@@ -680,7 +680,7 @@ describe('update', () => {
     });
   });
 
-  test('should send history request', async () => {
+  test('should send history request2', async () => {
     const messages: ProtoPacket[] = [];
     const ws = createWebSocket({
       history: { previousState: true },
@@ -725,7 +725,7 @@ describe('update', () => {
       setTimeout(() => new Promise(emitHistoryResponseEvent(server)), 0),
     ]);
 
-    expect(write).toHaveBeenCalledTimes(4);
+    expect(write).toHaveBeenCalledTimes(5);
   });
 });
 

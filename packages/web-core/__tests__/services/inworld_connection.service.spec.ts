@@ -40,6 +40,7 @@ import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
 import { ConversationService } from '../../src/services/conversation.service';
 import { InworldConnectionService } from '../../src/services/inworld_connection.service';
+import { StateSerializationService } from '../../src/services/wrappers/state_serialization.service';
 import { ExtendedInworldPacket } from '../data_structures';
 import {
   conversationId,
@@ -147,12 +148,14 @@ test('should get session state', async () => {
     webRtcLoopbackBiDiSession,
   });
   const getSessionState = jest
-    .spyOn(ConnectionService.prototype, 'getSessionState')
+    .spyOn(StateSerializationService.prototype, 'get')
     .mockImplementationOnce(jest.fn());
+  const warn = jest.spyOn(global.console, 'warn').mockImplementation();
 
   await service.getSessionState();
 
   expect(getSessionState).toHaveBeenCalledTimes(1);
+  expect(warn).toHaveBeenCalledTimes(1);
 });
 
 describe('history', () => {
@@ -209,6 +212,17 @@ describe('history', () => {
     expect(getHistory).toHaveBeenCalledTimes(1);
   });
 
+  test('should get return empty history if conversation is not created', () => {
+    const service = new InworldConnectionService({
+      connection,
+      grpcAudioPlayer,
+      grpcAudioRecorder,
+      webRtcLoopbackBiDiSession,
+    });
+
+    expect(service.getHistory()).toEqual([]);
+  });
+
   test('should clear empty history', () => {
     const clearHistory = jest
       .spyOn(ConnectionService.prototype, 'clearHistory')
@@ -237,6 +251,39 @@ describe('history', () => {
     expect(clearHistory).toHaveBeenCalledTimes(1);
     expect(getHistory).toHaveBeenCalledTimes(1);
     expect(onHistoryChange).toHaveBeenCalledTimes(1);
+  });
+
+  test('should do nothing if history is not empty and onHistoryChange is not set', () => {
+    connection = new ConnectionService({
+      config: {
+        capabilities: {
+          audio: true,
+          emotions: true,
+        },
+      },
+      name: SCENE,
+      grpcAudioPlayer,
+      webRtcLoopbackBiDiSession,
+      generateSessionToken,
+      onError,
+    });
+    const service = new InworldConnectionService({
+      connection,
+      grpcAudioPlayer,
+      grpcAudioRecorder,
+      webRtcLoopbackBiDiSession,
+    });
+    const clearHistory = jest
+      .spyOn(ConnectionService.prototype, 'clearHistory')
+      .mockImplementationOnce(jest.fn);
+    const getHistory = jest
+      .spyOn(service, 'getHistory')
+      .mockImplementationOnce(() => [{} as HistoryItem]);
+
+    service.clearHistory();
+
+    expect(clearHistory).toHaveBeenCalledTimes(1);
+    expect(getHistory).toHaveBeenCalledTimes(1);
   });
 
   test('should return full transcript', () => {
@@ -1255,7 +1302,10 @@ describe('listener', () => {
     jest
       .spyOn(HTMLMediaElement.prototype, 'play')
       .mockImplementation(jest.fn());
-    jest.spyOn(global, 'setInterval').mockImplementationOnce(setTimeoutMock);
+    jest
+      .spyOn(global, 'setInterval')
+      .mockImplementationOnce(jest.fn())
+      .mockImplementationOnce(setTimeoutMock);
   });
 
   test('should send audio session start af first for inactive connection', async () => {

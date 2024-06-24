@@ -11,8 +11,11 @@ export interface getSessionStateProps {
 }
 
 export interface SessionState {
-  state: string;
-  creationTime: string;
+  state?: string;
+  creationTime?: string;
+  version?: {
+    interactionId?: string;
+  };
 }
 
 export class StateSerializationService extends PbService {
@@ -32,8 +35,13 @@ export class StateSerializationService extends PbService {
     );
 
     return {
-      state: res.state.toString(),
-      creationTime: res.creationTime.toString(),
+      state: res.state?.toString(),
+      creationTime: res.creationTime?.toString(),
+      ...(res.version?.interactionId && {
+        version: {
+          interactionId: res.version.interactionId,
+        },
+      }),
     } as SessionState;
   }
 }

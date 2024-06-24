@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Changed
+
+- Improve connection management
+
 ## [2.7.0] - 2024-06-21
 
 ### Added

@@ -73,10 +73,21 @@ export interface SessionControlProps {
   sessionHistory?: SessionHistoryRequest;
 }
 
+export interface sessionContunuationConfig {
+  storage?: {
+    setItem: (value: string) => Awaitable<void>;
+    getItem: () => Awaitable<string>;
+  };
+  interval?: number;
+  attemptsInterval?: number;
+  maxAttempts?: number;
+}
+
 export interface ConnectionConfig {
   autoReconnect?: boolean;
   disconnectTimeout?: number;
   gateway?: Gateway;
+  sessionContunuation?: sessionContunuationConfig;
 }
 
 export interface HistoryConfig {
@@ -118,6 +129,7 @@ export enum ConnectionState {
   ACTIVE = 'ACTIVE',
   ACTIVATING = 'ACTIVATING',
   INACTIVE = 'INACTIVE',
+  RECONNECTING = 'RECONNECTING',
 }
 
 export enum AudioSessionState {
@@ -225,7 +237,7 @@ export interface ConversationMapItem<
 }
 
 export interface HistoryChangedProps<HistoryItemT = HistoryItem> {
-  diff: HistoryItemT[];
+  diff: { added?: HistoryItemT[]; removed?: HistoryItemT[] };
   conversationId?: string;
 }
 
