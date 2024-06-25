@@ -28,17 +28,26 @@
     ],
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",
-    "no-throw-literal": "off"
+    "no-throw-literal": "off",
+    "max-lines": ["error", 1000]
   },
   "overrides": [
     {
-     "files": [
-       "examples/**/*.ts",
-       "examples/**/*.tsx"
+      "files": [
+        "examples/**/*.ts",
+        "examples/**/*.tsx"
       ],
-        "rules": {
-           "no-console": "off"   
-        }
+      "rules": {
+        "no-console": "off"   
+      }
+    },
+    {
+      "files": [
+        "**/__tests__/**/*.ts"
+       ],
+      "rules": {
+        "max-lines": "off"   
+      }
     }
   ],
   "ignorePatterns": ["proto", "build"]

@@ -2,8 +2,8 @@ import { ClientRequest } from '../../proto/ai/inworld/engine/world-engine.pb';
 import {
   ControlEventAction,
   InworldPacket as ProtoPacket,
-  SessionControlResponseEvent,
 } from '../../proto/ai/inworld/packets/packets.pb';
+import { MAX_RECONNECT_ATTEMPTS } from '../common/constants';
 import {
   AudioSessionState,
   Awaitable,
@@ -21,6 +21,7 @@ import {
   LoadedScene,
   User,
 } from '../common/data_structures';
+import { objectsAreEqual } from '../common/helpers';
 import { HistoryItem, InworldHistory } from '../components/history';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
@@ -33,13 +34,17 @@ import {
 import { Capability } from '../entities/capability.entity';
 import { Character } from '../entities/character.entity';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
-import { ErrorType, InworldError } from '../entities/error.entity';
+import {
+  ErrorReconnectionType,
+  ErrorType,
+  InworldError,
+  InworldStatus,
+} from '../entities/error.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { Scene } from '../entities/scene.entity';
 import { SessionToken } from '../entities/session_token.entity';
 import { EventFactory } from '../factories/event';
 import { ConversationService } from './conversation.service';
-import { StateSerializationService } from './pb/state_serialization.service';
 
 interface ConnectionProps<
   InworldPacketT extends InworldPacket = InworldPacket,
@@ -85,18 +90,18 @@ export class ConnectionService<
   private packetQueue: QueueItem<InworldPacketT>[] = [];
 
   private disconnectTimeoutId: NodeJS.Timeout;
+  private reconnectTimeoutId: NodeJS.Timeout;
 
-  private stateService = new StateSerializationService();
   private currentAudioConversation:
     | ConversationService<InworldPacketT>
     | undefined;
 
-  onDisconnect: () => Awaitable<void>;
-  onError: (err: InworldError) => Awaitable<void>;
-  onWarning: (message: InworldPacketT) => Awaitable<void>;
-  onMessage: (packet: ProtoPacket) => Awaitable<void>;
-  onReady: () => Awaitable<void>;
-  onHistoryChange: (
+  readonly onDisconnect: () => Awaitable<void>;
+  readonly onError: (err: InworldError) => Awaitable<void>;
+  readonly onWarning: (message: InworldPacketT) => Awaitable<void>;
+  readonly onMessage: (packet: ProtoPacket) => Awaitable<void>;
+  readonly onReady: () => Awaitable<void>;
+  readonly onHistoryChange: (
     history: HistoryItem[],
     props: HistoryChangedProps<HistoryItemT>,
   ) => Awaitable<void> | undefined;
@@ -106,6 +111,16 @@ export class ConnectionService<
     new Map();
   private cancelResponses: CancelResponses = {};
   private extension: Extension<InworldPacketT, HistoryItemT>;
+
+  // Store previous error to avoid multiple reconnection attempts.
+  private previousError:
+    | {
+        attempts: number;
+        status?: InworldStatus;
+      }
+    | undefined;
+  // Store packets in progress to resend them on reconnection.
+  private packetsInProgress: { [key: string]: () => ProtoPacket } = {};
 
   constructor(props?: ConnectionProps<InworldPacketT, HistoryItemT>) {
     this.connectionProps =
@@ -122,13 +137,24 @@ export class ConnectionService<
       conversations: this.conversations,
     });
 
-    this.initializeHandlers();
+    // Bind handlers
+    this.onReady = this.onReadyHandler.bind(this);
+    this.onDisconnect = this.onDisconnectHandler.bind(this);
+    this.onError = this.onErrorHandler.bind(this);
+    this.onWarning = this.onWarningHandler.bind(this);
+    this.onMessage = this.onMessageHandler.bind(this);
+    this.onHistoryChange = this.connectionProps.onHistoryChange;
+
     this.initializeExtension();
     this.initializeConnection();
   }
 
   isActive() {
     return this.state === ConnectionState.ACTIVE;
+  }
+
+  isInactive() {
+    return this.state === ConnectionState.INACTIVE;
   }
 
   isAutoReconnected() {
@@ -149,21 +175,6 @@ export class ConnectionService<
     this.currentAudioConversation = conversation;
   }
 
-  async getSessionState() {
-    try {
-      const { config } = this.connectionProps;
-      const session = await this.ensureSessionToken();
-
-      return this.stateService.getSessionState({
-        config,
-        session,
-        scene: this.scene.name,
-      });
-    } catch (err) {
-      this.onError(err);
-    }
-  }
-
   async openManually() {
     try {
       if (this.isAutoReconnected()) {
@@ -172,7 +183,7 @@ export class ConnectionService<
         );
       }
 
-      if (this.state !== ConnectionState.INACTIVE) {
+      if (!this.isInactive()) {
         throw Error('Connection is already open');
       }
 
@@ -184,6 +195,7 @@ export class ConnectionService<
 
   close() {
     this.cancelScheduler();
+    this.cancelReconnectScheduler();
     this.state = ConnectionState.INACTIVE;
     this.connection.close();
     this.clearQueue();
@@ -242,8 +254,8 @@ export class ConnectionService<
     });
   }
 
-  async open() {
-    if (this.state !== ConnectionState.INACTIVE) return;
+  async open({ force }: { force?: boolean } = {}) {
+    if (!force && !this.isInactive()) return;
 
     try {
       await this.loadToken();
@@ -352,7 +364,7 @@ export class ConnectionService<
     const resolvePacket = () =>
       new Promise<InworldPacketT>((resolve) => {
         const interval = setInterval(() => {
-          if (inworldPacket || this.state === ConnectionState.INACTIVE) {
+          if (inworldPacket || this.isInactive()) {
             clearInterval(interval);
 
             this.intervals = this.intervals.filter(
@@ -370,15 +382,10 @@ export class ConnectionService<
       afterWriting: (packet: InworldPacketT) => {
         inworldPacket = packet;
 
-        this.scheduleDisconnect();
-
-        this.addPacketToHistory(inworldPacket);
+        this.afterWriting(inworldPacket);
       },
-      beforeWriting: async (packet: InworldPacketT) => {
-        if (packet.isText()) {
-          await this.interruptByPacket(packet);
-        }
-      },
+      beforeWriting: async (packet: InworldPacketT) =>
+        this.beforeWriting(getPacket, packet),
     };
 
     if (this.isActive()) {
@@ -390,6 +397,24 @@ export class ConnectionService<
     }
 
     return resolvePacket();
+  }
+
+  private afterWriting(packet: InworldPacketT) {
+    this.scheduleDisconnect();
+    this.addPacketToHistory(packet);
+  }
+
+  private async beforeWriting(
+    getPacket: () => ProtoPacket,
+    packet: InworldPacketT,
+  ) {
+    if (packet.isText()) {
+      await this.interruptByPacket(packet);
+    }
+
+    if (packet.isText() || packet.isNarratedAction() || packet.isTrigger()) {
+      this.packetsInProgress[packet.packetId.interactionId] = getPacket;
+    }
   }
 
   private async loadToken() {
@@ -454,12 +479,18 @@ export class ConnectionService<
 
     const diff = this.history.get() as HistoryItemT[];
 
-    this.onHistoryChange?.(diff, { diff });
+    this.onHistoryChange?.(diff, { diff: { added: diff } });
   }
 
   private cancelScheduler() {
     if (this.disconnectTimeoutId) {
       clearTimeout(this.disconnectTimeoutId);
+    }
+  }
+
+  private cancelReconnectScheduler() {
+    if (this.reconnectTimeoutId) {
+      clearTimeout(this.reconnectTimeoutId);
     }
   }
 
@@ -480,146 +511,237 @@ export class ConnectionService<
     this.packetQueue = [];
   }
 
-  private initializeHandlers() {
-    const { onError, onReady, onWarning, onDisconnect } = this.connectionProps;
+  private async onReadyHandler() {
+    this.state = ConnectionState.ACTIVE;
+    this.connectionProps.onReady?.();
+  }
 
-    this.onReady = async () => {
-      this.state = ConnectionState.ACTIVE;
-      onReady?.();
-    };
+  private async onDisconnectHandler() {
+    this.state = ConnectionState.INACTIVE;
+    this.audioSessionAction = AudioSessionState.UNKNOWN;
+    this.conversations.forEach((conversation) => {
+      conversation.state = ConversationState.INACTIVE;
+    });
 
-    this.onDisconnect = async () => {
-      this.state = ConnectionState.INACTIVE;
-      this.audioSessionAction = AudioSessionState.UNKNOWN;
-      this.conversations.forEach((conversation) => {
-        conversation.state = ConversationState.INACTIVE;
+    await this.connectionProps.onDisconnect?.();
+  }
+
+  private async onErrorHandler(err: InworldError) {
+    const handler =
+      this.connectionProps.onError ??
+      (() => {
+        console.error(err);
       });
+    const status = err.details?.[0];
+    const interactionIds = Object.keys(this.packetsInProgress);
+    let needToReopen =
+      interactionIds.length &&
+      [ErrorReconnectionType.IMMEDIATE, ErrorReconnectionType.TIMEOUT].includes(
+        status?.reconnectType,
+      );
 
-      await onDisconnect?.();
-    };
-
-    this.onError = (err: InworldError) => {
-      const handler = onError ?? console.error;
-
-      if (err.details?.[0].errorType === ErrorType.AUDIO_SESSION_EXPIRED) {
+    // Change internal state based on error type.
+    switch (status?.errorType) {
+      case ErrorType.AUDIO_SESSION_EXPIRED:
         this.setAudioSessionAction(AudioSessionState.UNKNOWN);
-      }
+        break;
+      case ErrorType.SESSION_TOKEN_EXPIRED:
+      case ErrorType.SESSION_TOKEN_INVALID:
+        this.session = undefined;
+        break;
+      case ErrorType.SESSION_INVALID:
+        this.sceneIsLoaded = false;
+        this.scene = new Scene({
+          name: this.getSceneName(),
+        });
+        break;
+    }
 
-      handler(err);
-    };
-    this.onWarning =
-      onWarning ??
+    // Check if the same error occurs multiple times.
+    const sameError =
+      !!this.previousError?.status &&
+      !!status &&
+      objectsAreEqual<InworldStatus>(this.previousError.status, status, [
+        'errorType',
+        'reconnectType',
+        'reconnectTime',
+        'maxRetries',
+      ]);
+    this.previousError = sameError
+      ? {
+          attempts: this.previousError.attempts + 1,
+          status: this.previousError.status,
+        }
+      : { attempts: 0, status };
+
+    // If the same error occurs multiple times (> maxRetries), we need to stop reconnection attempts.
+    // Also, we need to stop reconnection attempts if the reconnection is impossible due some reasons.
+    if (
+      (sameError &&
+        this.previousError.attempts >=
+          (status.maxRetries ?? MAX_RECONNECT_ATTEMPTS)) ||
+      (status &&
+        ![
+          ErrorReconnectionType.IMMEDIATE,
+          ErrorReconnectionType.TIMEOUT,
+        ].includes(status.reconnectType))
+    ) {
+      needToReopen = false;
+      const id = interactionIds.pop();
+
+      if (id) {
+        delete this.packetsInProgress[id];
+      }
+    }
+
+    if (!needToReopen) {
+      await handler(err);
+      return;
+    }
+
+    this.history.filter({
+      history: (item: HistoryItemT) =>
+        !interactionIds.includes(item.interactionId),
+      queue: (item: HistoryItemT) =>
+        !interactionIds.includes(item.interactionId),
+    }) as HistoryItemT[];
+
+    this.state = ConnectionState.RECONNECTING;
+
+    const delay = status.reconnectTime
+      ? new Date(status.reconnectTime).getTime() - Date.now()
+      : 0;
+    this.packetQueue = [...this.getPacketsToSentOnOpen(), ...this.packetQueue];
+
+    if (status.reconnectType === ErrorReconnectionType.TIMEOUT && delay > 0) {
+      this.cancelReconnectScheduler();
+      this.reconnectTimeoutId = setTimeout(() => {
+        this.open({ force: true });
+      }, delay);
+    } else {
+      this.open({ force: true });
+    }
+  }
+
+  private async onWarningHandler(message: InworldPacketT) {
+    const handler =
+      this.connectionProps.onWarning ??
       ((message: InworldPacketT) => {
         if (message.control?.description) {
           console.warn(message.control.description);
         }
       });
 
-    this.onMessage = async (packet: ProtoPacket) => {
-      const { onMessage, grpcAudioPlayer } = this.connectionProps;
+    return handler(message);
+  }
 
-      const inworldPacket = this.extension.convertPacketFromProto(packet);
-      const interactionId = inworldPacket.packetId.interactionId;
-      const conversationId = inworldPacket.packetId.conversationId;
-      const conversation =
-        conversationId && this.conversations.get(conversationId);
+  private async onMessageHandler(packet: ProtoPacket) {
+    const { onMessage, grpcAudioPlayer } = this.connectionProps;
 
-      // Skip packets that are not attached to any conversation.
-      if (inworldPacket.shouldHaveConversationId() && !conversation) {
-        // Pass packet to external callback.
-        onMessage?.(inworldPacket);
-        return;
-      }
+    const inworldPacket = this.extension.convertPacketFromProto(packet);
+    const interactionId = inworldPacket.packetId.interactionId;
+    const conversationId = inworldPacket.packetId.conversationId;
+    const conversation =
+      conversationId && this.conversations.get(conversationId);
 
-      // Update session state.
-      if (
-        packet.control?.action === ControlEventAction.CURRENT_SCENE_STATUS &&
-        packet.control.currentSceneStatus
-      ) {
-        this.setSceneFromProtoEvent({
-          sceneStatus: packet.control.currentSceneStatus,
-        } as LoadedScene);
-      }
-
-      // Update conversation state.
-      if (inworldPacket.control?.conversation && conversation) {
-        this.conversations.set(inworldPacket.packetId.conversationId, {
-          service: conversation.service,
-          state: [
-            InworldConversationEventType.STARTED,
-            InworldConversationEventType.UPDATED,
-          ].includes(inworldPacket.control.conversation.type)
-            ? ConversationState.ACTIVE
-            : ConversationState.INACTIVE,
-        });
-      }
-
-      // Don't pass text packet outside for interrupred interaction.
-      if (
-        inworldPacket.isText() &&
-        !inworldPacket.routing.source.isPlayer &&
-        this.cancelResponses[interactionId]
-      ) {
-        this.sendCancelResponses(
-          {
-            interactionId,
-            utteranceId: [packet.packetId.utteranceId],
-          },
-          conversationId,
-        );
-
-        return;
-      }
-
-      // Send cancel response event in case of player talking.
-      if (inworldPacket.isText() && inworldPacket.routing.source.isPlayer) {
-        await this.interruptByPacket(inworldPacket);
-        // Play audio or silence.
-      } else if (inworldPacket.isAudio() || inworldPacket.isSilence()) {
-        if (!this.cancelResponses[interactionId]) {
-          this.addPacketToHistory(inworldPacket);
-          grpcAudioPlayer.addToQueue({
-            packet: inworldPacket,
-            onBeforePlaying: (packet: InworldPacketT) => {
-              const diff = this.history.update(packet) as HistoryItemT[];
-
-              if (diff.length) {
-                this.onHistoryChange?.(this.getHistory(), {
-                  diff,
-                  conversationId,
-                });
-              }
-            },
-            onAfterPlaying: (packet: InworldPacketT) => {
-              const diff = this.history.update(packet) as HistoryItemT[];
-
-              if (diff.length) {
-                this.onHistoryChange?.(this.getHistory(), {
-                  diff,
-                  conversationId: packet.packetId.conversationId,
-                });
-              }
-            },
-          });
-        }
-        // Delete info about cancel responses on interaction end.
-      } else if (inworldPacket.isInteractionEnd()) {
-        delete this.cancelResponses[interactionId];
-      } else if (inworldPacket.isWarning()) {
-        this.onWarning(inworldPacket);
-      }
-
-      // Add packet to history.
-      // Audio and silence packets were added to history earlier.
-      if (!inworldPacket.isAudio() && !inworldPacket.isSilence()) {
-        this.addPacketToHistory(inworldPacket);
-      }
-
+    // Skip packets that are not attached to any conversation.
+    if (inworldPacket.shouldHaveConversationId() && !conversation) {
       // Pass packet to external callback.
       onMessage?.(inworldPacket);
-    };
+      return;
+    }
 
-    this.onHistoryChange = this.connectionProps.onHistoryChange;
+    // Update session state.
+    if (
+      packet.control?.action === ControlEventAction.CURRENT_SCENE_STATUS &&
+      packet.control.currentSceneStatus
+    ) {
+      this.setSceneFromProtoEvent({
+        sceneStatus: packet.control.currentSceneStatus,
+      } as LoadedScene);
+    }
+
+    // Update conversation state.
+    if (inworldPacket.control?.conversation && conversation) {
+      this.conversations.set(inworldPacket.packetId.conversationId, {
+        service: conversation.service,
+        state: [
+          InworldConversationEventType.STARTED,
+          InworldConversationEventType.UPDATED,
+        ].includes(inworldPacket.control.conversation.type)
+          ? ConversationState.ACTIVE
+          : ConversationState.INACTIVE,
+      });
+    }
+
+    // Don't pass text packet outside for interrupred interaction.
+    if (
+      inworldPacket.isText() &&
+      !inworldPacket.routing.source.isPlayer &&
+      this.cancelResponses[interactionId]
+    ) {
+      this.sendCancelResponses(
+        {
+          interactionId,
+          utteranceId: [packet.packetId.utteranceId],
+        },
+        conversationId,
+      );
+
+      return;
+    }
+
+    // Send cancel response event in case of player talking.
+    if (inworldPacket.isText() && inworldPacket.routing.source.isPlayer) {
+      await this.interruptByPacket(inworldPacket);
+      // Play audio or silence.
+    } else if (inworldPacket.isAudio() || inworldPacket.isSilence()) {
+      if (!this.cancelResponses[interactionId]) {
+        this.addPacketToHistory(inworldPacket);
+        grpcAudioPlayer.addToQueue({
+          packet: inworldPacket,
+          onBeforePlaying: (packet: InworldPacketT) => {
+            const diff = this.history.update(packet) as HistoryItemT[];
+
+            if (diff.length) {
+              this.onHistoryChange?.(this.getHistory(), {
+                diff: { added: diff },
+                conversationId,
+              });
+            }
+          },
+          onAfterPlaying: (packet: InworldPacketT) => {
+            const diff = this.history.update(packet) as HistoryItemT[];
+
+            if (diff.length) {
+              this.onHistoryChange?.(this.getHistory(), {
+                diff: { added: diff },
+                conversationId: packet.packetId.conversationId,
+              });
+            }
+          },
+        });
+      }
+      // Delete info about cancel responses on interaction end.
+    } else if (inworldPacket.isInteractionEnd()) {
+      // Delete packet that was successfully applied on the server side.
+      delete this.packetsInProgress[interactionId];
+      // Clear previous error.
+      this.previousError = undefined;
+      // Delete cancel responses.
+      delete this.cancelResponses[interactionId];
+    } else if (inworldPacket.isWarning()) {
+      this.onWarning(inworldPacket);
+    }
+
+    // Add packet to history.
+    // Audio and silence packets were added to history earlier.
+    if (!inworldPacket.isAudio() && !inworldPacket.isSilence()) {
+      this.addPacketToHistory(inworldPacket);
+    }
+
+    // Pass packet to external callback.
+    onMessage?.(inworldPacket);
   }
 
   private initializeConnection() {
@@ -687,12 +809,7 @@ export class ConnectionService<
       this.conversations.get(conversationId)?.service.getCharacters() ?? [];
 
     if (cancelResponses.interactionId && characters.length === 1) {
-      this.send(() =>
-        this.getEventFactory().cancelResponse({
-          ...cancelResponses,
-          character: characters[0],
-        }),
-      );
+      this.send(() => this.getEventFactory().cancelResponse(cancelResponses));
 
       this.cancelResponses = {
         ...this.cancelResponses,
@@ -706,7 +823,13 @@ export class ConnectionService<
 
       this.connectionProps.onInterruption?.(interruptionData);
 
-      this.history.filter(interruptionData);
+      this.history.filter({
+        history: (item: HistoryItem) =>
+          !interruptionData.utteranceId.includes(item.id),
+        queue: (item: HistoryItem) =>
+          item.interactionId !== interruptionData.interactionId &&
+          !interruptionData.utteranceId.includes(item.id),
+      });
     }
   }
 
@@ -719,10 +842,49 @@ export class ConnectionService<
 
     if (diff.length) {
       this.onHistoryChange?.(this.getHistory(), {
-        diff,
+        diff: { added: diff },
         conversationId: packet.packetId.conversationId,
       });
     }
+  }
+
+  private getPacketsToSentOnOpen() {
+    let packets: QueueItem<InworldPacketT>[] = [];
+
+    if (this.state === ConnectionState.RECONNECTING) {
+      const notAppliedPackets = { ...this.packetsInProgress };
+      const cancellationPackets: QueueItem<InworldPacketT>[] = [];
+      const reconnectionPackets: QueueItem<InworldPacketT>[] = [];
+
+      const history = this.history.get();
+      const lastItem = history[history.length - 1];
+
+      this.packetsInProgress = {};
+
+      if (lastItem?.interactionId) {
+        cancellationPackets.push({
+          getPacket: () =>
+            this.getEventFactory().cancelResponse({
+              interactionId: lastItem.interactionId,
+            }),
+        });
+      }
+
+      Object.keys(notAppliedPackets).forEach((interactionId) => {
+        const getPacket = notAppliedPackets[interactionId];
+
+        reconnectionPackets.push({
+          getPacket,
+          afterWriting: this.afterWriting.bind(this),
+          beforeWriting: (packet: InworldPacketT) =>
+            this.beforeWriting(getPacket, packet),
+        });
+      });
+
+      packets = [...cancellationPackets, ...packets, ...reconnectionPackets];
+    }
+
+    return packets;
   }
 
   private ensureCurrentCharacter() {
@@ -746,28 +908,6 @@ export class ConnectionService<
     });
 
     this.connectionProps.extension?.afterLoadScene?.(proto.sceneStatus);
-    this.ensureCurrentCharacter();
-  }
-
-  private addCharactersToScene(proto: SessionControlResponseEvent) {
-    const characters = proto.loadedCharacters.agents.map((c) =>
-      Character.fromProto(c),
-    );
-
-    const ids = this.scene.characters.reduce(
-      (acc: { [key: string]: boolean }, character) => {
-        acc[character.id] = true;
-        return acc;
-      },
-      {},
-    );
-
-    for (const character of characters) {
-      if (!ids[character.id]) {
-        this.scene.characters.push(character);
-      }
-    }
-
     this.ensureCurrentCharacter();
   }
 }

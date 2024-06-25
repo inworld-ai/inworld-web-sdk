@@ -1,3 +1,5 @@
+import { v4 } from 'uuid';
+
 import {
   GetSessionStateRequest,
   StateSerialization,
@@ -18,11 +20,71 @@ describe('getSessionState', () => {
     service = new StateSerializationService();
   });
 
-  test('should return session state', async () => {
+  test('should return session state with version', async () => {
+    const expected = {
+      state: previousStateUint8Array,
+      creationTime: protoTimestamp(),
+      version: {
+        interactionId: v4(),
+      },
+    };
+
+    const getSessionState = jest.fn(
+      (_req: GetSessionStateRequest, _initReq?: fm.InitReq) => {
+        expect(_initReq.pathPrefix).toEqual('https://examples.com');
+        return Promise.resolve(expected);
+      },
+    );
+
+    StateSerialization.GetSessionState = getSessionState;
+
+    const result = await service.getSessionState({
+      scene: SCENE,
+      session,
+      config: {
+        capabilities,
+        connection: {
+          gateway: { hostname: 'examples.com', ssl: true },
+        },
+      },
+    });
+
+    expect(getSessionState).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(expected);
+  });
+
+  test('should return session state without version', async () => {
     const expected = {
       state: previousStateUint8Array,
       creationTime: protoTimestamp(),
     };
+
+    const getSessionState = jest.fn(
+      (_req: GetSessionStateRequest, _initReq?: fm.InitReq) => {
+        expect(_initReq.pathPrefix).toEqual('https://examples.com');
+        return Promise.resolve(expected);
+      },
+    );
+
+    StateSerialization.GetSessionState = getSessionState;
+
+    const result = await service.getSessionState({
+      scene: SCENE,
+      session,
+      config: {
+        capabilities,
+        connection: {
+          gateway: { hostname: 'examples.com', ssl: true },
+        },
+      },
+    });
+
+    expect(getSessionState).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(expected);
+  });
+
+  test('should return empty state', async () => {
+    const expected = {};
 
     const getSessionState = jest.fn(
       (_req: GetSessionStateRequest, _initReq?: fm.InitReq) => {

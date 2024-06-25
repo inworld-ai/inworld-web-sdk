@@ -2,7 +2,10 @@ import '../mocks/window.mock';
 
 import { v4 } from 'uuid';
 
-import { ActorType } from '../../proto/ai/inworld/packets/packets.pb';
+import {
+  ActorType,
+  ControlEventAction,
+} from '../../proto/ai/inworld/packets/packets.pb';
 import { ConversationService } from '../../src';
 import {
   AudioSessionState,
@@ -322,6 +325,8 @@ describe('update participants', () => {
       .spyOn(ConversationService.prototype, 'getConversationId')
       .mockImplementation(() => conversationId);
 
+    const send = jest.spyOn(ConnectionService.prototype, 'send');
+
     const newCharacter = createCharacter();
     const addCharacters = jest.fn();
     const service = new ConversationService(connection, {
@@ -335,6 +340,13 @@ describe('update participants', () => {
       service: service,
       state: ConversationState.INACTIVE,
     });
+
+    jest
+      .spyOn(connection, 'getCharacters')
+      .mockImplementationOnce(() => Promise.resolve([characters[0]]))
+      .mockImplementationOnce(() =>
+        Promise.resolve([characters[0], newCharacter]),
+      );
 
     await Promise.all([
       service.updateParticipants([
@@ -352,7 +364,24 @@ describe('update participants', () => {
       }),
     ]);
 
+    const update = send.mock.calls[0][0]();
     expect(addCharacters).toHaveBeenCalledTimes(1);
+    expect(update.packetId?.conversationId).toEqual(conversationId);
+    expect(update.control).toEqual({
+      action: ControlEventAction.CONVERSATION_UPDATE,
+      conversationUpdate: {
+        participants: [
+          {
+            type: ActorType.AGENT,
+            name: characters[0].id,
+          },
+          {
+            type: ActorType.AGENT,
+            name: newCharacter.id,
+          },
+        ],
+      },
+    });
   });
 });
 

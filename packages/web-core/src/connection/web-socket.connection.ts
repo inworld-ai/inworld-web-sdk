@@ -180,7 +180,7 @@ export class WebSocketConnection<
     });
     const needHistory =
       this.connectionProps.config.history?.previousState &&
-      !!finalPackets.find((p) => p.sessionControl?.continuation);
+      !!finalPackets.find((p) => p.control?.sessionConfiguration?.continuation);
 
     for (const packet of finalPackets) {
       write({
