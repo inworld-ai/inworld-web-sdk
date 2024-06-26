@@ -41,6 +41,6 @@ export class Feedback {
     return fm.fetchReq<CreateInteractionFeedbackRequest, InteractionFeedback>(`/v1/feedback/${req["parent"]}/feedbacks`, {...initReq, method: "POST", body: JSON.stringify(req["interactionFeedback"], fm.replacer)})
   }
   static DeleteInteractionFeedback(req: DeleteInteractionFeedbackRequest, initReq?: fm.InitReq): Promise<GoogleProtobufEmpty.Empty> {
-    return fm.fetchReq<DeleteInteractionFeedbackRequest, GoogleProtobufEmpty.Empty>(`/v1/feedback/${req["name"]}`, {...initReq, method: "DELETE"})
+    return fm.fetchReq<DeleteInteractionFeedbackRequest, GoogleProtobufEmpty.Empty>(`/v1/feedback/${req["nameworkspacessessionsinteractionsgroupsfeedbacks"]}`, {...initReq, method: "DELETE"})
   }
 }
