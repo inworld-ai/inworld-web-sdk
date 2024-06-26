@@ -7,8 +7,10 @@
 import * as GoogleProtobufDuration from "../../../google/protobuf/duration.pb"
 import * as GoogleProtobufStruct from "../../../google/protobuf/struct.pb"
 import * as GoogleProtobufTimestamp from "../../../google/protobuf/timestamp.pb"
+import * as GoogleRpcStatus from "../../../google/rpc/status.pb"
 import * as AiInworldEngineConfigurationConfiguration from "../engine/configuration/configuration.pb"
 import * as AiInworldLanguage_codesLanguage_codes from "../language_codes/language_codes.pb"
+import * as AiInworldPacketsEntitiesEntities_packets from "./entities_packets.pb"
 
 type Absent<T, K extends keyof T> = { [k in Exclude<keyof T, K>]?: undefined };
 type OneOf<T> =
@@ -66,6 +68,12 @@ export enum AudioSessionStartPayloadMicrophoneMode {
   EXPECT_AUDIO_END = "EXPECT_AUDIO_END",
 }
 
+export enum CustomEventType {
+  UNSPECIFIED = "UNSPECIFIED",
+  TRIGGER = "TRIGGER",
+  TASK = "TASK",
+}
+
 export enum EmotionEventSpaffCode {
   NEUTRAL = "NEUTRAL",
   DISGUST = "DISGUST",
@@ -112,6 +120,25 @@ export enum DataChunkAudioFormat {
   AUDIO_PCM_22050 = "AUDIO_PCM_22050",
 }
 
+export enum PingPongReportType {
+  UNSPECIFIED = "UNSPECIFIED",
+  PING = "PING",
+  PONG = "PONG",
+}
+
+export enum PerceivedLatencyReportPrecision {
+  UNSPECIFIED = "UNSPECIFIED",
+  FINE = "FINE",
+  ESTIMATED = "ESTIMATED",
+  PUSH_TO_TALK = "PUSH_TO_TALK",
+  NON_SPEECH = "NON_SPEECH",
+}
+
+export enum ApplyResponseApplyResponseType {
+  APPLY_RESPONSE_TYPE_DEFAULT = "APPLY_RESPONSE_TYPE_DEFAULT",
+  APPLY_RESPONSE_TYPE_COMMIT = "APPLY_RESPONSE_TYPE_COMMIT",
+}
+
 export enum ContinuationContinuationType {
   CONTINUATION_TYPE_UNKNOWN = "CONTINUATION_TYPE_UNKNOWN",
   CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE = "CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE",
@@ -152,7 +179,7 @@ type BaseInworldPacket = {
 }
 
 export type InworldPacket = BaseInworldPacket
-  & OneOf<{ text: TextEvent; control: ControlEvent; audioChunk: AudioChunk; custom: CustomEvent; cancelResponses: CancelResponsesEvent; emotion: EmotionEvent; dataChunk: DataChunk; action: ActionEvent; mutation: MutationEvent; loadSceneOutput: LoadSceneOutputEvent; debugInfo: DebugInfoEvent; sessionControl: SessionControlEvent; sessionControlResponse: SessionControlResponseEvent; a2FEvent: Audio2FaceAnimationEvent }>
+  & OneOf<{ text: TextEvent; control: ControlEvent; audioChunk: AudioChunk; custom: CustomEvent; cancelResponses: CancelResponsesEvent; emotion: EmotionEvent; dataChunk: DataChunk; action: ActionEvent; mutation: MutationEvent; loadSceneOutput: LoadSceneOutputEvent; debugInfo: DebugInfoEvent; sessionControl: SessionControlEvent; sessionControlResponse: SessionControlResponseEvent; latencyReport: LatencyReportEvent; operationStatus: OperationStatusEvent; entitiesItemsOperation: AiInworldPacketsEntitiesEntities_packets.ItemsOperationEvent }>
 
 export type TextEventModelInfo = {
   service?: string
@@ -193,6 +220,7 @@ export type CustomEvent = {
   name?: string
   playback?: Playback
   parameters?: CustomEventParameter[]
+  type?: CustomEventType
 }
 
 export type CancelResponsesEvent = {
@@ -250,6 +278,24 @@ export type RelationInfo = {
 }
 
 
+type BaseLatencyReportEvent = {
+}
+
+export type LatencyReportEvent = BaseLatencyReportEvent
+  & OneOf<{ pingPong: PingPongReport; perceivedLatency: PerceivedLatencyReport }>
+
+export type PingPongReport = {
+  type?: PingPongReportType
+  pingPacketId?: PacketId
+  pingTimestamp?: GoogleProtobufTimestamp.Timestamp
+}
+
+export type PerceivedLatencyReport = {
+  precision?: PerceivedLatencyReportPrecision
+  latency?: GoogleProtobufDuration.Duration
+}
+
+
 type BaseMutationEvent = {
 }
 
@@ -274,6 +320,7 @@ export type RegenerateResponse = {
 
 export type ApplyResponse = {
   packetId?: PacketId
+  applyResponseType?: ApplyResponseApplyResponseType
 }
 
 export type LoadScene = {
@@ -366,11 +413,6 @@ export type SessionConfigurationPayload = {
   continuation?: Continuation
 }
 
-export type Audio2FaceAnimationEvent = {
-  animdata?: string
-  audio?: Uint8Array
-}
-
 export type ContinuationContinuationInfo = {
   passedTime?: GoogleProtobufTimestamp.Timestamp
 }
@@ -420,4 +462,8 @@ export type ConversationUpdatePayload = {
 export type ConversationEventPayload = {
   participants?: Actor[]
   eventType?: ConversationEventPayloadConversationEventType
+}
+
+export type OperationStatusEvent = {
+  status?: GoogleRpcStatus.Status
 }
