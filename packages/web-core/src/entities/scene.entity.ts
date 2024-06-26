@@ -5,6 +5,7 @@ import {
   InworldPacket as ProtoPacket,
   SessionHistoryResponse,
 } from '../../proto/ai/inworld/packets/packets.pb';
+import { SCENE_PATTERN } from '../common/constants';
 import { Character } from './character.entity';
 
 export interface SceneProps {
@@ -87,8 +88,13 @@ export class Scene {
         [],
       ) ?? [];
 
+    // FIXME: Server send wrong scene name in case of characer resource name is used as scene name
+    const name = SCENE_PATTERN.test(sceneStatus.sceneName)
+      ? sceneStatus.sceneName
+      : characters[0]?.resourceName ?? '';
+
     return new Scene({
-      name: sceneStatus.sceneName,
+      name,
       description: sceneStatus.sceneDescription,
       displayName: sceneStatus.sceneDisplayName,
       characters,
