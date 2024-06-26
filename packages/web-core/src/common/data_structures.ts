@@ -224,6 +224,10 @@ export interface ConversationMapItem<
   state: ConversationState;
 }
 
+export enum ConversationParticipant {
+  USER = 'USER',
+}
+
 export interface HistoryChangedProps<HistoryItemT = HistoryItem> {
   diff: HistoryItemT[];
   conversationId?: string;

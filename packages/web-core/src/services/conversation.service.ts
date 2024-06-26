@@ -8,6 +8,7 @@ import {
   AudioSessionStartPacketParams,
   AudioSessionState,
   CancelResponsesProps,
+  ConversationParticipant,
   ConversationState,
   SendPacketParams,
   TriggerParameter,
@@ -51,6 +52,7 @@ export class ConversationService<
     this.connection = connection;
     this.conversationId = conversationId ?? v4();
     this.participants = participants;
+
     this.addCharacters = addCharacters;
   }
 
@@ -58,8 +60,14 @@ export class ConversationService<
     return this.conversationId;
   }
 
+  getParticipants() {
+    return this.participants;
+  }
+
   getCharacters() {
-    return this.connection.getCharactersByResourceNames(this.participants);
+    return this.connection.getCharactersByResourceNames(
+      this.getCharacterParticipants(),
+    );
   }
 
   getHistory() {
@@ -104,8 +112,9 @@ export class ConversationService<
     }
 
     // Load characters if they are not loaded
+    const charactersNamesOnly = this.getCharacterParticipants(participants);
     let characters = await this.connection.getCharacters();
-    const charactersToAdd = participants.filter(
+    const charactersToAdd = charactersNamesOnly.filter(
       (p) => !characters.find((c) => c.resourceName === p),
     );
 
@@ -113,17 +122,19 @@ export class ConversationService<
       await this.addCharacters(charactersToAdd);
     }
     characters = (await this.connection.getCharacters()).filter((c) =>
-      participants.includes(c.resourceName),
+      charactersNamesOnly.includes(c.resourceName),
     );
 
     // Update conversation
+    const conversationParticipants = characters.map((c) => c.id);
+    if (participants.includes(ConversationParticipant.USER)) {
+      conversationParticipants.push(ConversationParticipant.USER);
+    }
+
     const sent = await this.connection.send(() =>
-      EventFactory.conversation(
-        characters.map((character) => character.id),
-        {
-          conversationId: this.getConversationId(),
-        },
-      ),
+      EventFactory.conversation(conversationParticipants, {
+        conversationId: this.getConversationId(),
+      }),
     );
 
     // If audio session was started before, we need to restart it
@@ -251,7 +262,7 @@ export class ConversationService<
   }
 
   async sendNarratedAction(text: string) {
-    if (this.participants.length > 1) {
+    if (this.getCharacterParticipants().length > 1) {
       throw Error(MULTI_CHAR_NARRATED_ACTIONS);
     }
 
@@ -304,13 +315,20 @@ export class ConversationService<
       state: ConversationState.PROCESSING,
     });
 
+    const conversationParticipants = conversation.service
+      .getCharacters()
+      .map((c) => c.id);
+    if (
+      conversation.service
+        .getParticipants()
+        .includes(ConversationParticipant.USER)
+    ) {
+      conversationParticipants.push(ConversationParticipant.USER);
+    }
     const conversationPacket = await this.connection.send(() =>
-      EventFactory.conversation(
-        conversation.service.getCharacters().map((c) => c.id),
-        {
-          conversationId: this.getConversationId(),
-        },
-      ),
+      EventFactory.conversation(conversationParticipants, {
+        conversationId: this.getConversationId(),
+      }),
     );
 
     await this.resolveInterval(() => {
@@ -375,5 +393,9 @@ export class ConversationService<
       item.afterWriting(inworldPacket);
     });
     this.packetQueue = [];
+  }
+
+  private getCharacterParticipants(participants = this.participants) {
+    return participants.filter((p) => p !== ConversationParticipant.USER);
   }
 }
