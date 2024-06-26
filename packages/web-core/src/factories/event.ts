@@ -15,6 +15,7 @@ import {
   TextEventSourceType,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import {
+  ConversationParticipant,
   MicrophoneMode,
   SendAudioSessionStartPacketParams,
   SendPacketParams,
@@ -155,10 +156,16 @@ export class EventFactory {
     const control = {
       action: ControlEventAction.CONVERSATION_UPDATE,
       conversationUpdate: {
-        participants: participants.map((p) => ({
-          name: p,
-          type: ActorType.AGENT,
-        })),
+        participants: participants.map((p) =>
+          p === ConversationParticipant.USER
+            ? {
+                type: ActorType.PLAYER,
+              }
+            : {
+                name: p,
+                type: ActorType.AGENT,
+              },
+        ),
       },
     } as ControlEvent;
 

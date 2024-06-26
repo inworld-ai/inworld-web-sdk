@@ -1,3 +1,10 @@
+## [Unreleased]
+
+### Fixed
+
+- Add user to scene automatically in case of one-to-one conversation
+- Allow to pass user as participant to multi-character conversation
+
 ## [2.7.0] - 2024-06-21
 
 ### Added

@@ -6,6 +6,7 @@ import { ActorType } from '../../proto/ai/inworld/packets/packets.pb';
 import { ConversationService } from '../../src';
 import {
   AudioSessionState,
+  ConversationParticipant,
   ConversationState,
   LoadedScene,
 } from '../../src/common/data_structures';
@@ -325,7 +326,7 @@ describe('update participants', () => {
     const newCharacter = createCharacter();
     const addCharacters = jest.fn();
     const service = new ConversationService(connection, {
-      participants: [characters[0].resourceName],
+      participants: [characters[0].resourceName, ConversationParticipant.USER],
       addCharacters,
     });
 
@@ -340,6 +341,7 @@ describe('update participants', () => {
       service.updateParticipants([
         characters[0].resourceName,
         newCharacter.resourceName,
+        ConversationParticipant.USER,
       ]),
       new Promise((resolve: any) => {
         setTimeout(() => {
