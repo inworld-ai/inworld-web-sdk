@@ -21,6 +21,9 @@ export type CapabilitiesConfiguration = {
   multiAgent?: boolean
   audio2Face?: boolean
   inspect?: boolean
+  pingPongReport?: boolean
+  percievedLatencyReport?: boolean
+  multiModalActionPlanning?: boolean
 }
 
 export type UserConfigurationUserSettingsPlayerProfilePlayerField = {
