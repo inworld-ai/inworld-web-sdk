@@ -94,6 +94,7 @@ export type CapabilitiesRequest = {
   multiAgent?: boolean
   audio2Face?: boolean
   inspect?: boolean
+  multiModalActionPlanning?: boolean
 }
 
 export type UserRequest = {
