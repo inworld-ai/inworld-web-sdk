@@ -501,7 +501,7 @@ export class ConnectionService<
     this.onError = (err: InworldError) => {
       const handler = onError ?? console.error;
 
-      if (err.details?.[0].errorType === ErrorType.AUDIO_SESSION_EXPIRED) {
+      if (err.details?.[0]?.errorType === ErrorType.AUDIO_SESSION_EXPIRED) {
         this.setAudioSessionAction(AudioSessionState.UNKNOWN);
       }
 
