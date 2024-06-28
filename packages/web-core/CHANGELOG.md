@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+
+- Add tasks events
+
 ## [2.7.1] - 2024-06-27
 
 ### Fixed

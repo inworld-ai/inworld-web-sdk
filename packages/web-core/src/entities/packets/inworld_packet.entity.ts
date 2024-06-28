@@ -1,6 +1,7 @@
 import {
   Agent,
   ControlEventAction,
+  CustomEventType,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
   LoadCharactersCharacterName,
@@ -18,6 +19,7 @@ import { NarratedAction } from './narrated_action.entity';
 import { PacketId } from './packet_id.entity';
 import { Routing } from './routing.entity';
 import { SilenceEvent } from './silence.entity';
+import { TaskEvent } from './task.entity';
 import { TextEvent } from './text.entity';
 import { TriggerEvent } from './trigger.entity';
 
@@ -25,6 +27,7 @@ export interface InworldPacketProps {
   audio?: AudioEvent;
   cancelResponses?: CancelResponsesEvent;
   control?: ControlEvent;
+  task?: TaskEvent;
   trigger?: TriggerEvent;
   emotions?: EmotionEvent;
   packetId: PacketId;
@@ -56,6 +59,7 @@ export class InworldPacket {
   // Events
   readonly text: TextEvent;
   readonly audio: AudioEvent;
+  readonly task: TaskEvent;
   readonly trigger: TriggerEvent;
   readonly control: ControlEvent;
   readonly emotions: EmotionEvent;
@@ -84,6 +88,10 @@ export class InworldPacket {
 
     if (this.isEmotion()) {
       this.emotions = props.emotions;
+    }
+
+    if (this.isTask()) {
+      this.task = props.task;
     }
 
     if (this.isTrigger()) {
@@ -117,6 +125,10 @@ export class InworldPacket {
 
   isControl() {
     return this.type === InworldPacketType.CONTROL;
+  }
+
+  isTask() {
+    return this.type === InworldPacketType.TASK;
   }
 
   isTrigger() {
@@ -179,6 +191,7 @@ export class InworldPacket {
       this.isAudio() ||
       this.isText() ||
       this.isTrigger() ||
+      this.isTask() ||
       this.isNarratedAction() ||
       this.isSilence()
     );
@@ -194,6 +207,9 @@ export class InworldPacket {
       routing: Routing.fromProto(proto.routing),
       ...(type === InworldPacketType.TRIGGER && {
         trigger: TriggerEvent.fromProto(proto.custom),
+      }),
+      ...(type === InworldPacketType.TASK && {
+        task: TaskEvent.fromProto(proto.custom),
       }),
       ...(type === InworldPacketType.TEXT && {
         text: TextEvent.fromProto(proto.text),
@@ -270,8 +286,13 @@ export class InworldPacket {
       packet.dataChunk.type === DataChunkDataType.SILENCE
     ) {
       return InworldPacketType.SILENCE;
-    } else if (packet.custom) {
+    } else if (
+      packet.custom &&
+      packet.custom.type === CustomEventType.TRIGGER
+    ) {
       return InworldPacketType.TRIGGER;
+    } else if (packet.custom && packet.custom.type === CustomEventType.TASK) {
+      return InworldPacketType.TASK;
     } else if (packet.control) {
       return InworldPacketType.CONTROL;
     } else if (packet.emotion) {

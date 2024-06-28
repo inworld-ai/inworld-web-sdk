@@ -6,6 +6,7 @@ import {
   AudioSessionStartPayloadMicrophoneMode,
   ControlEvent,
   ControlEventAction,
+  CustomEventType,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
   LoadCharactersCharacterName,
@@ -18,8 +19,8 @@ import {
   ConversationParticipant,
   MicrophoneMode,
   SendAudioSessionStartPacketParams,
+  SendCustomPacketParams,
   SendPacketParams,
-  SendTriggerPacketParams,
   SessionControlProps,
 } from '../common/data_structures';
 import { protoTimestamp } from '../common/helpers';
@@ -103,19 +104,12 @@ export class EventFactory {
     };
   }
 
-  trigger(name: string, params: SendTriggerPacketParams): ProtoPacket {
-    const { parameters = [], character, conversationId } = params;
+  trigger(name: string, params: SendCustomPacketParams): ProtoPacket {
+    return this.customEvent(name, CustomEventType.TRIGGER, params);
+  }
 
-    return {
-      ...this.baseProtoPacket({ correlationId: true, conversationId }),
-      ...(character && {
-        routing: this.routing({ character }),
-      }),
-      custom: {
-        name,
-        parameters: parameters.length ? parameters : undefined,
-      },
-    };
+  task(name: string, params: SendCustomPacketParams): ProtoPacket {
+    return this.customEvent(name, CustomEventType.TASK, params);
   }
 
   cancelResponse(params: SendCancelResponsePacketParams): ProtoPacket {
@@ -310,6 +304,26 @@ export class EventFactory {
       control: {
         action,
         ...(mode && { audioSessionStart: { mode } }),
+      },
+    };
+  }
+
+  private customEvent(
+    name: string,
+    type: CustomEventType,
+    params: SendCustomPacketParams,
+  ): ProtoPacket {
+    const { parameters = [], character, conversationId } = params;
+
+    return {
+      ...this.baseProtoPacket({ correlationId: true, conversationId }),
+      ...(character && {
+        routing: this.routing({ character }),
+      }),
+      custom: {
+        name,
+        type,
+        parameters: parameters.length ? parameters : undefined,
       },
     };
   }

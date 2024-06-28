@@ -6,6 +6,7 @@ import {
   ChangeSceneProps,
   ConversationParticipant,
   ConversationState,
+  TaskParameter,
   TriggerParameter,
 } from '../common/data_structures';
 import {
@@ -225,6 +226,17 @@ export class InworldConnectionService<
         character,
       });
     }
+  }
+
+  async sendTask(name: string, parameters?: { parameters: TaskParameter[] }) {
+    await this.ensureOneToOneConversation();
+
+    const character = await this.getCurrentCharacter();
+
+    return this.oneToOneConversation.sendTask(name, {
+      parameters: parameters?.parameters,
+      character,
+    });
   }
 
   async sendAudioSessionStart(params?: AudioSessionStartPacketParams) {
