@@ -1,6 +1,6 @@
 ## [Unreleased]
 
-### Fixed
+### Changed
 
 - Add characters that are out of scene to historical packets
 
@@ -8,7 +8,8 @@
 
 - Await for CLOSED WebSocket connection state after CLOSING one
 - Allow to change scene user parameters
-- Add tasks events
+- Allow to manage entity items
+- Tasks event support
 
 ## [2.7.1] - 2024-06-27
 

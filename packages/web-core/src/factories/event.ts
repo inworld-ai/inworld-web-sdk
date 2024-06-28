@@ -17,6 +17,7 @@ import {
 } from '../../proto/ai/inworld/packets/packets.pb';
 import {
   ConversationParticipant,
+  ItemsInEntitiesOperationType,
   MicrophoneMode,
   SendAudioSessionStartPacketParams,
   SendCustomPacketParams,
@@ -25,6 +26,8 @@ import {
 } from '../common/data_structures';
 import { protoTimestamp } from '../common/helpers';
 import { Character } from '../entities/character.entity';
+import { EntityItem } from '../entities/entities/entity_item';
+import { ItemOperation } from '../entities/entities/item_operation';
 
 export interface SendCancelResponsePacketParams {
   interactionId?: string;
@@ -341,6 +344,52 @@ export class EventFactory {
     return {
       source: { type: ActorType.PLAYER },
       target: { type: ActorType.WORLD },
+    };
+  }
+
+  static createOrUpdateItems(props: {
+    items: EntityItem[];
+    addToEntities?: string[];
+  }): ProtoPacket {
+    return {
+      packetId: {
+        packetId: v4(),
+      },
+      timestamp: protoTimestamp(),
+      routing: this.worldRouting(),
+      entitiesItemsOperation: new ItemOperation({
+        createOrUpdateItems: props,
+      }).toProto(),
+    };
+  }
+
+  static removeItems(ids: string[]): ProtoPacket {
+    return {
+      packetId: {
+        packetId: v4(),
+      },
+      timestamp: protoTimestamp(),
+      routing: this.worldRouting(),
+      entitiesItemsOperation: new ItemOperation({
+        removeItems: { itemIds: ids },
+      }).toProto(),
+    };
+  }
+
+  static itemsInEntities(props: {
+    type: ItemsInEntitiesOperationType;
+    itemIds: string[];
+    entityNames: string[];
+  }): ProtoPacket {
+    return {
+      packetId: {
+        packetId: v4(),
+      },
+      timestamp: protoTimestamp(),
+      routing: this.worldRouting(),
+      entitiesItemsOperation: new ItemOperation({
+        itemsInEntities: props,
+      }).toProto(),
     };
   }
 }
