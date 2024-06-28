@@ -1,8 +1,9 @@
 ## [Unreleased]
 
-### Fixed
+### Changed
 
-- Add tasks events
+- Add tasks event support
+- Allow to manage entity items
 
 ## [2.7.1] - 2024-06-27
 

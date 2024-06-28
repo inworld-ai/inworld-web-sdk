@@ -3,8 +3,11 @@ import { v4 } from 'uuid';
 import {
   InworlControlAction,
   InworldPacketType,
+  ItemsInEntitiesOperationType,
 } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
+import { EntityItem } from '../../src/entities/entities/entity_item';
+import { ItemOperation } from '../../src/entities/entities/item_operation';
 import { AudioEvent } from '../../src/entities/packets/audio.entity';
 import { ControlEvent } from '../../src/entities/packets/control.entity';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
@@ -242,6 +245,94 @@ describe('control', () => {
 
     expect(packet.isControl()).toEqual(true);
     expect(packet.isWarning()).toEqual(true);
+    expect(packet.routing).toEqual(routing);
+    expect(packet.date).toEqual(date);
+    expect(packet.packetId).toEqual(packetId);
+  });
+
+  test('should get entities item operation packet fields for create or update', () => {
+    const entitiesItemsOperation = new ItemOperation({
+      createOrUpdateItems: {
+        items: [
+          new EntityItem({
+            id: v4(),
+            displayName: v4(),
+            description: v4(),
+            properties: {
+              key1: v4(),
+              key2: v4(),
+            },
+          }),
+          new EntityItem({
+            id: v4(),
+            displayName: v4(),
+            description: v4(),
+            properties: {
+              key1: v4(),
+              key2: v4(),
+            },
+          }),
+        ],
+        addToEntities: [v4(), v4()],
+      },
+    });
+
+    const packet = new InworldPacket({
+      packetId,
+      routing,
+      date,
+      type: InworldPacketType.ENTITIES_ITEM_OPERATION,
+      entitiesItemsOperation,
+    });
+
+    expect(packet.isEntitiesItemOperation()).toEqual(true);
+    expect(packet.entitiesItemsOperation).toEqual(entitiesItemsOperation);
+    expect(packet.routing).toEqual(routing);
+    expect(packet.date).toEqual(date);
+    expect(packet.packetId).toEqual(packetId);
+  });
+
+  test('should get entities item operation packet fields for remove', () => {
+    const entitiesItemsOperation = new ItemOperation({
+      removeItems: {
+        itemIds: [v4(), v4()],
+      },
+    });
+
+    const packet = new InworldPacket({
+      packetId,
+      routing,
+      date,
+      type: InworldPacketType.ENTITIES_ITEM_OPERATION,
+      entitiesItemsOperation,
+    });
+
+    expect(packet.isEntitiesItemOperation()).toEqual(true);
+    expect(packet.entitiesItemsOperation).toEqual(entitiesItemsOperation);
+    expect(packet.routing).toEqual(routing);
+    expect(packet.date).toEqual(date);
+    expect(packet.packetId).toEqual(packetId);
+  });
+
+  test('should get entities item operation packet fields for items in entities', () => {
+    const entitiesItemsOperation = new ItemOperation({
+      itemsInEntities: {
+        type: ItemsInEntitiesOperationType.REMOVE,
+        itemIds: [v4(), v4()],
+        entityNames: [v4(), v4()],
+      },
+    });
+
+    const packet = new InworldPacket({
+      packetId,
+      routing,
+      date,
+      type: InworldPacketType.ENTITIES_ITEM_OPERATION,
+      entitiesItemsOperation,
+    });
+
+    expect(packet.isEntitiesItemOperation()).toEqual(true);
+    expect(packet.entitiesItemsOperation).toEqual(entitiesItemsOperation);
     expect(packet.routing).toEqual(routing);
     expect(packet.date).toEqual(date);
     expect(packet.packetId).toEqual(packetId);

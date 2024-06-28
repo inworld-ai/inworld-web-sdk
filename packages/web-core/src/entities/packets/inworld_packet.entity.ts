@@ -11,6 +11,7 @@ import {
   InworldPacketType,
 } from '../../common/data_structures';
 import { Character } from '../character.entity';
+import { ItemOperation } from '../entities/item_operation';
 import { AudioEvent } from './audio.entity';
 import { CancelResponsesEvent } from './cancel_responses.entity';
 import { ControlEvent } from './control.entity';
@@ -36,6 +37,7 @@ export interface InworldPacketProps {
   text?: TextEvent;
   narratedAction?: NarratedAction;
   sceneMutation?: SceneMutation;
+  entitiesItemsOperation?: ItemOperation;
   date: string;
   type: InworldPacketType;
 }
@@ -67,6 +69,7 @@ export class InworldPacket {
   readonly narratedAction: NarratedAction;
   readonly cancelResponses: CancelResponsesEvent;
   readonly sceneMutation: SceneMutation;
+  readonly entitiesItemsOperation: ItemOperation;
 
   constructor(props: InworldPacketProps) {
     this.packetId = props.packetId;
@@ -112,6 +115,10 @@ export class InworldPacket {
 
     if (this.isSceneMutationResponse() || this.isSceneMutationRequest()) {
       this.sceneMutation = props.sceneMutation;
+    }
+
+    if (this.isEntitiesItemOperation()) {
+      this.entitiesItemsOperation = props.entitiesItemsOperation;
     }
   }
 
@@ -186,6 +193,10 @@ export class InworldPacket {
     return this.type === InworldPacketType.SCENE_MUTATION_RESPONSE;
   }
 
+  isEntitiesItemOperation() {
+    return this.type === InworldPacketType.ENTITIES_ITEM_OPERATION;
+  }
+
   shouldHaveConversationId() {
     return (
       this.isAudio() ||
@@ -231,6 +242,11 @@ export class InworldPacket {
       }),
       ...(type === InworldPacketType.NARRATED_ACTION && {
         narratedAction: NarratedAction.fromProto(proto.action),
+      }),
+      ...(type === InworldPacketType.ENTITIES_ITEM_OPERATION && {
+        entitiesItemsOperation: ItemOperation.fromProto(
+          proto.entitiesItemsOperation,
+        ),
       }),
       ...([
         InworldPacketType.SCENE_MUTATION_REQUEST,
@@ -301,6 +317,8 @@ export class InworldPacket {
       return InworldPacketType.CANCEL_RESPONSE;
     } else if (packet.action?.narratedAction) {
       return InworldPacketType.NARRATED_ACTION;
+    } else if (packet.entitiesItemsOperation) {
+      return InworldPacketType.ENTITIES_ITEM_OPERATION;
     } else {
       return InworldPacketType.UNKNOWN;
     }

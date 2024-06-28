@@ -25,6 +25,7 @@ export interface Capabilities {
   debugInfo?: boolean;
   emotions?: boolean;
   interruptions?: boolean;
+  multiModalActionPlanning?: boolean;
   narratedActions?: boolean;
   phonemes?: boolean;
   silence?: boolean;
@@ -168,6 +169,7 @@ export enum InworldPacketType {
   NARRATED_ACTION = 'NARRATED_ACTION',
   SCENE_MUTATION_REQUEST = 'SCENE_MUTATION_REQUEST',
   SCENE_MUTATION_RESPONSE = 'SCENE_MUTATION_RESPONSE',
+  ENTITIES_ITEM_OPERATION = 'ENTITIES_ITEM_OPERATION',
 }
 
 export enum InworlControlAction {
@@ -252,4 +254,17 @@ export interface ProtoError {
   message: string;
   code: string | undefined;
   details: ProtoStatus[] | undefined;
+}
+
+export enum ItemsInEntitiesOperationType {
+  ADD = 'ADD',
+  REMOVE = 'REMOVE',
+  REPLACE = 'REPLACE',
+}
+
+export interface EntityItemProps {
+  id: string;
+  displayName?: string;
+  description?: string;
+  properties?: { [key: string]: string };
 }
