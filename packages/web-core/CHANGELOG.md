@@ -8,6 +8,7 @@
 
 - Await for CLOSED WebSocket connection state after CLOSING one
 - Allow to change scene user parameters
+- Add tasks events
 
 ## [2.7.1] - 2024-06-27
 

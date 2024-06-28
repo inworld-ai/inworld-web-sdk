@@ -495,6 +495,77 @@ describe('send', () => {
       ]);
     });
 
+    test('should send task without parameters', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementation(writeMock);
+
+      const name = v4();
+
+      const [packet] = await Promise.all([
+        service.sendTask(name),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(write.mock.calls[0][0].getPacket().control?.action).toEqual(
+        ControlEventAction.CONVERSATION_UPDATE,
+      );
+      expect(write.mock.calls[1][0].getPacket().custom?.name).toEqual(name);
+      expect(packet!.task).toHaveProperty('name', name);
+      expect(packet!.task.parameters).toBeUndefined();
+      expect(service.getConversations()).toEqual([
+        {
+          conversationId,
+          characters: [characters[0]],
+        },
+      ]);
+    });
+
+    test('should send trigger with parameters', async () => {
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementation(writeMock);
+      const warn = jest.spyOn(global.console, 'warn').mockImplementation();
+
+      const name = v4();
+      const parameters = [{ name: v4(), value: v4() }];
+
+      const [packet] = await Promise.all([
+        service.sendTask(name, { parameters }),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(write.mock.calls[0][0].getPacket().control?.action).toEqual(
+        ControlEventAction.CONVERSATION_UPDATE,
+      );
+      expect(write.mock.calls[1][0].getPacket().custom?.parameters).toEqual(
+        parameters,
+      );
+      expect(warn).toHaveBeenCalledTimes(0);
+      expect(packet!.task).toHaveProperty('name', name);
+      expect(packet!.task).toHaveProperty('parameters', parameters);
+      expect(service.getConversations()).toEqual([
+        {
+          conversationId,
+          characters: [characters[0]],
+        },
+      ]);
+    });
+
     test('should send audio session start', async () => {
       jest
         .spyOn(ConnectionService.prototype, 'getAudioSessionAction')

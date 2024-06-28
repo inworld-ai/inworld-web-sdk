@@ -189,6 +189,18 @@ export class ConversationService<
     );
   }
 
+  async sendTask(
+    name: string,
+    parameters?: { parameters?: TriggerParameter[]; character?: Character },
+  ) {
+    return this.ensureConversation(() =>
+      this.connection.getEventFactory().task(name, {
+        ...parameters,
+        conversationId: this.getConversationId(),
+      }),
+    );
+  }
+
   async sendAudioSessionStart(
     params?: AudioSessionStartPacketParams,
     force?: boolean,

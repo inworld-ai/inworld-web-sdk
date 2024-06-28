@@ -147,15 +147,19 @@ export interface MediaTrackConstraintsWithSuppress
   suppressLocalAudioPlayback?: { ideal: boolean };
 }
 
-export interface TriggerParameter {
+interface CustomParameter {
   name: string;
   value: string;
 }
+
+export interface TaskParameter extends CustomParameter {}
+export interface TriggerParameter extends CustomParameter {}
 
 export enum InworldPacketType {
   UNKNOWN = 'UNKNOWN',
   TEXT = 'TEXT',
   AUDIO = 'AUDIO',
+  TASK = 'TASK',
   TRIGGER = 'TRIGGER',
   EMOTION = 'EMOTION',
   CONTROL = 'CONTROL',
@@ -204,7 +208,7 @@ export interface SendPacketParams {
   conversationId: string;
 }
 
-export interface SendTriggerPacketParams extends SendPacketParams {
+export interface SendCustomPacketParams extends SendPacketParams {
   parameters?: TriggerParameter[];
   character?: Character;
 }
