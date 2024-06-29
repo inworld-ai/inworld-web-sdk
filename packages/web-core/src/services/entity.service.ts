@@ -18,7 +18,7 @@ export class EntityService<
 
   createOrUpdateItems(props: {
     items: EntityItemProps[];
-    addToEntities?: string[];
+    addToEntities: string[];
   }) {
     return this.connection.send(() =>
       EventFactory.createOrUpdateItems({

@@ -6,8 +6,8 @@ import { ItemsInEntitiesOperationType } from '../../common/data_structures';
 import { EntityItem } from './entity_item';
 
 export type CreateOrUpdateItemsOperation = {
-  items?: EntityItem[];
-  addToEntities?: string[];
+  items: EntityItem[];
+  addToEntities: string[];
 };
 
 export type RemoveItemsOperation = {
