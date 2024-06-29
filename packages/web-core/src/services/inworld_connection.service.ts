@@ -6,6 +6,7 @@ import {
   ChangeSceneProps,
   ConversationParticipant,
   ConversationState,
+  TaskParameter,
   TriggerParameter,
 } from '../common/data_structures';
 import {
@@ -25,6 +26,7 @@ import { EventFactory } from '../factories/event';
 import { characterHasValidFormat, sceneHasValidFormat } from '../guard/scene';
 import { ConnectionService } from './connection.service';
 import { ConversationService } from './conversation.service';
+import { EntityService } from './entity.service';
 import { FeedbackService } from './feedback.service';
 
 interface InworldConnectionServiceProps<
@@ -40,6 +42,8 @@ export class InworldConnectionService<
   InworldPacketT extends InworldPacket = InworldPacket,
 > {
   readonly feedback: FeedbackService<InworldPacketT>;
+  readonly entity: EntityService<InworldPacketT>;
+
   private connection: ConnectionService<InworldPacketT>;
   private grpcAudioPlayer: GrpcAudioPlayback<InworldPacketT>;
   private oneToOneConversation: ConversationService<InworldPacketT>;
@@ -51,6 +55,7 @@ export class InworldConnectionService<
     this.connection = props.connection;
     this.grpcAudioPlayer = props.grpcAudioPlayer;
     this.feedback = new FeedbackService(props.connection);
+    this.entity = new EntityService(props.connection);
 
     this.player = new InworldPlayer<InworldPacketT>({
       grpcAudioPlayer: this.grpcAudioPlayer,
@@ -225,6 +230,17 @@ export class InworldConnectionService<
         character,
       });
     }
+  }
+
+  async sendTask(name: string, parameters?: { parameters: TaskParameter[] }) {
+    await this.ensureOneToOneConversation();
+
+    const character = await this.getCurrentCharacter();
+
+    return this.oneToOneConversation.sendTask(name, {
+      parameters: parameters?.parameters,
+      character,
+    });
   }
 
   async sendAudioSessionStart(params?: AudioSessionStartPacketParams) {

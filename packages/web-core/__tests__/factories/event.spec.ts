@@ -477,6 +477,29 @@ describe('convert packet to external one', () => {
     expect(result.isTrigger()).toEqual(true);
   });
 
+  test('task without parameters', () => {
+    const result = InworldPacket.fromProto(
+      factory.task(v4(), {
+        conversationId,
+      }),
+    );
+
+    expect(result).toBeInstanceOf(InworldPacket);
+    expect(result.isTask()).toEqual(true);
+  });
+
+  test('task with parameters', () => {
+    const result = InworldPacket.fromProto(
+      factory.task(v4(), {
+        parameters: [{ name: v4(), value: v4() }],
+        conversationId,
+      }),
+    );
+
+    expect(result).toBeInstanceOf(InworldPacket);
+    expect(result.isTask()).toEqual(true);
+  });
+
   test('emotion', () => {
     const packet: ProtoPacket = {
       packetId: { packetId: v4() },
@@ -750,6 +773,31 @@ describe('convert packet to external one', () => {
       expect(result).toBeInstanceOf(InworldPacket);
       expect(result.isControl()).toEqual(true);
       expect(result.isInteractionEnd()).toEqual(false);
+    });
+  });
+
+  describe('entities and items', () => {
+    test('operation status', () => {
+      const packet: ProtoPacket = {
+        packetId: { packetId: v4() },
+        routing: {
+          source: {} as Actor,
+          targets: [{} as Actor],
+        },
+        operationStatus: {
+          status: {
+            code: 200,
+            message: v4(),
+            details: [],
+          },
+        },
+        timestamp: protoTimestamp(),
+      };
+
+      const result = InworldPacket.fromProto(packet);
+
+      expect(result).toBeInstanceOf(InworldPacket);
+      expect(result.isOperationStatus()).toEqual(true);
     });
   });
 });
