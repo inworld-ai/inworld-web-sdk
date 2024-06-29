@@ -528,7 +528,7 @@ describe('send', () => {
       ]);
     });
 
-    test('should send trigger with parameters', async () => {
+    test('should send task with parameters', async () => {
       const write = jest
         .spyOn(WebSocketConnection.prototype, 'write')
         .mockImplementation(writeMock);
