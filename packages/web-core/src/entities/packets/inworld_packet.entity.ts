@@ -17,6 +17,7 @@ import { CancelResponsesEvent } from './cancel_responses.entity';
 import { ControlEvent } from './control.entity';
 import { EmotionEvent } from './emotion/emotion.entity';
 import { NarratedAction } from './narrated_action.entity';
+import { OperationStatusEvent } from './operation_status.entity';
 import { PacketId } from './packet_id.entity';
 import { Routing } from './routing.entity';
 import { SilenceEvent } from './silence.entity';
@@ -38,6 +39,7 @@ export interface InworldPacketProps {
   narratedAction?: NarratedAction;
   sceneMutation?: SceneMutation;
   entitiesItemsOperation?: ItemOperation;
+  operationStatus?: OperationStatusEvent;
   date: string;
   type: InworldPacketType;
 }
@@ -70,6 +72,7 @@ export class InworldPacket {
   readonly cancelResponses: CancelResponsesEvent;
   readonly sceneMutation: SceneMutation;
   readonly entitiesItemsOperation: ItemOperation;
+  readonly operationStatus: OperationStatusEvent;
 
   constructor(props: InworldPacketProps) {
     this.packetId = props.packetId;
@@ -119,6 +122,10 @@ export class InworldPacket {
 
     if (this.isEntitiesItemOperation()) {
       this.entitiesItemsOperation = props.entitiesItemsOperation;
+    }
+
+    if (this.isOperationStatus()) {
+      this.operationStatus = props.operationStatus;
     }
   }
 
@@ -197,6 +204,10 @@ export class InworldPacket {
     return this.type === InworldPacketType.ENTITIES_ITEM_OPERATION;
   }
 
+  isOperationStatus() {
+    return this.type === InworldPacketType.OPERATION_STATUS;
+  }
+
   shouldHaveConversationId() {
     return (
       this.isAudio() ||
@@ -247,6 +258,9 @@ export class InworldPacket {
         entitiesItemsOperation: ItemOperation.fromProto(
           proto.entitiesItemsOperation,
         ),
+      }),
+      ...(type === InworldPacketType.OPERATION_STATUS && {
+        operationStatus: OperationStatusEvent.fromProto(proto.operationStatus),
       }),
       ...([
         InworldPacketType.SCENE_MUTATION_REQUEST,
@@ -319,6 +333,8 @@ export class InworldPacket {
       return InworldPacketType.NARRATED_ACTION;
     } else if (packet.entitiesItemsOperation) {
       return InworldPacketType.ENTITIES_ITEM_OPERATION;
+    } else if (packet.operationStatus) {
+      return InworldPacketType.OPERATION_STATUS;
     } else {
       return InworldPacketType.UNKNOWN;
     }

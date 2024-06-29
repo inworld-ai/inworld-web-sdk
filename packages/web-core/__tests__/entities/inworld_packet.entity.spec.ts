@@ -337,4 +337,25 @@ describe('control', () => {
     expect(packet.date).toEqual(date);
     expect(packet.packetId).toEqual(packetId);
   });
+
+  test('should get operation status packet fields', () => {
+    const packet = new InworldPacket({
+      packetId,
+      routing,
+      date,
+      type: InworldPacketType.OPERATION_STATUS,
+      operationStatus: {
+        status: {
+          code: 200,
+          message: 'OK',
+          details: [],
+        },
+      },
+    });
+
+    expect(packet.isOperationStatus()).toEqual(true);
+    expect(packet.routing).toEqual(routing);
+    expect(packet.date).toEqual(date);
+    expect(packet.packetId).toEqual(packetId);
+  });
 });

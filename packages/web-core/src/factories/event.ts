@@ -349,7 +349,7 @@ export class EventFactory {
 
   static createOrUpdateItems(props: {
     items: EntityItem[];
-    addToEntities?: string[];
+    addToEntities: string[];
   }): ProtoPacket {
     return {
       packetId: {
