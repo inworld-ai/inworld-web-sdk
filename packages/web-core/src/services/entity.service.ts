@@ -16,7 +16,7 @@ export class EntityService<
     this.connection = connection;
   }
 
-  createOrUpdateItems(props: {
+  async createOrUpdateItems(props: {
     items: EntityItemProps[];
     addToEntities: string[];
   }) {
@@ -28,11 +28,11 @@ export class EntityService<
     );
   }
 
-  removeItems(ids: string[]) {
+  async removeItems(ids: string[]) {
     return this.connection.send(() => EventFactory.removeItems(ids));
   }
 
-  itemsInEntities(props: {
+  async itemsInEntities(props: {
     type: ItemsInEntitiesOperationType;
     itemIds: string[];
     entityNames: string[];
