@@ -95,6 +95,7 @@ export type CapabilitiesRequest = {
   audio2Face?: boolean
   inspect?: boolean
   multiModalActionPlanning?: boolean
+  pingPongReport?: boolean
 }
 
 export type UserRequest = {
@@ -169,10 +170,23 @@ export type PreviousStateStateHolder = {
   stateFormat?: PreviousStateStateHolderStateFormat
 }
 
+export type PreviousStateEntitiesStateEntityItem = {
+  id?: string
+  displayName?: string
+  description?: string
+  properties?: {[key: string]: string}
+  entities?: string[]
+}
+
+export type PreviousStateEntitiesState = {
+  entityItems?: PreviousStateEntitiesStateEntityItem[]
+}
+
 export type PreviousState = {
   stateHolders?: PreviousStateStateHolder[]
   gameSessionId?: string
   conversationState?: ConversationState
+  entitiesState?: PreviousStateEntitiesState
 }
 
 export type LoadSceneResponseAgentCharacterAssets = {
