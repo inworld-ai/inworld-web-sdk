@@ -1,0 +1,47 @@
+name: Upload minified files to GCS
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        type: choice
+        description: Select package
+        options:
+          - '@inworld/web-core'
+          - '@inworld/web-threejs'
+
+env:
+  AUTH_SERVICE_ACCOUNT: terraform-inworld-devops@inworld-ai-devops.iam.gserviceaccount.com
+  AUTH_IDENTITY_PROVIDER: projects/678423885598/locations/global/workloadIdentityPools/github-devops-pool/providers/github-prvdr
+
+jobs:
+  github-release:
+    runs-on: [self-hosted, linux, x64, kubernetes, ephemeral]
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.AUTH_IDENTITY_PROVIDER }}
+          service_account: ${{ env.AUTH_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+
+      - name: Run build
+        uses: ./.github/actions/build_package
+
+      - name: Minify
+        run: |
+          npx yarn workspace ${{ inputs.package }} minify
+
+      - name: Upload to GCS
+        uses: 'google-github-actions/upload-cloud-storage@v2'
+        with:
+          path: 'packages/${{ inputs.package }}/inworld-web-core.min.js'
+          destination: 'innequin-assets'
