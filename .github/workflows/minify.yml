@@ -9,13 +9,18 @@ on:
         options:
           - '@inworld/web-core'
           - '@inworld/web-threejs'
+      version:
+        type: string
+        description: "The version of package to minify. The version should be the same as version in package.json. For example, 1.0.0"
+        required: false
 
 env:
   AUTH_SERVICE_ACCOUNT: terraform-inworld-devops@inworld-ai-devops.iam.gserviceaccount.com
   AUTH_IDENTITY_PROVIDER: projects/678423885598/locations/global/workloadIdentityPools/github-devops-pool/providers/github-prvdr
+  TAG: ''
 
 jobs:
-  github-release:
+  minify:
     runs-on: [self-hosted, linux, x64, kubernetes, ephemeral]
 
     permissions:
@@ -23,9 +28,38 @@ jobs:
       id-token: 'write'
 
     steps:
+      - name: Set TAG
+        run: echo "TAG=refs/tags/${{ inputs.package }}@${{ inputs.version }}" >> $GITHUB_ENV
+        if: inputs.version != ''
+
       - name: Checkout source code
-        uses: actions/checkout@v3
-      
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+          fetch-tags: true
+
+      - name: Run build
+        uses: ./.github/actions/build_package
+        with:
+          package: ${{ inputs.package }}
+
+      - name: Set PACKAGE
+        run: |
+          echo "PACKAGE=$(echo ${{ inputs.package }} | sed 's/@inworld\///g')" >> $GITHUB_ENV
+
+      - name: Extract version
+        run: |
+          echo "VERSION=$(node -e "console.log(require('./packages/${{ env.PACKAGE }}/package.json').version)")" >> $GITHUB_ENV
+        id: extract-version
+
+      - name: Set OUTPUT
+        run: |
+          echo "OUTPUT=packages/${{ env.PACKAGE }}/dist/inworld-${{ env.PACKAGE }}-${{ env.VERSION }}.min.js" >> $GITHUB_ENV
+
+      - name: Minify
+        run: |
+          npx yarn workspace ${{ inputs.package }} minify
+  
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
@@ -33,15 +67,12 @@ jobs:
           service_account: ${{ env.AUTH_SERVICE_ACCOUNT }}
           create_credentials_file: true
 
-      - name: Run build
-        uses: ./.github/actions/build_package
-
-      - name: Minify
+      - name: Rename minified file
         run: |
-          npx yarn workspace ${{ inputs.package }} minify
+          mv packages/${{ env.PACKAGE }}/dist/inworld-${{ env.PACKAGE }}.min.js ${{ env.OUTPUT }}
 
       - name: Upload to GCS
         uses: 'google-github-actions/upload-cloud-storage@v2'
         with:
-          path: 'packages/${{ inputs.package }}/inworld-web-core.min.js'
-          destination: 'innequin-assets'
+          path: ${{ env.OUTPUT }}
+          destination: 'innequin-assets/packages'
