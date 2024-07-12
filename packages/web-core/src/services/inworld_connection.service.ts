@@ -279,7 +279,7 @@ export class InworldConnectionService<
   }
 
   async changeScene(name: string, props?: ChangeSceneProps) {
-    if (!sceneHasValidFormat(name)) {
+    if (!sceneHasValidFormat(name) && !characterHasValidFormat(name)) {
       throw Error(SCENE_HAS_INVALID_FORMAT);
     }
 

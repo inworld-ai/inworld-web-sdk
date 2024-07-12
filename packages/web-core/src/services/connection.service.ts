@@ -291,6 +291,9 @@ export class ConnectionService<
         ...(props?.gameSessionId && {
           gameSessionId: props.gameSessionId,
         }),
+        ...(props?.user && {
+          user: props.user,
+        }),
       },
       sessionContinuation: props?.sessionContinuation
         ? new SessionContinuation(props.sessionContinuation)
