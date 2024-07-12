@@ -63,7 +63,7 @@ export interface QueueItem<InworldPacketT> {
 }
 
 export interface Connection<InworldPacketT> {
-  close(): void;
+  close(): Promise<void>;
   isActive: () => boolean;
   openSession(props: OpenSessionProps): Promise<LoadedScene>;
   reopenSession(session: SessionToken): Promise<void>;
@@ -204,7 +204,7 @@ export class WebSocketConnection<
     );
   }
 
-  close() {
+  async close(): Promise<void> {
     if (this.isActive()) {
       this.ws.close();
       this.connectionProps.onDisconnect();
@@ -214,7 +214,20 @@ export class WebSocketConnection<
     this.ws?.removeEventListener('close', this.connectionProps.onDisconnect);
     this.ws?.removeEventListener('message', this.onMessage);
 
-    this.ws = null;
+    await new Promise<void>((resolve) => {
+      if (this.ws?.readyState !== WebSocket.CLOSING) {
+        return resolve();
+      }
+
+      const interval = setInterval(() => {
+        if (this.ws.readyState === WebSocket.CLOSED) {
+          clearInterval(interval);
+          resolve();
+        }
+      });
+    });
+
+    this.ws = undefined;
   }
 
   async write(item: QueueItem<InworldPacketT>) {

@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Changed
+
+- Await for CLOSED WebSocket connection state after CLOSING one
+
 ## [2.7.1] - 2024-06-27
 
 ### Fixed
