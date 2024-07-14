@@ -68,6 +68,12 @@ export enum AudioSessionStartPayloadMicrophoneMode {
   EXPECT_AUDIO_END = "EXPECT_AUDIO_END",
 }
 
+export enum AudioSessionStartPayloadUnderstandingMode {
+  UNSPECIFIED_UNDERSTANDING_MODE = "UNSPECIFIED_UNDERSTANDING_MODE",
+  FULL = "FULL",
+  SPEECH_RECOGNITION_ONLY = "SPEECH_RECOGNITION_ONLY",
+}
+
 export enum CustomEventType {
   UNSPECIFIED = "UNSPECIFIED",
   TRIGGER = "TRIGGER",
@@ -205,6 +211,7 @@ export type ControlEvent = BaseControlEvent
 
 export type AudioSessionStartPayload = {
   mode?: AudioSessionStartPayloadMicrophoneMode
+  understandingMode?: AudioSessionStartPayloadUnderstandingMode
 }
 
 export type AudioChunk = {
