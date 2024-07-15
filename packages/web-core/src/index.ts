@@ -34,6 +34,7 @@ import {
   HistoryItemBase,
   HistoryItemNarratedAction,
   HistoryItemSceneChange,
+  HistoryItemTaskEvent,
   HistoryItemTriggerEvent,
 } from './components/history';
 import { Character } from './entities/character.entity';
@@ -117,6 +118,7 @@ export {
   HistoryItemBase,
   HistoryItemNarratedAction,
   HistoryItemSceneChange,
+  HistoryItemTaskEvent,
   HistoryItemTriggerEvent,
   InworldClient,
   InworldConnectionService,
