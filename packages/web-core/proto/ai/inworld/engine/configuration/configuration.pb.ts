@@ -22,7 +22,7 @@ export type CapabilitiesConfiguration = {
   audio2Face?: boolean
   inspect?: boolean
   pingPongReport?: boolean
-  percievedLatencyReport?: boolean
+  perceivedLatencyReport?: boolean
   multiModalActionPlanning?: boolean
 }
 

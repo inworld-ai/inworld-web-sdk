@@ -96,6 +96,7 @@ export type CapabilitiesRequest = {
   inspect?: boolean
   multiModalActionPlanning?: boolean
   pingPongReport?: boolean
+  perceivedLatencyReport?: boolean
 }
 
 export type UserRequest = {
