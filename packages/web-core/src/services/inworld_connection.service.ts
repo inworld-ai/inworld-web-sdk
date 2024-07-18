@@ -90,10 +90,10 @@ export class InworldConnectionService<
   }
 
   async close() {
-    this.connection.close();
+    this.player.clear();
     this.recorder.stop();
     await this.player.stop();
-    this.player.clear();
+    await this.connection.close();
   }
 
   isActive() {
@@ -279,7 +279,7 @@ export class InworldConnectionService<
   }
 
   async changeScene(name: string, props?: ChangeSceneProps) {
-    if (!sceneHasValidFormat(name)) {
+    if (!sceneHasValidFormat(name) && !characterHasValidFormat(name)) {
       throw Error(SCENE_HAS_INVALID_FORMAT);
     }
 

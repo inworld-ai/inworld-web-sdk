@@ -182,10 +182,10 @@ export class ConnectionService<
     }
   }
 
-  close() {
+  async close() {
     this.cancelScheduler();
     this.state = ConnectionState.INACTIVE;
-    this.connection.close();
+    await this.connection.close();
     this.clearQueue();
   }
 
@@ -290,6 +290,9 @@ export class ConnectionService<
         }),
         ...(props?.gameSessionId && {
           gameSessionId: props.gameSessionId,
+        }),
+        ...(props?.user && {
+          user: props.user,
         }),
       },
       sessionContinuation: props?.sessionContinuation

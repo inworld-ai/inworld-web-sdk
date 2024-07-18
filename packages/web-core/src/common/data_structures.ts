@@ -236,6 +236,7 @@ export interface HistoryChangedProps<HistoryItemT = HistoryItem> {
 export interface ChangeSceneProps {
   capabilities?: Capabilities;
   sessionContinuation?: SessionContinuationProps;
+  user?: User;
   gameSessionId?: string;
 }
 
