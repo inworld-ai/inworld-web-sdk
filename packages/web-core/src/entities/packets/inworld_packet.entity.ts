@@ -316,13 +316,10 @@ export class InworldPacket {
       packet.dataChunk.type === DataChunkDataType.SILENCE
     ) {
       return InworldPacketType.SILENCE;
-    } else if (
-      packet.custom &&
-      packet.custom.type === CustomEventType.TRIGGER
-    ) {
-      return InworldPacketType.TRIGGER;
     } else if (packet.custom && packet.custom.type === CustomEventType.TASK) {
       return InworldPacketType.TASK;
+    } else if (packet.custom) {
+      return InworldPacketType.TRIGGER;
     } else if (packet.control) {
       return InworldPacketType.CONTROL;
     } else if (packet.emotion) {
