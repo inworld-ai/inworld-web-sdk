@@ -4,6 +4,7 @@ import {
   Actor,
   ActorType,
   AudioSessionStartPayloadMicrophoneMode,
+  AudioSessionStartPayloadUnderstandingMode,
   ContinuationContinuationType,
   ControlEventAction,
   ConversationEventPayloadConversationEventType,
@@ -13,6 +14,7 @@ import {
 import {
   InworldConversationEventType,
   MicrophoneMode,
+  UnderstandingMode,
 } from '../../src/common/data_structures';
 import { protoTimestamp } from '../../src/common/helpers';
 import { Character } from '../../src/entities/character.entity';
@@ -72,6 +74,7 @@ describe('event types', () => {
       action: ControlEventAction.AUDIO_SESSION_START,
       audioSessionStart: {
         mode: AudioSessionStartPayloadMicrophoneMode.OPEN_MIC,
+        understandingMode: AudioSessionStartPayloadUnderstandingMode.FULL,
       },
     });
     expect(event.routing?.target).toBeFalsy();
@@ -103,6 +106,39 @@ describe('event types', () => {
         ControlEventAction.AUDIO_SESSION_START,
       );
       expect(event.control?.audioSessionStart?.mode).toEqual(expected);
+      expect(event.routing?.target).toBeFalsy();
+      expect(event.packetId).toHaveProperty('packetId');
+      expect(event.packetId?.utteranceId).toBeUndefined();
+      expect(event.packetId?.interactionId).toBeUndefined();
+      expect(event.packetId?.correlationId).toBeUndefined();
+      expect(event.packetId?.conversationId).toEqual(conversationId);
+    },
+  );
+
+  test.each([
+    {
+      input: UnderstandingMode.FULL,
+      expected: AudioSessionStartPayloadUnderstandingMode.FULL,
+    },
+    {
+      input: UnderstandingMode.SPEECH_RECOGNITION_ONLY,
+      expected:
+        AudioSessionStartPayloadUnderstandingMode.SPEECH_RECOGNITION_ONLY,
+    },
+  ])(
+    'should generate audio session start with understandingMode $input',
+    ({ input, expected }) => {
+      const event = factory.audioSessionStart({
+        conversationId,
+        understandingMode: input,
+      });
+
+      expect(event.control?.action).toEqual(
+        ControlEventAction.AUDIO_SESSION_START,
+      );
+      expect(event.control?.audioSessionStart?.understandingMode).toEqual(
+        expected,
+      );
       expect(event.routing?.target).toBeFalsy();
       expect(event.packetId).toHaveProperty('packetId');
       expect(event.packetId?.utteranceId).toBeUndefined();

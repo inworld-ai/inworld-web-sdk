@@ -4,6 +4,10 @@
 
 - Add characters that are out of scene to historical packets
 
+### Added
+
+- Support SPEECH_RECOGNITION_ONLY mode
+
 ### Changed
 
 - Await for CLOSED WebSocket connection state after CLOSING one
