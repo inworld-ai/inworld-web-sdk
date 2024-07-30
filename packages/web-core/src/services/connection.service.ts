@@ -19,6 +19,7 @@ import {
   InternalClientConfiguration,
   InworldConversationEventType,
   LoadedScene,
+  SceneHistoryItem,
   User,
 } from '../common/data_structures';
 import { HistoryItem, InworldHistory } from '../components/history';
@@ -445,13 +446,14 @@ export class ConnectionService<
     }
   }
 
-  private setPreviousState(previousPackets: ProtoPacket[]) {
-    previousPackets.forEach((packet) =>
+  private setPreviousState(history: SceneHistoryItem[]) {
+    history.forEach(({ packet, character }) =>
       this.history.addOrUpdate({
         grpcAudioPlayer: this.connectionProps.grpcAudioPlayer,
         characters: this.eventFactory.getCharacters(),
         packet: this.extension.convertPacketFromProto(packet),
         fromHistory: true,
+        fromHistoryCharacter: character,
       }),
     );
 

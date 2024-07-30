@@ -37,6 +37,7 @@ export class InworldService {
               ssl: Config.CONNECTION_SSL,
             },
           },
+          history: { previousState: true },
         }),
         capabilities: props.capabilities,
         audioPlayback: props.audioPlayback,

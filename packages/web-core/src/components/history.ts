@@ -20,6 +20,7 @@ interface InworldHistoryAddProps<InworldPacketT> {
   packet: InworldPacketT;
   outgoing?: boolean;
   fromHistory?: boolean;
+  fromHistoryCharacter?: Character;
 }
 
 export enum CHAT_HISTORY_TYPE {
@@ -167,6 +168,7 @@ export class InworldHistory<
     packet,
     outgoing,
     fromHistory = false,
+    fromHistoryCharacter,
   }: InworldHistoryAddProps<InworldPacketT>) {
     let historyItem: HistoryItem | undefined;
     let queueItem: HistoryItem | undefined;
@@ -188,17 +190,21 @@ export class InworldHistory<
       case packet.isText():
       case packet.isNarratedAction():
         const itemCharacters = this.findCharacters(characters, { packet });
+        const packetCharacters =
+          fromHistory && fromHistoryCharacter && itemCharacters.length === 0
+            ? [fromHistoryCharacter]
+            : itemCharacters;
         const textItem: HistoryItem = packet.isText()
           ? {
               ...this.combineTextItem(packet),
-              character: itemCharacters[0],
-              characters: itemCharacters,
+              character: packetCharacters[0],
+              characters: packetCharacters,
               fromHistory,
             }
           : {
               ...this.combineNarratedActionItem(
                 packet,
-                itemCharacters,
+                packetCharacters,
                 this.user,
               ),
               fromHistory,

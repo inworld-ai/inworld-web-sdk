@@ -31,9 +31,7 @@ test('should convert proto to scene', () => {
     sessionHistory: {
       sessionHistoryItems: [
         {
-          agent: {
-            agentId: agents[0].agentId,
-          },
+          agent: agents[0],
           packets: [
             {
               routing: {
@@ -77,8 +75,14 @@ test('should convert proto to scene', () => {
   expect(scene.characters[0].id).toEqual(agents[0].agentId);
   expect(scene.characters[1].id).toEqual(agents[1].agentId);
   expect(scene.history.length).toEqual(3);
-  expect(scene.history[0].routing!.targets![0].name).toEqual(agents[0].agentId);
-  expect(scene.history[1].routing!.target!.name).toEqual(agents[0].agentId);
+  expect(scene.history[0].packet.routing!.targets![0].name).toEqual(
+    agents[0].agentId,
+  );
+  expect(scene.history[0].character).toEqual(Character.fromProto(agents[0]));
+  expect(scene.history[1].packet.routing!.target!.name).toEqual(
+    agents[0].agentId,
+  );
+  expect(scene.history[1].character).toEqual(Character.fromProto(agents[0]));
 });
 
 test('should convert proto to scene with empty agentId', () => {
@@ -89,6 +93,9 @@ test('should convert proto to scene with empty agentId', () => {
     sessionHistory: {
       sessionHistoryItems: [
         {
+          agent: {
+            agentId: '',
+          },
           packets: [
             {
               routing: {
@@ -132,8 +139,8 @@ test('should convert proto to scene with empty agentId', () => {
   expect(scene.characters[0].id).toEqual(agents[0].agentId);
   expect(scene.characters[1].id).toEqual(agents[1].agentId);
   expect(scene.history.length).toEqual(3);
-  expect(scene.history[0].routing!.targets![0].name).toBeUndefined();
-  expect(scene.history[1].routing!.target!.name).toBeUndefined();
+  expect(scene.history[0].packet.routing!.targets![0].name).toBeFalsy();
+  expect(scene.history[1].packet.routing!.target!.name).toBeFalsy();
 });
 
 test('should convert proto to scene without history items and agents', () => {

@@ -250,3 +250,8 @@ export interface ProtoError {
   code: string | undefined;
   details: ProtoStatus[] | undefined;
 }
+
+export interface SceneHistoryItem {
+  character: Character;
+  packet: ProtoPacket;
+}
