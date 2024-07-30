@@ -275,3 +275,8 @@ export interface EntityItemProps {
   description?: string;
   properties?: { [key: string]: string };
 }
+
+export interface SceneHistoryItem {
+  character: Character;
+  packet: ProtoPacket;
+}

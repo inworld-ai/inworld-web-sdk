@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Fixed
+
+- Add characters that are out of scene to historical packets
+
 ### Changed
 
 - Add characters that are out of scene to historical packets
