@@ -51,9 +51,15 @@ type BaseInworldStatus = {
 }
 
 export type InworldStatus = BaseInworldStatus
-  & OneOf<{ resourceNotFound: ResourceNotFoundDetails }>
+  & OneOf<{ resourceNotFound: ResourceNotFoundDetails; versionConflict: VersionConflictDetails }>
 
 export type ResourceNotFoundDetails = {
   resourceId?: string
   resourceType?: ResourceType
+}
+
+export type VersionConflictDetails = {
+  clientVersion?: number
+  serverVersion?: number
+  requestIndex?: number
 }
