@@ -111,10 +111,6 @@ export class EventFactory {
     return this.customEvent(name, CustomEventType.TRIGGER, params);
   }
 
-  task(name: string, params: SendCustomPacketParams): ProtoPacket {
-    return this.customEvent(name, CustomEventType.TASK, params);
-  }
-
   cancelResponse(params: SendCancelResponsePacketParams): ProtoPacket {
     return {
       ...this.baseProtoPacket({

@@ -477,29 +477,6 @@ describe('convert packet to external one', () => {
     expect(result.isTrigger()).toEqual(true);
   });
 
-  test('task without parameters', () => {
-    const result = InworldPacket.fromProto(
-      factory.task(v4(), {
-        conversationId,
-      }),
-    );
-
-    expect(result).toBeInstanceOf(InworldPacket);
-    expect(result.isTask()).toEqual(true);
-  });
-
-  test('task with parameters', () => {
-    const result = InworldPacket.fromProto(
-      factory.task(v4(), {
-        parameters: [{ name: v4(), value: v4() }],
-        conversationId,
-      }),
-    );
-
-    expect(result).toBeInstanceOf(InworldPacket);
-    expect(result.isTask()).toEqual(true);
-  });
-
   test('emotion', () => {
     const packet: ProtoPacket = {
       packetId: { packetId: v4() },
