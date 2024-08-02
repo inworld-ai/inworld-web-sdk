@@ -200,6 +200,11 @@ export enum MicrophoneMode {
   EXPECT_AUDIO_END = 'EXPECT_AUDIO_END',
 }
 
+export enum UnderstandingMode {
+  FULL = 'FULL',
+  SPEECH_RECOGNITION_ONLY = 'SPEECH_RECOGNITION_ONLY',
+}
+
 export interface SendPacketParams {
   conversationId: string;
 }
@@ -211,10 +216,12 @@ export interface SendTriggerPacketParams extends SendPacketParams {
 
 export interface SendAudioSessionStartPacketParams extends SendPacketParams {
   mode?: MicrophoneMode;
+  understandingMode?: UnderstandingMode;
 }
 
 export interface AudioSessionStartPacketParams {
   mode?: MicrophoneMode;
+  understandingMode?: UnderstandingMode;
 }
 
 export interface ConversationMapItem<

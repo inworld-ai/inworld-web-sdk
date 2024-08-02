@@ -4,6 +4,7 @@ import { v4 } from 'uuid';
 
 import {
   AudioSessionStartPayloadMicrophoneMode,
+  AudioSessionStartPayloadUnderstandingMode,
   ControlEventAction,
   DataChunkDataType,
 } from '../../proto/ai/inworld/packets/packets.pb';
@@ -16,6 +17,7 @@ import {
   LoadedScene,
   MicrophoneMode,
   TtsPlaybackAction,
+  UnderstandingMode,
 } from '../../src/common/data_structures';
 import {
   CHARACTER_HAS_INVALID_FORMAT,
@@ -558,6 +560,48 @@ describe('send', () => {
         action: ControlEventAction.AUDIO_SESSION_START,
         audioSessionStart: {
           mode: AudioSessionStartPayloadMicrophoneMode.OPEN_MIC,
+          understandingMode: AudioSessionStartPayloadUnderstandingMode.FULL,
+        },
+      });
+      expect(packet!.isControl()).toEqual(true);
+      expect(service.getConversations()).toEqual([
+        {
+          conversationId,
+          characters: [characters[0]],
+        },
+      ]);
+    });
+
+    test('should send audio session start for speech recognition only', async () => {
+      jest
+        .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
+        .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
+      const write = jest
+        .spyOn(WebSocketConnection.prototype, 'write')
+        .mockImplementation(writeMock);
+      const understandingMode = UnderstandingMode.SPEECH_RECOGNITION_ONLY;
+
+      const [packet] = await Promise.all([
+        service.sendAudioSessionStart({ understandingMode }),
+        new Promise((resolve: any) => {
+          setTimeout(() => {
+            connection.onMessage!(conversationUpdated);
+            resolve(true);
+          }, 0);
+        }),
+      ]);
+
+      expect(open).toHaveBeenCalledTimes(0);
+      expect(write).toHaveBeenCalledTimes(2);
+      expect(write.mock.calls[0][0].getPacket().control?.action).toEqual(
+        ControlEventAction.CONVERSATION_UPDATE,
+      );
+      expect(write.mock.calls[1][0].getPacket().control).toEqual({
+        action: ControlEventAction.AUDIO_SESSION_START,
+        audioSessionStart: {
+          mode: AudioSessionStartPayloadMicrophoneMode.OPEN_MIC,
+          understandingMode:
+            AudioSessionStartPayloadUnderstandingMode.SPEECH_RECOGNITION_ONLY,
         },
       });
       expect(packet!.isControl()).toEqual(true);

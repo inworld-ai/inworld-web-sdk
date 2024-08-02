@@ -205,8 +205,8 @@ export class ConversationService<
 
     return this.ensureConversation(() =>
       this.connection.getEventFactory().audioSessionStart({
+        ...params,
         conversationId: this.getConversationId(),
-        mode: params?.mode,
       }),
     );
   }

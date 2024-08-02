@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Added
+
+- Support SPEECH_RECOGNITION_ONLY mode
+
 ### Changed
 
 - Await for CLOSED WebSocket connection state after CLOSING one
