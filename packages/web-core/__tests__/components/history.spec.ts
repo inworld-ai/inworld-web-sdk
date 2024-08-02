@@ -348,15 +348,17 @@ describe('text', () => {
     describe('text', () => {
       test('should return transcript for provided user name', () => {
         const history = createHistoryWithPacket(textPacket, { user });
+        const fromHistoryCharacter = createCharacter();
 
         history.addOrUpdate({
-          characters,
+          characters: [],
           grpcAudioPlayer,
           packet: incomingTextPacket,
           fromHistory: true,
+          fromHistoryCharacter,
         });
 
-        const expected = `${user.fullName}: ${textPacket.text.text}\n${characters[0].displayName}: ${incomingTextPacket.text.text}`;
+        const expected = `${user.fullName}: ${textPacket.text.text}\n${fromHistoryCharacter.displayName}: ${incomingTextPacket.text.text}`;
         const transcript = history.getTranscript();
 
         expect(transcript).toEqual(expected);

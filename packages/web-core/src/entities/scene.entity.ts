@@ -2,10 +2,10 @@ import {
   ActorType,
   Agent,
   CurrentSceneStatus,
-  InworldPacket as ProtoPacket,
   SessionHistoryResponse,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import { SCENE_PATTERN } from '../common/constants';
+import { SceneHistoryItem } from '../common/data_structures';
 import { Character } from './character.entity';
 
 export interface SceneProps {
@@ -13,7 +13,7 @@ export interface SceneProps {
   characters?: Character[];
   description?: string;
   displayName?: string;
-  history?: ProtoPacket[];
+  history?: SceneHistoryItem[];
 }
 
 export class Scene {
@@ -21,7 +21,7 @@ export class Scene {
   characters: Character[];
   description: string;
   displayName: string;
-  history: ProtoPacket[];
+  history: SceneHistoryItem[];
 
   constructor(props: SceneProps) {
     this.name = props.name;
@@ -44,11 +44,12 @@ export class Scene {
 
     const history =
       sessionHistory?.sessionHistoryItems?.reduce(
-        (acc: ProtoPacket[], item) => {
+        (acc: SceneHistoryItem[], item) => {
           if (item.packets?.length) {
             acc.push(
-              ...item.packets.map((packet) => {
-                return {
+              ...item.packets.map((packet) => ({
+                character: Character.fromProto(item.agent),
+                packet: {
                   ...packet,
                   routing: {
                     ...packet.routing,
@@ -78,8 +79,8 @@ export class Scene {
                       }),
                     }),
                   },
-                };
-              }),
+                },
+              })),
             );
           }
 

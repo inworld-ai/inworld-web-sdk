@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Fixed
+
+- Add characters that are out of scene to historical packets
+
 ### Changed
 
 - Await for CLOSED WebSocket connection state after CLOSING one
