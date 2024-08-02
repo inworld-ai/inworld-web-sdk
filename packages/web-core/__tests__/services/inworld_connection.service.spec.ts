@@ -532,7 +532,7 @@ describe('send', () => {
       ]);
     });
 
-    test('should send audio session start for speech recognition only', async () => {
+    test('should send audio session start for push-to-talk', async () => {
       jest
         .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
         .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
@@ -572,7 +572,7 @@ describe('send', () => {
       ]);
     });
 
-    test('should send audio session start for push-to-talk', async () => {
+    test('should send audio session start for speech recognition only', async () => {
       jest
         .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
         .mockImplementationOnce(() => AudioSessionState.UNKNOWN);
@@ -599,8 +599,9 @@ describe('send', () => {
       expect(write.mock.calls[1][0].getPacket().control).toEqual({
         action: ControlEventAction.AUDIO_SESSION_START,
         audioSessionStart: {
-          mode: AudioSessionStartPayloadUnderstandingMode.SPEECH_RECOGNITION_ONLY,
-          understandingMode: AudioSessionStartPayloadUnderstandingMode.FULL,
+          mode: AudioSessionStartPayloadMicrophoneMode.OPEN_MIC,
+          understandingMode:
+            AudioSessionStartPayloadUnderstandingMode.SPEECH_RECOGNITION_ONLY,
         },
       });
       expect(packet!.isControl()).toEqual(true);
