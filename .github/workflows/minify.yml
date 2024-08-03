@@ -11,7 +11,7 @@ on:
           - '@inworld/web-threejs'
       version:
         type: string
-        description: "The version of package to minify. The version should be the same as version in package.json. For example, 1.0.0"
+        description: "The version of package to minify. The version should be the same as version in package.json. For example, 1.0.0. Otherwise, the latest version will be used."
         required: false
 
 env:
@@ -28,51 +28,24 @@ jobs:
       id-token: 'write'
 
     steps:
-      - name: Set TAG
-        run: echo "TAG=refs/tags/${{ inputs.package }}@${{ inputs.version }}" >> $GITHUB_ENV
-        if: inputs.version != ''
-
       - name: Checkout source code
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.TAG }}
-          fetch-tags: true
+          fetch-depth: 0
 
-      - name: Run build
-        uses: ./.github/actions/build_package
+      - name: Set TAG from inputs
+        run: echo "TAG=refs/tags/${{ inputs.package }}@${{ inputs.version }}" >> $GITHUB_ENV
+        if: inputs.version != ''
+
+      - name: Set TAG as the latest one
+        run: echo "TAG=refs/tags/`echo $(git describe --tags --match="${{ inputs.package }}*" --abbrev=0)`" >> $GITHUB_ENV
+        if: inputs.version == ''
+
+      - name: Minify and upload
+        uses: ./.github/actions/upload_minified_version
         with:
           package: ${{ inputs.package }}
-
-      - name: Set PACKAGE
-        run: |
-          echo "PACKAGE=$(echo ${{ inputs.package }} | sed 's/@inworld\///g')" >> $GITHUB_ENV
-
-      - name: Extract version
-        run: |
-          echo "VERSION=$(node -e "console.log(require('./packages/${{ env.PACKAGE }}/package.json').version)")" >> $GITHUB_ENV
-        id: extract-version
-
-      - name: Set OUTPUT
-        run: |
-          echo "OUTPUT=packages/${{ env.PACKAGE }}/dist/inworld-${{ env.PACKAGE }}-${{ env.VERSION }}.min.js" >> $GITHUB_ENV
-
-      - name: Minify
-        run: |
-          npx yarn workspace ${{ inputs.package }} minify
-  
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ env.AUTH_IDENTITY_PROVIDER }}
-          service_account: ${{ env.AUTH_SERVICE_ACCOUNT }}
-          create_credentials_file: true
-
-      - name: Rename minified file
-        run: |
-          mv packages/${{ env.PACKAGE }}/dist/inworld-${{ env.PACKAGE }}.min.js ${{ env.OUTPUT }}
-
-      - name: Upload to GCS
-        uses: 'google-github-actions/upload-cloud-storage@v2'
-        with:
-          path: ${{ env.OUTPUT }}
-          destination: 'innequin-assets/packages'
+          tag: ${{ env.TAG }}
+        env:
+          AUTH_SERVICE_ACCOUNT: ${{ env.AUTH_SERVICE_ACCOUNT }}
+          AUTH_IDENTITY_PROVIDER: ${{ env.AUTH_IDENTITY_PROVIDER }}

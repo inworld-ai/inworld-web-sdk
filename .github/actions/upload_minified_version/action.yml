@@ -1,0 +1,70 @@
+name: minify
+
+inputs:
+  package:
+    description: Selected package to minify
+    required: true
+  tag:
+    description: Tag to checkout
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.tag }}
+        fetch-tags: true
+        path: ./tmp
+
+    - name: Copy packages
+      shell: bash
+      run: |
+        rm -rf ./packages/*
+        cp -rf ./tmp/packages/* ./packages
+
+    - name: Run build
+      uses: ./.github/actions/build_package
+      with:
+        mode: 'prod'
+
+    - name: Set PACKAGE
+      shell: bash
+      run: |
+        echo "PACKAGE=$(echo ${{ inputs.package }} | sed 's/@inworld\///g')" >> $GITHUB_ENV
+
+    - name: Extract version
+      shell: bash
+      run: |
+        echo "VERSION=$(node -e "console.log(require('./packages/${{ env.PACKAGE }}/package.json').version)")" >> $GITHUB_ENV
+      id: extract-version
+
+    - name: Set OUTPUT
+      shell: bash
+      run: |
+        echo "OUTPUT=packages/${{ env.PACKAGE }}/dist/inworld-${{ env.PACKAGE }}-${{ env.VERSION }}.min.js" >> $GITHUB_ENV
+
+    - name: Minify
+      shell: bash
+      run: |
+        npx yarn workspace ${{ inputs.package }} minify
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: ${{ env.AUTH_IDENTITY_PROVIDER }}
+        service_account: ${{ env.AUTH_SERVICE_ACCOUNT }}
+        create_credentials_file: true
+
+    - name: Rename minified file
+      shell: bash
+      run: |
+        mv packages/${{ env.PACKAGE }}/dist/inworld-${{ env.PACKAGE }}.min.js ${{ env.OUTPUT }}
+
+    - name: Upload to GCS
+      uses: 'google-github-actions/upload-cloud-storage@v2'
+      with:
+        path: ${{ env.OUTPUT }}
+        destination: 'innequin-assets/packages'
+        process_gcloudignore: false

@@ -18,6 +18,10 @@ on:
           - '@inworld/web-core'
           - '@inworld/web-threejs'
 
+env:
+  AUTH_SERVICE_ACCOUNT: inworld-web-sdk@inworld-ai-github.iam.gserviceaccount.com
+  AUTH_IDENTITY_PROVIDER: projects/678423885598/locations/global/workloadIdentityPools/github-devops-pool/providers/github-prvdr
+
 jobs:
   github-release:
     runs-on: ubuntu-latest
@@ -54,6 +58,28 @@ jobs:
       - run: echo "npmAuthToken:" "${{ secrets.NPM_TOKEN }}" >> .yarnrc.yml
       - name: Publish to npm
         run: npx yarn workspace ${{ inputs.package }} release:publish
+
+  minify-and-upload:
+    runs-on: [self-hosted, linux, x64, kubernetes, ephemeral]
+    needs: [npm-release]
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set TAG as the latest one
+        run: echo "TAG=refs/tags/`echo $(git describe --tags --match="${{ inputs.package }}*" --abbrev=0)`" >> $GITHUB_ENV
+      - name: Minify and upload
+        uses: ./.github/actions/upload_minified_version
+        with:
+          package: ${{ inputs.package }}
+          tag: ${{ env.TAG }}
+        env:
+          AUTH_SERVICE_ACCOUNT: ${{ env.AUTH_SERVICE_ACCOUNT }}
+          AUTH_IDENTITY_PROVIDER: ${{ env.AUTH_IDENTITY_PROVIDER }}
 
   release-notification:
     runs-on: [self-hosted, kubernetes, nodocker]
