@@ -6,12 +6,11 @@
 
 ### Changed
 
-- Add characters that are out of scene to historical packets
-
-### Changed
-
 - Await for CLOSED WebSocket connection state after CLOSING one
 - Allow to change scene user parameters
+
+### Added
+
 - Allow to manage entity items
 - Tasks event support
 
