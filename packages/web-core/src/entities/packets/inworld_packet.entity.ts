@@ -1,6 +1,7 @@
 import {
   Agent,
   ControlEventAction,
+  CustomEventType,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
   LoadCharactersCharacterName,
@@ -10,14 +11,17 @@ import {
   InworldPacketType,
 } from '../../common/data_structures';
 import { Character } from '../character.entity';
+import { ItemOperation } from '../entities/item_operation';
 import { AudioEvent } from './audio.entity';
 import { CancelResponsesEvent } from './cancel_responses.entity';
 import { ControlEvent } from './control.entity';
 import { EmotionEvent } from './emotion/emotion.entity';
 import { NarratedAction } from './narrated_action.entity';
+import { OperationStatusEvent } from './operation_status.entity';
 import { PacketId } from './packet_id.entity';
 import { Routing } from './routing.entity';
 import { SilenceEvent } from './silence.entity';
+import { TaskEvent } from './task.entity';
 import { TextEvent } from './text.entity';
 import { TriggerEvent } from './trigger.entity';
 
@@ -25,6 +29,7 @@ export interface InworldPacketProps {
   audio?: AudioEvent;
   cancelResponses?: CancelResponsesEvent;
   control?: ControlEvent;
+  task?: TaskEvent;
   trigger?: TriggerEvent;
   emotions?: EmotionEvent;
   packetId: PacketId;
@@ -33,6 +38,8 @@ export interface InworldPacketProps {
   text?: TextEvent;
   narratedAction?: NarratedAction;
   sceneMutation?: SceneMutation;
+  entitiesItemsOperation?: ItemOperation;
+  operationStatus?: OperationStatusEvent;
   date: string;
   type: InworldPacketType;
 }
@@ -56,6 +63,7 @@ export class InworldPacket {
   // Events
   readonly text: TextEvent;
   readonly audio: AudioEvent;
+  readonly task: TaskEvent;
   readonly trigger: TriggerEvent;
   readonly control: ControlEvent;
   readonly emotions: EmotionEvent;
@@ -63,6 +71,8 @@ export class InworldPacket {
   readonly narratedAction: NarratedAction;
   readonly cancelResponses: CancelResponsesEvent;
   readonly sceneMutation: SceneMutation;
+  readonly entitiesItemsOperation: ItemOperation;
+  readonly operationStatus: OperationStatusEvent;
 
   constructor(props: InworldPacketProps) {
     this.packetId = props.packetId;
@@ -86,6 +96,10 @@ export class InworldPacket {
       this.emotions = props.emotions;
     }
 
+    if (this.isTask()) {
+      this.task = props.task;
+    }
+
     if (this.isTrigger()) {
       this.trigger = props.trigger;
     }
@@ -105,6 +119,14 @@ export class InworldPacket {
     if (this.isSceneMutationResponse() || this.isSceneMutationRequest()) {
       this.sceneMutation = props.sceneMutation;
     }
+
+    if (this.isEntitiesItemOperation()) {
+      this.entitiesItemsOperation = props.entitiesItemsOperation;
+    }
+
+    if (this.isOperationStatus()) {
+      this.operationStatus = props.operationStatus;
+    }
   }
 
   isText() {
@@ -117,6 +139,10 @@ export class InworldPacket {
 
   isControl() {
     return this.type === InworldPacketType.CONTROL;
+  }
+
+  isTask() {
+    return this.type === InworldPacketType.TASK;
   }
 
   isTrigger() {
@@ -174,11 +200,20 @@ export class InworldPacket {
     return this.type === InworldPacketType.SCENE_MUTATION_RESPONSE;
   }
 
+  isEntitiesItemOperation() {
+    return this.type === InworldPacketType.ENTITIES_ITEM_OPERATION;
+  }
+
+  isOperationStatus() {
+    return this.type === InworldPacketType.OPERATION_STATUS;
+  }
+
   shouldHaveConversationId() {
     return (
       this.isAudio() ||
       this.isText() ||
       this.isTrigger() ||
+      this.isTask() ||
       this.isNarratedAction() ||
       this.isSilence()
     );
@@ -194,6 +229,9 @@ export class InworldPacket {
       routing: Routing.fromProto(proto.routing),
       ...(type === InworldPacketType.TRIGGER && {
         trigger: TriggerEvent.fromProto(proto.custom),
+      }),
+      ...(type === InworldPacketType.TASK && {
+        task: TaskEvent.fromProto(proto.custom),
       }),
       ...(type === InworldPacketType.TEXT && {
         text: TextEvent.fromProto(proto.text),
@@ -215,6 +253,14 @@ export class InworldPacket {
       }),
       ...(type === InworldPacketType.NARRATED_ACTION && {
         narratedAction: NarratedAction.fromProto(proto.action),
+      }),
+      ...(type === InworldPacketType.ENTITIES_ITEM_OPERATION && {
+        entitiesItemsOperation: ItemOperation.fromProto(
+          proto.entitiesItemsOperation,
+        ),
+      }),
+      ...(type === InworldPacketType.OPERATION_STATUS && {
+        operationStatus: OperationStatusEvent.fromProto(proto.operationStatus),
       }),
       ...([
         InworldPacketType.SCENE_MUTATION_REQUEST,
@@ -270,6 +316,8 @@ export class InworldPacket {
       packet.dataChunk.type === DataChunkDataType.SILENCE
     ) {
       return InworldPacketType.SILENCE;
+    } else if (packet.custom && packet.custom.type === CustomEventType.TASK) {
+      return InworldPacketType.TASK;
     } else if (packet.custom) {
       return InworldPacketType.TRIGGER;
     } else if (packet.control) {
@@ -280,6 +328,10 @@ export class InworldPacket {
       return InworldPacketType.CANCEL_RESPONSE;
     } else if (packet.action?.narratedAction) {
       return InworldPacketType.NARRATED_ACTION;
+    } else if (packet.entitiesItemsOperation) {
+      return InworldPacketType.ENTITIES_ITEM_OPERATION;
+    } else if (packet.operationStatus) {
+      return InworldPacketType.OPERATION_STATUS;
     } else {
       return InworldPacketType.UNKNOWN;
     }

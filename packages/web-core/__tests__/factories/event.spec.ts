@@ -752,4 +752,29 @@ describe('convert packet to external one', () => {
       expect(result.isInteractionEnd()).toEqual(false);
     });
   });
+
+  describe('entities and items', () => {
+    test('operation status', () => {
+      const packet: ProtoPacket = {
+        packetId: { packetId: v4() },
+        routing: {
+          source: {} as Actor,
+          targets: [{} as Actor],
+        },
+        operationStatus: {
+          status: {
+            code: 200,
+            message: v4(),
+            details: [],
+          },
+        },
+        timestamp: protoTimestamp(),
+      };
+
+      const result = InworldPacket.fromProto(packet);
+
+      expect(result).toBeInstanceOf(InworldPacket);
+      expect(result.isOperationStatus()).toEqual(true);
+    });
+  });
 });

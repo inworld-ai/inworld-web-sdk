@@ -5,6 +5,7 @@ import {
   ConversationMapItem,
   Extension,
   InworlControlAction,
+  TaskParameter,
   TriggerParameter,
   User,
 } from '../common/data_structures';
@@ -27,6 +28,7 @@ export enum CHAT_HISTORY_TYPE {
   ACTOR = 'actor',
   NARRATED_ACTION = 'narrated_action',
   TRIGGER_EVENT = 'trigger_event',
+  TASK_EVENT = 'task_event',
   INTERACTION_END = 'interaction_end',
   SCENE_CHANGE = 'scene_change',
   CONVERSATION_UPDATE = 'conversation_update',
@@ -58,6 +60,14 @@ export interface HistoryItemTriggerEvent extends HistoryItemBase {
   type: CHAT_HISTORY_TYPE.TRIGGER_EVENT;
   name: string;
   parameters: TriggerParameter[];
+  outgoing?: boolean;
+  correlationId?: string;
+}
+
+export interface HistoryItemTaskEvent extends HistoryItemBase {
+  type: CHAT_HISTORY_TYPE.TASK_EVENT;
+  name: string;
+  parameters: TaskParameter[];
   outgoing?: boolean;
   correlationId?: string;
 }
@@ -104,6 +114,7 @@ export interface HistoryItemConversationUpdate {
 export type HistoryItem =
   | HistoryItemActor
   | HistoryItemTriggerEvent
+  | HistoryItemTaskEvent
   | HistoryInteractionEnd
   | HistoryItemNarratedAction
   | HistoryItemSceneChange
@@ -233,8 +244,9 @@ export class InworldHistory<
         break;
 
       case packet.isTrigger():
+      case packet.isTask():
         historyItem = {
-          ...this.combineTriggerItem(packet, outgoing),
+          ...this.combineCustomItem(packet, outgoing),
           fromHistory,
           conversationId,
         };
@@ -521,6 +533,7 @@ export class InworldHistory<
           characterLastSpeaking = isCharacter;
           break;
         case CHAT_HISTORY_TYPE.TRIGGER_EVENT:
+        case CHAT_HISTORY_TYPE.TASK_EVENT:
           transcript += `${prefix}>>> ${item.name}`;
           characterLastSpeaking = false;
           break;
@@ -627,22 +640,30 @@ export class InworldHistory<
     };
   }
 
-  private combineTriggerItem(
+  private combineCustomItem(
     packet: InworldPacketT,
     outgoing?: boolean,
-  ): HistoryItemTriggerEvent {
+  ): HistoryItemTriggerEvent | HistoryItemTaskEvent {
     return {
       id: packet.packetId.utteranceId,
-      type: CHAT_HISTORY_TYPE.TRIGGER_EVENT,
-      name: packet.trigger.name,
       scene: this.scene,
-      parameters: packet.trigger.parameters,
       date: new Date(packet.date),
       interactionId: packet.packetId.interactionId,
       conversationId: packet.packetId.conversationId,
       correlationId: packet.packetId.correlationId,
       outgoing,
       source: packet.routing.source,
+      ...(packet.isTrigger()
+        ? {
+            type: CHAT_HISTORY_TYPE.TRIGGER_EVENT,
+            name: packet.trigger.name,
+            parameters: packet.trigger.parameters,
+          }
+        : {
+            type: CHAT_HISTORY_TYPE.TASK_EVENT,
+            name: packet.task.name,
+            parameters: packet.task.parameters,
+          }),
     };
   }
 
