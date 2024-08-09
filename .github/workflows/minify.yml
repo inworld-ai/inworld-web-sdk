@@ -9,13 +9,18 @@ on:
         options:
           - '@inworld/web-core'
           - '@inworld/web-threejs'
+      version:
+        type: string
+        description: "The version of package to minify. The version should be the same as version in package.json. For example, 1.0.0. Otherwise, the latest version will be used."
+        required: false
 
 env:
-  AUTH_SERVICE_ACCOUNT: terraform-inworld-devops@inworld-ai-devops.iam.gserviceaccount.com
+  AUTH_SERVICE_ACCOUNT: inworld-web-sdk@inworld-ai-github.iam.gserviceaccount.com
   AUTH_IDENTITY_PROVIDER: projects/678423885598/locations/global/workloadIdentityPools/github-devops-pool/providers/github-prvdr
+  TAG: ''
 
 jobs:
-  github-release:
+  minify:
     runs-on: [self-hosted, linux, x64, kubernetes, ephemeral]
 
     permissions:
@@ -24,24 +29,23 @@ jobs:
 
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v3
-      
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: actions/checkout@v4
         with:
-          workload_identity_provider: ${{ env.AUTH_IDENTITY_PROVIDER }}
-          service_account: ${{ env.AUTH_SERVICE_ACCOUNT }}
-          create_credentials_file: true
+          fetch-depth: 0
 
-      - name: Run build
-        uses: ./.github/actions/build_package
+      - name: Set TAG from inputs
+        run: echo "TAG=refs/tags/${{ inputs.package }}@${{ inputs.version }}" >> $GITHUB_ENV
+        if: inputs.version != ''
 
-      - name: Minify
-        run: |
-          npx yarn workspace ${{ inputs.package }} minify
+      - name: Set TAG as the latest one
+        run: echo "TAG=refs/tags/`echo $(git describe --tags --match="${{ inputs.package }}*" --abbrev=0)`" >> $GITHUB_ENV
+        if: inputs.version == ''
 
-      - name: Upload to GCS
-        uses: 'google-github-actions/upload-cloud-storage@v2'
+      - name: Minify and upload
+        uses: ./.github/actions/upload_minified_version
         with:
-          path: 'packages/${{ inputs.package }}/inworld-web-core.min.js'
-          destination: 'innequin-assets'
+          package: ${{ inputs.package }}
+          tag: ${{ env.TAG }}
+        env:
+          AUTH_SERVICE_ACCOUNT: ${{ env.AUTH_SERVICE_ACCOUNT }}
+          AUTH_IDENTITY_PROVIDER: ${{ env.AUTH_IDENTITY_PROVIDER }}
