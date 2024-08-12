@@ -9,6 +9,7 @@ export class Capability {
       emotions = false,
       interruptions = false,
       narratedActions = false,
+      multiModalActionPlanning: multiModalActionPlanning = false,
       phonemes: phonemeInfo = false,
       silence: silenceEvents = false,
     } = capabilities;
@@ -19,6 +20,7 @@ export class Capability {
       emotions,
       interruptions,
       multiAgent: true,
+      multiModalActionPlanning,
       narratedActions,
       phonemeInfo,
       silenceEvents,

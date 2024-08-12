@@ -9,6 +9,11 @@
 - Await for CLOSED WebSocket connection state after CLOSING one
 - Allow to change scene user parameters
 
+### Added
+
+- Allow to manage entity items
+- Tasks event support
+
 ## [2.7.1] - 2024-06-27
 
 ### Fixed

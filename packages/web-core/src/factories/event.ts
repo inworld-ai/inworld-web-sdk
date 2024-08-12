@@ -6,6 +6,7 @@ import {
   AudioSessionStartPayloadMicrophoneMode,
   ControlEvent,
   ControlEventAction,
+  CustomEventType,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
   LoadCharactersCharacterName,
@@ -16,14 +17,17 @@ import {
 } from '../../proto/ai/inworld/packets/packets.pb';
 import {
   ConversationParticipant,
+  ItemsInEntitiesOperationType,
   MicrophoneMode,
   SendAudioSessionStartPacketParams,
+  SendCustomPacketParams,
   SendPacketParams,
-  SendTriggerPacketParams,
   SessionControlProps,
 } from '../common/data_structures';
 import { protoTimestamp } from '../common/helpers';
 import { Character } from '../entities/character.entity';
+import { EntityItem } from '../entities/entities/entity_item';
+import { ItemOperation } from '../entities/entities/item_operation';
 
 export interface SendCancelResponsePacketParams {
   interactionId?: string;
@@ -103,19 +107,8 @@ export class EventFactory {
     };
   }
 
-  trigger(name: string, params: SendTriggerPacketParams): ProtoPacket {
-    const { parameters = [], character, conversationId } = params;
-
-    return {
-      ...this.baseProtoPacket({ correlationId: true, conversationId }),
-      ...(character && {
-        routing: this.routing({ character }),
-      }),
-      custom: {
-        name,
-        parameters: parameters.length ? parameters : undefined,
-      },
-    };
+  trigger(name: string, params: SendCustomPacketParams): ProtoPacket {
+    return this.customEvent(name, CustomEventType.TRIGGER, params);
   }
 
   cancelResponse(params: SendCancelResponsePacketParams): ProtoPacket {
@@ -314,6 +307,26 @@ export class EventFactory {
     };
   }
 
+  private customEvent(
+    name: string,
+    type: CustomEventType,
+    params: SendCustomPacketParams,
+  ): ProtoPacket {
+    const { parameters = [], character, conversationId } = params;
+
+    return {
+      ...this.baseProtoPacket({ correlationId: true, conversationId }),
+      ...(character && {
+        routing: this.routing({ character }),
+      }),
+      custom: {
+        name,
+        type,
+        parameters: parameters.length ? parameters : undefined,
+      },
+    };
+  }
+
   private routing(props?: { character: Character }): Routing {
     return {
       source: { type: ActorType.PLAYER },
@@ -327,6 +340,52 @@ export class EventFactory {
     return {
       source: { type: ActorType.PLAYER },
       target: { type: ActorType.WORLD },
+    };
+  }
+
+  static createOrUpdateItems(props: {
+    items: EntityItem[];
+    addToEntities: string[];
+  }): ProtoPacket {
+    return {
+      packetId: {
+        packetId: v4(),
+      },
+      timestamp: protoTimestamp(),
+      routing: this.worldRouting(),
+      entitiesItemsOperation: new ItemOperation({
+        createOrUpdateItems: props,
+      }).toProto(),
+    };
+  }
+
+  static removeItems(ids: string[]): ProtoPacket {
+    return {
+      packetId: {
+        packetId: v4(),
+      },
+      timestamp: protoTimestamp(),
+      routing: this.worldRouting(),
+      entitiesItemsOperation: new ItemOperation({
+        removeItems: { itemIds: ids },
+      }).toProto(),
+    };
+  }
+
+  static itemsInEntities(props: {
+    type: ItemsInEntitiesOperationType;
+    itemIds: string[];
+    entityNames: string[];
+  }): ProtoPacket {
+    return {
+      packetId: {
+        packetId: v4(),
+      },
+      timestamp: protoTimestamp(),
+      routing: this.worldRouting(),
+      entitiesItemsOperation: new ItemOperation({
+        itemsInEntities: props,
+      }).toProto(),
     };
   }
 }
