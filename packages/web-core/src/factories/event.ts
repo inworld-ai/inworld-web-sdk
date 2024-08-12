@@ -4,6 +4,7 @@ import {
   ActorType,
   Agent,
   AudioSessionStartPayloadMicrophoneMode,
+  AudioSessionStartPayloadUnderstandingMode,
   ControlEvent,
   ControlEventAction,
   CustomEventType,
@@ -23,6 +24,7 @@ import {
   SendCustomPacketParams,
   SendPacketParams,
   SessionControlProps,
+  UnderstandingMode,
 } from '../common/data_structures';
 import { protoTimestamp } from '../common/helpers';
 import { Character } from '../entities/character.entity';
@@ -286,12 +288,18 @@ export class EventFactory {
     params: SendAudioSessionStartPacketParams,
   ): ProtoPacket {
     let mode;
+    let understandingMode;
 
     if (action === ControlEventAction.AUDIO_SESSION_START) {
       mode =
         params.mode === MicrophoneMode.EXPECT_AUDIO_END
           ? AudioSessionStartPayloadMicrophoneMode.EXPECT_AUDIO_END
           : AudioSessionStartPayloadMicrophoneMode.OPEN_MIC;
+
+      understandingMode =
+        params.understandingMode === UnderstandingMode.SPEECH_RECOGNITION_ONLY
+          ? AudioSessionStartPayloadUnderstandingMode.SPEECH_RECOGNITION_ONLY
+          : AudioSessionStartPayloadUnderstandingMode.FULL;
     }
 
     return {
@@ -302,7 +310,9 @@ export class EventFactory {
       }),
       control: {
         action,
-        ...(mode && { audioSessionStart: { mode } }),
+        ...((mode || understandingMode) && {
+          audioSessionStart: { mode, understandingMode },
+        }),
       },
     };
   }
