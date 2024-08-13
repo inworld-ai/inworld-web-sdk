@@ -32,13 +32,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grpc/grpc-js@npm:^1.6.7":
-  version: 1.10.9
-  resolution: "@grpc/grpc-js@npm:1.10.9"
+"@grpc/grpc-js@npm:^1.10.9":
+  version: 1.11.1
+  resolution: "@grpc/grpc-js@npm:1.11.1"
   dependencies:
     "@grpc/proto-loader": "npm:^0.7.13"
     "@js-sdsl/ordered-map": "npm:^4.4.2"
-  checksum: 10c0/4f161015878057ad55ac84299fdbc4e74798bdb25aa5a078978b87b9ce521d11b4b33baa196d5092385f463020cd2dedbad121de22509e23a0996387001393e5
+  checksum: 10c0/1b15112d91b0f99e4843b068572935ecdc3e22a330a1b2ec81be84aeefad703b29f8e557088e448a6f696a1fccf10edf37166f0a533119f7db03aae4cedd34df
   languageName: node
   linkType: hard
 
@@ -56,17 +56,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inworld/nodejs-sdk@npm:1.10.1":
-  version: 1.10.1
-  resolution: "@inworld/nodejs-sdk@npm:1.10.1"
+"@inworld/nodejs-sdk@npm:1.14.2":
+  version: 1.14.2
+  resolution: "@inworld/nodejs-sdk@npm:1.14.2"
   dependencies:
-    "@grpc/grpc-js": "npm:^1.6.7"
+    "@grpc/grpc-js": "npm:^1.10.9"
     crypto-js: "npm:^4.2.0"
-    google-protobuf: "npm:^3.20.1"
-    module-alias: "npm:^2.2.2"
-    uuid: "npm:^9.0.0"
-    winston: "npm:^3.8.2"
-  checksum: 10c0/5fbbb7966d3de7dbada941752a5c7336adb1de02c21b21dc131032d2fc2f47fc235e327a77fe7ec97e6af69df185b82519124b24aab3ee7c6e16a70c7837ba92
+    google-protobuf: "npm:^3.21.2"
+    module-alias: "npm:^2.2.3"
+    uuid: "npm:^9.0.1"
+    winston: "npm:^3.12.0"
+  checksum: 10c0/298de5924e5e326613f9d62f0e3ed861086064b1bad31eb1d4f9b6289237e172350f7d79ca9872478459c8ffcb310b13b8e254e56cb1f59eece9df958bc344c1
   languageName: node
   linkType: hard
 
@@ -753,7 +753,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "generate_token_example@workspace:."
   dependencies:
-    "@inworld/nodejs-sdk": "npm:1.10.1"
+    "@inworld/nodejs-sdk": "npm:1.14.2"
     "@types/cors": "npm:^2.8.12"
     "@types/express": "npm:^4.17.14"
     "@types/node": "npm:^18.6.3"
@@ -784,10 +784,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"google-protobuf@npm:^3.20.1":
-  version: 3.21.2
-  resolution: "google-protobuf@npm:3.21.2"
-  checksum: 10c0/df20b41aad9eba4d842d69c717a4d73ac6d321084c12f524ad5eb79a47ad185323bd1b477c19565a15fd08b6eef29e475c8ac281dbc6fe547b81d8b6b99974f5
+"google-protobuf@npm:^3.21.2":
+  version: 3.21.4
+  resolution: "google-protobuf@npm:3.21.4"
+  checksum: 10c0/28f2800f7fe1a8fc55eb58ba76e158268407bfb3b90646eaf8a177dd92a2e522459b773f8132ae546e60ac3b6f5947557a1cf3d963a05bb594f43bcde640f54f
   languageName: node
   linkType: hard
 
@@ -903,9 +903,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"logform@npm:^2.3.2, logform@npm:^2.4.0":
-  version: 2.6.0
-  resolution: "logform@npm:2.6.0"
+"logform@npm:^2.6.0, logform@npm:^2.6.1":
+  version: 2.6.1
+  resolution: "logform@npm:2.6.1"
   dependencies:
     "@colors/colors": "npm:1.6.0"
     "@types/triple-beam": "npm:^1.3.2"
@@ -913,7 +913,7 @@ __metadata:
     ms: "npm:^2.1.1"
     safe-stable-stringify: "npm:^2.3.1"
     triple-beam: "npm:^1.3.0"
-  checksum: 10c0/6e02f8617a03155b2fce451bacf777a2c01da16d32c4c745b3ec85be6c3f2602f2a4953a8bd096441cb4c42c447b52318541d6b6bc335dce903cb9ad77a1749f
+  checksum: 10c0/c20019336b1da8c08adea67dd7de2b0effdc6e35289c0156722924b571df94ba9f900ef55620c56bceb07cae7cc46057c9859accdee37a131251ba34d6789bce
   languageName: node
   linkType: hard
 
@@ -977,7 +977,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"module-alias@npm:^2.2.2":
+"module-alias@npm:^2.2.3":
   version: 2.2.3
   resolution: "module-alias@npm:2.2.3"
   checksum: 10c0/47dc5b6d04f6e7df0ff330ca9b2a37c688a682ed661e9432b0b327e1e6c43eedad052151b8d50d6beea8b924828d2a92fa4625c18d651bf2d93d8f03aa0172fa
@@ -1109,7 +1109,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"readable-stream@npm:^3.4.0, readable-stream@npm:^3.6.0":
+"readable-stream@npm:^3.4.0, readable-stream@npm:^3.6.2":
   version: 3.6.2
   resolution: "readable-stream@npm:3.6.2"
   dependencies:
@@ -1380,7 +1380,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^9.0.0":
+"uuid@npm:^9.0.1":
   version: 9.0.1
   resolution: "uuid@npm:9.0.1"
   bin:
@@ -1403,33 +1403,33 @@ __metadata:
   languageName: node
   linkType: hard
 
-"winston-transport@npm:^4.5.0":
-  version: 4.6.0
-  resolution: "winston-transport@npm:4.6.0"
+"winston-transport@npm:^4.7.0":
+  version: 4.7.1
+  resolution: "winston-transport@npm:4.7.1"
   dependencies:
-    logform: "npm:^2.3.2"
-    readable-stream: "npm:^3.6.0"
+    logform: "npm:^2.6.1"
+    readable-stream: "npm:^3.6.2"
     triple-beam: "npm:^1.3.0"
-  checksum: 10c0/43f7f03dfbaeb2a37ddcfadf5f03a6802c77fb8800a384e9aeecce8d233272ed8f18c50f377045a7e154fd6c951e31c9af1bbcd7a3db9246518af42b6f961cc1
+  checksum: 10c0/99b7b55cc2ef7f38988ab1717e7fd946c81b856b42a9530aef8ee725490ef2f2811f9cb06d63aa2f76a85fe99ae15b3bef10a54afde3be8b5059ce325e78481f
   languageName: node
   linkType: hard
 
-"winston@npm:^3.8.2":
-  version: 3.11.0
-  resolution: "winston@npm:3.11.0"
+"winston@npm:^3.12.0":
+  version: 3.14.1
+  resolution: "winston@npm:3.14.1"
   dependencies:
     "@colors/colors": "npm:^1.6.0"
     "@dabh/diagnostics": "npm:^2.0.2"
     async: "npm:^3.2.3"
     is-stream: "npm:^2.0.0"
-    logform: "npm:^2.4.0"
+    logform: "npm:^2.6.0"
     one-time: "npm:^1.0.0"
     readable-stream: "npm:^3.4.0"
     safe-stable-stringify: "npm:^2.3.1"
     stack-trace: "npm:0.0.x"
     triple-beam: "npm:^1.3.0"
-    winston-transport: "npm:^4.5.0"
-  checksum: 10c0/7e1f8919cbdc62cfe46e6204d79a83e1364696ef61111483f3ecf204988922383fe74192c5bc9f89df9b47caf24c2d34f5420ef6f3b693f8d1286b46432e97be
+    winston-transport: "npm:^4.7.0"
+  checksum: 10c0/2d0f75a8110c00be97f71adee9f1afdba40a329659b98c6169062171304e34fe78877a9983a9dbd5755bbed3515a51f91cf582004e3781f1eb54de5b507e5207
   languageName: node
   linkType: hard
 
