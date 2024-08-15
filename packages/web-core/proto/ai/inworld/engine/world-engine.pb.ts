@@ -177,6 +177,7 @@ export type PreviousStateEntitiesStateEntityItem = {
   description?: string
   properties?: {[key: string]: string}
   entities?: string[]
+  displayId?: string
 }
 
 export type PreviousStateEntitiesStateEntity = {
@@ -185,9 +186,20 @@ export type PreviousStateEntitiesStateEntity = {
   description?: string
 }
 
+export type PreviousStateEntitiesStateDisplayIdsMappingDisplayId = {
+  id?: string
+}
+
+export type PreviousStateEntitiesStateDisplayIdsMapping = {
+  displayName?: string
+  sequenceNumber?: number
+  mapping?: {[key: string]: PreviousStateEntitiesStateDisplayIdsMappingDisplayId}
+}
+
 export type PreviousStateEntitiesState = {
   entityItems?: PreviousStateEntitiesStateEntityItem[]
   entities?: PreviousStateEntitiesStateEntity[]
+  displayIdsMapping?: PreviousStateEntitiesStateDisplayIdsMapping[]
 }
 
 export type PreviousState = {
