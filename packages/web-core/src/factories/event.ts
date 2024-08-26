@@ -329,7 +329,9 @@ export class EventFactory {
     return {
       ...this.baseProtoPacket({ correlationId: true, conversationId }),
       ...(character && {
-        target: { name: character.id, type: ActorType.AGENT },
+        routing: this.routing({
+          target: { name: character.id, type: ActorType.AGENT },
+        }),
       }),
       custom: {
         name,
