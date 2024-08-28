@@ -592,7 +592,7 @@ export class ConnectionService<
     const status = err.details?.[0];
     const interactionIds = Object.keys(this.packetsInProgress);
     let needToReopen =
-      interactionIds.length &&
+      !!interactionIds.length &&
       [ErrorReconnectionType.IMMEDIATE, ErrorReconnectionType.TIMEOUT].includes(
         status?.reconnectType,
       );
@@ -608,6 +608,8 @@ export class ConnectionService<
           ...this.session,
           expirationTime: undefined,
         };
+        needToReopen = true;
+        status.reconnectType = ErrorReconnectionType.IMMEDIATE;
         break;
       case ErrorType.SESSION_INVALID:
         this.session = undefined;
@@ -622,6 +624,8 @@ export class ConnectionService<
         this.scene = new Scene({
           name: this.getSceneName(),
         });
+        needToReopen = true;
+        status.reconnectType = ErrorReconnectionType.IMMEDIATE;
         break;
     }
 
