@@ -140,9 +140,7 @@ export class SessionStateService<
           JSON.stringify(sessionState),
         );
       }
-    } catch (error) {
-      this.connection.onError(error);
-    }
+    } catch (e) {}
   }
 
   private setAutoSaveInterval() {
