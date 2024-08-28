@@ -9,5 +9,5 @@ export const CHARACTER_PATTERN =
 
 export const DEFAULT_SESSION_STATE_MAX_ATTEMPTS = 3;
 export const DEFAULT_SESSION_STATE_KEY = 'inworldSessionState';
-export const DEFAULT_SESSION_STATE_INTERVAL = 60 * 1000; // 1 minute
+export const DEFAULT_SESSION_STATE_INTERVAL = 5 * 60 * 1000; // 5 minute
 export const DEFAULT_SESSION_STATE_ATTEMPTS_INTERVAL = 1000; // 1 second
