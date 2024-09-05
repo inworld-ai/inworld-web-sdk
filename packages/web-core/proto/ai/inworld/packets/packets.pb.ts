@@ -332,6 +332,7 @@ export type ApplyResponse = {
 
 export type LoadScene = {
   name?: string
+  isResetScene?: boolean
 }
 
 export type LoadedScene = {
