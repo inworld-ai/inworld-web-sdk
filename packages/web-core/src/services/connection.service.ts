@@ -650,6 +650,7 @@ export class ConnectionService<
     // Also, we need to stop reconnection attempts if the reconnection is impossible due some reasons.
     if (
       (sameError && this.previousError.attempts >= (status.maxRetries ?? 0)) ||
+      !status ||
       (status &&
         ![
           ErrorReconnectionType.IMMEDIATE,

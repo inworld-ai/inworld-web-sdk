@@ -121,10 +121,12 @@ export class ConversationService<
 
     if (charactersToAdd.length) {
       await this.addCharacters(charactersToAdd);
-      characters = (await this.connection.getCharacters()).filter((c) =>
-        charactersNamesOnly.includes(c.resourceName),
-      );
+      characters = await this.connection.getCharacters();
     }
+
+    characters = characters.filter((c) =>
+      charactersNamesOnly.includes(c.resourceName),
+    );
 
     // Update conversation
     const conversationParticipants = characters.map((c) => c.id);
