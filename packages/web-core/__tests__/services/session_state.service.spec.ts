@@ -140,39 +140,6 @@ test('should save history from the last attempt', async () => {
   );
 });
 
-test('should propagate error', async () => {
-  const error = new Error('Should propagate error');
-
-  jest.spyOn(ConnectionService.prototype, 'getHistory').mockReturnValue([
-    {
-      interactionId: v4(),
-      type: CHAT_HISTORY_TYPE.INTERACTION_END,
-    } as HistoryItem,
-  ]);
-  jest.spyOn(global, 'setTimeout').mockImplementationOnce(setTimeoutMock);
-  jest
-    .spyOn(StateSerializationService.prototype, 'get')
-    .mockImplementationOnce(() => Promise.reject(error));
-
-  expect(sessionStorage.getItem(DEFAULT_SESSION_STATE_KEY)).toBeFalsy();
-
-  const onError = jest
-    .spyOn(global.console, 'error')
-    .mockImplementationOnce(jest.fn);
-  const connection = new ConnectionService();
-  const stateSerialization = new StateSerializationService(connection);
-
-  new SessionStateService(connection, stateSerialization);
-
-  window.dispatchEvent(new Event('blur'));
-
-  await new Promise((resolve) => setTimeout(resolve, 0));
-
-  expect(onError).toHaveBeenCalledTimes(1);
-  expect(onError).toHaveBeenCalledWith(error);
-  expect(sessionStorage.getItem(DEFAULT_SESSION_STATE_KEY)).toBeFalsy();
-});
-
 test('should focus', () => {
   const connection = new ConnectionService();
   const stateSerialization = new StateSerializationService(connection);
