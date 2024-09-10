@@ -1,44 +1,60 @@
-# Inworld AI Web SDK Testing Documentation
+# Inworld AI Web SDK Testing Guide
 
-This document provides information on the testing procedures for the Inworld AI Web SDK.
+This guide provides instructions for testing the Inworld AI Web SDK.
 
-## Running Unit Tests for all packages
+## Running Unit Tests
 
-Execute the following command to run unit tests for all packages:
+To run unit tests for all packages, use the following command:
 
 ```sh
 yarn test
 ```
 
-Execute the following command to run unit tests for one specific package:
+Currently, this command only runs tests for `@inworld/web-core`, but future versions may include additional packages.
 
-```sh
-yarn workspace @inworld/web-core test
-```
+## Manual Testing
 
-## Performing Manual Tests
+Note that this repository uses Yarn 2.
 
-If you need to use changes that have not been published to npm, you can manually link the Inworld package. For example, follow these steps for `@inworld/web-core`:
+### Linking Packages Manually
 
-1. Run in the root directory:
-   
+If you're testing unpublished changes to the Inworld package, you can manually link `@inworld/web-core` by following these steps:
+
+1. In the root directory of the package, run:
+
 ```sh
 ~/inworld-web-sdk $ yarn install && yarn build
 ```
 
-2. Next, go to your application directory (e.g., `inworld-web-sdk/examples/chat`) and link the `@inworld/web-core` package:
+2. In your application directory (e.g., `inworld-web-sdk/examples/chat`), link the `@inworld/web-core` package with:
 
 ```sh
-~/inworld-web-sdk/examples/chat $ yarn link ~/inworld-web-sdk/packages/web-core
+~/inworld-web-sdk/examples/chat $ yarn link ../../packages/web-core
 ```
 
-Manual linking is a useful approach for testing your application during development. However, it may not always work or cover all testing scenarios. For final tests, it's recommended to create a compressed gzip archive using the pack command:
+For more details on linking, consult the `yarn link` documentation:
+
+```sh
+yarn link --help
+```
+
+#### Compatibility with Yarn 1.x
+
+If your application uses Yarn 1.x, link the package with:
+
+```sh
+yarn link @inworld/web-core
+```
+
+### Using an Archive for Testing
+
+Manual linking works well for development but may not cover all scenarios. For more comprehensive testing, create a compressed archive with the following command:
 
 ```sh
 ~/inworld-web-sdk/web-core $ yarn pack --filename inworld-web-core-test.tgz
 ```
 
-After creating the archive, you can add it to your application using:
+After creating the archive, add it to your application with:
 
 ```sh
 ~/inworld-web-sdk/examples/chat $ yarn add ../../packages/web-core/inworld-web-core-test.tgz
