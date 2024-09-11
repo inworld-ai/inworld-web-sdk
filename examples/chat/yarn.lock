@@ -715,14 +715,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inworld/web-core@npm:2.5.0":
-  version: 2.5.0
-  resolution: "@inworld/web-core@npm:2.5.0"
+"@inworld/web-core@npm:2.8.0":
+  version: 2.8.0
+  resolution: "@inworld/web-core@npm:2.8.0"
   dependencies:
     base64-arraybuffer: "npm:^1.0.2"
     defer-promise: "npm:^3.0.0"
     uuid: "npm:^9.0.0"
-  checksum: 10c0/c03847b02810910bec4103e31f024e588cb2c32b891ee4731e8989b469a8c0f5c71f1b94d3c89eca5ca215271cb022e02e0659cdc0b1f7c49a4be2885e22ff7f
+  checksum: 10c0/1e629a261173cbca52293ea2535ece3f38adf0db0ba3179ff859d49be8eaaa0fa511187aaa2d8eed62df84760b6cc3dce1e986c9d58f962f6cb8e195017c8b1d
   languageName: node
   linkType: hard
 
@@ -1793,7 +1793,7 @@ __metadata:
   dependencies:
     "@emotion/react": "npm:^11.10.6"
     "@emotion/styled": "npm:^11.10.6"
-    "@inworld/web-core": "npm:2.5.0"
+    "@inworld/web-core": "npm:2.8.0"
     "@mui/icons-material": "npm:^5.11.11"
     "@mui/material": "npm:^5.11.13"
     "@react-three/fiber": "npm:^8.13.5"
