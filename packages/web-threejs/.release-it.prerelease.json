@@ -1,0 +1,20 @@
+{
+  "git": {
+    "commitMessage": "chore: @inworld/web-threejs ${version}"
+  },
+  "github": {
+    "release": false
+  },
+  "hooks": {
+    "before:init": [
+      "git pull",
+      "yarn install",
+      "yarn build",
+      "yarn lint:check",
+      "yarn prettier:check"
+    ]
+  },
+  "npm": {
+    "publish": false
+  }
+}
