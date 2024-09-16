@@ -6,6 +6,8 @@ __tests__
 jest.config.json
 /tsconfig.json
 /.release-it.json
+/.release-it.prerelease.json
+/.rollup.config.mjs
 */**/yarn.lock
 */**/package-lock.json
 *.log
