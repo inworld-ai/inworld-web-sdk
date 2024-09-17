@@ -12,6 +12,8 @@ import {
   InworldPacket as ProtoPacket,
   LoadCharactersCharacterName,
   MutationEvent,
+  PerceivedLatencyReportPrecision,
+  PingPongReportType,
   Routing,
   SessionConfigurationPayload,
   TextEventSourceType,
@@ -30,6 +32,7 @@ import { protoTimestamp } from '../common/helpers';
 import { Character } from '../entities/character.entity';
 import { EntityItem } from '../entities/entities/entity_item';
 import { ItemOperation } from '../entities/entities/item_operation';
+import { PacketId } from '../entities/packets/packet_id.entity';
 
 export interface SendCancelResponsePacketParams {
   interactionId?: string;
@@ -78,6 +81,39 @@ export class EventFactory {
 
   audioSessionEnd(params: SendPacketParams): ProtoPacket {
     return this.audioSession(ControlEventAction.AUDIO_SESSION_END, params);
+  }
+
+  pong(packetId: PacketId): ProtoPacket {
+    return {
+      ...this.baseProtoPacket({
+        correlationId: false,
+        utteranceId: false,
+        interactionId: false,
+      }),
+      latencyReport: {
+        pingPong: {
+          pingPacketId: { ...packetId },
+          pingTimestamp: protoTimestamp(),
+          type: PingPongReportType.PONG,
+        },
+      },
+    };
+  }
+
+  perceivedLatency(): ProtoPacket {
+    return {
+      ...this.baseProtoPacket({
+        correlationId: true,
+        utteranceId: false,
+        interactionId: false,
+      }),
+      latencyReport: {
+        perceivedLatency: {
+          latency: 0,
+          precision: PerceivedLatencyReportPrecision.FINE,
+        },
+      },
+    };
   }
 
   mutePlayback(isMuted: boolean, params: SendPacketParams): ProtoPacket {

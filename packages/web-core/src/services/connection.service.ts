@@ -620,6 +620,13 @@ export class ConnectionService<
         this.addPacketToHistory(inworldPacket);
       }
 
+      // Handle latency ping pong.
+      if (inworldPacket.isPingPongReport()) {
+        this.sendPingPongResponse(inworldPacket);
+        // Don't pass text packet outside.
+        return;
+      }
+
       // Pass packet to external callback.
       onMessage?.(inworldPacket);
     };
@@ -713,6 +720,11 @@ export class ConnectionService<
 
       this.history.filter(interruptionData);
     }
+  }
+
+  private sendPingPongResponse(packet: InworldPacketT) {
+    console.log('sendPingPongResponse:', packet);
+    this.send(() => this.getEventFactory().pong(packet.packetId));
   }
 
   private addPacketToHistory(packet: InworldPacketT) {

@@ -1,5 +1,5 @@
 export function log(message?: any, ...optionalParams: any[]) {
-  if (true) {
+  if (false) {
     console.log(message, ...optionalParams);
   }
 }

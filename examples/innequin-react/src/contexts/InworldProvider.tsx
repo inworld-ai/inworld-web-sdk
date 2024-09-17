@@ -132,6 +132,7 @@ function InworldProvider({ children }: any) {
         interruptions: true,
         emotions: true,
         narratedActions: true,
+        pingPongReport: true,
       },
       //    TODO Add duration and previous state
       // ...(previousDialog.length && { continuation: { previousDialog } }),
