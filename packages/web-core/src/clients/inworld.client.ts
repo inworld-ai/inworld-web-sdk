@@ -220,12 +220,16 @@ export class InworldClient<
       extension: this.extension,
     });
 
-    return new InworldConnectionService<InworldPacketT>({
+    const inworldConnection = new InworldConnectionService<InworldPacketT>({
       connection,
       grpcAudioPlayer,
       grpcAudioRecorder,
       webRtcLoopbackBiDiSession,
     });
+
+    inworldConnection.clearState();
+
+    return inworldConnection;
   }
 
   private buildConfiguration(): InternalClientConfiguration {
