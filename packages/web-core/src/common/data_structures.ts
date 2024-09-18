@@ -299,3 +299,11 @@ export interface SceneHistoryItem {
   character: Character;
   packet: ProtoPacket;
 }
+
+export interface SessionState {
+  state?: string;
+  creationTime?: string;
+  version?: {
+    interactionId?: string;
+  };
+}

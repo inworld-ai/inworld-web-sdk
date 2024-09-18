@@ -97,6 +97,7 @@ export interface HistoryItemSceneChange {
   addedCharacters?: Character[];
   removedCharacters?: Character[];
   conversationId?: string;
+  fromHistory?: boolean;
 }
 
 export interface HistoryItemConversationUpdate {
@@ -109,6 +110,7 @@ export interface HistoryItemConversationUpdate {
   currentCharacters?: Character[];
   addedCharacters?: Character[];
   removedCharacters?: Character[];
+  fromHistory?: boolean;
 }
 
 export type HistoryItem =

@@ -18,6 +18,7 @@ import {
   HistoryChangedProps,
   ItemsInEntitiesOperationType,
   MicrophoneMode,
+  SessionState,
   StopAudioPlayback,
   TaskParameter,
   TriggerParameter,
@@ -77,7 +78,6 @@ import { TriggerEvent } from './entities/packets/trigger.entity';
 import { SessionToken } from './entities/session_token.entity';
 import { ConversationService } from './services/conversation.service';
 import { InworldConnectionService } from './services/inworld_connection.service';
-import { SessionState } from './services/pb/state_serialization.service';
 import {
   FeedbackDislikeProps,
   FeedbackLikeProps,

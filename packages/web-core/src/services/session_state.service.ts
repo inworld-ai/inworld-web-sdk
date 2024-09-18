@@ -26,6 +26,9 @@ export class SessionStateService<
 
   private isBlurred = false;
   private isSaving = false;
+  private doNotSave = false;
+
+  private sessionId: string | undefined;
 
   constructor(
     connection: ConnectionService,
@@ -61,6 +64,7 @@ export class SessionStateService<
     this.isBlurred = true;
 
     this.clearAutoSaveInterval();
+    this.clearInteractionEndTimeout();
     this.tryToSaveState();
   }
 
@@ -71,13 +75,22 @@ export class SessionStateService<
   }
 
   private tryToSaveState() {
-    if (this.isSaving) {
+    const newSessionId = this.connection.getSessionId();
+
+    if (this.sessionId !== newSessionId) {
+      this.sessionId = newSessionId;
+      this.doNotSave = false;
+    }
+
+    if (this.isSaving || this.doNotSave) {
       return;
     }
 
     this.isSaving = true;
 
-    const history = this.connection.getHistory();
+    const history = this.connection
+      .getHistory()
+      .filter((item) => !item.fromHistory);
     const lastItem = history[history.length - 1];
     const saved = SessionStateService.loadSessionState();
     const sessionState = saved ? safeJSONParse<SessionState>(saved) : undefined;
@@ -101,7 +114,9 @@ export class SessionStateService<
 
           attempts++;
 
-          const history = this.connection.getHistory();
+          const history = this.connection
+            .getHistory()
+            .filter((item) => !item.fromHistory);
           const lastItem = history[history.length - 1];
 
           // Try to wait for interaction end event before saving session state.
@@ -129,8 +144,6 @@ export class SessionStateService<
   }
 
   private async saveSessionState() {
-    this.clearAutoSaveInterval();
-
     try {
       const sessionState = await this.stateSerialization.get();
 
@@ -139,14 +152,19 @@ export class SessionStateService<
           DEFAULT_SESSION_STATE_KEY,
           JSON.stringify(sessionState),
         );
+
+        return;
       }
     } catch (e) {}
+
+    this.doNotSave = true;
   }
 
   private setAutoSaveInterval() {
     this.clearAutoSaveInterval();
+
     this.autoSaveIntervalId = setInterval(() => {
-      if (!this.isBlurred) {
+      if (!this.isBlurred && !this.connection.isConnecting()) {
         this.tryToSaveState();
       }
     }, DEFAULT_SESSION_STATE_INTERVAL);

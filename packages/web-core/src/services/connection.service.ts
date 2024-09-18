@@ -156,6 +156,12 @@ export class ConnectionService<
     return this.state === ConnectionState.ACTIVE;
   }
 
+  isConnecting() {
+    return [ConnectionState.ACTIVATING, ConnectionState.RECONNECTING].includes(
+      this.state,
+    );
+  }
+
   isInactive() {
     return this.state === ConnectionState.INACTIVE;
   }
@@ -166,6 +172,10 @@ export class ConnectionService<
 
   getSceneName() {
     return this.scene.name;
+  }
+
+  getSessionId() {
+    return this.session?.sessionId;
   }
 
   getCurrentAudioConversation() {
