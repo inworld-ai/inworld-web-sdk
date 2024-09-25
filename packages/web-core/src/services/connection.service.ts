@@ -84,6 +84,7 @@ export class ConnectionService<
   private eventFactory = new EventFactory();
   private intervals: NodeJS.Timeout[] = [];
   private packetQueue: QueueItem<InworldPacketT>[] = [];
+  private packetQueuePercievedLatency: InworldPacketT[] = [];
 
   private disconnectTimeoutId: NodeJS.Timeout;
 
@@ -375,12 +376,13 @@ export class ConnectionService<
         inworldPacket = packet;
 
         this.scheduleDisconnect();
-
         this.addPacketToHistory(inworldPacket);
       },
       beforeWriting: async (packet: InworldPacketT) => {
         if (packet.isText()) {
+          this.packetQueuePercievedLatency.push(packet);
           await this.interruptByPacket(packet);
+          console.log('connection.service itemToSend text');
         }
       },
     };
@@ -483,6 +485,7 @@ export class ConnectionService<
 
     this.intervals = [];
     this.packetQueue = [];
+    this.packetQueuePercievedLatency = [];
   }
 
   private initializeHandlers() {
@@ -578,6 +581,8 @@ export class ConnectionService<
 
       // Send cancel response event in case of player talking.
       if (inworldPacket.isText() && inworldPacket.routing.source.isPlayer) {
+        // Add packet to percieved latency queue
+        this.packetQueuePercievedLatency.push(inworldPacket);
         await this.interruptByPacket(inworldPacket);
         // Play audio or silence.
       } else if (inworldPacket.isAudio() || inworldPacket.isSilence()) {
@@ -612,6 +617,50 @@ export class ConnectionService<
         delete this.cancelResponses[interactionId];
       } else if (inworldPacket.isWarning()) {
         this.onWarning(inworldPacket);
+      }
+
+      // Send percieved latency report
+      if (
+        inworldPacket.isText() &&
+        !inworldPacket.routing.source.isPlayer &&
+        this.packetQueuePercievedLatency.length > 0
+      ) {
+        let packetQueuePercievedLatencyIndex: number = -1;
+        for (let i = 0; i < this.packetQueuePercievedLatency.length; i++) {
+          const packetSent = this.packetQueuePercievedLatency[i];
+          if (
+            packet.packetId.correlationId &&
+            packet.packetId.correlationId === packetSent.packetId.correlationId
+          ) {
+            packetQueuePercievedLatencyIndex = i;
+            break;
+          }
+        }
+        if (packetQueuePercievedLatencyIndex > -1) {
+          const packetSent: InworldPacketT =
+            this.packetQueuePercievedLatency[packetQueuePercievedLatencyIndex];
+          const durationMilliseconds =
+            new Date(packet.timestamp).getTime() -
+            new Date(packetSent.date).getTime();
+          let durationSeconds = Math.floor(durationMilliseconds / 1000);
+          let durationNanos = Math.round(
+            (durationMilliseconds / 1000 - durationSeconds) * 1000000000,
+          );
+
+          if (durationSeconds < 0 && durationNanos > 0) {
+            durationSeconds += 1;
+            durationNanos -= 1000000000;
+          } else if (durationSeconds > 0 && durationNanos < 0) {
+            durationSeconds -= 1;
+            durationNanos += 1000000000;
+          }
+
+          this.sendPerceivedLatencyReport(durationSeconds, durationNanos);
+          this.packetQueuePercievedLatency.splice(
+            packetQueuePercievedLatencyIndex,
+            1,
+          );
+        }
       }
 
       // Add packet to history.
@@ -723,8 +772,16 @@ export class ConnectionService<
   }
 
   private sendPingPongResponse(packet: InworldPacketT) {
-    console.log('sendPingPongResponse:', packet);
-    this.send(() => this.getEventFactory().pong(packet.packetId));
+    this.send(() =>
+      this.getEventFactory().pong(
+        packet.packetId,
+        packet.latencyReport.pingPong.pingTimestamp,
+      ),
+    );
+  }
+
+  private sendPerceivedLatencyReport(seconds: number, nanos: number) {
+    this.send(() => this.getEventFactory().perceivedLatency(seconds, nanos));
   }
 
   private addPacketToHistory(packet: InworldPacketT) {

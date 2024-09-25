@@ -83,34 +83,39 @@ export class EventFactory {
     return this.audioSession(ControlEventAction.AUDIO_SESSION_END, params);
   }
 
-  pong(packetId: PacketId): ProtoPacket {
+  pong(packetId: PacketId, pingTimestamp: string): ProtoPacket {
     return {
       ...this.baseProtoPacket({
-        correlationId: false,
         utteranceId: false,
         interactionId: false,
       }),
       latencyReport: {
         pingPong: {
           pingPacketId: { ...packetId },
-          pingTimestamp: protoTimestamp(),
+          pingTimestamp,
           type: PingPongReportType.PONG,
         },
       },
     };
   }
 
-  perceivedLatency(): ProtoPacket {
+  perceivedLatency(
+    seconds: number,
+    nanos: number,
+    precisionToSend: PerceivedLatencyReportPrecision = PerceivedLatencyReportPrecision.FINE,
+  ): ProtoPacket {
     return {
       ...this.baseProtoPacket({
-        correlationId: true,
         utteranceId: false,
         interactionId: false,
       }),
       latencyReport: {
         perceivedLatency: {
-          latency: 0,
-          precision: PerceivedLatencyReportPrecision.FINE,
+          latency: {
+            seconds: seconds,
+            nanos: nanos,
+          },
+          precision: precisionToSend,
         },
       },
     };

@@ -10,9 +10,9 @@ export class Capability {
       interruptions = false,
       narratedActions = false,
       multiModalActionPlanning: multiModalActionPlanning = false,
-      perceivedLatencyReport: perceivedLatencyReport = false,
+      perceivedLatencyReport: perceivedLatencyReport = true,
       phonemes: phonemeInfo = false,
-      pingPongReport: pingPongReport = false,
+      pingPongReport: pingPongReport = true,
       silence: silenceEvents = false,
     } = capabilities;
 

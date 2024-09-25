@@ -17,8 +17,6 @@ export class PerceivedLatencyReportPrecision {
 
   static fromProto(precision: ProtoPerceivedLatencyReportPrecision) {
     switch (precision) {
-      case ProtoPerceivedLatencyReportPrecision.UNSPECIFIED:
-        return PerceivedLatencyReportPrecisionType.UNSPECIFIED;
       case ProtoPerceivedLatencyReportPrecision.FINE:
         return PerceivedLatencyReportPrecisionType.FINE;
       case ProtoPerceivedLatencyReportPrecision.ESTIMATED:
