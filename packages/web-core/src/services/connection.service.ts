@@ -354,6 +354,8 @@ export class ConnectionService<
   private async write(getPacket: () => ProtoPacket) {
     let inworldPacket: InworldPacketT;
 
+    console.log('connection.service write');
+
     const resolvePacket = () =>
       new Promise<InworldPacketT>((resolve) => {
         const interval = setInterval(() => {
@@ -377,12 +379,13 @@ export class ConnectionService<
 
         this.scheduleDisconnect();
         this.addPacketToHistory(inworldPacket);
+        console.log('connection.service itemToSend afterWriting text');
       },
       beforeWriting: async (packet: InworldPacketT) => {
         if (packet.isText()) {
           this.packetQueuePercievedLatency.push(packet);
           await this.interruptByPacket(packet);
-          console.log('connection.service itemToSend text');
+          console.log('connection.service itemToSend beforeWriting text');
         }
       },
     };
@@ -587,6 +590,7 @@ export class ConnectionService<
         // Play audio or silence.
       } else if (inworldPacket.isAudio() || inworldPacket.isSilence()) {
         if (!this.cancelResponses[interactionId]) {
+          console.log('connection.service onMessage isAudio');
           this.addPacketToHistory(inworldPacket);
           grpcAudioPlayer.addToQueue({
             packet: inworldPacket,
@@ -620,11 +624,17 @@ export class ConnectionService<
       }
 
       // Send percieved latency report
+      if (inworldPacket.isText() && !inworldPacket.routing.source.isPlayer) {
+        console.log('connection.service', inworldPacket.text);
+      }
+
+      // Send percieved latency report
       if (
         inworldPacket.isText() &&
         !inworldPacket.routing.source.isPlayer &&
         this.packetQueuePercievedLatency.length > 0
       ) {
+        console.log('connection.service onMessage isText');
         let packetQueuePercievedLatencyIndex: number = -1;
         for (let i = 0; i < this.packetQueuePercievedLatency.length; i++) {
           const packetSent = this.packetQueuePercievedLatency[i];
