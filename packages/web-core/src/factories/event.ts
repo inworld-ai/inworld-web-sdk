@@ -111,10 +111,7 @@ export class EventFactory {
       }),
       latencyReport: {
         perceivedLatency: {
-          latency: {
-            seconds: seconds,
-            nanos: nanos,
-          },
+          latency: `${seconds + nanos / 1000000000}S`,
           precision: precisionToSend,
         },
       },

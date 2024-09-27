@@ -234,7 +234,9 @@ export class WebSocketConnection<
     const packet = item.getPacket();
     const inworldPacket = this.extension.convertPacketFromProto(packet);
     await item.beforeWriting?.(inworldPacket);
+    console.log('web-socket.connection before send', JSON.stringify(packet));
     this.ws.send(JSON.stringify(packet));
+    console.log('web-socket.connection after send');
     item.afterWriting?.(inworldPacket);
   }
 
