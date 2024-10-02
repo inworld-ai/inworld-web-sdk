@@ -1,36 +1,20 @@
 import { ClientRequest } from '../../proto/ai/inworld/engine/world-engine.pb';
 import {
-  ControlEventAction,
-  InworldPacket as ProtoPacket,
-  SessionControlResponseEvent,
+    ControlEventAction, InworldPacket as ProtoPacket, SessionControlResponseEvent
 } from '../../proto/ai/inworld/packets/packets.pb';
 import {
-  AudioSessionState,
-  Awaitable,
-  CancelResponses,
-  CancelResponsesProps,
-  ChangeSceneProps,
-  ConnectionState,
-  ConversationMapItem,
-  ConversationState,
-  Extension,
-  GenerateSessionTokenFn,
-  HistoryChangedProps,
-  InternalClientConfiguration,
-  InworldConversationEventType,
-  LoadedScene,
-  SceneHistoryItem,
-  User,
+    AudioSessionState, Awaitable, CancelResponses, CancelResponsesProps, ChangeSceneProps,
+    ConnectionState, ConversationMapItem, ConversationState, Extension, GenerateSessionTokenFn,
+    HistoryChangedProps, InternalClientConfiguration, InworldConversationEventType, LoadedScene,
+    SceneHistoryItem, User
 } from '../common/data_structures';
 import { HistoryItem, InworldHistory } from '../components/history';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
-import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
-import { Player } from '../components/sound/player';
 import {
-  Connection,
-  QueueItem,
-  WebSocketConnection,
-} from '../connection/web-socket.connection';
+    GrpcWebRtcLoopbackBiDiSession
+} from '../components/sound/grpc_web_rtc_loopback_bidi.session';
+import { Player } from '../components/sound/player';
+import { Connection, QueueItem, WebSocketConnection } from '../connection/web-socket.connection';
 import { Capability } from '../entities/capability.entity';
 import { Character } from '../entities/character.entity';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
@@ -354,8 +338,6 @@ export class ConnectionService<
   private async write(getPacket: () => ProtoPacket) {
     let inworldPacket: InworldPacketT;
 
-    console.log('connection.service write');
-
     const resolvePacket = () =>
       new Promise<InworldPacketT>((resolve) => {
         const interval = setInterval(() => {
@@ -379,13 +361,11 @@ export class ConnectionService<
 
         this.scheduleDisconnect();
         this.addPacketToHistory(inworldPacket);
-        console.log('connection.service itemToSend afterWriting text');
       },
       beforeWriting: async (packet: InworldPacketT) => {
         if (packet.isText()) {
           this.packetQueuePercievedLatency.push(packet);
           await this.interruptByPacket(packet);
-          console.log('connection.service itemToSend beforeWriting text');
         }
       },
     };
@@ -590,7 +570,6 @@ export class ConnectionService<
         // Play audio or silence.
       } else if (inworldPacket.isAudio() || inworldPacket.isSilence()) {
         if (!this.cancelResponses[interactionId]) {
-          console.log('connection.service onMessage isAudio');
           this.addPacketToHistory(inworldPacket);
           grpcAudioPlayer.addToQueue({
             packet: inworldPacket,
@@ -624,17 +603,11 @@ export class ConnectionService<
       }
 
       // Send percieved latency report
-      if (inworldPacket.isText() && !inworldPacket.routing.source.isPlayer) {
-        console.log('connection.service', inworldPacket.text);
-      }
-
-      // Send percieved latency report
       if (
         inworldPacket.isText() &&
         !inworldPacket.routing.source.isPlayer &&
         this.packetQueuePercievedLatency.length > 0
       ) {
-        console.log('connection.service onMessage isText');
         let packetQueuePercievedLatencyIndex: number = -1;
         for (let i = 0; i < this.packetQueuePercievedLatency.length; i++) {
           const packetSent = this.packetQueuePercievedLatency[i];
