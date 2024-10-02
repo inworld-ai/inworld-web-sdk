@@ -1,36 +1,20 @@
 import { ClientRequest } from '../../proto/ai/inworld/engine/world-engine.pb';
 import {
-  ControlEventAction,
-  InworldPacket as ProtoPacket,
-  SessionControlResponseEvent,
+    ControlEventAction, InworldPacket as ProtoPacket, SessionControlResponseEvent
 } from '../../proto/ai/inworld/packets/packets.pb';
 import {
-  AudioSessionState,
-  Awaitable,
-  CancelResponses,
-  CancelResponsesProps,
-  ChangeSceneProps,
-  ConnectionState,
-  ConversationMapItem,
-  ConversationState,
-  Extension,
-  GenerateSessionTokenFn,
-  HistoryChangedProps,
-  InternalClientConfiguration,
-  InworldConversationEventType,
-  LoadedScene,
-  SceneHistoryItem,
-  User,
+    AudioSessionState, Awaitable, CancelResponses, CancelResponsesProps, ChangeSceneProps,
+    ConnectionState, ConversationMapItem, ConversationState, Extension, GenerateSessionTokenFn,
+    HistoryChangedProps, InternalClientConfiguration, InworldConversationEventType, LoadedScene,
+    SceneHistoryItem, User
 } from '../common/data_structures';
 import { HistoryItem, InworldHistory } from '../components/history';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
-import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
-import { Player } from '../components/sound/player';
 import {
-  Connection,
-  QueueItem,
-  WebSocketConnection,
-} from '../connection/web-socket.connection';
+    GrpcWebRtcLoopbackBiDiSession
+} from '../components/sound/grpc_web_rtc_loopback_bidi.session';
+import { Player } from '../components/sound/player';
+import { Connection, QueueItem, WebSocketConnection } from '../connection/web-socket.connection';
 import { Capability } from '../entities/capability.entity';
 import { Character } from '../entities/character.entity';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
@@ -84,6 +68,7 @@ export class ConnectionService<
   private eventFactory = new EventFactory();
   private intervals: NodeJS.Timeout[] = [];
   private packetQueue: QueueItem<InworldPacketT>[] = [];
+  private packetQueuePercievedLatency: InworldPacketT[] = [];
 
   private disconnectTimeoutId: NodeJS.Timeout;
 
@@ -375,11 +360,11 @@ export class ConnectionService<
         inworldPacket = packet;
 
         this.scheduleDisconnect();
-
         this.addPacketToHistory(inworldPacket);
       },
       beforeWriting: async (packet: InworldPacketT) => {
         if (packet.isText()) {
+          this.packetQueuePercievedLatency.push(packet);
           await this.interruptByPacket(packet);
         }
       },
@@ -483,6 +468,7 @@ export class ConnectionService<
 
     this.intervals = [];
     this.packetQueue = [];
+    this.packetQueuePercievedLatency = [];
   }
 
   private initializeHandlers() {
@@ -578,6 +564,8 @@ export class ConnectionService<
 
       // Send cancel response event in case of player talking.
       if (inworldPacket.isText() && inworldPacket.routing.source.isPlayer) {
+        // Add packet to percieved latency queue
+        this.packetQueuePercievedLatency.push(inworldPacket);
         await this.interruptByPacket(inworldPacket);
         // Play audio or silence.
       } else if (inworldPacket.isAudio() || inworldPacket.isSilence()) {
@@ -614,10 +602,61 @@ export class ConnectionService<
         this.onWarning(inworldPacket);
       }
 
+      // Send percieved latency report
+      if (
+        inworldPacket.isText() &&
+        !inworldPacket.routing.source.isPlayer &&
+        this.packetQueuePercievedLatency.length > 0
+      ) {
+        let packetQueuePercievedLatencyIndex: number = -1;
+        for (let i = 0; i < this.packetQueuePercievedLatency.length; i++) {
+          const packetSent = this.packetQueuePercievedLatency[i];
+          if (
+            packet.packetId.correlationId &&
+            packet.packetId.correlationId === packetSent.packetId.correlationId
+          ) {
+            packetQueuePercievedLatencyIndex = i;
+            break;
+          }
+        }
+        if (packetQueuePercievedLatencyIndex > -1) {
+          const packetSent: InworldPacketT =
+            this.packetQueuePercievedLatency[packetQueuePercievedLatencyIndex];
+          const durationMilliseconds =
+            new Date(packet.timestamp).getTime() -
+            new Date(packetSent.date).getTime();
+          let durationSeconds = Math.floor(durationMilliseconds / 1000);
+          let durationNanos = Math.round(
+            (durationMilliseconds / 1000 - durationSeconds) * 1000000000,
+          );
+
+          if (durationSeconds < 0 && durationNanos > 0) {
+            durationSeconds += 1;
+            durationNanos -= 1000000000;
+          } else if (durationSeconds > 0 && durationNanos < 0) {
+            durationSeconds -= 1;
+            durationNanos += 1000000000;
+          }
+
+          this.sendPerceivedLatencyReport(durationSeconds, durationNanos);
+          this.packetQueuePercievedLatency.splice(
+            packetQueuePercievedLatencyIndex,
+            1,
+          );
+        }
+      }
+
       // Add packet to history.
       // Audio and silence packets were added to history earlier.
       if (!inworldPacket.isAudio() && !inworldPacket.isSilence()) {
         this.addPacketToHistory(inworldPacket);
+      }
+
+      // Handle latency ping pong.
+      if (inworldPacket.isPingPongReport()) {
+        this.sendPingPongResponse(inworldPacket);
+        // Don't pass text packet outside.
+        return;
       }
 
       // Pass packet to external callback.
@@ -713,6 +752,19 @@ export class ConnectionService<
 
       this.history.filter(interruptionData);
     }
+  }
+
+  private sendPingPongResponse(packet: InworldPacketT) {
+    this.send(() =>
+      this.getEventFactory().pong(
+        packet.packetId,
+        packet.latencyReport.pingPong.pingTimestamp,
+      ),
+    );
+  }
+
+  private sendPerceivedLatencyReport(seconds: number, nanos: number) {
+    this.send(() => this.getEventFactory().perceivedLatency(seconds, nanos));
   }
 
   private addPacketToHistory(packet: InworldPacketT) {
