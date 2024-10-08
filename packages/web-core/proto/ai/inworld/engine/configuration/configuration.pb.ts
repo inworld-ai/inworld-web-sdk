@@ -24,6 +24,10 @@ export type CapabilitiesConfiguration = {
   pingPongReport?: boolean
   perceivedLatencyReport?: boolean
   multiModalActionPlanning?: boolean
+  logs?: boolean
+  logsWarning?: boolean
+  logsInfo?: boolean
+  logsDebug?: boolean
 }
 
 export type UserConfigurationUserSettingsPlayerProfilePlayerField = {
