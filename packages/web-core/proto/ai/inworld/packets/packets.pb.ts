@@ -140,6 +140,13 @@ export enum PerceivedLatencyReportPrecision {
   NON_SPEECH = "NON_SPEECH",
 }
 
+export enum LogsEventLogLevel {
+  UNSPECIFIED = "UNSPECIFIED",
+  WARNING = "WARNING",
+  INFO = "INFO",
+  DEBUG = "DEBUG",
+}
+
 export enum ApplyResponseApplyResponseType {
   APPLY_RESPONSE_TYPE_DEFAULT = "APPLY_RESPONSE_TYPE_DEFAULT",
   APPLY_RESPONSE_TYPE_COMMIT = "APPLY_RESPONSE_TYPE_COMMIT",
@@ -185,7 +192,7 @@ type BaseInworldPacket = {
 }
 
 export type InworldPacket = BaseInworldPacket
-  & OneOf<{ text: TextEvent; control: ControlEvent; audioChunk: AudioChunk; custom: CustomEvent; cancelResponses: CancelResponsesEvent; emotion: EmotionEvent; dataChunk: DataChunk; action: ActionEvent; mutation: MutationEvent; loadSceneOutput: LoadSceneOutputEvent; debugInfo: DebugInfoEvent; sessionControl: SessionControlEvent; sessionControlResponse: SessionControlResponseEvent; latencyReport: LatencyReportEvent; operationStatus: OperationStatusEvent; entitiesItemsOperation: AiInworldPacketsEntitiesEntities_packets.ItemsOperationEvent }>
+  & OneOf<{ text: TextEvent; control: ControlEvent; audioChunk: AudioChunk; custom: CustomEvent; cancelResponses: CancelResponsesEvent; emotion: EmotionEvent; dataChunk: DataChunk; action: ActionEvent; mutation: MutationEvent; loadSceneOutput: LoadSceneOutputEvent; debugInfo: DebugInfoEvent; sessionControl: SessionControlEvent; sessionControlResponse: SessionControlResponseEvent; latencyReport: LatencyReportEvent; operationStatus: OperationStatusEvent; entitiesItemsOperation: AiInworldPacketsEntitiesEntities_packets.ItemsOperationEvent; log: LogsEvent }>
 
 export type TextEventModelInfo = {
   service?: string
@@ -300,6 +307,12 @@ export type PingPongReport = {
 export type PerceivedLatencyReport = {
   precision?: PerceivedLatencyReportPrecision
   latency?: GoogleProtobufDuration.Duration
+}
+
+export type LogsEvent = {
+  text?: string
+  level?: LogsEventLogLevel
+  metadata?: {[key: string]: string}
 }
 
 
