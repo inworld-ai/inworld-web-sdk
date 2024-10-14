@@ -10,6 +10,11 @@ on:
           - patch
           - minor
           - major
+          - beta
+
+      beta_version:
+        type: string
+        description: Type version if beta increment is selected
 
       package:
         type: choice
@@ -26,20 +31,31 @@ jobs:
   github-release:
     runs-on: ubuntu-latest
     steps:
-      - name: Echo increment & package
-        run: echo "${{ inputs.increment }}" "${{ inputs.package }}"
+      - name: Set version
+        run: echo "VERSION=${{ inputs.increment}}" >> $GITHUB_ENV
+      - name: Set beta version
+        run: echo "VERSION=${{ inputs.beta_version }}" >> $GITHUB_ENV
+        if: inputs.beta_version != ''
+      - name: Echo version & package
+        run: echo "${{ env.VERSION }}" "${{ inputs.package }}"
+      - name: Set ref
+        run: echo "REF=main" >> $GITHUB_ENV
+        if: inputs.beta_version == ''
+      - name: Set config
+        run: echo "CONFIG=-c .release-it.prerelease.json" >> $GITHUB_ENV
+        if: inputs.beta_version != ''
       - name: Set git user
         run: git config --global user.email "github-service-account@inworld.ai" &&  git config --global user.name "CI-inworld"
       - name: Checkout source code
         uses: actions/checkout@v3
         with:
-          ref: main
+          ref: ${{ env.REF }}
           ssh-key: ${{ secrets.GH_SERVICE_ACCOUNT_SSH_KEY }}
       - name: Run build
         uses: ./.github/actions/build_package
       - name: Bump version
         run: |
-          npx yarn workspace ${{ inputs.package }} release:bump ${{ inputs.increment }} --ci
+          npx yarn workspace ${{ inputs.package }} release:bump ${{ env.VERSION }} ${{ env.CONFIG }} --ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -50,18 +66,24 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v3
         with:
-          ref: main
+          ref: ${{ env.REF }}
+      - name: Pull latest changes
+        run: git pull
       - name: Run build
         uses: ./.github/actions/build_package
         with:
           mode: 'prod'
+      - name: Set Tag
+        run: echo "TAG=--tag=beta" >> $GITHUB_ENV
+        if: inputs.beta_version != ''
       - run: echo "npmAuthToken:" "${{ secrets.NPM_TOKEN }}" >> .yarnrc.yml
       - name: Publish to npm
-        run: npx yarn workspace ${{ inputs.package }} release:publish
+        run: npx yarn workspace ${{ inputs.package }} release:publish ${{ env.TAG }}
 
   minify-and-upload:
     runs-on: [self-hosted, linux, x64, kubernetes, ephemeral]
     needs: [npm-release]
+    if: inputs.beta_version == ''
     permissions:
       contents: 'read'
       id-token: 'write'
