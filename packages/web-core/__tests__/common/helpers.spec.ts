@@ -1,4 +1,9 @@
-import { interpolate, isIOSMobile } from '../../src/common/helpers';
+import {
+  interpolate,
+  isIOSMobile,
+  objectsAreEqual,
+  safeJSONParse,
+} from '../../src/common/helpers';
 import { setNavigatorProperty } from '../helpers';
 
 describe('interpolate', () => {
@@ -46,5 +51,25 @@ describe('isIOSMobile', () => {
     setNavigatorProperty('userAgent', 'Android');
 
     expect(isIOSMobile()).toEqual(false);
+  });
+});
+
+describe('safeJSONParse', () => {
+  test('should return undefined for invalid JSON', () => {
+    expect(safeJSONParse('invalid')).toBeUndefined();
+  });
+
+  test('should return parsed object', () => {
+    expect(safeJSONParse('{"a": 1}')).toEqual({ a: 1 });
+  });
+});
+
+describe('objectsAreEqual', () => {
+  test('should return true for equal objects', () => {
+    expect(objectsAreEqual({ a: 1 }, { a: 1 }, ['a'])).toEqual(true);
+  });
+
+  test('should return false for different objects', () => {
+    expect(objectsAreEqual({ a: 1 }, { a: 2 }, ['a'])).toEqual(false);
   });
 });

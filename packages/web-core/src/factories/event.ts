@@ -1,6 +1,7 @@
 import { v4 } from 'uuid';
 
 import {
+  Actor,
   ActorType,
   Agent,
   AudioSessionStartPayloadMicrophoneMode,
@@ -37,7 +38,6 @@ import { PacketId } from '../entities/packets/packet_id.entity';
 export interface SendCancelResponsePacketParams {
   interactionId?: string;
   utteranceId?: string[];
-  character: Character;
 }
 
 export class EventFactory {
@@ -164,7 +164,9 @@ export class EventFactory {
           utteranceId: params.utteranceId,
         },
       },
-      routing: this.routing({ character: params.character }),
+      routing: this.routing({
+        target: { type: ActorType.WORLD },
+      }),
     };
   }
 
@@ -365,7 +367,9 @@ export class EventFactory {
     return {
       ...this.baseProtoPacket({ correlationId: true, conversationId }),
       ...(character && {
-        routing: this.routing({ character }),
+        routing: this.routing({
+          target: { name: character.id, type: ActorType.AGENT },
+        }),
       }),
       custom: {
         name,
@@ -375,12 +379,10 @@ export class EventFactory {
     };
   }
 
-  private routing(props?: { character: Character }): Routing {
+  private routing(props?: { target: Actor }): Routing {
     return {
       source: { type: ActorType.PLAYER },
-      ...(props?.character && {
-        target: { type: ActorType.AGENT, name: props.character.id },
-      }),
+      ...(props?.target && { target: props.target }),
     };
   }
 

@@ -725,7 +725,7 @@ describe('update', () => {
       setTimeout(() => new Promise(emitHistoryResponseEvent(server)), 0),
     ]);
 
-    expect(write).toHaveBeenCalledTimes(4);
+    expect(write).toHaveBeenCalledTimes(5);
   });
 });
 

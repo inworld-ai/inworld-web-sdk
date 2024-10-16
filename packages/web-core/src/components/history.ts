@@ -97,6 +97,7 @@ export interface HistoryItemSceneChange {
   addedCharacters?: Character[];
   removedCharacters?: Character[];
   conversationId?: string;
+  fromHistory?: boolean;
 }
 
 export interface HistoryItemConversationUpdate {
@@ -109,6 +110,7 @@ export interface HistoryItemConversationUpdate {
   currentCharacters?: Character[];
   addedCharacters?: Character[];
   removedCharacters?: Character[];
+  fromHistory?: boolean;
 }
 
 export type HistoryItem =
@@ -477,17 +479,19 @@ export class InworldHistory<
     );
   }
 
-  filter(props: { utteranceId: string[]; interactionId: string }) {
-    const { interactionId, utteranceId } = props;
+  filter(props: {
+    history?: (item: HistoryItem) => boolean;
+    queue?: (item: HistoryItem) => boolean;
+  }) {
+    if (props.history) {
+      this.history = this.history.filter(props.history);
+    }
 
-    this.history = this.history.filter(
-      (item: HistoryItem) => !utteranceId.includes(item.id),
-    );
+    if (props.queue) {
+      this.queue = this.queue.filter(props.queue);
+    }
 
-    this.queue = this.queue.filter(
-      (item: HistoryItem) =>
-        item.interactionId !== interactionId && !utteranceId.includes(item.id),
-    );
+    return this.history;
   }
 
   clear() {
@@ -729,12 +733,10 @@ export class InworldHistory<
       );
 
       return conversation?.service?.getCharacters() || [];
-    } else if (participants.length) {
+    } else {
       return participants
         .filter((x) => x.isCharacter && byId[x.name])
         .map((x) => byId[x.name]);
-    } else {
-      return [];
     }
   }
 }

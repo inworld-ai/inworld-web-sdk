@@ -1,23 +1,23 @@
-import '../mocks/window.mock';
+import '../../mocks/window.mock';
 
 import { v4 } from 'uuid';
 
 import {
   InteractionDislikeType,
   InteractionFeedback,
-} from '../../proto/ai/inworld/engine/v1/feedback.pb';
-import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
-import { GrpcWebRtcLoopbackBiDiSession } from '../../src/components/sound/grpc_web_rtc_loopback_bidi.session';
-import { DislikeType, Feedback } from '../../src/entities/feedback.entity';
-import { ConnectionService } from '../../src/services/connection.service';
-import { FeedbackService } from '../../src/services/feedback.service';
-import { FeedbackService as FeedbackPbService } from '../../src/services/pb/feedback.service';
+} from '../../../proto/ai/inworld/engine/v1/feedback.pb';
+import { GrpcAudioPlayback } from '../../../src/components/sound/grpc_audio.playback';
+import { GrpcWebRtcLoopbackBiDiSession } from '../../../src/components/sound/grpc_web_rtc_loopback_bidi.session';
+import { DislikeType, Feedback } from '../../../src/entities/feedback.entity';
+import { ConnectionService } from '../../../src/services/connection.service';
+import { FeedbackService as FeedbackPbService } from '../../../src/services/pb/feedback.service';
+import { FeedbackService } from '../../../src/services/wrappers/feedback.service';
 import {
   createCharacter,
   generateSessionToken,
   SCENE,
   session,
-} from '../helpers';
+} from '../../helpers';
 
 const grpcAudioPlayer = new GrpcAudioPlayback();
 const webRtcLoopbackBiDiSession = new GrpcWebRtcLoopbackBiDiSession();
