@@ -220,7 +220,12 @@ export class WebSocketConnection<
       }
 
       const interval = setInterval(() => {
-        if (this.ws?.readyState === WebSocket.CLOSED) {
+        if (this.ws) {
+          if (this.ws.readyState === WebSocket.CLOSED) {
+            clearInterval(interval);
+            resolve();
+          }
+        } else {
           clearInterval(interval);
           resolve();
         }
