@@ -1,6 +1,7 @@
 import { v4 } from 'uuid';
 
 import {
+  Actor,
   ActorType,
   Agent,
   AudioSessionStartPayloadMicrophoneMode,
@@ -12,6 +13,8 @@ import {
   InworldPacket as ProtoPacket,
   LoadCharactersCharacterName,
   MutationEvent,
+  PerceivedLatencyReportPrecision,
+  PingPongReportType,
   Routing,
   SessionConfigurationPayload,
   TextEventSourceType,
@@ -30,11 +33,11 @@ import { protoTimestamp } from '../common/helpers';
 import { Character } from '../entities/character.entity';
 import { EntityItem } from '../entities/entities/entity_item';
 import { ItemOperation } from '../entities/entities/item_operation';
+import { PacketId } from '../entities/packets/packet_id.entity';
 
 export interface SendCancelResponsePacketParams {
   interactionId?: string;
   utteranceId?: string[];
-  character: Character;
 }
 
 export class EventFactory {
@@ -78,6 +81,41 @@ export class EventFactory {
 
   audioSessionEnd(params: SendPacketParams): ProtoPacket {
     return this.audioSession(ControlEventAction.AUDIO_SESSION_END, params);
+  }
+
+  pong(packetId: PacketId, pingTimestamp: string): ProtoPacket {
+    return {
+      ...this.baseProtoPacket({
+        utteranceId: false,
+        interactionId: false,
+      }),
+      latencyReport: {
+        pingPong: {
+          pingPacketId: { ...packetId },
+          pingTimestamp,
+          type: PingPongReportType.PONG,
+        },
+      },
+    };
+  }
+
+  perceivedLatency(
+    seconds: number,
+    nanos: number,
+    precisionToSend: PerceivedLatencyReportPrecision = PerceivedLatencyReportPrecision.FINE,
+  ): ProtoPacket {
+    return {
+      ...this.baseProtoPacket({
+        utteranceId: false,
+        interactionId: false,
+      }),
+      latencyReport: {
+        perceivedLatency: {
+          latency: `${seconds + nanos / 1000000000}s`,
+          precision: precisionToSend,
+        },
+      },
+    };
   }
 
   mutePlayback(isMuted: boolean, params: SendPacketParams): ProtoPacket {
@@ -126,7 +164,9 @@ export class EventFactory {
           utteranceId: params.utteranceId,
         },
       },
-      routing: this.routing({ character: params.character }),
+      routing: this.routing({
+        target: { type: ActorType.WORLD },
+      }),
     };
   }
 
@@ -327,7 +367,9 @@ export class EventFactory {
     return {
       ...this.baseProtoPacket({ correlationId: true, conversationId }),
       ...(character && {
-        routing: this.routing({ character }),
+        routing: this.routing({
+          target: { name: character.id, type: ActorType.AGENT },
+        }),
       }),
       custom: {
         name,
@@ -337,12 +379,10 @@ export class EventFactory {
     };
   }
 
-  private routing(props?: { character: Character }): Routing {
+  private routing(props?: { target: Actor }): Routing {
     return {
       source: { type: ActorType.PLAYER },
-      ...(props?.character && {
-        target: { type: ActorType.AGENT, name: props.character.id },
-      }),
+      ...(props?.target && { target: props.target }),
     };
   }
 

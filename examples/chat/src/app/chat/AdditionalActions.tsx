@@ -112,7 +112,7 @@ export const AdditionalActions = (props: AdditionalActionsProps) => {
       let parameters: TriggerParameter[] | undefined;
 
       try {
-        parameters = parameters && JSON.parse(triggerParams);
+        parameters = triggerParams && JSON.parse(triggerParams);
       } catch (e) {
         console.warn('Invalid JSON format for trigger params');
         return;

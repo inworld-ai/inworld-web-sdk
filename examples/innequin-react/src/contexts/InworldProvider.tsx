@@ -145,6 +145,7 @@ function InworldProvider({ children }: any) {
       sceneName: config.inworld.sceneId,
       playerName: 'Friend',
       onPhoneme: (phonemes: AdditionalPhonemeInfo[]) => {
+        console.log('InworldProvider: onPhoneme');
         setPhonemes(phonemes);
       },
       onReady: async () => {
@@ -159,6 +160,7 @@ function InworldProvider({ children }: any) {
           inworldPacket.isEmotion() &&
           inworldPacket.packetId?.interactionId
         ) {
+          console.log('InworldProvider: onMessage isEmotion');
           setEmotionEvent(inworldPacket.emotions);
           setEmotions((currentState) => ({
             ...currentState,
@@ -201,6 +203,7 @@ function InworldProvider({ children }: any) {
 
   const sendText = useCallback(
     (text: string) => {
+      console.log('InworldProvider sendText', text);
       if (text && connection) {
         !hasPlayedWorkaroundSound && playWorkaroundSound();
         connection.sendText(text);
