@@ -36,7 +36,7 @@ interface ResourceNotFoundDetails {
   resourceType?: ErrorResourceType;
 }
 
-interface InworldStatus {
+export interface InworldStatus {
   errorType?: ErrorType;
   reconnectTime?: string;
   reconnectType?: ErrorReconnectionType;
