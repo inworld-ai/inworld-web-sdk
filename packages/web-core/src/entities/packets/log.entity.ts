@@ -7,7 +7,7 @@ import { LogLevel } from '../../common/data_structures';
 export class LogsEvent {
   readonly text: string;
   readonly level: LogLevel;
-  readonly metadata: { [key: string]: string } | undefined;
+  readonly metadata: Record<string, string> | undefined;
 
   constructor({
     text,
@@ -16,7 +16,7 @@ export class LogsEvent {
   }: {
     text: string;
     level: LogLevel;
-    metadata: { [key: string]: string };
+    metadata: Record<string, string>;
   }) {
     this.text = text;
     this.level = level;
