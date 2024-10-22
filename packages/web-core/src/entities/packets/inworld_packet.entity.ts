@@ -308,7 +308,6 @@ export class InworldPacket {
   }
 
   private static getType(packet: ProtoPacket) {
-    console.log('inworld_packet.entity getType:', packet);
     if (
       packet.mutation?.loadScene ||
       packet.mutation?.loadCharacters ||
