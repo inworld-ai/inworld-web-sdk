@@ -17,6 +17,7 @@ import { CancelResponsesEvent } from './cancel_responses.entity';
 import { ControlEvent } from './control.entity';
 import { EmotionEvent } from './emotion/emotion.entity';
 import { LatencyReportEvent } from './latency/latency_report.entity';
+import { LogsEvent } from './log.entity';
 import { NarratedAction } from './narrated_action.entity';
 import { OperationStatusEvent } from './operation_status.entity';
 import { PacketId } from './packet_id.entity';
@@ -33,6 +34,7 @@ export interface InworldPacketProps {
   task?: TaskEvent;
   trigger?: TriggerEvent;
   emotions?: EmotionEvent;
+  log?: LogsEvent;
   packetId: PacketId;
   routing: Routing;
   silence?: SilenceEvent;
@@ -69,6 +71,7 @@ export class InworldPacket {
   readonly trigger: TriggerEvent;
   readonly control: ControlEvent;
   readonly emotions: EmotionEvent;
+  readonly log: LogsEvent;
   readonly silence: SilenceEvent;
   readonly narratedAction: NarratedAction;
   readonly cancelResponses: CancelResponsesEvent;
@@ -97,6 +100,10 @@ export class InworldPacket {
 
     if (this.isEmotion()) {
       this.emotions = props.emotions;
+    }
+
+    if (this.isLog()) {
+      this.log = props.log;
     }
 
     if (this.isTask()) {
@@ -158,6 +165,10 @@ export class InworldPacket {
 
   isEmotion() {
     return this.type === InworldPacketType.EMOTION;
+  }
+
+  isLog() {
+    return this.type === InworldPacketType.LOG;
   }
 
   isInteractionEnd() {
@@ -270,6 +281,9 @@ export class InworldPacket {
       ...(type === InworldPacketType.LATENCY_REPORT && {
         latencyReport: LatencyReportEvent.fromProto(proto.latencyReport),
       }),
+      ...(type === InworldPacketType.LOG && {
+        log: LogsEvent.fromProto(proto.log),
+      }),
       ...(type === InworldPacketType.CANCEL_RESPONSE && {
         cancelResponses: CancelResponsesEvent.fromProto(proto.mutation),
       }),
@@ -316,6 +330,7 @@ export class InworldPacket {
   }
 
   private static getType(packet: ProtoPacket) {
+    console.log('inworld_packet.entity getType:', packet);
     if (
       packet.mutation?.loadScene ||
       packet.mutation?.loadCharacters ||
@@ -348,6 +363,8 @@ export class InworldPacket {
       return InworldPacketType.CONTROL;
     } else if (packet.emotion) {
       return InworldPacketType.EMOTION;
+    } else if (packet.log) {
+      return InworldPacketType.LOG;
     } else if (packet.mutation?.cancelResponses) {
       return InworldPacketType.CANCEL_RESPONSE;
     } else if (packet.action?.narratedAction) {

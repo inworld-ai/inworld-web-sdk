@@ -1,3 +1,9 @@
+## Unreleased
+
+### Added
+
+- Server to Client log events
+
 ## [2.8.0] - 2024-08-13
 
 ### Fixed

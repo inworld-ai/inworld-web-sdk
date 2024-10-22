@@ -25,6 +25,10 @@ export interface Capabilities {
   debugInfo?: boolean;
   emotions?: boolean;
   interruptions?: boolean;
+  logs?: boolean;
+  logsWarning?: boolean;
+  logsInfo?: boolean;
+  logsDebug?: boolean;
   multiModalActionPlanning?: boolean;
   narratedActions?: boolean;
   perceivedLatencyReport?: boolean;
@@ -177,6 +181,7 @@ export enum InworldPacketType {
   TASK = 'TASK',
   TRIGGER = 'TRIGGER',
   EMOTION = 'EMOTION',
+  LOG = 'LOG',
   CONTROL = 'CONTROL',
   SILENCE = 'SILENCE',
   CANCEL_RESPONSE = 'CANCEL_RESPONSE',
@@ -314,4 +319,11 @@ export interface SessionState {
   version?: {
     interactionId?: string;
   };
+}
+
+export enum LogLevel {
+  UNSPECIFIED = 'UNSPECIFIED',
+  WARNING = 'WARNING',
+  INFO = 'INFO',
+  DEBUG = 'DEBUG',
 }
