@@ -35,11 +35,29 @@ export const getRouting = (character: Character) => ({
   ],
 });
 
-export const getPacketId = () =>
+export const getPacketId = (props?: { conversationId?: string }) =>
   new PacketId({
     packetId: v4(),
     interactionId: v4(),
     utteranceId: v4(),
+    conversationId: props?.conversationId ?? v4(),
+  });
+
+export const getAudioPacket = (props: {
+  character: Character;
+  chunk?: string;
+  packetId?: PacketId;
+}) =>
+  new InworldPacket({
+    packetId: props.packetId ?? getPacketId(),
+    routing: getRouting(props.character),
+    date: protoTimestamp(),
+    audio: {
+      chunk: props.chunk ?? v4(),
+      additionalPhonemeInfo: [],
+      durationMs: 0,
+    },
+    type: InworldPacketType.AUDIO,
   });
 
 export const getTextPacket = (props: {

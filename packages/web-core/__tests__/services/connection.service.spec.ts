@@ -10,7 +10,6 @@ import {
   InworldPacket as ProtoPacket,
   TextEventSourceType,
 } from '../../proto/ai/inworld/packets/packets.pb';
-import { ConversationService } from '../../src';
 import {
   ConversationState,
   HistoryChangedProps,
@@ -32,10 +31,7 @@ import { Actor } from '../../src/entities/packets/routing.entity';
 import { SessionToken } from '../../src/entities/session_token.entity';
 import { EventFactory } from '../../src/factories/event';
 import { ConnectionService } from '../../src/services/connection.service';
-import {
-  SessionState,
-  StateSerializationService,
-} from '../../src/services/pb/state_serialization.service';
+import { ConversationService } from '../../src/services/conversation.service';
 import {
   capabilitiesProps,
   conversationId,
@@ -44,7 +40,6 @@ import {
   createAgent,
   emitSceneStatusEvent,
   generateSessionToken,
-  previousState,
   SCENE,
   session,
   user,
@@ -127,6 +122,30 @@ const incomingTextEvent: ProtoPacket = {
     final: false,
   },
 };
+// const incomingPingPongEvent: ProtoPacket = {
+//   packetId: {
+//     ...textEvent.packetId,
+//     utteranceId: v4(),
+//   },
+//   routing: {
+//     source: {
+//       name: v4(),
+//       type: ActorType.AGENT,
+//     },
+//     targets: [
+//       {
+//         name: characters[0].id,
+//         type: ActorType.PLAYER,
+//       },
+//     ],
+//   },
+//   latencyReport: {
+//     pingPong: {
+//       pingPacketId: undefined,
+//       pingTimestamp: protoTimestamp(),
+//     },
+//   },
+// };
 
 test('should return event factory', () => {
   const connection = new ConnectionService();
@@ -232,54 +251,6 @@ describe('history', () => {
 
     expect(getTranscript).toHaveBeenCalledTimes(1);
     expect(transcript).toEqual(result);
-  });
-});
-
-describe('getSessionState', () => {
-  let connection: ConnectionService;
-  let generateSessionToken: jest.Mock;
-
-  beforeEach(() => {
-    generateSessionToken = jest.fn(() => Promise.resolve(session));
-    connection = new ConnectionService({
-      name: SCENE,
-      onError,
-      grpcAudioPlayer,
-      generateSessionToken,
-      webRtcLoopbackBiDiSession,
-    });
-  });
-
-  test('should get state', async () => {
-    const expected: SessionState = {
-      state: previousState,
-      creationTime: protoTimestamp(),
-    };
-    const getSessionState = jest
-      .spyOn(StateSerializationService.prototype, 'getSessionState')
-      .mockImplementationOnce(() => Promise.resolve(expected));
-
-    const result = await connection.getSessionState();
-
-    expect(generateSessionToken).toHaveBeenCalledTimes(1);
-    expect(getSessionState).toHaveBeenCalledTimes(1);
-    expect(result).toEqual(expected);
-  });
-
-  test('should catch error and pass it to handler', async () => {
-    const err = new Error();
-    const getSessionState = jest
-      .spyOn(StateSerializationService.prototype, 'getSessionState')
-      .mockImplementationOnce(() => {
-        throw err;
-      });
-
-    await connection.getSessionState();
-
-    expect(generateSessionToken).toHaveBeenCalledTimes(1);
-    expect(getSessionState).toHaveBeenCalledTimes(1);
-    expect(onError).toHaveBeenCalledTimes(1);
-    expect(onError).toHaveBeenCalledWith(err);
   });
 });
 

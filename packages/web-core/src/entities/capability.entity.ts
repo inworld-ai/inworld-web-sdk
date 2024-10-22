@@ -10,7 +10,9 @@ export class Capability {
       interruptions = false,
       narratedActions = false,
       multiModalActionPlanning: multiModalActionPlanning = false,
+      perceivedLatencyReport: perceivedLatencyReport = true,
       phonemes: phonemeInfo = false,
+      pingPongReport: pingPongReport = true,
       silence: silenceEvents = false,
     } = capabilities;
 
@@ -22,7 +24,9 @@ export class Capability {
       multiAgent: true,
       multiModalActionPlanning,
       narratedActions,
+      perceivedLatencyReport,
       phonemeInfo,
+      pingPongReport,
       silenceEvents,
     };
   }

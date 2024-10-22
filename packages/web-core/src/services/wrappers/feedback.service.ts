@@ -1,7 +1,7 @@
-import { DislikeType, Feedback } from '../entities/feedback.entity';
-import { InworldPacket } from '../entities/packets/inworld_packet.entity';
-import { ConnectionService } from './connection.service';
-import { FeedbackService as PbService } from './pb/feedback.service';
+import { DislikeType, Feedback } from '../../entities/feedback.entity';
+import { InworldPacket } from '../../entities/packets/inworld_packet.entity';
+import { ConnectionService } from '../connection.service';
+import { FeedbackService as PbService } from '../pb/feedback.service';
 
 interface SendFeedbackProps {
   comment?: string;
