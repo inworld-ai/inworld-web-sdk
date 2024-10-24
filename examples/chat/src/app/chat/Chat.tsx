@@ -3,15 +3,9 @@ import {
   HistoryItem,
   InworldConnectionService,
   MicrophoneMode,
+  UnderstandingMode,
 } from '@inworld/web-core';
-import {
-  CopyAll,
-  Mic,
-  Send,
-  SettingsVoice,
-  VolumeOff,
-  VolumeUp,
-} from '@mui/icons-material';
+import { CopyAll, Send, VolumeOff, VolumeUp } from '@mui/icons-material';
 import { IconButton, InputAdornment, TextField, Tooltip } from '@mui/material';
 import { Box } from '@mui/system';
 import { useCallback, useEffect, useState } from 'react';
@@ -19,9 +13,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { INWORLD_SESSION_STATE_KEY } from '../../defaults';
 import { CHAT_VIEW, EmotionsMap } from '../types';
 import { AdditionalActions } from './AdditionalActions';
-import { ActionsStyled, RecordIcon } from './Chat.styled';
+import { ActionsStyled } from './Chat.styled';
 import { ConfirmedDialog } from './ConfirmedDialog';
 import { History } from './History';
+import { RecorderActions } from './RecorderActions';
 import { SessionActions } from './SessionActions';
 
 interface ChatProps {
@@ -40,8 +35,6 @@ const RECORDING_STATUS = {
   STARTING: 'STARTING',
   RECORDING: 'RECORDING',
   STOPPED: 'STOPPED',
-  STARTING_PUSH_TO_TALK: 'STARTING_PUSH_TO_TALK',
-  RECORDING_PUSH_TO_TALK: 'RECORDING_PUSH_TO_TALK',
 };
 
 export function Chat(props: ChatProps) {
@@ -135,20 +128,15 @@ export function Chat(props: ChatProps) {
   }, [connection]);
 
   const startRecording = useCallback(
-    async (mode?: MicrophoneMode) => {
+    async (options?: {
+      mode?: MicrophoneMode;
+      understandingMode?: UnderstandingMode;
+    }) => {
       try {
-        setRecorderdingStatus(
-          mode === MicrophoneMode.EXPECT_AUDIO_END
-            ? RECORDING_STATUS.STARTING_PUSH_TO_TALK
-            : RECORDING_STATUS.STARTING,
-        );
-        connection.sendAudioSessionStart({ mode });
+        setRecorderdingStatus(RECORDING_STATUS.STARTING);
+        connection.sendAudioSessionStart(options);
         await connection.recorder.start();
-        setRecorderdingStatus(
-          mode === MicrophoneMode.EXPECT_AUDIO_END
-            ? RECORDING_STATUS.RECORDING_PUSH_TO_TALK
-            : RECORDING_STATUS.RECORDING,
-        );
+        setRecorderdingStatus(RECORDING_STATUS.RECORDING);
         props.onStartRecording();
       } catch (e) {
         console.error(e);
@@ -183,18 +171,16 @@ export function Chat(props: ChatProps) {
   );
 
   const handleSpeakClick = useCallback(
-    async (mode?: MicrophoneMode) => {
+    async (options?: {
+      mode?: MicrophoneMode;
+      understandingMode?: UnderstandingMode;
+    }) => {
       !hasPlayedWorkaroundSound && playWorkaroundSound();
 
-      if (
-        [
-          RECORDING_STATUS.RECORDING,
-          RECORDING_STATUS.RECORDING_PUSH_TO_TALK,
-        ].includes(recorderdingStatus)
-      ) {
+      if (recorderdingStatus === RECORDING_STATUS.STARTING) {
         return stopRecording();
       } else if (recorderdingStatus === RECORDING_STATUS.STOPPED) {
-        return startRecording(mode);
+        return startRecording(options);
       }
     },
     [
@@ -268,66 +254,22 @@ export function Chat(props: ChatProps) {
             )}
           </IconButton>
         </Tooltip>
-        <Tooltip
-          title={
-            recorderdingStatus === RECORDING_STATUS.STOPPED
-              ? 'Start speaking (general mode)'
-              : 'Stop speaking'
+        <RecorderActions
+          disabled={recorderdingStatus === RECORDING_STATUS.STARTING}
+          recording={recorderdingStatus !== RECORDING_STATUS.STOPPED}
+          onStop={stopRecording}
+          onGeneral={() => handleSpeakClick()}
+          onPushToTalk={() =>
+            handleSpeakClick({
+              mode: MicrophoneMode.EXPECT_AUDIO_END,
+            })
           }
-          placement="top"
-        >
-          <span>
-            <IconButton
-              disabled={[
-                RECORDING_STATUS.STARTING,
-                RECORDING_STATUS.STARTING_PUSH_TO_TALK,
-                RECORDING_STATUS.RECORDING_PUSH_TO_TALK,
-              ].includes(recorderdingStatus)}
-              onClick={() => handleSpeakClick()}
-              sx={{ height: '3rem', width: '3rem', backgroundColor: '#F1F5F9' }}
-            >
-              {[
-                RECORDING_STATUS.STOPPED,
-                RECORDING_STATUS.STARTING_PUSH_TO_TALK,
-                RECORDING_STATUS.RECORDING_PUSH_TO_TALK,
-              ].includes(recorderdingStatus) ? (
-                <Mic />
-              ) : (
-                <RecordIcon />
-              )}
-            </IconButton>
-          </span>
-        </Tooltip>
-        <Tooltip
-          title={
-            recorderdingStatus === RECORDING_STATUS.STOPPED
-              ? 'Start speaking (push to talk mode)'
-              : 'Stop push to talk'
+          onSpeechRecognition={() =>
+            handleSpeakClick({
+              understandingMode: UnderstandingMode.SPEECH_RECOGNITION_ONLY,
+            })
           }
-          placement="top"
-        >
-          <span>
-            <IconButton
-              disabled={[
-                RECORDING_STATUS.STARTING,
-                RECORDING_STATUS.STARTING_PUSH_TO_TALK,
-                RECORDING_STATUS.RECORDING,
-              ].includes(recorderdingStatus)}
-              onClick={() => handleSpeakClick(MicrophoneMode.EXPECT_AUDIO_END)}
-              sx={{ height: '3rem', width: '3rem', backgroundColor: '#F1F5F9' }}
-            >
-              {[
-                RECORDING_STATUS.STOPPED,
-                RECORDING_STATUS.STARTING,
-                RECORDING_STATUS.RECORDING,
-              ].includes(recorderdingStatus) ? (
-                <SettingsVoice />
-              ) : (
-                <RecordIcon />
-              )}
-            </IconButton>
-          </span>
-        </Tooltip>
+        />
         <SessionActions
           onClear={() => handleClearStateClick()}
           onSave={handleSaveStateClick}
