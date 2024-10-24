@@ -31,7 +31,9 @@ export interface Capabilities {
   logsDebug?: boolean;
   multiModalActionPlanning?: boolean;
   narratedActions?: boolean;
+  perceivedLatencyReport?: boolean;
   phonemes?: boolean;
+  pingPongReport?: boolean;
   silence?: boolean;
 }
 
@@ -78,10 +80,21 @@ export interface SessionControlProps {
   sessionHistory?: SessionHistoryRequest;
 }
 
+export interface sessionContunuationConfig {
+  storage?: {
+    setItem: (value: string) => Awaitable<void>;
+    getItem: () => Awaitable<string>;
+  };
+  interval?: number;
+  attemptsInterval?: number;
+  maxAttempts?: number;
+}
+
 export interface ConnectionConfig {
   autoReconnect?: boolean;
   disconnectTimeout?: number;
   gateway?: Gateway;
+  sessionContunuation?: sessionContunuationConfig;
 }
 
 export interface HistoryConfig {
@@ -123,6 +136,7 @@ export enum ConnectionState {
   ACTIVE = 'ACTIVE',
   ACTIVATING = 'ACTIVATING',
   INACTIVE = 'INACTIVE',
+  RECONNECTING = 'RECONNECTING',
 }
 
 export enum AudioSessionState {
@@ -176,6 +190,7 @@ export enum InworldPacketType {
   SCENE_MUTATION_RESPONSE = 'SCENE_MUTATION_RESPONSE',
   ENTITIES_ITEM_OPERATION = 'ENTITIES_ITEM_OPERATION',
   OPERATION_STATUS = 'OPERATION_STATUS',
+  LATENCY_REPORT = 'LATENCY_REPORT',
 }
 
 export enum InworlControlAction {
@@ -193,6 +208,11 @@ export enum InworldConversationEventType {
   STARTED = 'STARTED',
   UPDATED = 'UPDATED',
   EVICTED = 'EVICTED',
+}
+
+export enum InworldLatencyReportType {
+  PERCEIVED_LATENCY = 'PERCEIVED_LATENCY',
+  PING_PONG = 'PING_PONG',
 }
 
 export enum ConversationState {
@@ -248,7 +268,7 @@ export enum ConversationParticipant {
 }
 
 export interface HistoryChangedProps<HistoryItemT = HistoryItem> {
-  diff: HistoryItemT[];
+  diff: { added?: HistoryItemT[]; removed?: HistoryItemT[] };
   conversationId?: string;
 }
 
@@ -291,6 +311,14 @@ export interface EntityItemProps {
 export interface SceneHistoryItem {
   character: Character;
   packet: ProtoPacket;
+}
+
+export interface SessionState {
+  state?: string;
+  creationTime?: string;
+  version?: {
+    interactionId?: string;
+  };
 }
 
 export enum LogLevel {

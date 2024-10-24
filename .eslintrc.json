@@ -32,13 +32,13 @@
   },
   "overrides": [
     {
-     "files": [
-       "examples/**/*.ts",
-       "examples/**/*.tsx"
+      "files": [
+        "examples/**/*.ts",
+        "examples/**/*.tsx"
       ],
-        "rules": {
-           "no-console": "off"   
-        }
+      "rules": {
+        "no-console": "off"   
+      }
     }
   ],
   "ignorePatterns": ["proto", "build"]

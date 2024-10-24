@@ -244,24 +244,38 @@ describe('event types', () => {
     expect(event.packetId?.conversationId).toEqual(conversationId);
   });
 
+  test('should generate trigger with character', () => {
+    const name = v4();
+    const event = factory.trigger(name, { character, conversationId });
+
+    expect(event).toHaveProperty('routing');
+    expect(event).toHaveProperty('timestamp');
+    expect(event.custom?.name).toEqual(name);
+    expect(event.routing?.target?.type).toEqual(ActorType.AGENT);
+    expect(event.routing?.target?.name).toEqual(character.id);
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId).toHaveProperty('interactionId');
+    expect(event.packetId).toHaveProperty('utteranceId');
+    expect(event.packetId).toHaveProperty('correlationId');
+    expect(event.packetId?.conversationId).toEqual(conversationId);
+  });
+
   test('should generate cancel response event', () => {
     const interactionId = v4();
     const utteranceId = [v4()];
     const event = factory.cancelResponse({
       interactionId,
       utteranceId,
-      character,
     });
 
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
-    expect(event.mutation.cancelResponses).toEqual({
+    expect(event.mutation?.cancelResponses).toEqual({
       interactionId,
       utteranceId,
     });
     expect(event.routing?.target).toEqual({
-      name: character.id,
-      type: ActorType.AGENT,
+      type: ActorType.WORLD,
     });
     expect(event.packetId).toHaveProperty('packetId');
     expect(event.packetId?.interactionId).toBeUndefined();

@@ -3,6 +3,11 @@
 ### Added
 
 - Server to Client log events
+- Latency reporting support
+
+### Changed
+
+- Improve connection management
 
 ## [2.8.0] - 2024-08-13
 

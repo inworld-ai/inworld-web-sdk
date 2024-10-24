@@ -60,6 +60,7 @@ export interface QueueItem<InworldPacketT> {
   getPacket: () => ProtoPacket;
   afterWriting?: (packet: InworldPacketT) => void;
   beforeWriting?: (packet: InworldPacketT) => Promise<void>;
+  convertPacket?: (packet: ProtoPacket) => ProtoPacket;
 }
 
 export interface Connection<InworldPacketT> {
@@ -180,7 +181,7 @@ export class WebSocketConnection<
     });
     const needHistory =
       this.connectionProps.config.history?.previousState &&
-      !!finalPackets.find((p) => p.sessionControl?.continuation);
+      !!finalPackets.find((p) => p.control?.sessionConfiguration?.continuation);
 
     for (const packet of finalPackets) {
       write({
@@ -220,7 +221,12 @@ export class WebSocketConnection<
       }
 
       const interval = setInterval(() => {
-        if (this.ws.readyState === WebSocket.CLOSED) {
+        if (this.ws) {
+          if (this.ws.readyState === WebSocket.CLOSED) {
+            clearInterval(interval);
+            resolve();
+          }
+        } else {
           clearInterval(interval);
           resolve();
         }
@@ -231,7 +237,8 @@ export class WebSocketConnection<
   }
 
   async write(item: QueueItem<InworldPacketT>) {
-    const packet = item.getPacket();
+    const originalPacket = item.getPacket();
+    const packet = item.convertPacket?.(originalPacket) ?? originalPacket;
     const inworldPacket = this.extension.convertPacketFromProto(packet);
     await item.beforeWriting?.(inworldPacket);
     this.ws.send(JSON.stringify(packet));
@@ -288,7 +295,10 @@ export class WebSocketConnection<
     firstLoad?: boolean;
     needHistory: boolean;
     ws: WebSocket;
-    write: (item: QueueItem<InworldPacketT>) => void;
+    write: (
+      item: QueueItem<InworldPacketT>,
+      convertPacket?: (packet: ProtoPacket) => ProtoPacket,
+    ) => void;
     resolve: (value: LoadedScene) => void;
     reject: (reason: InworldError) => void;
   }) {
