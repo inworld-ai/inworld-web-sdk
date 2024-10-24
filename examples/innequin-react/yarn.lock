@@ -824,15 +824,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inworld/web-core@portal:/C:/Users/user/inworld-web-sdk/packages/web-core::locator=innequin-react%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "@inworld/web-core@portal:/C:/Users/user/inworld-web-sdk/packages/web-core::locator=innequin-react%40workspace%3A."
+"@inworld/web-core@npm:2.2.2":
+  version: 2.2.2
+  resolution: "@inworld/web-core@npm:2.2.2"
   dependencies:
     base64-arraybuffer: "npm:^1.0.2"
     defer-promise: "npm:^3.0.0"
     uuid: "npm:^9.0.0"
+  checksum: 10c0/982b6b9fe968210f3706711afa9f7fc21d732017de6d0178128b34ac6ff9c66413c343069eee80c2e5f19aef20e9e3680aac43686e81267d9550b603d9794e8a
   languageName: node
-  linkType: soft
+  linkType: hard
+
+"@inworld/web-core@npm:2.5.0":
+  version: 2.5.0
+  resolution: "@inworld/web-core@npm:2.5.0"
+  dependencies:
+    base64-arraybuffer: "npm:^1.0.2"
+    defer-promise: "npm:^3.0.0"
+    uuid: "npm:^9.0.0"
+  checksum: 10c0/c03847b02810910bec4103e31f024e588cb2c32b891ee4731e8989b469a8c0f5c71f1b94d3c89eca5ca215271cb022e02e0659cdc0b1f7c49a4be2885e22ff7f
+  languageName: node
+  linkType: hard
 
 "@inworld/web-threejs@npm:1.5.0":
   version: 1.5.0
@@ -3892,6 +3904,7 @@ __metadata:
     "@babel/plugin-transform-private-property-in-object": "npm:^7.23.4"
     "@emotion/react": "npm:^11.10.6"
     "@emotion/styled": "npm:^11.10.6"
+    "@inworld/web-core": "npm:2.5.0"
     "@inworld/web-threejs": "npm:1.5.0"
     "@mui/icons-material": "npm:^5.11.11"
     "@mui/material": "npm:^5.11.13"

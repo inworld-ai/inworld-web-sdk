@@ -53,8 +53,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "resolutions": {
-    "@inworld/web-core": "portal:/C:/Users/user/inworld-web-sdk/packages/web-core"
   }
 }
