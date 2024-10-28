@@ -529,6 +529,10 @@ export class ConnectionService<
       const conversation =
         conversationId && this.conversations.get(conversationId);
 
+      if (inworldPacket.isLog()) {
+        console.log('InworldProvider:onMessage:A');
+      }
+
       // Skip packets that are not attached to any conversation.
       if (inworldPacket.shouldHaveConversationId() && !conversation) {
         // Pass packet to external callback.
@@ -576,6 +580,10 @@ export class ConnectionService<
         return;
       }
 
+      if (inworldPacket.isLog()) {
+        console.log('InworldProvider:onMessage:B');
+      }
+
       // Send cancel response event in case of player talking.
       if (inworldPacket.isText() && inworldPacket.routing.source.isPlayer) {
         await this.interruptByPacket(inworldPacket);
@@ -614,9 +622,17 @@ export class ConnectionService<
         this.onWarning(inworldPacket);
       }
 
+      if (inworldPacket.isLog()) {
+        console.log('InworldProvider:onMessage:C');
+      }
+
       // Add packet to history.
       // Audio and silence packets were added to history earlier.
       if (!inworldPacket.isAudio() && !inworldPacket.isSilence()) {
+        if (inworldPacket.isLog()) {
+          console.log('InworldProvider:onMessage:D');
+        }
+
         this.addPacketToHistory(inworldPacket);
       }
 
@@ -716,6 +732,8 @@ export class ConnectionService<
   }
 
   private addPacketToHistory(packet: InworldPacketT) {
+    if (packet.isLog())
+      console.log('connection.service addPacketToHistory', packet);
     const diff = this.history.addOrUpdate({
       grpcAudioPlayer: this.connectionProps.grpcAudioPlayer,
       characters: this.eventFactory.getCharacters(),
