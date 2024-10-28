@@ -210,7 +210,7 @@ export class InworldConnectionService<
     parameters?: TriggerParameter[] | { parameters: TriggerParameter[] },
   ) {
     await this.ensureOneToOneConversation();
-
+    console.log('inworld_connection.service: sendTrigger:', name);
     const character = await this.getCurrentCharacter();
 
     if (parameters && Array.isArray(parameters)) {
