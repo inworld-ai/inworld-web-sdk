@@ -4,6 +4,7 @@
 
 - Server to Client log events
 - Latency reporting support
+- S2C logs added to conversation history
 
 ### Changed
 

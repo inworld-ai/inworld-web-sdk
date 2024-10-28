@@ -2,12 +2,7 @@ import { v4 } from 'uuid';
 
 import { DEFAULT_USER_NAME } from '../common/constants';
 import {
-  ConversationMapItem,
-  Extension,
-  InworlControlAction,
-  TaskParameter,
-  TriggerParameter,
-  User,
+    ConversationMapItem, Extension, InworlControlAction, TaskParameter, TriggerParameter, User
 } from '../common/data_structures';
 import { Character } from '../entities/character.entity';
 import { EmotionEvent } from '../entities/packets/emotion/emotion.entity';

@@ -122,6 +122,30 @@ const incomingTextEvent: ProtoPacket = {
     final: false,
   },
 };
+// const incomingPingPongEvent: ProtoPacket = {
+//   packetId: {
+//     ...textEvent.packetId,
+//     utteranceId: v4(),
+//   },
+//   routing: {
+//     source: {
+//       name: v4(),
+//       type: ActorType.AGENT,
+//     },
+//     targets: [
+//       {
+//         name: characters[0].id,
+//         type: ActorType.PLAYER,
+//       },
+//     ],
+//   },
+//   latencyReport: {
+//     pingPong: {
+//       pingPacketId: undefined,
+//       pingTimestamp: protoTimestamp(),
+//     },
+//   },
+// };
 
 test('should return event factory', () => {
   const connection = new ConnectionService();
