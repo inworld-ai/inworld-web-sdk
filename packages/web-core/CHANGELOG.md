@@ -3,6 +3,7 @@
 ### Added
 
 - Server to Client log events
+- S2C logs added to conversation history
 
 ## [2.8.0] - 2024-08-13
 
