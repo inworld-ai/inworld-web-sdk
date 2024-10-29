@@ -5,6 +5,7 @@ import {
   ConversationMapItem,
   Extension,
   InworlControlAction,
+  LogLevel,
   TaskParameter,
   TriggerParameter,
   User,
@@ -26,12 +27,13 @@ interface InworldHistoryAddProps<InworldPacketT> {
 
 export enum CHAT_HISTORY_TYPE {
   ACTOR = 'actor',
+  CONVERSATION_UPDATE = 'conversation_update',
+  INTERACTION_END = 'interaction_end',
+  LOG_EVENT = 'log_event',
   NARRATED_ACTION = 'narrated_action',
+  SCENE_CHANGE = 'scene_change',
   TRIGGER_EVENT = 'trigger_event',
   TASK_EVENT = 'task_event',
-  INTERACTION_END = 'interaction_end',
-  SCENE_CHANGE = 'scene_change',
-  CONVERSATION_UPDATE = 'conversation_update',
 }
 
 export interface HistoryItemBase {
@@ -84,6 +86,13 @@ export interface HistoryItemNarratedAction extends HistoryItemBase {
   characters?: Character[];
 }
 
+export interface HistoryItemLogEvent extends HistoryItemBase {
+  type: CHAT_HISTORY_TYPE.LOG_EVENT;
+  text: string;
+  level: LogLevel;
+  metadata?: Record<string, string>;
+}
+
 export interface HistoryItemSceneChange {
   date: Date;
   id: string;
@@ -115,6 +124,7 @@ export interface HistoryItemConversationUpdate {
 
 export type HistoryItem =
   | HistoryItemActor
+  | HistoryItemLogEvent
   | HistoryItemTriggerEvent
   | HistoryItemTaskEvent
   | HistoryInteractionEnd
@@ -251,6 +261,13 @@ export class InworldHistory<
           ...this.combineCustomItem(packet, outgoing),
           fromHistory,
           conversationId,
+        };
+        break;
+
+      case packet.isLog():
+        historyItem = {
+          ...this.combineLogItem(packet),
+          fromHistory,
         };
         break;
 
@@ -682,6 +699,21 @@ export class InworldHistory<
       scene: this.scene,
       source: packet.routing.source,
       type: CHAT_HISTORY_TYPE.INTERACTION_END,
+    };
+  }
+
+  private combineLogItem(packet: InworldPacketT): HistoryItemLogEvent {
+    return {
+      id: packet.packetId.utteranceId,
+      scene: this.scene,
+      conversationId: packet.packetId.conversationId,
+      date: new Date(packet.date),
+      interactionId: packet.packetId.interactionId,
+      level: packet.log.level,
+      metadata: packet.log.metadata,
+      source: packet.routing.source,
+      text: packet.log.text,
+      type: CHAT_HISTORY_TYPE.LOG_EVENT,
     };
   }
 
