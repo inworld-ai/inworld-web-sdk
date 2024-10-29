@@ -4,6 +4,11 @@
 
 - Server to Client log events
 - S2C logs added to conversation history
+- Latency reporting support
+
+### Changed
+
+- Improve connection management
 
 ## [2.8.0] - 2024-08-13
 
@@ -21,7 +26,6 @@
 
 - Await for CLOSED WebSocket connection state after CLOSING one
 - Allow to change scene user parameters
-- Improve connection management
 
 ## [2.7.1] - 2024-06-27
 
