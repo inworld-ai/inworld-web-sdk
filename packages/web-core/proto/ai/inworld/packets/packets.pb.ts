@@ -10,7 +10,7 @@ import * as GoogleProtobufTimestamp from "../../../google/protobuf/timestamp.pb"
 import * as GoogleRpcStatus from "../../../google/rpc/status.pb"
 import * as AiInworldEngineConfigurationConfiguration from "../engine/configuration/configuration.pb"
 import * as AiInworldLanguage_codesLanguage_codes from "../language_codes/language_codes.pb"
-import * as AiInworldPacketsEntitiesEntities_packets from "./entities_packets.pb"
+import * as AiInworldPacketsEntitiesEntities_packets from "./entities/entities_packets.pb"
 
 type Absent<T, K extends keyof T> = { [k in Exclude<keyof T, K>]?: undefined };
 type OneOf<T> =
@@ -145,6 +145,7 @@ export enum LogsEventLogLevel {
   WARNING = "WARNING",
   INFO = "INFO",
   DEBUG = "DEBUG",
+  INTERNAL = "INTERNAL",
 }
 
 export enum ApplyResponseApplyResponseType {
