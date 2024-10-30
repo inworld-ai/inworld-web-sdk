@@ -1,7 +1,7 @@
 import {
   ItemsInEntitiesOperationType as ProtoItemsInEntitiesOperationType,
   ItemsOperationEvent as ProtoItemsOperationEvent,
-} from '../../../proto/ai/inworld/packets/entities_packets.pb';
+} from '../../../proto/ai/inworld/packets/entities/entities_packets.pb';
 import { ItemsInEntitiesOperationType } from '../../common/data_structures';
 import { EntityItem } from './entity_item';
 

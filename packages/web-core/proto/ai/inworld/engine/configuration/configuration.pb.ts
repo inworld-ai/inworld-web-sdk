@@ -28,6 +28,7 @@ export type CapabilitiesConfiguration = {
   logsWarning?: boolean
   logsInfo?: boolean
   logsDebug?: boolean
+  logsInternal?: boolean
 }
 
 export type UserConfigurationUserSettingsPlayerProfilePlayerField = {

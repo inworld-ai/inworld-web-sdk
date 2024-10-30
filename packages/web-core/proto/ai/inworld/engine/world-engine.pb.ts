@@ -97,6 +97,10 @@ export type CapabilitiesRequest = {
   multiModalActionPlanning?: boolean
   pingPongReport?: boolean
   perceivedLatencyReport?: boolean
+  logs?: boolean
+  logsWarning?: boolean
+  logsInfo?: boolean
+  logsDebug?: boolean
 }
 
 export type UserRequest = {
@@ -202,11 +206,27 @@ export type PreviousStateEntitiesState = {
   displayIdsMapping?: PreviousStateEntitiesStateDisplayIdsMapping[]
 }
 
+export type PreviousStateCustomTaskStateTaskParameter = {
+  id?: string
+  description?: string
+}
+
+export type PreviousStateCustomTaskStateCustomTask = {
+  id?: string
+  description?: string
+  parameters?: PreviousStateCustomTaskStateTaskParameter[]
+}
+
+export type PreviousStateCustomTaskState = {
+  customTasks?: PreviousStateCustomTaskStateCustomTask[]
+}
+
 export type PreviousState = {
   stateHolders?: PreviousStateStateHolder[]
   gameSessionId?: string
   conversationState?: ConversationState
   entitiesState?: PreviousStateEntitiesState
+  customTasksState?: PreviousStateCustomTaskState
 }
 
 export type LoadSceneResponseAgentCharacterAssets = {
