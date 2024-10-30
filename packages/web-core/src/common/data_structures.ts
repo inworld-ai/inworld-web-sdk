@@ -29,6 +29,7 @@ export interface Capabilities {
   logsWarning?: boolean;
   logsInfo?: boolean;
   logsDebug?: boolean;
+  logsInternal?: boolean;
   multiModalActionPlanning?: boolean;
   narratedActions?: boolean;
   perceivedLatencyReport?: boolean;
@@ -325,5 +326,6 @@ export enum LogLevel {
   UNSPECIFIED = 'UNSPECIFIED',
   WARNING = 'WARNING',
   INFO = 'INFO',
+  INTERNAL = 'INTERNAL',
   DEBUG = 'DEBUG',
 }
