@@ -209,6 +209,7 @@ export type PreviousStateEntitiesState = {
 export type PreviousStateCustomTaskStateTaskParameter = {
   id?: string
   description?: string
+  entities?: string[]
 }
 
 export type PreviousStateCustomTaskStateCustomTask = {
