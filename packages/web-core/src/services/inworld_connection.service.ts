@@ -21,7 +21,6 @@ import { InworldRecorder } from '../components/sound/inworld_recorder';
 import { Character } from '../entities/character.entity';
 import { InworldError } from '../entities/error.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
-import { EventFactory } from '../factories/event';
 import { characterHasValidFormat, sceneHasValidFormat } from '../guard/scene';
 import { ConnectionService } from './connection.service';
 import { ConversationService } from './conversation.service';
@@ -305,7 +304,7 @@ export class InworldConnectionService<
     }
 
     const result = await this.connection.send(() =>
-      EventFactory.loadCharacters(names),
+      this.connection.getEventFactory().loadCharacters(names),
     );
 
     await this.resolveInterval(() => {
@@ -329,7 +328,7 @@ export class InworldConnectionService<
       .map((c) => c.id);
 
     const result = await this.connection.send(() =>
-      EventFactory.unloadCharacters(ids),
+      this.connection.getEventFactory().unloadCharacters(ids),
     );
 
     this.connection.removeCharacters(names);

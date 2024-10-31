@@ -88,7 +88,7 @@ export class ConnectionService<
   private connection: Connection<InworldPacketT>;
   private connectionProps: ConnectionProps<InworldPacketT, HistoryItemT>;
 
-  private eventFactory = new EventFactory();
+  private eventFactory: EventFactory;
   private intervals: NodeJS.Timeout[] = [];
   private packetQueue: QueueItem<InworldPacketT>[] = [];
   private packetQueuePercievedLatency: InworldPacketT[] = [];
@@ -139,6 +139,9 @@ export class ConnectionService<
       user: this.connectionProps.user,
       scene: this.scene.name,
       conversations: this.conversations,
+    });
+    this.eventFactory = new EventFactory({
+      validateData: this.connectionProps.config?.validateData,
     });
 
     // Bind handlers
@@ -902,6 +905,7 @@ export class ConnectionService<
       onError: this.onError,
       onMessage: this.onMessage,
       extension: this.extension,
+      eventFactory: this.eventFactory,
     });
   }
 

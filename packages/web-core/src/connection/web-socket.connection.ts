@@ -54,6 +54,7 @@ interface ConnectionProps<
   onError: (err: InworldError) => Awaitable<void>;
   onMessage: (packet: ProtoPacket) => Awaitable<void>;
   extension: Extension<InworldPacketT, HistoryItemT>;
+  eventFactory: EventFactory;
 }
 
 export interface QueueItem<InworldPacketT> {
@@ -302,7 +303,11 @@ export class WebSocketConnection<
     resolve: (value: LoadedScene) => void;
     reject: (reason: InworldError) => void;
   }) {
-    const { parseEvent, onMessage } = this;
+    const {
+      parseEvent,
+      onMessage,
+      connectionProps: { eventFactory },
+    } = this;
     let historyLoaded = true;
     let sceneStatus: CurrentSceneStatus;
 
@@ -329,7 +334,7 @@ export class WebSocketConnection<
         if (!!sceneStatus && !historyLoaded && needHistory) {
           write({
             getPacket: () =>
-              EventFactory.sessionControl({ sessionHistory: {} }),
+              eventFactory.sessionControl({ sessionHistory: {} }),
           });
         } else {
           ws.removeEventListener('message', this);
@@ -353,12 +358,14 @@ export class WebSocketConnection<
     gameSessionId?: string;
     useDefaultClient?: boolean;
   }) {
+    const { eventFactory } = this.connectionProps;
+
     const continuation = this.getContinuation({
       sessionContinuation: props.sessionContinuation,
     });
 
     const packets: ProtoPacket[] = [
-      EventFactory.sessionControl({
+      eventFactory.sessionControl({
         ...(props.capabilities && {
           capabilities: props.capabilities,
         }),
@@ -375,7 +382,7 @@ export class WebSocketConnection<
         }),
         ...(continuation && { continuation }),
       }),
-      EventFactory.loadScene(props.name),
+      eventFactory.loadScene(props.name),
     ];
 
     return this.extension.beforeLoadScene?.(packets) || packets;

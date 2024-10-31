@@ -299,7 +299,7 @@ describe('event types', () => {
   });
 
   test('should generate session control capabilities', () => {
-    const event = EventFactory.sessionControl({
+    const event = factory.sessionControl({
       capabilities: capabilitiesProps,
     });
 
@@ -317,7 +317,7 @@ describe('event types', () => {
 
   test('should generate session control session configuration', () => {
     const sessionConfiguration = { gameSessionId: v4() };
-    const event = EventFactory.sessionControl({ sessionConfiguration });
+    const event = factory.sessionControl({ sessionConfiguration });
 
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
@@ -337,7 +337,7 @@ describe('event types', () => {
       version: v4(),
       description: v4(),
     };
-    const event = EventFactory.sessionControl({ clientConfiguration });
+    const event = factory.sessionControl({ clientConfiguration });
 
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
@@ -357,7 +357,7 @@ describe('event types', () => {
       fullName: v4(),
       profile: { fields: [{ id: v4(), value: v4() }] },
     };
-    const event = EventFactory.sessionControl({ userConfiguration });
+    const event = factory.sessionControl({ userConfiguration });
 
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
@@ -384,7 +384,7 @@ describe('event types', () => {
       continuationType:
         ContinuationContinuationType.CONTINUATION_TYPE_DIALOG_HISTORY,
     };
-    const event = EventFactory.sessionControl({ continuation });
+    const event = factory.sessionControl({ continuation });
 
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
@@ -404,7 +404,7 @@ describe('event types', () => {
       continuationType:
         ContinuationContinuationType.CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE,
     };
-    const event = EventFactory.sessionControl({ continuation });
+    const event = factory.sessionControl({ continuation });
 
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
@@ -420,7 +420,7 @@ describe('event types', () => {
 
   test('should generate session control history', () => {
     const sessionHistory = {};
-    const event = EventFactory.sessionControl({ sessionHistory });
+    const event = factory.sessionControl({ sessionHistory });
 
     expect(event).toHaveProperty('routing');
     expect(event).toHaveProperty('timestamp');
@@ -434,7 +434,7 @@ describe('event types', () => {
 
   test('should generate conversation start event', () => {
     const characters = [v4(), v4()];
-    const event = EventFactory.conversation(characters, {
+    const event = factory.conversation(characters, {
       conversationId,
     });
     expect(event.control?.action).toEqual(

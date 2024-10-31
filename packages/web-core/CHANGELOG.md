@@ -5,6 +5,7 @@
 - Server to Client log events
 - Latency reporting support
 - S2C logs added to conversation history
+- Allow to validate sent packets using zod
 
 ### Changed
 

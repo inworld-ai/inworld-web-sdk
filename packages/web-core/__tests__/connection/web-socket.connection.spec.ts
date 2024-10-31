@@ -67,6 +67,7 @@ const createWebSocket = (props: {
     onReady,
     onMessage: props.onMessage || onMessage,
     onDisconnect,
+    eventFactory,
   });
 };
 
@@ -473,6 +474,7 @@ describe('open', () => {
       onReady,
       onMessage,
       onDisconnect,
+      eventFactory,
     });
     jest.spyOn(WebSocket.prototype, 'send').mockImplementation(jest.fn());
 

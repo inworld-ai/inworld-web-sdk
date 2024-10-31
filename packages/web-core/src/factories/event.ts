@@ -1,3 +1,4 @@
+import * as snakecaseKeys from 'snakecase-keys';
 import { v4 } from 'uuid';
 
 import {
@@ -34,6 +35,7 @@ import { Character } from '../entities/character.entity';
 import { EntityItem } from '../entities/entities/entity_item';
 import { ItemOperation } from '../entities/entities/item_operation';
 import { PacketId } from '../entities/packets/packet_id.entity';
+import { InworldPacketSchema } from '../zod/schema';
 
 export interface SendCancelResponsePacketParams {
   interactionId?: string;
@@ -41,8 +43,13 @@ export interface SendCancelResponsePacketParams {
 }
 
 export class EventFactory {
+  private validateData: boolean;
   private character: Character | undefined = undefined;
   private characters: Character[] = [];
+
+  constructor({ validateData = false } = {}) {
+    this.validateData = validateData;
+  }
 
   getCurrentCharacter() {
     return this.character;
@@ -65,7 +72,7 @@ export class EventFactory {
     type: DataChunkDataType,
     params: SendPacketParams,
   ): ProtoPacket {
-    return {
+    const packet = {
       ...this.baseProtoPacket({
         utteranceId: false,
         interactionId: false,
@@ -73,18 +80,36 @@ export class EventFactory {
       }),
       dataChunk: { chunk: chunk as unknown as Uint8Array, type },
     };
+
+    this.validate(packet);
+
+    return packet;
   }
 
   audioSessionStart(params: SendAudioSessionStartPacketParams): ProtoPacket {
-    return this.audioSession(ControlEventAction.AUDIO_SESSION_START, params);
+    const packet = this.audioSession(
+      ControlEventAction.AUDIO_SESSION_START,
+      params,
+    );
+
+    this.validate(packet);
+
+    return packet;
   }
 
   audioSessionEnd(params: SendPacketParams): ProtoPacket {
-    return this.audioSession(ControlEventAction.AUDIO_SESSION_END, params);
+    const packet = this.audioSession(
+      ControlEventAction.AUDIO_SESSION_END,
+      params,
+    );
+
+    this.validate(packet);
+
+    return packet;
   }
 
   pong(packetId: PacketId, pingTimestamp: string): ProtoPacket {
-    return {
+    const packet = {
       ...this.baseProtoPacket({
         utteranceId: false,
         interactionId: false,
@@ -97,6 +122,10 @@ export class EventFactory {
         },
       },
     };
+
+    this.validate(packet);
+
+    return packet;
   }
 
   perceivedLatency(
@@ -104,7 +133,7 @@ export class EventFactory {
     nanos: number,
     precisionToSend: PerceivedLatencyReportPrecision = PerceivedLatencyReportPrecision.FINE,
   ): ProtoPacket {
-    return {
+    const packet = {
       ...this.baseProtoPacket({
         utteranceId: false,
         interactionId: false,
@@ -116,10 +145,14 @@ export class EventFactory {
         },
       },
     };
+
+    this.validate(packet);
+
+    return packet;
   }
 
   mutePlayback(isMuted: boolean, params: SendPacketParams): ProtoPacket {
-    return {
+    const packet = {
       ...this.baseProtoPacket({
         utteranceId: false,
         interactionId: false,
@@ -131,10 +164,14 @@ export class EventFactory {
           : ControlEventAction.TTS_PLAYBACK_UNMUTE,
       },
     };
+
+    this.validate(packet);
+
+    return packet;
   }
 
   text(text: string, params: SendPacketParams): ProtoPacket {
-    return {
+    const packet = {
       ...this.baseProtoPacket({
         correlationId: true,
         conversationId: params.conversationId,
@@ -145,14 +182,22 @@ export class EventFactory {
         final: true,
       },
     };
+
+    this.validate(packet);
+
+    return packet;
   }
 
   trigger(name: string, params: SendCustomPacketParams): ProtoPacket {
-    return this.customEvent(name, CustomEventType.TRIGGER, params);
+    const packet = this.customEvent(name, CustomEventType.TRIGGER, params);
+
+    this.validate(packet);
+
+    return packet;
   }
 
   cancelResponse(params: SendCancelResponsePacketParams): ProtoPacket {
-    return {
+    const packet = {
       ...this.baseProtoPacket({
         utteranceId: false,
         interactionId: false,
@@ -168,10 +213,14 @@ export class EventFactory {
         target: { type: ActorType.WORLD },
       }),
     };
+
+    this.validate(packet);
+
+    return packet;
   }
 
   narratedAction(content: string, params: SendPacketParams): ProtoPacket {
-    return {
+    const packet = {
       ...this.baseProtoPacket({
         correlationId: true,
         conversationId: params.conversationId,
@@ -182,12 +231,13 @@ export class EventFactory {
         },
       },
     };
+
+    this.validate(packet);
+
+    return packet;
   }
 
-  static conversation(
-    participants: string[],
-    params: SendPacketParams,
-  ): ProtoPacket {
+  conversation(participants: string[], params: SendPacketParams): ProtoPacket {
     const control = {
       action: ControlEventAction.CONVERSATION_UPDATE,
       conversationUpdate: {
@@ -204,7 +254,7 @@ export class EventFactory {
       },
     } as ControlEvent;
 
-    return {
+    const packet = {
       packetId: {
         packetId: v4(),
         conversationId: params.conversationId,
@@ -212,9 +262,13 @@ export class EventFactory {
       timestamp: protoTimestamp(),
       control,
     };
+
+    this.validate(packet);
+
+    return packet;
   }
 
-  static sessionControl(props: SessionControlProps): ProtoPacket {
+  sessionControl(props: SessionControlProps): ProtoPacket {
     const sessionConfiguration = {
       ...(!!props.capabilities && {
         capabilitiesConfiguration: props.capabilities,
@@ -231,12 +285,12 @@ export class EventFactory {
       ...(!!props.continuation && { continuation: props.continuation }),
     } as SessionConfigurationPayload;
 
-    return {
+    const packet = {
       packetId: {
         packetId: v4(),
       },
       timestamp: protoTimestamp(),
-      routing: this.worldRouting(),
+      routing: EventFactory.worldRouting(),
       ...(Object.keys(sessionConfiguration).length
         ? {
             control: {
@@ -250,23 +304,31 @@ export class EventFactory {
             }),
           }),
     };
+
+    this.validate(packet);
+
+    return packet;
   }
 
-  static loadScene(name: string): ProtoPacket {
+  loadScene(name: string): ProtoPacket {
     const mutation = { loadScene: { name } } as MutationEvent;
 
-    return {
+    const packet = {
       packetId: {
         packetId: v4(),
         interactionId: v4(),
       },
       timestamp: protoTimestamp(),
-      routing: this.worldRouting(),
+      routing: EventFactory.worldRouting(),
       mutation,
     };
+
+    this.validate(packet);
+
+    return packet;
   }
 
-  static loadCharacters(names: string[]): ProtoPacket {
+  loadCharacters(names: string[]): ProtoPacket {
     const name = names.map(
       (name) =>
         ({
@@ -276,25 +338,33 @@ export class EventFactory {
 
     const mutation = { loadCharacters: { name } } as MutationEvent;
 
-    return {
+    const packet = {
       packetId: { packetId: v4() },
       timestamp: protoTimestamp(),
-      routing: this.worldRouting(),
+      routing: EventFactory.worldRouting(),
       mutation,
     };
+
+    this.validate(packet);
+
+    return packet;
   }
 
-  static unloadCharacters(ids: string[]): ProtoPacket {
+  unloadCharacters(ids: string[]): ProtoPacket {
     const agents = ids.map((agentId) => ({ agentId }) as Agent);
 
     const mutation = { unloadCharacters: { agents } } as MutationEvent;
 
-    return {
+    const packet = {
       packetId: { packetId: v4() },
       timestamp: protoTimestamp(),
-      routing: this.worldRouting(),
+      routing: EventFactory.worldRouting(),
       mutation,
     };
+
+    this.validate(packet);
+
+    return packet;
   }
 
   baseProtoPacket({
@@ -393,49 +463,77 @@ export class EventFactory {
     };
   }
 
-  static createOrUpdateItems(props: {
+  private validate(packet: ProtoPacket) {
+    if (!this.validateData) {
+      return;
+    }
+
+    const inSnakeCase = snakecaseKeys.default(packet);
+    const result = InworldPacketSchema.safeParse(inSnakeCase);
+
+    if (!result.success) {
+      console.warn('Invalid packet', {
+        packet: inSnakeCase,
+        errors: result.error.errors,
+      });
+    }
+  }
+
+  createOrUpdateItems(props: {
     items: EntityItem[];
     addToEntities: string[];
   }): ProtoPacket {
-    return {
+    const packet = {
       packetId: {
         packetId: v4(),
       },
       timestamp: protoTimestamp(),
-      routing: this.worldRouting(),
+      routing: EventFactory.worldRouting(),
       entitiesItemsOperation: new ItemOperation({
         createOrUpdateItems: props,
       }).toProto(),
     };
+
+    this.validate(packet);
+
+    return packet;
   }
 
-  static removeItems(ids: string[]): ProtoPacket {
-    return {
+  removeItems(ids: string[]): ProtoPacket {
+    const packet = {
       packetId: {
         packetId: v4(),
       },
       timestamp: protoTimestamp(),
-      routing: this.worldRouting(),
+      routing: EventFactory.worldRouting(),
       entitiesItemsOperation: new ItemOperation({
         removeItems: { itemIds: ids },
       }).toProto(),
     };
+
+    this.validate(packet);
+
+    return packet;
   }
 
-  static itemsInEntities(props: {
+  itemsInEntities(props: {
     type: ItemsInEntitiesOperationType;
     itemIds: string[];
     entityNames: string[];
   }): ProtoPacket {
-    return {
+    const packet = {
       packetId: {
         packetId: v4(),
       },
       timestamp: protoTimestamp(),
-      routing: this.worldRouting(),
+      routing: EventFactory.worldRouting(),
       entitiesItemsOperation: new ItemOperation({
         itemsInEntities: props,
       }).toProto(),
     };
+
+    this.validate(packet);
+
+    return packet;
   }
 }
