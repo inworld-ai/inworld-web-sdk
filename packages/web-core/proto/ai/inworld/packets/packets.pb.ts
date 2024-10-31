@@ -41,6 +41,7 @@ export enum TextEventSourceType {
   TYPED_IN = "TYPED_IN",
   GENERATED = "GENERATED",
   FILLER = "FILLER",
+  FILLERS = "FILLERS",
 }
 
 export enum ControlEventAction {
