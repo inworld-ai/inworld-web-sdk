@@ -1,6 +1,7 @@
 coverage
 build
 proto
+zod
 dist
 node_modules
 .eslintcache

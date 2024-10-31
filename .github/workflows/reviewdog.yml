@@ -6,6 +6,7 @@ on:
       - '**/.gitignore'
       - '**/*.md'
       - '**/proto/**'
+      - '**/zod/**'
 
 jobs:
   eslint:
