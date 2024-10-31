@@ -24,7 +24,8 @@
   },
   "include": [
     "src/**/*",
-    "proto/**/*"
+    "proto/**/*",
+    "zod/**/*"
   ],
   "exclude": [
     "node_modules"

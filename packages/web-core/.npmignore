@@ -1,6 +1,7 @@
 coverage
 __tests__
 /src
+/zod
 /proto
 /replacers
 */**/node_modules/*
