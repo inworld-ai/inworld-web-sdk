@@ -28,6 +28,7 @@ import { EventFactory } from '../factories/event';
 
 const INWORLD_USER_ID = 'inworldUserId';
 const SESSION_PATH = '/v1/session/open';
+const NORMAL_CLOSURE_CODE = 1000;
 
 interface OpenSessionProps {
   name: string;
@@ -208,7 +209,7 @@ export class WebSocketConnection<
 
   async close(): Promise<void> {
     if (this.isActive()) {
-      this.ws.close();
+      this.ws.close(NORMAL_CLOSURE_CODE, 'Client closed the connection');
       this.connectionProps.onDisconnect();
     }
 
