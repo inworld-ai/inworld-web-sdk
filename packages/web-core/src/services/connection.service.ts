@@ -474,7 +474,7 @@ export class ConnectionService<
       // Reuse session id to keep context of previous conversation
       if (sessionId) {
         sessionToken = {
-          ...this.session,
+          ...sessionToken,
           sessionId,
         };
       }

@@ -11,6 +11,10 @@
 
 - Improve connection management
 
+### Fixed
+
+- Fix regenration of expired token
+
 ## [2.8.0] - 2024-08-13
 
 ### Fixed
