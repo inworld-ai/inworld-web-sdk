@@ -39,6 +39,8 @@ export class LogsEvent {
         return LogLevel.INFO;
       case LogsEventLogLevel.DEBUG:
         return LogLevel.DEBUG;
+      case LogsEventLogLevel.INTERNAL:
+        return LogLevel.INTERNAL;
       default:
         return LogLevel.UNSPECIFIED;
     }
