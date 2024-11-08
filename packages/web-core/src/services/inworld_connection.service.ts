@@ -4,6 +4,7 @@ import {
   AudioSessionState,
   CancelResponsesProps,
   ChangeSceneProps,
+  ConversationIntializeState,
   ConversationParticipant,
   ConversationState,
   TriggerParameter,
@@ -44,6 +45,8 @@ export class InworldConnectionService<
   private connection: ConnectionService<InworldPacketT>;
   private grpcAudioPlayer: GrpcAudioPlayback<InworldPacketT>;
   private oneToOneConversation: ConversationService<InworldPacketT>;
+  private oneToOneConversationIntializeState =
+    ConversationIntializeState.INACTIVE;
 
   readonly feedback: FeedbackService<InworldPacketT>;
   readonly entity: EntityService<InworldPacketT>;
@@ -379,7 +382,12 @@ export class InworldConnectionService<
   }
 
   private async ensureOneToOneConversation() {
-    if (!this.oneToOneConversation) {
+    if (
+      this.oneToOneConversationIntializeState ===
+      ConversationIntializeState.INACTIVE
+    ) {
+      this.oneToOneConversationIntializeState =
+        ConversationIntializeState.PROCESSING;
       const character = await this.getCurrentCharacter();
 
       if (!character) {
@@ -395,6 +403,23 @@ export class InworldConnectionService<
       );
 
       this.addConversationToConnection(this.oneToOneConversation);
+      this.oneToOneConversationIntializeState =
+        ConversationIntializeState.ACTIVE;
+    } else {
+      return new Promise<void>((resolve) => {
+        const interval = setInterval(() => {
+          if (
+            this.oneToOneConversationIntializeState ===
+            ConversationIntializeState.ACTIVE
+          ) {
+            clearInterval(interval);
+            this.connection.removeInterval(interval);
+            resolve();
+          }
+        }, 10);
+
+        this.connection.addInterval(interval);
+      });
     }
   }
 

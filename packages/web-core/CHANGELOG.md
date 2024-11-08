@@ -14,6 +14,7 @@
 ### Fixed
 
 - Fix regenration of expired token
+- Wait for one-to-one conversation loading on data sending
 
 ## [2.8.0] - 2024-08-13
 

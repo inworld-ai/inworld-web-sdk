@@ -224,6 +224,12 @@ export enum ConversationState {
   INACTIVE = 'INACTIVE',
 }
 
+export enum ConversationIntializeState {
+  ACTIVE = 'ACTIVE',
+  PROCESSING = 'PROCESSING',
+  INACTIVE = 'INACTIVE',
+}
+
 export interface PacketQueueItem {
   getPacket: () => ProtoPacket;
   afterWriting: (packet: ProtoPacket) => void;
