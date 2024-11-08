@@ -310,10 +310,16 @@ export type PerceivedLatencyReport = {
   latency?: GoogleProtobufDuration.Duration
 }
 
+export type LogsEventLogDetail = {
+  text?: string
+  detail?: GoogleProtobufStruct.Value
+}
+
 export type LogsEvent = {
   text?: string
   level?: LogsEventLogLevel
   metadata?: {[key: string]: string}
+  details?: LogsEventLogDetail[]
 }
 
 
