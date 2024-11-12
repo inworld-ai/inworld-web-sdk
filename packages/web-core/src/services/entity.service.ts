@@ -4,7 +4,6 @@ import {
 } from '../common/data_structures';
 import { EntityItem } from '../entities/entities/entity_item';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
-import { EventFactory } from '../factories/event';
 import { ConnectionService } from './connection.service';
 
 export class EntityService<
@@ -21,7 +20,7 @@ export class EntityService<
     addToEntities: string[];
   }) {
     return this.connection.send(() =>
-      EventFactory.createOrUpdateItems({
+      this.connection.getEventFactory().createOrUpdateItems({
         items: props.items.map((item) => new EntityItem(item)),
         addToEntities: props.addToEntities,
       }),
@@ -29,7 +28,9 @@ export class EntityService<
   }
 
   async removeItems(ids: string[]) {
-    return this.connection.send(() => EventFactory.removeItems(ids));
+    return this.connection.send(() =>
+      this.connection.getEventFactory().removeItems(ids),
+    );
   }
 
   async itemsInEntities(props: {
@@ -37,6 +38,8 @@ export class EntityService<
     itemIds: string[];
     entityNames: string[];
   }) {
-    return this.connection.send(() => EventFactory.itemsInEntities(props));
+    return this.connection.send(() =>
+      this.connection.getEventFactory().itemsInEntities(props),
+    );
   }
 }

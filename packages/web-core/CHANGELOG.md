@@ -5,10 +5,16 @@
 - Server to Client log events
 - Latency reporting support
 - S2C logs added to conversation history
+- Allow to validate sent packets using zod
 
 ### Changed
 
 - Improve connection management
+
+### Fixed
+
+- Fix regenration of expired token
+- Wait for one-to-one conversation loading on data sending
 
 ## [2.8.0] - 2024-08-13
 

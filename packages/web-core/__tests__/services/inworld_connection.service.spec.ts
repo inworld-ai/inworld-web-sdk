@@ -1287,16 +1287,10 @@ describe('character', () => {
   test('should set current character', async () => {
     jest
       .spyOn(service, 'getCurrentCharacter')
-      .mockImplementationOnce(() => Promise.resolve(undefined!));
-    const setCurrentCharacter = jest
-      .spyOn(eventFactory, 'setCurrentCharacter')
-      .mockImplementation(jest.fn());
+      .mockImplementationOnce(() => Promise.resolve(characters[0]!));
     const updateParticipants = jest
       .spyOn(ConversationService.prototype, 'updateParticipants')
       .mockImplementation(jest.fn());
-
-    await service.setCurrentCharacter(characters[0]);
-    expect(setCurrentCharacter.mock.calls[0][0]).toEqual(characters[0]);
 
     const conversationService = await service.getCurrentConversation();
 

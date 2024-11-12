@@ -17,7 +17,6 @@ import {
 import { MULTI_CHAR_NARRATED_ACTIONS } from '../common/errors';
 import { Character } from '../entities/character.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
-import { EventFactory } from '../factories/event';
 import { ConnectionService } from './connection.service';
 
 export interface PacketQueueItem<
@@ -135,7 +134,7 @@ export class ConversationService<
     }
 
     const sent = await this.connection.send(() =>
-      EventFactory.conversation(conversationParticipants, {
+      this.connection.getEventFactory().conversation(conversationParticipants, {
         conversationId: this.getConversationId(),
       }),
     );
@@ -320,7 +319,7 @@ export class ConversationService<
       conversationParticipants.push(ConversationParticipant.USER);
     }
     const conversationPacket = await this.connection.send(() =>
-      EventFactory.conversation(conversationParticipants, {
+      this.connection.getEventFactory().conversation(conversationParticipants, {
         conversationId: this.getConversationId(),
       }),
     );

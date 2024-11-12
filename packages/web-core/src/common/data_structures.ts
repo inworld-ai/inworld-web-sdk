@@ -108,6 +108,7 @@ export interface ClientConfiguration {
   capabilities?: Capabilities;
   audioPlayback?: AudioPlaybackConfig;
   history?: HistoryConfig;
+  validateData?: boolean;
 }
 
 export interface InternalClientConfiguration {
@@ -116,6 +117,7 @@ export interface InternalClientConfiguration {
   capabilities: CapabilitiesConfiguration;
   audioPlayback?: AudioPlaybackConfig;
   history?: HistoryConfig;
+  validateData?: boolean;
 }
 
 export interface CancelResponses {
@@ -217,6 +219,12 @@ export enum InworldLatencyReportType {
 }
 
 export enum ConversationState {
+  ACTIVE = 'ACTIVE',
+  PROCESSING = 'PROCESSING',
+  INACTIVE = 'INACTIVE',
+}
+
+export enum ConversationIntializeState {
   ACTIVE = 'ACTIVE',
   PROCESSING = 'PROCESSING',
   INACTIVE = 'INACTIVE',

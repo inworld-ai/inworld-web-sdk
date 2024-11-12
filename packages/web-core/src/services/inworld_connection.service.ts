@@ -4,6 +4,7 @@ import {
   AudioSessionState,
   CancelResponsesProps,
   ChangeSceneProps,
+  ConversationIntializeState,
   ConversationParticipant,
   ConversationState,
   TriggerParameter,
@@ -21,7 +22,6 @@ import { InworldRecorder } from '../components/sound/inworld_recorder';
 import { Character } from '../entities/character.entity';
 import { InworldError } from '../entities/error.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
-import { EventFactory } from '../factories/event';
 import { characterHasValidFormat, sceneHasValidFormat } from '../guard/scene';
 import { ConnectionService } from './connection.service';
 import { ConversationService } from './conversation.service';
@@ -45,6 +45,8 @@ export class InworldConnectionService<
   private connection: ConnectionService<InworldPacketT>;
   private grpcAudioPlayer: GrpcAudioPlayback<InworldPacketT>;
   private oneToOneConversation: ConversationService<InworldPacketT>;
+  private oneToOneConversationIntializeState =
+    ConversationIntializeState.INACTIVE;
 
   readonly feedback: FeedbackService<InworldPacketT>;
   readonly entity: EntityService<InworldPacketT>;
@@ -305,7 +307,7 @@ export class InworldConnectionService<
     }
 
     const result = await this.connection.send(() =>
-      EventFactory.loadCharacters(names),
+      this.connection.getEventFactory().loadCharacters(names),
     );
 
     await this.resolveInterval(() => {
@@ -329,7 +331,7 @@ export class InworldConnectionService<
       .map((c) => c.id);
 
     const result = await this.connection.send(() =>
-      EventFactory.unloadCharacters(ids),
+      this.connection.getEventFactory().unloadCharacters(ids),
     );
 
     this.connection.removeCharacters(names);
@@ -380,7 +382,12 @@ export class InworldConnectionService<
   }
 
   private async ensureOneToOneConversation() {
-    if (!this.oneToOneConversation) {
+    if (
+      this.oneToOneConversationIntializeState ===
+      ConversationIntializeState.INACTIVE
+    ) {
+      this.oneToOneConversationIntializeState =
+        ConversationIntializeState.PROCESSING;
       const character = await this.getCurrentCharacter();
 
       if (!character) {
@@ -396,6 +403,23 @@ export class InworldConnectionService<
       );
 
       this.addConversationToConnection(this.oneToOneConversation);
+      this.oneToOneConversationIntializeState =
+        ConversationIntializeState.ACTIVE;
+    } else {
+      return new Promise<void>((resolve) => {
+        const interval = setInterval(() => {
+          if (
+            this.oneToOneConversationIntializeState ===
+            ConversationIntializeState.ACTIVE
+          ) {
+            clearInterval(interval);
+            this.connection.removeInterval(interval);
+            resolve();
+          }
+        }, 10);
+
+        this.connection.addInterval(interval);
+      });
     }
   }
 

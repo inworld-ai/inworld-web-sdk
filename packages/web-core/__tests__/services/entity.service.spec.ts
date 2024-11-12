@@ -33,7 +33,10 @@ beforeEach(() => {
 });
 
 test('should create or update items', async () => {
-  const createOrUpdateItems = jest.spyOn(EventFactory, 'createOrUpdateItems');
+  const createOrUpdateItems = jest.spyOn(
+    EventFactory.prototype,
+    'createOrUpdateItems',
+  );
 
   const items = [
     {
@@ -67,7 +70,7 @@ test('should create or update items', async () => {
 });
 
 test('should remove items', async () => {
-  const removeItems = jest.spyOn(EventFactory, 'removeItems');
+  const removeItems = jest.spyOn(EventFactory.prototype, 'removeItems');
 
   const ids = [v4(), v4()];
 
@@ -82,7 +85,7 @@ test.each([
   ItemsInEntitiesOperationType.REMOVE,
   ItemsInEntitiesOperationType.REPLACE,
 ])('shout execute $type', async (type) => {
-  const itemsInEntities = jest.spyOn(EventFactory, 'itemsInEntities');
+  const itemsInEntities = jest.spyOn(EventFactory.prototype, 'itemsInEntities');
 
   const itemIds = [v4(), v4()];
   const entityNames = [v4(), v4()];
