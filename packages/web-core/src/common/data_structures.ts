@@ -346,3 +346,8 @@ export type ProtobufValue =
   | undefined
   | ProtobufValue[]
   | { [key: string]: ProtobufValue };
+
+export interface LogsEventLogDetail {
+  text: string | undefined;
+  detail: ProtobufValue | undefined;
+}

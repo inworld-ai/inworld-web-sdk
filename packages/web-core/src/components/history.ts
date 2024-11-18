@@ -1,5 +1,6 @@
 import { v4 } from 'uuid';
 
+import { LogsEventLogDetail } from '../../proto/ai/inworld/packets/packets.pb';
 import { DEFAULT_USER_NAME } from '../common/constants';
 import {
   ConversationMapItem,
@@ -91,6 +92,7 @@ export interface HistoryItemLogEvent extends HistoryItemBase {
   text: string;
   level: LogLevel;
   metadata?: Record<string, string>;
+  details?: LogsEventLogDetail[];
 }
 
 export interface HistoryItemSceneChange {
@@ -711,6 +713,7 @@ export class InworldHistory<
       interactionId: packet.packetId.interactionId,
       level: packet.log.level,
       metadata: packet.log.metadata,
+      details: packet.log.details,
       source: packet.routing.source,
       text: packet.log.text,
       type: CHAT_HISTORY_TYPE.LOG_EVENT,

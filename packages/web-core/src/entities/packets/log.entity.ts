@@ -2,12 +2,11 @@ import {
   LogsEvent as ProtoLogsEvent,
   LogsEventLogLevel,
 } from '../../../proto/ai/inworld/packets/packets.pb';
-import { LogLevel, ProtobufValue } from '../../common/data_structures';
-
-export interface LogsEventLogDetail {
-  text: string | undefined;
-  detail: ProtobufValue | undefined;
-}
+import {
+  LogLevel,
+  LogsEventLogDetail,
+  ProtobufValue,
+} from '../../common/data_structures';
 
 export class LogsEvent {
   readonly text: string;
