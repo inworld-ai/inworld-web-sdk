@@ -337,3 +337,12 @@ export enum LogLevel {
   INTERNAL = 'INTERNAL',
   DEBUG = 'DEBUG',
 }
+
+export type ProtobufValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | ProtobufValue[]
+  | { [key: string]: ProtobufValue };

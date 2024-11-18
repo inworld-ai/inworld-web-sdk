@@ -18,6 +18,7 @@ import {
   HistoryChangedProps,
   ItemsInEntitiesOperationType,
   MicrophoneMode,
+  ProtobufValue,
   SessionState,
   StopAudioPlayback,
   TaskParameter,
@@ -71,6 +72,7 @@ import {
   EmotionStrengthCode,
 } from './entities/packets/emotion/emotion_strength.entity';
 import { InworldPacket } from './entities/packets/inworld_packet.entity';
+import { LogsEvent, LogsEventLogDetail } from './entities/packets/log.entity';
 import { PacketId } from './entities/packets/packet_id.entity';
 import { Actor, Routing } from './entities/packets/routing.entity';
 import { TextEvent } from './entities/packets/text.entity';
@@ -127,9 +129,12 @@ export {
   InworldPacket,
   InworldTriggers,
   ItemsInEntitiesOperationType,
+  LogsEvent,
+  LogsEventLogDetail,
   MicrophoneMode,
   PacketId,
   PreviousDialog,
+  ProtobufValue,
   ProtoPacket,
   Routing,
   SessionContinuation,
