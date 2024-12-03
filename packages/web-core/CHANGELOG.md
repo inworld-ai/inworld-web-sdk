@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Added
+
+- Add details to logs
+
 ## [2.9.0] - 2024-11-18
 
 ### Added

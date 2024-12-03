@@ -2,25 +2,36 @@ import {
   LogsEvent as ProtoLogsEvent,
   LogsEventLogLevel,
 } from '../../../proto/ai/inworld/packets/packets.pb';
-import { LogLevel } from '../../common/data_structures';
+import {
+  LogLevel,
+  LogsEventLogDetail,
+  ProtobufValue,
+} from '../../common/data_structures';
 
 export class LogsEvent {
   readonly text: string;
   readonly level: LogLevel;
   readonly metadata: Record<string, string> | undefined;
+  readonly details: LogsEventLogDetail[] | undefined;
 
   constructor({
     text,
     level,
     metadata,
+    details,
   }: {
     text: string;
     level: LogLevel;
     metadata: Record<string, string>;
+    details: LogsEventLogDetail[] | undefined;
   }) {
     this.text = text;
     this.level = level;
     this.metadata = metadata;
+
+    if (details?.length >= 0) {
+      this.details = details;
+    }
   }
 
   static fromProto(proto: ProtoLogsEvent) {
@@ -28,6 +39,10 @@ export class LogsEvent {
       text: proto.text,
       level: this.getLogLevel(proto.level),
       metadata: proto.metadata,
+      details: proto.details?.map((detail) => ({
+        text: detail.text,
+        detail: detail.detail as ProtobufValue,
+      })),
     });
   }
 

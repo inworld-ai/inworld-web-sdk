@@ -337,3 +337,17 @@ export enum LogLevel {
   INTERNAL = 'INTERNAL',
   DEBUG = 'DEBUG',
 }
+
+export type ProtobufValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | ProtobufValue[]
+  | { [key: string]: ProtobufValue };
+
+export interface LogsEventLogDetail {
+  text: string | undefined;
+  detail: ProtobufValue | undefined;
+}
