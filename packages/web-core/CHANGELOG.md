@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+
+- Fix changing of scene capabilities
+
 ## [2.9.1] - 2024-12-03
 
 ### Added
