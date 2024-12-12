@@ -34,7 +34,8 @@
     "prettier:format": "prettier --write \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
     "test": "jest --no-cache --reporters=default",
     "test:coverage": "jest --coverage",
-    "minify": "rollup --config rollup.config.mjs"
+    "minify": "rollup --config rollup.config.mjs",
+    "circular-deps": "madge --circular src"
   },
   "devDependencies": {
     "@types/defer-promise": "^1.0.0",

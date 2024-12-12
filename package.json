@@ -22,7 +22,8 @@
     "prettier:format": "yarn workspaces foreach -A run prettier:format && yarn prettier --write \"./examples/**/*.{js,jsx,ts,tsx}\" --ignore-path .eslintignore --config .prettierrc.json",
     "prepare": "husky",
     "test": "yarn workspace @inworld/web-core run test",
-    "test:coverage": "yarn workspace @inworld/web-core run test:coverage"
+    "test:coverage": "yarn workspace @inworld/web-core run test:coverage",
+    "circular-deps": "yarn workspaces foreach -A run circular-deps"
   },
   "devDependencies": {
     "@release-it/keep-a-changelog": "^5.0.0",
@@ -39,6 +40,7 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jest-websocket-mock": "^2.5.0",
+    "madge": "^8.0.0",
     "prettier": "^3.3.2",
     "release-it": "^17.1.1",
     "rollup": "^4.16.1",
