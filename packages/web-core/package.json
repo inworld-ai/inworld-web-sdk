@@ -1,6 +1,6 @@
 {
   "name": "@inworld/web-core",
-  "version": "2.9.2-beta.0",
+  "version": "2.9.2-beta.1",
   "license": "SEE LICENSE IN LICENSE.md",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
