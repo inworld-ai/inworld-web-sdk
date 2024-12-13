@@ -337,16 +337,18 @@ export class ConnectionService<
     }
 
     const sessionProto = await this.connection.updateSession({
-      name,
+      name: name !== this.getSceneName() ? name : undefined,
       capabilities: props?.capabilities,
       gameSessionId: props?.gameSessionId,
       sessionContinuation: this.connectionProps.sessionContinuation,
     });
 
-    this.setSceneFromProtoEvent(sessionProto);
+    if (sessionProto) {
+      this.setSceneFromProtoEvent(sessionProto);
 
-    if (this.scene.history?.length) {
-      this.setPreviousState(this.scene.history);
+      if (this.scene.history?.length) {
+        this.setPreviousState(this.scene.history);
+      }
     }
   }
 

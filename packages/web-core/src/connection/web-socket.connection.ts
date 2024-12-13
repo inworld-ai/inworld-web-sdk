@@ -144,7 +144,7 @@ export class WebSocketConnection<
     return new Promise((resolve, reject) =>
       ws.addEventListener(
         'message',
-        this.onLoadScene({
+        this.onLoad({
           needHistory,
           ws,
           write,
@@ -170,7 +170,6 @@ export class WebSocketConnection<
   }
 
   async updateSession(props: UpdateSessionProps): Promise<LoadedScene> {
-    this.ws.removeEventListener('message', this.onMessage);
     const finalPackets = this.getPackets({
       capabilities: props.capabilities,
       gameSessionId: props.gameSessionId,
@@ -192,10 +191,14 @@ export class WebSocketConnection<
       });
     }
 
+    if (!props.name) return;
+
+    this.ws.removeEventListener('message', this.onMessage);
+
     return new Promise((resolve, reject) =>
       this.ws.addEventListener(
         'message',
-        this.onLoadScene({
+        this.onLoad({
           firstLoad: false,
           needHistory,
           ws: this.ws,
@@ -286,7 +289,7 @@ export class WebSocketConnection<
     }
   }
 
-  private onLoadScene({
+  private onLoad({
     firstLoad = true,
     needHistory,
     write,
@@ -351,7 +354,7 @@ export class WebSocketConnection<
   }
 
   private getPackets(props: {
-    name: string;
+    name?: string;
     capabilities?: CapabilitiesConfiguration;
     client?: ClientRequest;
     user?: User;
@@ -383,8 +386,10 @@ export class WebSocketConnection<
         }),
         ...(continuation && { continuation }),
       }),
-      eventFactory.loadScene(props.name),
     ];
+    if (props.name) {
+      packets.push(eventFactory.loadScene(props.name));
+    }
 
     return this.extension.beforeLoadScene?.(packets) || packets;
   }

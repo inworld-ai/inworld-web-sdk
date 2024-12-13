@@ -135,11 +135,7 @@ export const AdditionalActions = (props: AdditionalActionsProps) => {
     if (sceneName) {
       props.playWorkaroundSound();
 
-      await props.connection?.changeScene(sceneName, {
-        capabilities: {
-          logsInternal: true,
-        },
-      });
+      await props.connection?.changeScene(sceneName);
 
       setSceneName('');
       setChangeSceneDialogOpen(false);
