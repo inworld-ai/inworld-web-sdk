@@ -39,7 +39,7 @@ interface OpenSessionProps {
 }
 
 interface UpdateSessionProps {
-  name: string;
+  name?: string;
   gameSessionId?: string;
   capabilities?: CapabilitiesConfiguration;
   sessionContinuation?: SessionContinuation;
