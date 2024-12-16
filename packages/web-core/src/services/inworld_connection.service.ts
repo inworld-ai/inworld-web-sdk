@@ -106,6 +106,10 @@ export class InworldConnectionService<
     return this.connection.isActive();
   }
 
+  getCapabilities() {
+    return this.connection.getClientConfig().capabilities;
+  }
+
   async getCharacters() {
     return this.connection.getCharacters();
   }

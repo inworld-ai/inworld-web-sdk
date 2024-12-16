@@ -699,7 +699,7 @@ describe('onMessage', () => {
   const HOSTNAME = 'localhost:1235';
 
   beforeEach(() => {
-    server = new WS(`ws://${HOSTNAME}/v1/session/open`, {
+    server = new WS(`wss://${HOSTNAME}/v1/session/open`, {
       jsonProtocol: true,
     });
 
