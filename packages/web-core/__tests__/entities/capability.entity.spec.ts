@@ -1,6 +1,6 @@
 import { Capability } from '../../src/entities/capability.entity';
 
-test('should convert empty capabilities to proto ', () => {
+test('should convert empty capabilities to proto', () => {
   const proto = Capability.toProto({});
 
   expect(proto).toEqual({

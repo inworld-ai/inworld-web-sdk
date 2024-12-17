@@ -384,6 +384,9 @@ describe('open', () => {
       .mockImplementationOnce(() =>
         Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
       );
+    jest
+      .spyOn(WebSocketConnection.prototype, 'reopenSession')
+      .mockImplementationOnce(() => Promise.resolve());
 
     await connection.open();
 

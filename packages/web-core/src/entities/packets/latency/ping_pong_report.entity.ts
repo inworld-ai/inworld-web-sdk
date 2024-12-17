@@ -3,7 +3,7 @@ import { PacketId } from '../packet_id.entity';
 import { PingPongReportType } from './ping_pong_report_type.entity';
 
 export class PingPongReport {
-  readonly packeId: PacketId | null;
+  readonly packetId: PacketId | null;
   readonly pingTimestamp: string;
   readonly type: PingPongReportType;
 
@@ -16,7 +16,7 @@ export class PingPongReport {
     pingTimestamp: string;
     type: PingPongReportType;
   }) {
-    this.packeId = packetId;
+    this.packetId = packetId;
     this.pingTimestamp = pingTimestamp;
     this.type = type;
   }
