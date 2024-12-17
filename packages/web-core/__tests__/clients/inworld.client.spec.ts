@@ -84,10 +84,7 @@ describe('should finish with success', () => {
     expect(ConnectionService).toHaveBeenCalledTimes(1);
     expect(ConnectionService).toHaveBeenCalledWith(
       expect.objectContaining({
-        config: {
-          connection,
-          capabilities: expect.anything(),
-        },
+        config: { connection },
       }),
     );
   });
