@@ -90,6 +90,14 @@ export class InworldClient<
   setConfiguration(config: ClientConfiguration) {
     this.config = config;
 
+    const { capabilities } = this.config;
+
+    if (capabilities?.logs !== undefined) {
+      console.warn(
+        'logs capability is deprecated. Please use logsDebug, logsInfo, logsWarning instead',
+      );
+    }
+
     return this;
   }
 
