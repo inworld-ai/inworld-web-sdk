@@ -69,6 +69,17 @@ describe('should finish with success', () => {
     expect(() => inworldClient.build()).not.toThrow();
   });
 
+  test("should warn about logs capability if it's set explicitly with speciied logs type", async () => {
+    jest.spyOn(console, 'warn').mockImplementationOnce(jest.fn());
+    new InworldClient().setConfiguration({
+      capabilities: { logs: true },
+    });
+    expect(console.warn).toHaveBeenCalledTimes(1);
+    expect(console.warn).toHaveBeenCalledWith(
+      'logs capability is deprecated. Please use logsDebug, logsInfo, logsWarning instead',
+    );
+  });
+
   test('should allow to specify custom gateway', async () => {
     const connection = {
       gateway: {
@@ -84,10 +95,7 @@ describe('should finish with success', () => {
     expect(ConnectionService).toHaveBeenCalledTimes(1);
     expect(ConnectionService).toHaveBeenCalledWith(
       expect.objectContaining({
-        config: {
-          connection,
-          capabilities: expect.anything(),
-        },
+        config: { connection },
       }),
     );
   });

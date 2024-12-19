@@ -69,7 +69,7 @@ describe('should create interaction feedback', () => {
     expect(createInteractionFeedback).toHaveBeenCalledWith({
       session,
       scene: SCENE,
-      config: undefined,
+      config: expect.anything(),
       correlationId,
       interactionId,
       interactionFeedback,
@@ -103,7 +103,7 @@ describe('should create interaction feedback', () => {
     expect(createInteractionFeedback).toHaveBeenCalledWith({
       session,
       scene: SCENE,
-      config: undefined,
+      config: expect.anything(),
       correlationId,
       interactionId,
       interactionFeedback,
@@ -122,7 +122,7 @@ describe('should create interaction feedback', () => {
     expect(deleteInteractionFeedback).toHaveBeenCalledWith({
       session,
       name,
-      config: undefined,
+      config: expect.anything(),
     });
   });
 });

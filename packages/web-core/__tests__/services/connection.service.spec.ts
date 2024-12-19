@@ -384,6 +384,9 @@ describe('open', () => {
       .mockImplementationOnce(() =>
         Promise.resolve({ sceneStatus: { agents } } as LoadedScene),
       );
+    jest
+      .spyOn(WebSocketConnection.prototype, 'reopenSession')
+      .mockImplementationOnce(() => Promise.resolve());
 
     await connection.open();
 
@@ -699,7 +702,7 @@ describe('onMessage', () => {
   const HOSTNAME = 'localhost:1235';
 
   beforeEach(() => {
-    server = new WS(`ws://${HOSTNAME}/v1/session/open`, {
+    server = new WS(`wss://${HOSTNAME}/v1/session/open`, {
       jsonProtocol: true,
     });
 

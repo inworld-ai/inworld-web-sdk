@@ -1,14 +1,11 @@
 import { CancelResponses } from '../../proto/ai/inworld/packets/packets.pb';
-import { GRPC_HOSTNAME } from '../common/constants';
 import {
   Awaitable,
   Client,
   ClientConfiguration,
   Extension,
-  Gateway,
   GenerateSessionTokenFn,
   HistoryChangedProps,
-  InternalClientConfiguration,
   OnPhomeneFn,
   User,
 } from '../common/data_structures';
@@ -21,7 +18,6 @@ import { HistoryItem } from '../components/history';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
-import { Capability } from '../entities/capability.entity';
 import {
   SessionContinuation,
   SessionContinuationProps,
@@ -93,6 +89,14 @@ export class InworldClient<
 
   setConfiguration(config: ClientConfiguration) {
     this.config = config;
+
+    const { capabilities } = this.config;
+
+    if (capabilities?.logs !== undefined) {
+      console.warn(
+        'logs capability is deprecated. Please use logsDebug, logsInfo, logsWarning instead',
+      );
+    }
 
     return this;
   }
@@ -189,12 +193,10 @@ export class InworldClient<
   build() {
     this.validate();
 
-    const config = this.buildConfiguration();
-
     const webRtcLoopbackBiDiSession = new GrpcWebRtcLoopbackBiDiSession();
     const grpcAudioRecorder = new GrpcAudioRecorder();
     const grpcAudioPlayer = new GrpcAudioPlayback<InworldPacketT>({
-      audioPlaybackConfig: config.audioPlayback,
+      audioPlaybackConfig: this.config.audioPlayback,
       onAfterPlaying: this.onAfterPlaying,
       onBeforePlaying: this.onBeforePlaying,
       onStopPlaying: this.onStopPlaying,
@@ -202,7 +204,7 @@ export class InworldClient<
     });
 
     const connection = new ConnectionService<InworldPacketT>({
-      config,
+      config: this.config,
       grpcAudioPlayer,
       webRtcLoopbackBiDiSession,
       name: this.scene,
@@ -230,27 +232,6 @@ export class InworldClient<
     inworldConnection.clearState();
 
     return inworldConnection;
-  }
-
-  private buildConfiguration(): InternalClientConfiguration {
-    const { connection = {}, capabilities = {}, ...restConfig } = this.config;
-    const { gateway } = connection;
-
-    return {
-      ...restConfig,
-      connection: {
-        ...connection,
-        gateway: this.ensureGateway(gateway),
-      },
-      capabilities: Capability.toProto(capabilities),
-    };
-  }
-
-  private ensureGateway(gateway?: Gateway): Gateway {
-    return {
-      hostname: gateway?.hostname ?? GRPC_HOSTNAME,
-      ssl: gateway?.ssl ?? true,
-    };
   }
 
   private validate() {

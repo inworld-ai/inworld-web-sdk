@@ -4,16 +4,19 @@ import {
   InworlControlAction,
   InworldPacketType,
   ItemsInEntitiesOperationType,
-} from '../../src/common/data_structures';
-import { protoTimestamp } from '../../src/common/helpers';
-import { EntityItem } from '../../src/entities/entities/entity_item';
-import { ItemOperation } from '../../src/entities/entities/item_operation';
-import { AudioEvent } from '../../src/entities/packets/audio.entity';
-import { ControlEvent } from '../../src/entities/packets/control.entity';
-import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
-import { Routing } from '../../src/entities/packets/routing.entity';
-import { TextEvent } from '../../src/entities/packets/text.entity';
-import { agents, convertAgentsToCharacters, getPacketId } from '../helpers';
+  LogLevel,
+} from '../../../src/common/data_structures';
+import { protoTimestamp } from '../../../src/common/helpers';
+import { EntityItem } from '../../../src/entities/entities/entity_item';
+import { ItemOperation } from '../../../src/entities/entities/item_operation';
+import { AudioEvent } from '../../../src/entities/packets/audio.entity';
+import { ControlEvent } from '../../../src/entities/packets/control.entity';
+import { InworldPacket } from '../../../src/entities/packets/inworld_packet.entity';
+import { PerceivedLatencyReportPrecisionType } from '../../../src/entities/packets/latency/perceived_latency_report_precision.entity';
+import { PingPongType } from '../../../src/entities/packets/latency/ping_pong_report_type.entity';
+import { Routing } from '../../../src/entities/packets/routing.entity';
+import { TextEvent } from '../../../src/entities/packets/text.entity';
+import { agents, convertAgentsToCharacters, getPacketId } from '../../helpers';
 
 const packetId = getPacketId();
 const packetIdWithCorrelation = {
@@ -91,6 +94,21 @@ test('should get trigger packet fields', () => {
   expect(packet.packetId).toEqual(packetIdWithCorrelation);
 });
 
+test('should get task packet fields', () => {
+  const packet = new InworldPacket({
+    packetId: packetIdWithCorrelation,
+    routing,
+    date,
+    type: InworldPacketType.TASK,
+  });
+
+  expect(packet.isTask()).toEqual(true);
+
+  expect(packet.routing).toEqual(routing);
+  expect(packet.date).toEqual(date);
+  expect(packet.packetId).toEqual(packetIdWithCorrelation);
+});
+
 test('should get emotion packet fields', () => {
   const packet = new InworldPacket({
     packetId,
@@ -135,6 +153,93 @@ test('should get cancel response packet fields', () => {
   });
 
   expect(packet.isCancelResponse()).toEqual(true);
+  expect(packet.routing).toEqual(routing);
+  expect(packet.date).toEqual(date);
+  expect(packet.packetId).toEqual(packetId);
+});
+
+test('should get log packet fields', () => {
+  const packet = new InworldPacket({
+    packetId,
+    routing,
+    date,
+    log: {
+      text: v4(),
+      details: [],
+      metadata: {},
+      level: LogLevel.DEBUG,
+    },
+    type: InworldPacketType.LOG,
+  });
+
+  expect(packet.isLog()).toEqual(true);
+  expect(packet.routing).toEqual(routing);
+  expect(packet.date).toEqual(date);
+  expect(packet.packetId).toEqual(packetId);
+});
+
+test('should get ping packet fields', () => {
+  const packet = new InworldPacket({
+    packetId,
+    routing,
+    date,
+    latencyReport: {
+      pingPong: {
+        packetId: null,
+        pingTimestamp: protoTimestamp(),
+        type: { type: PingPongType.PING },
+      },
+    },
+    type: InworldPacketType.LATENCY_REPORT,
+  });
+
+  expect(packet.isLatencyReport()).toEqual(true);
+  expect(packet.isPingPongReport()).toEqual(true);
+  expect(packet.routing).toEqual(routing);
+  expect(packet.date).toEqual(date);
+  expect(packet.packetId).toEqual(packetId);
+});
+
+test('should get pong packet fields', () => {
+  const packet = new InworldPacket({
+    packetId,
+    routing,
+    date,
+    latencyReport: {
+      pingPong: {
+        packetId,
+        pingTimestamp: protoTimestamp(),
+        type: { type: PingPongType.PONG },
+      },
+    },
+    type: InworldPacketType.LATENCY_REPORT,
+  });
+
+  expect(packet.isLatencyReport()).toEqual(true);
+  expect(packet.isPingPongReport()).toEqual(true);
+  expect(packet.routing).toEqual(routing);
+  expect(packet.date).toEqual(date);
+  expect(packet.packetId).toEqual(packetId);
+});
+
+test('should get perceived latency packet fields', () => {
+  const packet = new InworldPacket({
+    packetId,
+    routing,
+    date,
+    latencyReport: {
+      perceivedLatency: {
+        latency: 100,
+        precision: {
+          precision: PerceivedLatencyReportPrecisionType.FINE,
+        },
+      },
+    },
+    type: InworldPacketType.LATENCY_REPORT,
+  });
+
+  expect(packet.isLatencyReport()).toEqual(true);
+  expect(packet.isPerceivedLatencyReport()).toEqual(true);
   expect(packet.routing).toEqual(routing);
   expect(packet.date).toEqual(date);
   expect(packet.packetId).toEqual(packetId);
