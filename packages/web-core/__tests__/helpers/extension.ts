@@ -1,5 +1,5 @@
 import { InworldPacket as ProtoPacket } from '../../proto/ai/inworld/packets/packets.pb';
-import { Extension } from '../../src/common/data_structures';
+import { Extension } from '../../src/common/data_structures/extension';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
 import { ExtendedHistoryItem, ExtendedInworldPacket } from '../data_structures';
 

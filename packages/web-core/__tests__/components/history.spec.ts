@@ -3,20 +3,22 @@ import '../mocks/window.mock';
 import { v4 } from 'uuid';
 
 import {
-  ConversationMapItem,
   ConversationState,
-  Extension,
   InworlControlAction,
   InworldConversationEventType,
   InworldPacketType,
   User,
 } from '../../src/common/data_structures';
-import { protoTimestamp } from '../../src/common/helpers';
+import {
+  ConvesationInterface,
+  Extension,
+} from '../../src/common/data_structures/extension';
 import {
   CHAT_HISTORY_TYPE,
   HistoryItemActor,
-  InworldHistory,
-} from '../../src/components/history';
+} from '../../src/common/data_structures/history';
+import { protoTimestamp } from '../../src/common/helpers';
+import { InworldHistory } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
 import { ControlEvent } from '../../src/entities/packets/control.entity';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
@@ -113,7 +115,13 @@ const createHistoryWithPacket = (
     user,
     scene: SCENE,
     audioEnabled,
-    conversations: new Map<string, ConversationMapItem>(),
+    conversations: new Map<
+      string,
+      {
+        service: ConvesationInterface;
+        state: ConversationState;
+      }
+    >(),
   });
 
   history.addOrUpdate({ characters, grpcAudioPlayer, packet, fromHistory });
@@ -125,7 +133,13 @@ test('should be empty by default', () => {
   const history = new InworldHistory({
     scene: SCENE,
     audioEnabled: false,
-    conversations: new Map<string, ConversationMapItem>(),
+    conversations: new Map<
+      string,
+      {
+        service: ConvesationInterface;
+        state: ConversationState;
+      }
+    >(),
   });
 
   expect(history.get().length).toEqual(0);
@@ -371,7 +385,13 @@ describe('text', () => {
       const history = new InworldHistory({
         scene: SCENE,
         audioEnabled: true,
-        conversations: new Map<string, ConversationMapItem>(),
+        conversations: new Map<
+          string,
+          {
+            service: ConvesationInterface;
+            state: ConversationState;
+          }
+        >(),
       });
 
       const transcript = history.getTranscript();
@@ -807,7 +827,13 @@ describe('conversation', () => {
         },
       }),
     });
-    const conversations = new Map<string, ConversationMapItem>();
+    const conversations = new Map<
+      string,
+      {
+        service: ConvesationInterface;
+        state: ConversationState;
+      }
+    >();
     conversations.set(conversationId, {
       service: new ConversationService(new ConnectionService(), {
         participants: [characters[0].resourceName],

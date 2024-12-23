@@ -12,15 +12,15 @@ import {
 } from '../../proto/ai/inworld/packets/packets.pb';
 import {
   ConversationState,
-  HistoryChangedProps,
   LoadedScene,
 } from '../../src/common/data_structures';
-import { protoTimestamp } from '../../src/common/helpers';
 import {
   CHAT_HISTORY_TYPE,
+  HistoryChangedProps,
   HistoryItem,
-  InworldHistory,
-} from '../../src/components/history';
+} from '../../src/common/data_structures/history';
+import { protoTimestamp } from '../../src/common/helpers';
+import { InworldHistory } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
 import { GrpcWebRtcLoopbackBiDiSession } from '../../src/components/sound/grpc_web_rtc_loopback_bidi.session';
 import { Player } from '../../src/components/sound/player';

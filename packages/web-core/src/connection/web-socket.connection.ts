@@ -13,13 +13,13 @@ import {
 import { CLIENT_ID } from '../common/constants';
 import {
   Awaitable,
-  Extension,
   InternalClientConfiguration,
   LoadedScene,
   ProtoError,
   User,
 } from '../common/data_structures';
-import { HistoryItem } from '../components/history';
+import { Extension } from '../common/data_structures/extension';
+import { HistoryItem } from '../common/data_structures/history';
 import { SessionContinuation } from '../entities/continuation/session_continuation.entity';
 import { InworldError } from '../entities/error.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';

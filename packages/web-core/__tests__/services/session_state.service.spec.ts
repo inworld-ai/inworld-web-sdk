@@ -3,8 +3,11 @@ import '../mocks/window.mock';
 import { v4 } from 'uuid';
 
 import { DEFAULT_SESSION_STATE_KEY } from '../../src/common/constants';
+import {
+  CHAT_HISTORY_TYPE,
+  HistoryItem,
+} from '../../src/common/data_structures/history';
 import { protoTimestamp } from '../../src/common/helpers';
-import { CHAT_HISTORY_TYPE, HistoryItem } from '../../src/components/history';
 import { ConnectionService } from '../../src/services/connection.service';
 import { SessionStateService } from '../../src/services/session_state.service';
 import { StateSerializationService } from '../../src/services/wrappers/state_serialization.service';

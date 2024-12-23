@@ -35,7 +35,7 @@
     "test": "jest --no-cache --reporters=default",
     "test:coverage": "jest --coverage",
     "minify": "rollup --config rollup.config.mjs",
-    "circular-deps": "madge --circular src"
+    "circular-deps": "madge --circular --extensions ts,tsx src"
   },
   "devDependencies": {
     "@types/defer-promise": "^1.0.0",

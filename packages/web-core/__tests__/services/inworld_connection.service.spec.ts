@@ -11,7 +11,6 @@ import {
 } from '../../proto/ai/inworld/packets/packets.pb';
 import {
   AudioSessionState,
-  ConversationMapItem,
   ConversationState,
   InworldPacketType,
   LoadedScene,
@@ -19,16 +18,17 @@ import {
   TtsPlaybackAction,
   UnderstandingMode,
 } from '../../src/common/data_structures';
+import { ConvesationInterface } from '../../src/common/data_structures/extension';
+import {
+  CHAT_HISTORY_TYPE,
+  HistoryItem,
+} from '../../src/common/data_structures/history';
 import {
   CHARACTER_HAS_INVALID_FORMAT,
   SCENE_HAS_INVALID_FORMAT,
 } from '../../src/common/errors';
 import { protoTimestamp } from '../../src/common/helpers';
-import {
-  CHAT_HISTORY_TYPE,
-  HistoryItem,
-  InworldHistory,
-} from '../../src/components/history';
+import { InworldHistory } from '../../src/components/history';
 import { GrpcAudioPlayback } from '../../src/components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../../src/components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../../src/components/sound/grpc_web_rtc_loopback_bidi.session';
@@ -176,7 +176,13 @@ describe('history', () => {
     const history = new InworldHistory({
       scene: SCENE,
       audioEnabled: true,
-      conversations: new Map<string, ConversationMapItem>(),
+      conversations: new Map<
+        string,
+        {
+          service: ConvesationInterface;
+          state: ConversationState;
+        }
+      >(),
     });
     const packetId = getPacketId();
     const routing: Routing = {

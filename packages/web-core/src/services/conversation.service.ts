@@ -14,6 +14,7 @@ import {
   TriggerParameter,
   TtsPlaybackAction,
 } from '../common/data_structures';
+import { ConvesationInterface } from '../common/data_structures/extension';
 import { MULTI_CHAR_NARRATED_ACTIONS } from '../common/errors';
 import { Character } from '../entities/character.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
@@ -28,7 +29,8 @@ export interface PacketQueueItem<
 
 export class ConversationService<
   InworldPacketT extends InworldPacket = InworldPacket,
-> {
+> implements ConvesationInterface<InworldPacketT>
+{
   private connection: ConnectionService<InworldPacketT>;
   private conversationId: string;
   private participants: string[];

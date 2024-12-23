@@ -34,7 +34,7 @@
     "prettier:check": "prettier --check \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
     "prettier:format": "prettier --write \"./**/*.{js,jsx,ts,tsx}\" --ignore-path ../../.eslintignore --config ../../.prettierrc.json",
     "minify": "rollup --config rollup.config.mjs",
-    "circular-deps": "madge --circular src"
+    "circular-deps": "madge --circular --extensions ts,tsx src"
   },
   "devDependencies": {
     "@types/three": "^0.164.0",
