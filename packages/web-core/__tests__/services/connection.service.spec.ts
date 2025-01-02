@@ -27,6 +27,7 @@ import { Player } from '../../src/components/sound/player';
 import { WebSocketConnection } from '../../src/connection/web-socket.connection';
 import { Character } from '../../src/entities/character.entity';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
+import { PingPongType } from '../../src/entities/packets/latency/ping_pong_report_type.entity';
 import { Actor } from '../../src/entities/packets/routing.entity';
 import { SessionToken } from '../../src/entities/session_token.entity';
 import { EventFactory } from '../../src/factories/event';
@@ -249,7 +250,7 @@ describe('open', () => {
     jest.spyOn(Player.prototype, 'setStream').mockImplementation(jest.fn());
   });
 
-  test('should execute without errors123', async () => {
+  test('should execute without errors', async () => {
     const openSession = jest
       .spyOn(WebSocketConnection.prototype, 'openSession')
       .mockImplementationOnce(() =>
@@ -1017,6 +1018,123 @@ describe('onWarning', () => {
     connection.onWarning({} as InworldPacket);
 
     expect(console.warn).toHaveBeenCalledTimes(0);
+  });
+});
+
+describe('latency', () => {
+  const HOSTNAME = 'localhost:1234';
+
+  let connection: ConnectionService;
+  let server: WS;
+
+  beforeEach(() => {
+    server = new WS(`ws://${HOSTNAME}/v1/session/open`, {
+      jsonProtocol: true,
+    });
+
+    connection = new ConnectionService({
+      name: SCENE,
+      config: {
+        connection: { gateway: { hostname: HOSTNAME } },
+        capabilities: capabilitiesProps,
+      },
+      user,
+      onError,
+      onMessage,
+      onDisconnect,
+      onInterruption,
+      grpcAudioPlayer,
+      generateSessionToken,
+      webRtcLoopbackBiDiSession,
+    });
+
+    jest.spyOn(Player.prototype, 'setStream').mockImplementation(jest.fn());
+    jest
+      .spyOn(ConversationService.prototype, 'getConversationId')
+      .mockImplementation(() => conversationId);
+  });
+
+  afterEach(() => {
+    server.close();
+    WS.clean();
+    connection.close();
+  });
+
+  test('should receive ping and send pong event', async () => {
+    const pong = jest.spyOn(EventFactory.prototype, 'pong');
+    const packetId = {
+      packetId: v4(),
+      interactionId: v4(),
+      utteranceId: v4(),
+      correlationId: v4(),
+    };
+    const pingTimestamp = protoTimestamp();
+
+    await Promise.all([
+      connection.open(),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
+    ]);
+
+    await server.connected;
+
+    server.send({
+      result: {
+        packetId,
+        routing: {
+          source: { type: ActorType.WORLD },
+          target: { type: ActorType.PLAYER },
+        },
+        latencyReport: {
+          pingPong: {
+            pingTimestamp,
+            type: PingPongType.PING,
+          },
+        },
+      },
+    });
+
+    expect(pong).toHaveBeenCalledTimes(1);
+    expect(pong).toHaveBeenCalledWith(packetId, pingTimestamp);
+  });
+
+  test('should send perceived latency event', async () => {
+    connection.conversations.set(conversationId, {
+      service: new ConversationService(connection, {
+        participants: [characters[0].resourceName],
+        conversationId,
+        addCharacters: jest.fn(),
+      }),
+      state: ConversationState.ACTIVE,
+    });
+
+    const perceivedLatency = jest.spyOn(
+      EventFactory.prototype,
+      'perceivedLatency',
+    );
+
+    await Promise.all([
+      connection.open(),
+      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
+    ]);
+
+    await server.connected;
+
+    const textRequest = eventFactory.text(v4(), { conversationId });
+    const textResponse = eventFactory.text(v4(), { conversationId });
+    textResponse.packetId = {
+      ...textRequest.packetId,
+      packetId: v4(),
+    };
+    textResponse.routing!.source = { type: ActorType.WORLD };
+
+    await connection.send(() => textRequest);
+
+    server.send({
+      result: textResponse,
+    });
+
+    expect(perceivedLatency).toHaveBeenCalledTimes(1);
+    expect(perceivedLatency).toHaveBeenCalledWith(0, 0);
   });
 });
 
