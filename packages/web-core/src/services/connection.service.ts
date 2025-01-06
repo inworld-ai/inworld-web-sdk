@@ -12,19 +12,24 @@ import {
   CancelResponsesProps,
   ChangeSceneProps,
   ConnectionState,
-  ConversationMapItem,
   ConversationState,
-  Extension,
   GenerateSessionTokenFn,
-  HistoryChangedProps,
   InternalClientConfiguration,
   InworldConversationEventType,
   LoadedScene,
   SceneHistoryItem,
   User,
 } from '../common/data_structures';
+import {
+  ConvesationInterface,
+  Extension,
+} from '../common/data_structures/extension';
+import {
+  HistoryChangedProps,
+  HistoryItem,
+} from '../common/data_structures/history';
 import { objectsAreEqual } from '../common/helpers';
-import { HistoryItem, InworldHistory } from '../components/history';
+import { InworldHistory } from '../components/history';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
 import { Player } from '../components/sound/player';
@@ -46,7 +51,6 @@ import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { Scene } from '../entities/scene.entity';
 import { SessionToken } from '../entities/session_token.entity';
 import { EventFactory } from '../factories/event';
-import { ConversationService } from './conversation.service';
 
 interface ConnectionProps<
   InworldPacketT extends InworldPacket = InworldPacket,
@@ -97,7 +101,7 @@ export class ConnectionService<
   private reconnectTimeoutId: NodeJS.Timeout;
 
   private currentAudioConversation:
-    | ConversationService<InworldPacketT>
+    | ConvesationInterface<InworldPacketT>
     | undefined;
 
   readonly onDisconnect: () => Awaitable<void>;
@@ -111,8 +115,13 @@ export class ConnectionService<
   ) => Awaitable<void> | undefined;
 
   readonly history: InworldHistory;
-  readonly conversations: Map<string, ConversationMapItem<InworldPacketT>> =
-    new Map();
+  readonly conversations: Map<
+    string,
+    {
+      service: ConvesationInterface<InworldPacketT>;
+      state: ConversationState;
+    }
+  > = new Map();
   private cancelResponses: CancelResponses = {};
   private extension: Extension<InworldPacketT, HistoryItemT>;
 
@@ -187,7 +196,7 @@ export class ConnectionService<
   }
 
   setCurrentAudioConversation(
-    conversation?: ConversationService<InworldPacketT>,
+    conversation?: ConvesationInterface<InworldPacketT>,
   ) {
     this.currentAudioConversation = conversation;
   }

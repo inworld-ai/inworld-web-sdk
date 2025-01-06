@@ -14,8 +14,6 @@ import {
   ConnectionConfig,
   ConversationParticipant,
   EntityItemProps,
-  Extension,
-  HistoryChangedProps,
   ItemsInEntitiesOperationType,
   LogsEventLogDetail,
   MicrophoneMode,
@@ -29,9 +27,10 @@ import {
   UserProfile,
   UserProfileField,
 } from './common/data_structures';
-import * as InworldTriggers from './common/inworld_triggers';
+import { Extension } from './common/data_structures/extension';
 import {
   CHAT_HISTORY_TYPE,
+  HistoryChangedProps,
   HistoryInteractionEnd,
   HistoryItem,
   HistoryItemActor,
@@ -40,7 +39,8 @@ import {
   HistoryItemSceneChange,
   HistoryItemTaskEvent,
   HistoryItemTriggerEvent,
-} from './components/history';
+} from './common/data_structures/history';
+import * as InworldTriggers from './common/inworld_triggers';
 import { Character } from './entities/character.entity';
 import {
   DialogParticipant,

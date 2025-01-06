@@ -1,24 +1,21 @@
-import { InworldStatus as ProtoStatus } from '../../proto/ai/inworld/common/status.pb';
+import { InworldStatus as ProtoStatus } from '../../../proto/ai/inworld/common/status.pb';
 import {
   CapabilitiesConfiguration,
   ClientConfiguration as ControlClientConfiguration,
   SessionConfiguration,
   UserConfiguration,
-} from '../../proto/ai/inworld/engine/configuration/configuration.pb';
+} from '../../../proto/ai/inworld/engine/configuration/configuration.pb';
 import {
   Continuation,
   CurrentSceneStatus,
   InworldPacket as ProtoPacket,
   SessionHistoryRequest,
   SessionHistoryResponse,
-} from '../../proto/ai/inworld/packets/packets.pb';
-import { HistoryItem } from '../components/history';
-import { Character } from '../entities/character.entity';
-import { SessionContinuationProps } from '../entities/continuation/session_continuation.entity';
-import { AdditionalPhonemeInfo } from '../entities/packets/audio.entity';
-import { InworldPacket } from '../entities/packets/inworld_packet.entity';
-import { SessionToken } from '../entities/session_token.entity';
-import { ConversationService } from '../services/conversation.service';
+} from '../../../proto/ai/inworld/packets/packets.pb';
+import { Character } from '../../entities/character.entity';
+import { SessionContinuationProps } from '../../entities/continuation/session_continuation.entity';
+import { AdditionalPhonemeInfo } from '../../entities/packets/audio.entity';
+import { SessionToken } from '../../entities/session_token.entity';
 
 export interface Capabilities {
   audio?: boolean;
@@ -154,16 +151,6 @@ export enum TtsPlaybackAction {
   UNMUTE = 'UNMUTE',
 }
 
-export interface Extension<
-  InworldPacketT extends InworldPacket = InworldPacket,
-  HistoryItemT extends HistoryItem = HistoryItem,
-> {
-  convertPacketFromProto?: (proto: ProtoPacket) => InworldPacketT;
-  beforeLoadScene?: (packets: ProtoPacket[]) => ProtoPacket[];
-  afterLoadScene?: (res: CurrentSceneStatus) => void;
-  historyItem?: (packet: InworldPacketT, item: HistoryItem) => HistoryItemT;
-}
-
 export interface MediaTrackConstraintsWithSuppress
   extends MediaTrackConstraints {
   suppressLocalAudioPlayback?: { ideal: boolean };
@@ -265,20 +252,8 @@ export interface AudioSessionStartPacketParams {
   understandingMode?: UnderstandingMode;
 }
 
-export interface ConversationMapItem<
-  InworldPacketT extends InworldPacket = InworldPacket,
-> {
-  service: ConversationService<InworldPacketT>;
-  state: ConversationState;
-}
-
 export enum ConversationParticipant {
   USER = 'USER',
-}
-
-export interface HistoryChangedProps<HistoryItemT = HistoryItem> {
-  diff: { added?: HistoryItemT[]; removed?: HistoryItemT[] };
-  conversationId?: string;
 }
 
 export interface ChangeSceneProps {

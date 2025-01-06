@@ -4,20 +4,22 @@ import {
   Awaitable,
   Client,
   ClientConfiguration,
-  Extension,
   Gateway,
   GenerateSessionTokenFn,
-  HistoryChangedProps,
   InternalClientConfiguration,
   OnPhomeneFn,
   User,
 } from '../common/data_structures';
+import { Extension } from '../common/data_structures/extension';
+import {
+  HistoryChangedProps,
+  HistoryItem,
+} from '../common/data_structures/history';
 import {
   SCENE_HAS_INVALID_FORMAT,
   STOP_DURATION_NATURAL_NUMBER,
   STOP_TICKS_NATURAL_NUMBER,
 } from '../common/errors';
-import { HistoryItem } from '../components/history';
 import { GrpcAudioPlayback } from '../components/sound/grpc_audio.playback';
 import { GrpcAudioRecorder } from '../components/sound/grpc_audio.recorder';
 import { GrpcWebRtcLoopbackBiDiSession } from '../components/sound/grpc_web_rtc_loopback_bidi.session';
