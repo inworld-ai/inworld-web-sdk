@@ -106,6 +106,10 @@ export class InworldConnectionService<
     return this.connection.isActive();
   }
 
+  getCapabilities() {
+    return this.connection.getClientConfig().capabilities;
+  }
+
   async getCharacters() {
     return this.connection.getCharacters();
   }
@@ -293,8 +297,18 @@ export class InworldConnectionService<
     }
 
     // Clear all conversations
-    this.oneToOneConversation = undefined;
-    this.connection.conversations.clear();
+    if (name !== this.connection.getSceneName()) {
+      const id = this.oneToOneConversation?.getConversationId();
+      const existingConversation = this.connection.conversations.get(id);
+
+      if (existingConversation) {
+        this.connection.conversations.delete(id);
+      }
+
+      this.oneToOneConversation = undefined;
+      this.oneToOneConversationIntializeState =
+        ConversationIntializeState.INACTIVE;
+    }
 
     return this.connection.change(name, props);
   }

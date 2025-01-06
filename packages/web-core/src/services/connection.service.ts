@@ -5,14 +5,17 @@ import {
   ControlEventAction,
   InworldPacket as ProtoPacket,
 } from '../../proto/ai/inworld/packets/packets.pb';
+import { GRPC_HOSTNAME } from '../common/constants';
 import {
   AudioSessionState,
   Awaitable,
   CancelResponses,
   CancelResponsesProps,
   ChangeSceneProps,
+  ClientConfiguration,
   ConnectionState,
   ConversationState,
+  Gateway,
   GenerateSessionTokenFn,
   InternalClientConfiguration,
   InworldConversationEventType,
@@ -59,7 +62,7 @@ interface ConnectionProps<
   name: string;
   user?: User;
   client?: ClientRequest;
-  config?: InternalClientConfiguration;
+  config?: ClientConfiguration;
   sessionContinuation?: SessionContinuation;
   onReady?: () => Awaitable<void>;
   onError?: (err: InworldError) => Awaitable<void>;
@@ -86,6 +89,7 @@ export class ConnectionService<
   private audioSessionAction = AudioSessionState.UNKNOWN;
 
   private scene: Scene | undefined;
+  private config: InternalClientConfiguration;
   private characterMapping: Record<string, string> = {};
   private sceneIsLoaded = false;
   private session: SessionToken;
@@ -141,16 +145,17 @@ export class ConnectionService<
     this.scene = new Scene({
       name: this.connectionProps.name,
     });
+    this.config = this.buildConfiguration(this.connectionProps.config);
 
     this.history = new InworldHistory<InworldPacketT>({
-      audioEnabled: props?.config?.capabilities.audio,
+      audioEnabled: this.config.capabilities.audio,
       extension: this.connectionProps.extension,
       user: this.connectionProps.user,
       scene: this.scene.name,
       conversations: this.conversations,
     });
     this.eventFactory = new EventFactory({
-      validateData: this.connectionProps.config?.validateData,
+      validateData: this.config.validateData,
     });
 
     // Bind handlers
@@ -180,7 +185,7 @@ export class ConnectionService<
   }
 
   isAutoReconnected() {
-    return this.connectionProps.config?.connection?.autoReconnect ?? true;
+    return this.config.connection.autoReconnect ?? true;
   }
 
   getSceneName() {
@@ -244,6 +249,10 @@ export class ConnectionService<
   }
 
   getConfig() {
+    return this.config;
+  }
+
+  getClientConfig() {
     return this.connectionProps.config;
   }
 
@@ -325,7 +334,7 @@ export class ConnectionService<
     this.connectionProps = {
       ...this.connectionProps,
       config: {
-        ...this.connectionProps.config,
+        ...this.config,
         ...(props?.capabilities && {
           capabilities: Capability.toProto(props.capabilities),
         }),
@@ -341,21 +350,25 @@ export class ConnectionService<
         : undefined,
     };
 
+    this.config = this.buildConfiguration(this.connectionProps.config);
+
     if (!this.isActive()) {
       await this.connection.reopenSession(this.session);
     }
 
     const sessionProto = await this.connection.updateSession({
-      name,
+      name: name !== this.getSceneName() ? name : undefined,
       capabilities: props?.capabilities,
       gameSessionId: props?.gameSessionId,
       sessionContinuation: this.connectionProps.sessionContinuation,
     });
 
-    this.setSceneFromProtoEvent(sessionProto);
+    if (sessionProto) {
+      this.setSceneFromProtoEvent(sessionProto);
 
-    if (this.scene.history?.length) {
-      this.setPreviousState(this.scene.history);
+      if (this.scene.history?.length) {
+        this.setPreviousState(this.scene.history);
+      }
     }
   }
 
@@ -503,11 +516,11 @@ export class ConnectionService<
   }
 
   private scheduleDisconnect() {
-    if (this.connectionProps.config?.connection?.disconnectTimeout) {
+    if (this.config.connection.disconnectTimeout) {
       this.cancelScheduler();
       this.disconnectTimeoutId = setTimeout(
         () => this.close(),
-        this.connectionProps.config.connection.disconnectTimeout,
+        this.config.connection.disconnectTimeout,
       );
     }
   }
@@ -895,11 +908,10 @@ export class ConnectionService<
   }
 
   private initializeConnection() {
-    const { config, webRtcLoopbackBiDiSession, grpcAudioPlayer } =
-      this.connectionProps;
+    const { webRtcLoopbackBiDiSession, grpcAudioPlayer } = this.connectionProps;
 
     this.connection = new WebSocketConnection<InworldPacketT, HistoryItemT>({
-      config,
+      config: this.config,
       onDisconnect: this.onDisconnect,
       onReady: async () => {
         await webRtcLoopbackBiDiSession.startSession(
@@ -929,9 +941,9 @@ export class ConnectionService<
   }
 
   private async interruptByPacket(packet: InworldPacketT) {
-    const { grpcAudioPlayer, config } = this.connectionProps;
+    const { grpcAudioPlayer } = this.connectionProps;
 
-    if (!config?.capabilities.interruptions) return;
+    if (!this.config.capabilities.interruptions) return;
 
     const packets = await grpcAudioPlayer.stopForInteraction(
       packet.packetId.interactionId,
@@ -1088,5 +1100,28 @@ export class ConnectionService<
 
     this.connectionProps.extension?.afterLoadScene?.(proto.sceneStatus);
     this.ensureCurrentCharacter();
+  }
+
+  private buildConfiguration(
+    clientConfig: ClientConfiguration = {},
+  ): InternalClientConfiguration {
+    const { connection = {}, capabilities = {}, ...restConfig } = clientConfig;
+    const { gateway } = connection;
+
+    return {
+      ...restConfig,
+      connection: {
+        ...connection,
+        gateway: this.ensureGateway(gateway),
+      },
+      capabilities: Capability.toProto(capabilities),
+    };
+  }
+
+  private ensureGateway(gateway?: Gateway): Gateway {
+    return {
+      hostname: gateway?.hostname ?? GRPC_HOSTNAME,
+      ssl: gateway?.ssl ?? true,
+    };
   }
 }

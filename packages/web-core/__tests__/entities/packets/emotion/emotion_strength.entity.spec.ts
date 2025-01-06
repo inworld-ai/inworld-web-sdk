@@ -1,8 +1,8 @@
-import { EmotionEventStrength } from '../../proto/ai/inworld/packets/packets.pb';
+import { EmotionEventStrength } from '../../../../proto/ai/inworld/packets/packets.pb';
 import {
   EmotionStrength,
   EmotionStrengthCode,
-} from '../../src/entities/packets/emotion/emotion_strength.entity';
+} from '../../../../src/entities/packets/emotion/emotion_strength.entity';
 
 const mappingTestTable = [
   {

@@ -1208,6 +1208,33 @@ describe('send', () => {
         await service.sendText(v4());
       }).rejects.toThrow('Current character is not set');
     });
+
+    test('should get provided capabilities', async () => {
+      const capabilities = {
+        audio: false,
+        emotions: true,
+        debugInfo: true,
+        phonemes: true,
+      };
+      const connection = new ConnectionService({
+        config: {
+          capabilities,
+        },
+        name: SCENE,
+        grpcAudioPlayer,
+        webRtcLoopbackBiDiSession,
+        generateSessionToken,
+        onHistoryChange,
+      });
+      const service = new InworldConnectionService({
+        connection,
+        grpcAudioPlayer,
+        grpcAudioRecorder,
+        webRtcLoopbackBiDiSession,
+      });
+
+      expect(service.getCapabilities()).toEqual(capabilities);
+    });
   });
 });
 
