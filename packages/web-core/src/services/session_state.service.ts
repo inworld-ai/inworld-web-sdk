@@ -5,8 +5,8 @@ import {
   DEFAULT_SESSION_STATE_KEY,
   DEFAULT_SESSION_STATE_MAX_ATTEMPTS,
 } from '../common/constants';
+import { CHAT_HISTORY_TYPE } from '../common/data_structures/history';
 import { safeJSONParse } from '../common/helpers';
-import { CHAT_HISTORY_TYPE } from '../components/history';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { ConnectionService } from './connection.service';
 import { StateSerializationService } from './wrappers/state_serialization.service';
