@@ -35,6 +35,8 @@ export class ConversationService<
   private conversationId: string;
   private participants: string[];
   private addCharacters?: (names: string[]) => Promise<void>;
+  private startRecording?: () => Promise<void>;
+  private stopRecording?: () => void;
   private packetQueue: PacketQueueItem<InworldPacketT>[] = [];
   private ttsPlaybackAction = TtsPlaybackAction.UNKNOWN;
 
@@ -44,10 +46,14 @@ export class ConversationService<
       participants,
       conversationId,
       addCharacters,
+      startRecording,
+      stopRecording,
     }: {
       participants: string[];
       conversationId?: string;
       addCharacters: (names: string[]) => Promise<void>;
+      startRecording?: () => Promise<void>;
+      stopRecording?: () => void;
     },
   ) {
     this.connection = connection;
@@ -55,6 +61,8 @@ export class ConversationService<
     this.participants = participants;
 
     this.addCharacters = addCharacters;
+    this.startRecording = startRecording;
+    this.stopRecording = stopRecording;
   }
 
   getConversationId() {
@@ -110,6 +118,7 @@ export class ConversationService<
     // If audio session is started, we need to end it before updating participants
     if (this.connection.getAudioSessionAction() === AudioSessionState.START) {
       needToReacreateAudioSession = true;
+      this.stopRecording?.();
       this.beforeAudioSessionEnd();
       await this.connection.send(() =>
         this.connection.getEventFactory().audioSessionEnd({ conversationId }),
@@ -150,6 +159,7 @@ export class ConversationService<
       await this.connection.send(() =>
         this.connection.getEventFactory().audioSessionStart({ conversationId }),
       );
+      this.startRecording?.();
     }
 
     await this.resolveInterval(

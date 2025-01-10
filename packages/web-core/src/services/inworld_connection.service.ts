@@ -135,6 +135,8 @@ export class InworldConnectionService<
         {
           participants: [character.resourceName, ConversationParticipant.USER],
           addCharacters: this.addCharacters.bind(this),
+          startRecording: this.recorder.start.bind(this.recorder),
+          stopRecording: this.recorder.stop.bind(this.recorder),
         },
       );
 
@@ -376,6 +378,8 @@ export class InworldConnectionService<
     const service = new ConversationService(this.connection, {
       participants,
       addCharacters: this.addCharacters.bind(this),
+      startRecording: this.recorder.start.bind(this.recorder),
+      stopRecording: this.recorder.stop.bind(this.recorder),
     });
 
     this.connection.conversations.set(service.getConversationId(), {
@@ -413,6 +417,8 @@ export class InworldConnectionService<
         {
           participants: [character.resourceName, ConversationParticipant.USER],
           addCharacters: this.addCharacters.bind(this),
+          startRecording: this.recorder.start.bind(this.recorder),
+          stopRecording: this.recorder.stop.bind(this.recorder),
         },
       );
 
