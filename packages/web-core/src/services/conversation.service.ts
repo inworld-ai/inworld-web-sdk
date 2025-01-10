@@ -110,7 +110,10 @@ export class ConversationService<
     // If audio session is started, we need to end it before updating participants
     if (this.connection.getAudioSessionAction() === AudioSessionState.START) {
       needToReacreateAudioSession = true;
-      await this.sendAudioSessionEnd();
+      this.beforeAudioSessionEnd();
+      await this.connection.send(() =>
+        this.connection.getEventFactory().audioSessionEnd({ conversationId }),
+      );
     }
 
     // Load characters if they are not loaded
@@ -143,7 +146,10 @@ export class ConversationService<
 
     // If audio session was started before, we need to restart it
     if (needToReacreateAudioSession) {
-      await this.sendAudioSessionStart();
+      this.beforeAudioSessionStart();
+      await this.connection.send(() =>
+        this.connection.getEventFactory().audioSessionStart({ conversationId }),
+      );
     }
 
     await this.resolveInterval(
@@ -204,8 +210,7 @@ export class ConversationService<
       throw Error('Audio session is already started');
     }
 
-    this.connection.setAudioSessionAction(AudioSessionState.START);
-    this.connection.setCurrentAudioConversation(this);
+    this.beforeAudioSessionStart();
 
     return this.ensureConversation(() =>
       this.connection.getEventFactory().audioSessionStart({
@@ -226,8 +231,7 @@ export class ConversationService<
     }
 
     return this.ensureConversation(() => {
-      this.connection.setAudioSessionAction(AudioSessionState.END);
-      this.connection.setCurrentAudioConversation(undefined);
+      this.beforeAudioSessionEnd();
 
       return this.connection
         .getEventFactory()
@@ -351,6 +355,16 @@ export class ConversationService<
     this.releaseQueue();
 
     return sent;
+  }
+
+  private beforeAudioSessionStart() {
+    this.connection.setAudioSessionAction(AudioSessionState.START);
+    this.connection.setCurrentAudioConversation(this);
+  }
+
+  private beforeAudioSessionEnd() {
+    this.connection.setAudioSessionAction(AudioSessionState.END);
+    this.connection.setCurrentAudioConversation(undefined);
   }
 
   setTtsPlaybackAction(action: TtsPlaybackAction) {

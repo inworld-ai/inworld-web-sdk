@@ -263,13 +263,15 @@ describe('update participants', () => {
   });
 
   test('should reopen audio session', async () => {
-    jest.spyOn(ConnectionService.prototype, 'send').mockImplementation(() =>
-      Promise.resolve({
-        packetId: {
-          conversationId: conversationId,
-        },
-      }),
-    );
+    const send = jest
+      .spyOn(ConnectionService.prototype, 'send')
+      .mockImplementation(() =>
+        Promise.resolve({
+          packetId: {
+            conversationId: conversationId,
+          },
+        }),
+      );
     jest
       .spyOn(ConversationService.prototype, 'getConversationId')
       .mockImplementation(() => conversationId);
@@ -277,12 +279,6 @@ describe('update participants', () => {
     const getAudioSessionAction = jest
       .spyOn(ConnectionService.prototype, 'getAudioSessionAction')
       .mockImplementation(() => AudioSessionState.START);
-    const sendAudioSessionEnd = jest
-      .spyOn(ConversationService.prototype, 'sendAudioSessionEnd')
-      .mockImplementation(jest.fn());
-    const sendAudioSessionStart = jest
-      .spyOn(ConversationService.prototype, 'sendAudioSessionStart')
-      .mockImplementation(jest.fn());
 
     const service = new ConversationService(connection, {
       participants: [characters[0].resourceName],
@@ -310,8 +306,7 @@ describe('update participants', () => {
     ]);
 
     expect(getAudioSessionAction).toHaveBeenCalledTimes(1);
-    expect(sendAudioSessionEnd).toHaveBeenCalledTimes(1);
-    expect(sendAudioSessionStart).toHaveBeenCalledTimes(1);
+    expect(send).toHaveBeenCalledTimes(3);
   });
 
   test('should add characters to scene automatically', async () => {
@@ -366,7 +361,7 @@ describe('update participants', () => {
       }),
     ]);
 
-    const update = send.mock.calls[0][0]();
+    const update = send.mock.calls[1][0]();
     expect(addCharacters).toHaveBeenCalledTimes(1);
     expect(update.packetId?.conversationId).toEqual(conversationId);
     expect(update.control).toEqual({
