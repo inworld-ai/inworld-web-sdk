@@ -3,6 +3,7 @@
 ### Fixed
 
 - Fix changing of scene capabilities
+- Fix changing participants during audio conversation
 
 ## [2.9.1] - 2024-12-03
 
