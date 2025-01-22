@@ -1,10 +1,9 @@
 /**
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2025 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
-
 import { InworldPacket as ProtoPacket } from '../proto/ai/inworld/packets/packets.pb';
 import { InworldClient } from './clients/inworld.client';
 import {
