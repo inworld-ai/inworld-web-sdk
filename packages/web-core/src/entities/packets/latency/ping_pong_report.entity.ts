@@ -44,8 +44,6 @@ export class PingPongReport {
 
   static getType(type: ProtoPingPongReportType) {
     switch (type) {
-      case ProtoPingPongReportType.UNSPECIFIED:
-        return PingPongType.UNSPECIFIED;
       case ProtoPingPongReportType.PING:
         return PingPongType.PING;
       case ProtoPingPongReportType.PONG:

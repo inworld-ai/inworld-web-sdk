@@ -75,6 +75,7 @@ beforeEach(() => {
       capabilities: {
         audio: true,
         emotions: true,
+        perceivedLatencyReport: false,
       },
     },
     name: SCENE,
@@ -267,6 +268,7 @@ describe('history', () => {
         capabilities: {
           audio: true,
           emotions: true,
+          perceivedLatencyReport: false,
         },
       },
       name: SCENE,
@@ -325,6 +327,7 @@ describe('send', () => {
           capabilities: {
             audio: true,
             emotions: true,
+            perceivedLatencyReport: false,
           },
         },
         name: SCENE,
@@ -1150,6 +1153,7 @@ describe('send', () => {
           capabilities: {
             audio: true,
             emotions: true,
+            perceivedLatencyReport: false,
           },
         },
         name: SCENE,
@@ -1238,6 +1242,22 @@ describe('send', () => {
   });
 });
 
+test('should mark packet as handled', () => {
+  const service = new InworldConnectionService({
+    connection,
+    grpcAudioPlayer,
+    grpcAudioRecorder,
+    webRtcLoopbackBiDiSession,
+  });
+  const markPacketAsHandled = jest
+    .spyOn(ConnectionService.prototype, 'markPacketAsHandled')
+    .mockImplementationOnce(jest.fn());
+
+  service.markPacketAsHandled({} as InworldPacket);
+
+  expect(markPacketAsHandled).toHaveBeenCalledTimes(1);
+});
+
 describe('character', () => {
   let service: InworldConnectionService;
 
@@ -1247,6 +1267,7 @@ describe('character', () => {
         capabilities: {
           audio: true,
           emotions: true,
+          perceivedLatencyReport: false,
         },
       },
       name: SCENE,

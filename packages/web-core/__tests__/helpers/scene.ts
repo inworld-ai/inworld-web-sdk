@@ -23,6 +23,7 @@ export const capabilitiesProps: Capabilities = {
   phonemes: true,
   silence: true,
   narratedActions: true,
+  perceivedLatencyReport: false,
 };
 
 export const user: User = {

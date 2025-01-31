@@ -84,7 +84,7 @@ test.each([
   ItemsInEntitiesOperationType.ADD,
   ItemsInEntitiesOperationType.REMOVE,
   ItemsInEntitiesOperationType.REPLACE,
-])('shout execute $type', async (type) => {
+])('shoud execute $type', async (type) => {
   const itemsInEntities = jest.spyOn(EventFactory.prototype, 'itemsInEntities');
 
   const itemIds = [v4(), v4()];

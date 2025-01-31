@@ -14,7 +14,7 @@ export class Capability {
       logsInternal = false,
       narratedActions = false,
       multiModalActionPlanning: multiModalActionPlanning = false,
-      perceivedLatencyReport: perceivedLatencyReport = false,
+      perceivedLatencyReport: perceivedLatencyReport = true,
       phonemes: phonemeInfo = false,
       pingPongReport: pingPongReport = true,
       silence: silenceEvents = false,
