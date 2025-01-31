@@ -14,6 +14,7 @@ import {
   ConnectionConfig,
   ConversationParticipant,
   EntityItemProps,
+  InworldTextPacketType,
   ItemsInEntitiesOperationType,
   LogsEventLogDetail,
   MicrophoneMode,
@@ -74,6 +75,7 @@ import {
   EmotionStrengthCode,
 } from './entities/packets/emotion/emotion_strength.entity';
 import { InworldPacket } from './entities/packets/inworld_packet.entity';
+import { PerceivedLatencyReportPrecisionType } from './entities/packets/latency/perceived_latency_report.entity';
 import { LogsEvent } from './entities/packets/log.entity';
 import { PacketId } from './entities/packets/packet_id.entity';
 import { Actor, Routing } from './entities/packets/routing.entity';
@@ -130,12 +132,14 @@ export {
   InworldConnectionService,
   InworldError,
   InworldPacket,
+  InworldTextPacketType,
   InworldTriggers,
   ItemsInEntitiesOperationType,
   LogsEvent,
   LogsEventLogDetail,
   MicrophoneMode,
   PacketId,
+  PerceivedLatencyReportPrecisionType,
   PreviousDialog,
   ProtobufValue,
   ProtoPacket,

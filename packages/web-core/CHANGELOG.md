@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+
+- Fix perceived latency sending
+
 ## [2.9.2] - 2025-01-13
 
 ### Fixed

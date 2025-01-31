@@ -24,16 +24,19 @@ import {
   ConversationParticipant,
   ItemsInEntitiesOperationType,
   MicrophoneMode,
+  PerceivedLatencyReportProps,
   SendAudioSessionStartPacketParams,
   SendCustomPacketParams,
   SendPacketParams,
   SessionControlProps,
   UnderstandingMode,
 } from '../common/data_structures';
-import { protoTimestamp } from '../common/helpers';
+import { calculateTimeDifference, protoTimestamp } from '../common/helpers';
 import { Character } from '../entities/character.entity';
 import { EntityItem } from '../entities/entities/entity_item';
 import { ItemOperation } from '../entities/entities/item_operation';
+import { InworldPacket } from '../entities/packets/inworld_packet.entity';
+import { PerceivedLatencyReport } from '../entities/packets/latency/perceived_latency_report.entity';
 import { PacketId } from '../entities/packets/packet_id.entity';
 import { InworldPacketSchema } from '../zod/schema';
 
@@ -128,22 +131,85 @@ export class EventFactory {
     return packet;
   }
 
-  perceivedLatency(
-    seconds: number,
-    nanos: number,
-    precisionToSend: PerceivedLatencyReportPrecision = PerceivedLatencyReportPrecision.FINE,
-  ): ProtoPacket {
-    const packet = {
-      ...this.baseProtoPacket({
-        utteranceId: false,
-        interactionId: false,
-      }),
-      latencyReport: {
-        perceivedLatency: {
-          latency: `${(seconds + nanos / 1000000000).toFixed(9)}s`,
-          precision: precisionToSend,
-        },
+  perceivedLatencyWithTypeDetection({
+    sent,
+    received,
+  }: {
+    sent: InworldPacket;
+    received: InworldPacket;
+  }): ProtoPacket {
+    const duration = calculateTimeDifference(new Date(sent.date), new Date());
+    let precision = PerceivedLatencyReportPrecision.UNSPECIFIED;
+
+    if (sent.isAudioSessionEnd()) {
+      precision = PerceivedLatencyReportPrecision.PUSH_TO_TALK;
+    } else if (
+      (sent.isPlayerTypeInText() || sent.isSpeechRecognitionResult()) &&
+      received.isAudio()
+    ) {
+      precision = PerceivedLatencyReportPrecision.ESTIMATED;
+    } else if (sent.isNonSpeechPacket() || sent.isPlayerTypeInText()) {
+      precision = PerceivedLatencyReportPrecision.NON_SPEECH;
+    }
+
+    const event = {
+      perceivedLatency: {
+        latency: duration,
+        precision,
       },
+    };
+
+    const basePacket = this.baseProtoPacket({
+      utteranceId: false,
+      interactionId: false,
+    });
+    const basePacketId = basePacket.packetId;
+
+    const packet = {
+      ...basePacket,
+      packetId: {
+        ...basePacketId,
+        interactionId: received.packetId.interactionId,
+      },
+      latencyReport: event,
+    };
+
+    this.validate(packet);
+
+    return packet;
+  }
+
+  perceivedLatency({
+    precision,
+    interactionId,
+    startDate,
+    endDate,
+  }: PerceivedLatencyReportProps): ProtoPacket {
+    const duration = calculateTimeDifference(startDate, endDate);
+
+    const event = {
+      perceivedLatency: {
+        latency: duration,
+        precision:
+          PerceivedLatencyReport.getProtoPerceivedLatencyReportPrecision(
+            precision,
+          ),
+      },
+    };
+
+    const basePacket = this.baseProtoPacket({
+      utteranceId: false,
+      interactionId: false,
+    });
+    const basePacketId = basePacket.packetId;
+
+    const packet = {
+      ...basePacket,
+      packetId: {
+        ...basePacketId,
+        interactionId,
+      },
+      latencyReport: event,
     };
 
     this.validate(packet);

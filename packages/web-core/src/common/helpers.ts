@@ -24,3 +24,19 @@ export const objectsAreEqual = <T>(a: T, b: T, keys: (keyof T)[]) => {
 
   return true;
 };
+
+export const calculateTimeDifference = (from: Date, to: Date) => {
+  const durationMilliseconds = to.getTime() - from.getTime();
+  let seconds = Math.floor(durationMilliseconds / 1000);
+  let nanos = Math.round((durationMilliseconds / 1000 - seconds) * 1000000000);
+
+  if (seconds < 0 && nanos > 0) {
+    seconds += 1;
+    nanos -= 1000000000;
+  } else if (seconds > 0 && nanos < 0) {
+    seconds -= 1;
+    nanos += 1000000000;
+  }
+
+  return { seconds, nanos };
+};

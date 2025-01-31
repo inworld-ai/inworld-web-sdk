@@ -18,7 +18,9 @@ import {
   Gateway,
   GenerateSessionTokenFn,
   InternalClientConfiguration,
+  InworlControlAction,
   InworldConversationEventType,
+  InworldPacketType,
   LoadedScene,
   SceneHistoryItem,
   User,
@@ -50,6 +52,7 @@ import {
   InworldError,
   InworldStatus,
 } from '../entities/error.entity';
+import { ControlEvent } from '../entities/packets/control.entity';
 import { InworldPacket } from '../entities/packets/inworld_packet.entity';
 import { Scene } from '../entities/scene.entity';
 import { SessionToken } from '../entities/session_token.entity';
@@ -129,6 +132,8 @@ export class ConnectionService<
   private cancelResponses: CancelResponses = {};
   private extension: Extension<InworldPacketT, HistoryItemT>;
 
+  private MAX_LATENCY_QUEUE_SIZE = 50;
+
   // Store previous error to avoid multiple reconnection attempts.
   private previousError:
     | {
@@ -164,7 +169,7 @@ export class ConnectionService<
     this.onError = this.onErrorHandler.bind(this);
     this.onWarning = this.onWarningHandler.bind(this);
     this.onMessage = this.onMessageHandler.bind(this);
-    this.onHistoryChange = this.connectionProps.onHistoryChange;
+    this.onHistoryChange = this.onHistoryChangeHandler.bind(this);
 
     this.initializeExtension();
     this.initializeConnection();
@@ -372,7 +377,10 @@ export class ConnectionService<
     }
   }
 
-  async send(getPacket: () => ProtoPacket) {
+  async send(
+    getPacket: () => ProtoPacket,
+    props: { enforceHighPriority?: boolean } = {},
+  ) {
     try {
       this.cancelScheduler();
 
@@ -380,7 +388,7 @@ export class ConnectionService<
         throw Error('Unable to send data due inactive connection');
       }
 
-      return this.write(getPacket);
+      return this.write(getPacket, props);
     } catch (err) {
       this.onError(err);
     }
@@ -403,7 +411,10 @@ export class ConnectionService<
     }
   }
 
-  private async write(getPacket: () => ProtoPacket) {
+  private async write(
+    getPacket: () => ProtoPacket,
+    props: { enforceHighPriority?: boolean } = {},
+  ) {
     let inworldPacket: InworldPacketT;
 
     const resolvePacket = () =>
@@ -435,7 +446,11 @@ export class ConnectionService<
     if (this.isActive()) {
       this.connection.write(itemToSend);
     } else {
-      this.packetQueue.push(itemToSend);
+      if (props.enforceHighPriority) {
+        this.packetQueue.unshift(itemToSend);
+      } else {
+        this.packetQueue.push(itemToSend);
+      }
 
       await this.open();
     }
@@ -452,9 +467,41 @@ export class ConnectionService<
     getPacket: () => ProtoPacket,
     packet: InworldPacketT,
   ) {
-    if (packet.isText()) {
-      this.packetQueuePercievedLatency.push(packet);
+    if (packet.isPlayerTypeInText()) {
       await this.interruptByPacket(packet);
+    }
+
+    if (
+      packet.isNonSpeechPacket() ||
+      packet.isPlayerTypeInText() ||
+      packet.isPushToTalkAudioSessionStart()
+    ) {
+      this.pushToPerceivedLatencyQueue([packet]);
+    } else if (packet.isAudioSessionEnd()) {
+      const found = this.packetQueuePercievedLatency.filter((item) => {
+        return item.isPushToTalkAudioSessionStart() || item.isAudioSessionEnd();
+      });
+
+      if (found?.[found.length - 1]?.isPushToTalkAudioSessionStart()) {
+        const interactionId = found[found.length - 1].packetId.interactionId;
+
+        if (interactionId) {
+          const updatedAudioSessionEnd = new InworldPacket({
+            packetId: {
+              ...packet.packetId,
+              interactionId,
+            },
+            control: new ControlEvent({
+              action: InworlControlAction.AUDIO_SESSION_END,
+            }),
+            routing: packet.routing,
+            date: packet.date,
+            type: InworldPacketType.CONTROL,
+          }) as InworldPacketT;
+
+          this.pushToPerceivedLatencyQueue([updatedAudioSessionEnd]);
+        }
+      }
     }
 
     if (packet.isText() || packet.isNarratedAction() || packet.isTrigger()) {
@@ -515,6 +562,43 @@ export class ConnectionService<
     this.intervals = this.intervals.filter((i) => i !== interval);
   }
 
+  markPacketAsHandled(packet: InworldPacket) {
+    if (!this.config.capabilities.perceivedLatencyReport) {
+      return;
+    }
+
+    const sentIndex = this.packetQueuePercievedLatency.findIndex((item) => {
+      const { packetId } = item;
+
+      const relyOnSpeech =
+        this.config.capabilities.audio &&
+        packet.isAudio() &&
+        (item.isSpeechRecognitionResult() ||
+          item.isPlayerTypeInText() ||
+          item.isAudioSessionEnd());
+      const relyOnNonSpeech =
+        item.isNonSpeechPacket() || !this.config.capabilities.audio;
+
+      return (
+        (relyOnSpeech || relyOnNonSpeech) &&
+        packetId.interactionId &&
+        packetId.interactionId === packet.packetId.interactionId
+      );
+    });
+
+    if (sentIndex > -1) {
+      const sent = this.packetQueuePercievedLatency[sentIndex];
+      this.packetQueuePercievedLatency.splice(sentIndex, 1);
+
+      this.send(() =>
+        this.getEventFactory().perceivedLatencyWithTypeDetection({
+          sent,
+          received: packet,
+        }),
+      );
+    }
+  }
+
   private scheduleDisconnect() {
     if (this.config.connection.disconnectTimeout) {
       this.cancelScheduler();
@@ -538,7 +622,7 @@ export class ConnectionService<
 
     const diff = this.history.get() as HistoryItemT[];
 
-    this.onHistoryChange?.(diff, { diff: { added: diff } });
+    this.onHistoryChange(diff, { diff: { added: diff } });
   }
 
   private cancelScheduler() {
@@ -803,6 +887,26 @@ export class ConnectionService<
       return;
     }
 
+    if (inworldPacket.isSpeechRecognitionResult()) {
+      const { indexStart, indexEnd } = this.findLastAudioSessionIndexes();
+
+      if (indexStart >= 0 && indexEnd < indexStart) {
+        const audioSessionStart = this.packetQueuePercievedLatency[indexStart];
+        this.packetQueuePercievedLatency[indexStart] = new InworldPacket({
+          packetId: {
+            ...audioSessionStart?.packetId,
+            interactionId: inworldPacket.packetId.interactionId,
+          },
+          control: new ControlEvent(audioSessionStart.control),
+          routing: audioSessionStart.routing,
+          date: audioSessionStart?.date,
+          type: InworldPacketType.CONTROL,
+        }) as InworldPacketT;
+      } else {
+        this.pushToPerceivedLatencyQueue([inworldPacket]);
+      }
+    }
+
     // Send cancel response event in case of player talking.
     if (inworldPacket.isText() && inworldPacket.routing.source.isPlayer) {
       await this.interruptByPacket(inworldPacket);
@@ -813,10 +917,11 @@ export class ConnectionService<
         grpcAudioPlayer.addToQueue({
           packet: inworldPacket,
           onBeforePlaying: (packet: InworldPacketT) => {
+            this.markPacketAsHandled(packet);
             const diff = this.history.update(packet) as HistoryItemT[];
 
             if (diff.length) {
-              this.onHistoryChange?.(this.getHistory(), {
+              this.onHistoryChange(this.getHistory(), {
                 diff: { added: diff },
                 conversationId,
               });
@@ -846,50 +951,6 @@ export class ConnectionService<
       this.onWarning(inworldPacket);
     }
 
-    // Send percieved latency report
-    if (
-      inworldPacket.isText() &&
-      !inworldPacket.routing.source.isPlayer &&
-      this.packetQueuePercievedLatency.length > 0
-    ) {
-      let packetQueuePercievedLatencyIndex: number = -1;
-      for (let i = 0; i < this.packetQueuePercievedLatency.length; i++) {
-        const packetSent = this.packetQueuePercievedLatency[i];
-        if (
-          packet.packetId.correlationId &&
-          packet.packetId.correlationId === packetSent.packetId.correlationId
-        ) {
-          packetQueuePercievedLatencyIndex = i;
-          break;
-        }
-      }
-      if (packetQueuePercievedLatencyIndex > -1) {
-        const packetSent: InworldPacketT =
-          this.packetQueuePercievedLatency[packetQueuePercievedLatencyIndex];
-        const durationMilliseconds =
-          new Date(packet.timestamp).getTime() -
-          new Date(packetSent.date).getTime();
-        let durationSeconds = Math.floor(durationMilliseconds / 1000);
-        let durationNanos = Math.round(
-          (durationMilliseconds / 1000 - durationSeconds) * 1000000000,
-        );
-
-        if (durationSeconds < 0 && durationNanos > 0) {
-          durationSeconds += 1;
-          durationNanos -= 1000000000;
-        } else if (durationSeconds > 0 && durationNanos < 0) {
-          durationSeconds -= 1;
-          durationNanos += 1000000000;
-        }
-
-        this.sendPerceivedLatencyReport(durationSeconds, durationNanos);
-        this.packetQueuePercievedLatency.splice(
-          packetQueuePercievedLatencyIndex,
-          1,
-        );
-      }
-    }
-
     // Add packet to history.
     // Audio and silence packets were added to history earlier.
     if (!inworldPacket.isAudio() && !inworldPacket.isSilence()) {
@@ -898,13 +959,29 @@ export class ConnectionService<
 
     // Handle latency ping pong.
     if (inworldPacket.isPingPongReport()) {
-      this.sendPingPongResponse(inworldPacket);
+      this.send(
+        () =>
+          this.getEventFactory().pong(
+            inworldPacket.packetId,
+            packet.latencyReport.pingPong.pingTimestamp,
+          ),
+        {
+          enforceHighPriority: true,
+        },
+      );
       // Don't pass text packet outside.
       return;
     }
 
     // Pass packet to external callback.
     onMessage?.(inworldPacket);
+  }
+
+  private async onHistoryChangeHandler(
+    history: HistoryItem[],
+    props: HistoryChangedProps<HistoryItemT>,
+  ) {
+    this.connectionProps.onHistoryChange?.(history, props);
   }
 
   private initializeConnection() {
@@ -996,19 +1073,6 @@ export class ConnectionService<
     }
   }
 
-  private sendPingPongResponse(packet: InworldPacketT) {
-    this.send(() =>
-      this.getEventFactory().pong(
-        packet.packetId,
-        packet.latencyReport.pingPong.pingTimestamp,
-      ),
-    );
-  }
-
-  private sendPerceivedLatencyReport(seconds: number, nanos: number) {
-    this.send(() => this.getEventFactory().perceivedLatency(seconds, nanos));
-  }
-
   private addPacketToHistory(packet: InworldPacketT) {
     const diff = this.history.addOrUpdate({
       grpcAudioPlayer: this.connectionProps.grpcAudioPlayer,
@@ -1017,10 +1081,12 @@ export class ConnectionService<
     }) as HistoryItemT[];
 
     if (diff.length) {
-      this.onHistoryChange?.(this.getHistory(), {
+      this.onHistoryChange(this.getHistory(), {
         diff: { added: diff },
         conversationId: packet.packetId.conversationId,
       });
+
+      this.markPacketAsHandled(packet);
     }
   }
 
@@ -1123,5 +1189,44 @@ export class ConnectionService<
       hostname: gateway?.hostname ?? GRPC_HOSTNAME,
       ssl: gateway?.ssl ?? true,
     };
+  }
+
+  private pushToPerceivedLatencyQueue(packets: InworldPacketT[]) {
+    if (!this.config.capabilities.perceivedLatencyReport) {
+      return;
+    }
+
+    this.packetQueuePercievedLatency.push(...packets);
+
+    if (this.packetQueuePercievedLatency.length > this.MAX_LATENCY_QUEUE_SIZE) {
+      this.packetQueuePercievedLatency.shift();
+    }
+  }
+
+  private findLastAudioSessionIndexes() {
+    let indexStart = -1;
+    let indexEnd = -1;
+
+    for (
+      let i = this.packetQueuePercievedLatency.length - 1;
+      i >= 0 && indexStart < 0;
+      i--
+    ) {
+      if (this.packetQueuePercievedLatency[i].isPushToTalkAudioSessionStart()) {
+        indexStart = i;
+      }
+    }
+
+    for (
+      let i = this.packetQueuePercievedLatency.length - 1;
+      i >= 0 && indexEnd < 0;
+      i--
+    ) {
+      if (this.packetQueuePercievedLatency[i].isAudioSessionEnd()) {
+        indexEnd = i;
+      }
+    }
+
+    return { indexStart, indexEnd };
   }
 }
