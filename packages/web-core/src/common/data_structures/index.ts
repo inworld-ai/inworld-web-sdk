@@ -15,6 +15,7 @@ import {
 import { Character } from '../../entities/character.entity';
 import { SessionContinuationProps } from '../../entities/continuation/session_continuation.entity';
 import { AdditionalPhonemeInfo } from '../../entities/packets/audio.entity';
+import { PerceivedLatencyReportPrecisionType } from '../../entities/packets/latency/perceived_latency_report.entity';
 import { SessionToken } from '../../entities/session_token.entity';
 
 export interface Capabilities {
@@ -183,14 +184,24 @@ export enum InworldPacketType {
   LATENCY_REPORT = 'LATENCY_REPORT',
 }
 
+export enum InworldTextPacketType {
+  UNKNOWN = 'UNKNOWN',
+  SPEECH_TO_TEXT = 'SPEECH_TO_TEXT',
+  TYPED_IN = 'TYPED_IN',
+  GENERATED = 'GENERATED',
+  FILLER = 'FILLER',
+}
+
 export enum InworlControlAction {
   UNKNOWN = 'UNKNOWN',
+  AUDIO_SESSION_START = 'AUDIO_SESSION_START',
+  AUDIO_SESSION_END = 'AUDIO_SESSION_END',
+  CONVERSATION_EVENT = 'CONVERSATION_EVENT',
+  CONVERSATION_UPDATE = 'CONVERSATION_UPDATE',
   INTERACTION_END = 'INTERACTION_END',
   TTS_PLAYBACK_MUTE = 'TTS_PLAYBACK_MUTE',
   TTS_PLAYBACK_UNMUTE = 'TTS_PLAYBACK_UNMUTE',
   WARNING = 'WARNING',
-  CONVERSATION_UPDATE = 'CONVERSATION_UPDATE',
-  CONVERSATION_EVENT = 'CONVERSATION_EVENT',
 }
 
 export enum InworldConversationEventType {
@@ -250,6 +261,13 @@ export interface SendAudioSessionStartPacketParams extends SendPacketParams {
 export interface AudioSessionStartPacketParams {
   mode?: MicrophoneMode;
   understandingMode?: UnderstandingMode;
+}
+
+export interface PerceivedLatencyReportProps {
+  precision: PerceivedLatencyReportPrecisionType;
+  interactionId: string;
+  startDate: Date;
+  endDate: Date;
 }
 
 export enum ConversationParticipant {

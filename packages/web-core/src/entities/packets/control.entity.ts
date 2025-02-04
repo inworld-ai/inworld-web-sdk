@@ -1,4 +1,7 @@
 import {
+  AudioSessionStartPayload,
+  AudioSessionStartPayloadMicrophoneMode,
+  AudioSessionStartPayloadUnderstandingMode,
   ControlEvent as ProtoControlEvent,
   ControlEventAction,
   ConversationEventPayloadConversationEventType,
@@ -6,6 +9,8 @@ import {
 import {
   InworlControlAction,
   InworldConversationEventType,
+  MicrophoneMode,
+  UnderstandingMode,
 } from '../../common/data_structures';
 import { Actor } from './routing.entity';
 
@@ -14,21 +19,33 @@ export interface Conversation {
   participants: Actor[];
 }
 
+export interface AudioSessionStart {
+  mode?: MicrophoneMode;
+  understandingMode?: UnderstandingMode;
+}
+
 export class ControlEvent {
   readonly action: InworlControlAction;
-  readonly description: string | undefined;
-  readonly conversation: Conversation | undefined;
+  readonly audioSessionStart?: AudioSessionStart;
+  readonly description?: string;
+  readonly conversation?: Conversation;
 
   constructor({
     action,
+    audioSessionStart,
     description,
     conversation,
   }: {
     action: InworlControlAction;
+    audioSessionStart?: AudioSessionStart;
     description?: string;
     conversation?: Conversation;
   }) {
     this.action = action;
+
+    if (audioSessionStart) {
+      this.audioSessionStart = audioSessionStart;
+    }
 
     if (description) {
       this.description = description;
@@ -44,6 +61,14 @@ export class ControlEvent {
 
     return new ControlEvent({
       action: this.getControlType(proto),
+      ...(proto.audioSessionStart && {
+        audioSessionStart: {
+          mode: ControlEvent.getMicrophoneMode(proto.audioSessionStart),
+          understandingMode: ControlEvent.getUnderstandingMode(
+            proto.audioSessionStart,
+          ),
+        },
+      }),
       description: proto.description,
       ...(conversation && {
         conversation: {
@@ -61,6 +86,10 @@ export class ControlEvent {
 
   private static getControlType(proto: ProtoControlEvent) {
     switch (proto.action) {
+      case ControlEventAction.AUDIO_SESSION_START:
+        return InworlControlAction.AUDIO_SESSION_START;
+      case ControlEventAction.AUDIO_SESSION_END:
+        return InworlControlAction.AUDIO_SESSION_END;
       case ControlEventAction.INTERACTION_END:
         return InworlControlAction.INTERACTION_END;
       case ControlEventAction.TTS_PLAYBACK_MUTE:
@@ -89,5 +118,26 @@ export class ControlEvent {
       default:
         return InworldConversationEventType.UNKNOWN;
     }
+  }
+
+  private static getMicrophoneMode(proto: AudioSessionStartPayload) {
+    if (
+      proto.mode === AudioSessionStartPayloadMicrophoneMode.EXPECT_AUDIO_END
+    ) {
+      return MicrophoneMode.EXPECT_AUDIO_END;
+    }
+
+    return MicrophoneMode.OPEN_MIC;
+  }
+
+  private static getUnderstandingMode(proto: AudioSessionStartPayload) {
+    if (
+      proto.understandingMode ===
+      AudioSessionStartPayloadUnderstandingMode.SPEECH_RECOGNITION_ONLY
+    ) {
+      return UnderstandingMode.SPEECH_RECOGNITION_ONLY;
+    }
+
+    return UnderstandingMode.FULL;
   }
 }

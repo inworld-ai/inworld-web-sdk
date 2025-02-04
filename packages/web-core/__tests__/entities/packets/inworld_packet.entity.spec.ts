@@ -12,8 +12,8 @@ import { ItemOperation } from '../../../src/entities/entities/item_operation';
 import { AudioEvent } from '../../../src/entities/packets/audio.entity';
 import { ControlEvent } from '../../../src/entities/packets/control.entity';
 import { InworldPacket } from '../../../src/entities/packets/inworld_packet.entity';
-import { PerceivedLatencyReportPrecisionType } from '../../../src/entities/packets/latency/perceived_latency_report_precision.entity';
-import { PingPongType } from '../../../src/entities/packets/latency/ping_pong_report_type.entity';
+import { PerceivedLatencyReportPrecisionType } from '../../../src/entities/packets/latency/perceived_latency_report.entity';
+import { PingPongType } from '../../../src/entities/packets/latency/ping_pong_report.entity';
 import { Routing } from '../../../src/entities/packets/routing.entity';
 import { TextEvent } from '../../../src/entities/packets/text.entity';
 import { agents, convertAgentsToCharacters, getPacketId } from '../../helpers';
@@ -187,7 +187,7 @@ test('should get ping packet fields', () => {
       pingPong: {
         packetId: null,
         pingTimestamp: protoTimestamp(),
-        type: { type: PingPongType.PING },
+        type: PingPongType.PING,
       },
     },
     type: InworldPacketType.LATENCY_REPORT,
@@ -209,7 +209,7 @@ test('should get pong packet fields', () => {
       pingPong: {
         packetId,
         pingTimestamp: protoTimestamp(),
-        type: { type: PingPongType.PONG },
+        type: PingPongType.PONG,
       },
     },
     type: InworldPacketType.LATENCY_REPORT,
@@ -230,9 +230,7 @@ test('should get perceived latency packet fields', () => {
     latencyReport: {
       perceivedLatency: {
         latency: 100,
-        precision: {
-          precision: PerceivedLatencyReportPrecisionType.FINE,
-        },
+        precision: PerceivedLatencyReportPrecisionType.FINE,
       },
     },
     type: InworldPacketType.LATENCY_REPORT,

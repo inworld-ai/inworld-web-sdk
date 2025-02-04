@@ -1,5 +1,5 @@
 import { LatencyReportEvent as ProtoLatencyReportEvent } from '../../../../proto/ai/inworld/packets/packets.pb';
-import { PerceivedLatencyReport } from './perceived_latency_report';
+import { PerceivedLatencyReport } from './perceived_latency_report.entity';
 import { PingPongReport } from './ping_pong_report.entity';
 
 export class LatencyReportEvent {

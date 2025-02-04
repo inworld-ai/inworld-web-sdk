@@ -29,7 +29,7 @@ test('shoulf get fields without parameters', () => {
   expect(task.parameters).toBeUndefined();
 });
 
-test('should convert from proto', () => {
+test('should convert task with parameters from proto', () => {
   const proto = {
     name: v4(),
     parameters: [
@@ -45,7 +45,7 @@ test('should convert from proto', () => {
   expect(packet.parameters).toEqual(packet.parameters);
 });
 
-test('should convert from proto without parameters', () => {
+test('should convert task with no parameters from proto', () => {
   const proto = { name: v4() };
   const packet = TaskEvent.fromProto(proto);
 

@@ -10,6 +10,8 @@ import {
   ConversationEventPayloadConversationEventType,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
+  LogsEventLogLevel,
+  PerceivedLatencyReportPrecision as ProtoPerceivedLatencyReportPrecision,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import {
   InworldConversationEventType,
@@ -19,6 +21,7 @@ import {
 import { protoTimestamp } from '../../src/common/helpers';
 import { Character } from '../../src/entities/character.entity';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
+import { PerceivedLatencyReportPrecisionType } from '../../src/entities/packets/latency/perceived_latency_report.entity';
 import { EventFactory } from '../../src/factories/event';
 import { capabilitiesProps, conversationId, createCharacter } from '../helpers';
 
@@ -42,10 +45,27 @@ test('should set and get character', () => {
   expect(found?.id).toEqual(character.id);
 });
 
+test('should validate event', () => {
+  jest.spyOn(console, 'warn').mockImplementationOnce(jest.fn());
+
+  factory = new EventFactory({ validateData: true });
+
+  // @ts-ignore
+  factory.text(123, { conversationId });
+
+  expect(console.warn).toHaveBeenCalledTimes(1);
+  expect(console.warn).toHaveBeenCalledWith(
+    'Invalid packet',
+    expect.anything(),
+  );
+});
+
 describe('event types', () => {
   beforeEach(beforeEachFn);
 
   test('should generate audio event', () => {
+    jest.spyOn(console, 'warn').mockImplementationOnce(jest.fn());
+
     const chunk = v4();
     const event = factory.dataChunk(chunk, DataChunkDataType.AUDIO, {
       conversationId,
@@ -63,6 +83,7 @@ describe('event types', () => {
     expect(event.packetId?.interactionId).toBeUndefined();
     expect(event.packetId?.correlationId).toBeUndefined();
     expect(event.packetId?.conversationId).toEqual(conversationId);
+    expect(console.warn).toHaveBeenCalledTimes(0);
   });
 
   test('should generate audio session start', () => {
@@ -281,6 +302,32 @@ describe('event types', () => {
     expect(event.packetId?.interactionId).toBeUndefined();
     expect(event.packetId?.utteranceId).toBeUndefined();
     expect(event.packetId).toHaveProperty('correlationId');
+  });
+
+  test('should generate perceived latency report', () => {
+    const interactionId = v4();
+    const startDate = new Date();
+    const endDate = new Date();
+    const event = factory.perceivedLatency({
+      precision: PerceivedLatencyReportPrecisionType.FINE,
+      interactionId,
+      startDate,
+      endDate,
+    });
+
+    const report = event.latencyReport!.perceivedLatency;
+
+    expect(event).toHaveProperty('routing');
+    expect(event).toHaveProperty('timestamp');
+    expect(report?.precision).toEqual(
+      ProtoPerceivedLatencyReportPrecision.FINE,
+    );
+    expect(event.routing?.target).toBeFalsy();
+    expect(event.packetId).toHaveProperty('packetId');
+    expect(event.packetId).toHaveProperty('interactionId');
+    expect(event.packetId!.conversationId).toBeFalsy();
+    expect(event.packetId!.correlationId).toBeFalsy();
+    expect(event.packetId!.conversationId).toBeFalsy();
   });
 
   test('should generate narrated action event', () => {
@@ -576,6 +623,25 @@ describe('convert packet to external one', () => {
 
     expect(result).toBeInstanceOf(InworldPacket);
     expect(result.isCancelResponse()).toEqual(true);
+  });
+
+  test('log', () => {
+    const packet: ProtoPacket = {
+      packetId: { packetId: v4() },
+      routing: {
+        source: {} as Actor,
+        targets: [{} as Actor],
+      },
+      log: {
+        text: v4(),
+        level: LogsEventLogLevel.INFO,
+      },
+    };
+
+    const result = InworldPacket.fromProto(packet);
+
+    expect(result).toBeInstanceOf(InworldPacket);
+    expect(result.isLog()).toEqual(true);
   });
 
   test('narratedAction', () => {

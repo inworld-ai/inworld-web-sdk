@@ -5,12 +5,15 @@ import { v4 } from 'uuid';
 
 import {
   ActorType,
+  AudioSessionStartPayloadMicrophoneMode,
   ControlEventAction,
   DataChunkDataType,
   InworldPacket as ProtoPacket,
+  PerceivedLatencyReportPrecision,
   TextEventSourceType,
 } from '../../proto/ai/inworld/packets/packets.pb';
 import {
+  Capabilities,
   ConversationState,
   LoadedScene,
 } from '../../src/common/data_structures';
@@ -27,7 +30,7 @@ import { Player } from '../../src/components/sound/player';
 import { WebSocketConnection } from '../../src/connection/web-socket.connection';
 import { Character } from '../../src/entities/character.entity';
 import { InworldPacket } from '../../src/entities/packets/inworld_packet.entity';
-import { PingPongType } from '../../src/entities/packets/latency/ping_pong_report_type.entity';
+import { PingPongType } from '../../src/entities/packets/latency/ping_pong_report.entity';
 import { Actor } from '../../src/entities/packets/routing.entity';
 import { SessionToken } from '../../src/entities/session_token.entity';
 import { EventFactory } from '../../src/factories/event';
@@ -626,10 +629,7 @@ describe('send', () => {
       webRtcLoopbackBiDiSession,
     });
 
-    await Promise.all([
-      connection.send(() => textEvent),
-      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
-    ]);
+    await connection.send(() => textEvent);
 
     expect(open).toHaveBeenCalledTimes(1);
     expect(write).toHaveBeenCalledTimes(1);
@@ -680,12 +680,8 @@ describe('send', () => {
         ),
       );
 
-    await Promise.all([
-      connection.send(() => textEvent),
-      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
-    ]);
-
-    expect(open).toHaveBeenCalledTimes(1);
+    await connection.send(() => textEvent),
+      expect(open).toHaveBeenCalledTimes(1);
     expect(write).toHaveBeenCalledTimes(2);
     expect(cancelResponse).toHaveBeenCalledTimes(1);
     expect(onInterruption).toHaveBeenCalledTimes(1);
@@ -1025,9 +1021,8 @@ describe('onWarning', () => {
 });
 
 describe('latency', () => {
-  const HOSTNAME = 'localhost:1234';
+  const HOSTNAME = 'localhost:1237';
 
-  let connection: ConnectionService;
   let server: WS;
 
   beforeEach(() => {
@@ -1035,7 +1030,27 @@ describe('latency', () => {
       jsonProtocol: true,
     });
 
-    connection = new ConnectionService({
+    jest.spyOn(Player.prototype, 'setStream').mockImplementation(jest.fn());
+    jest
+      .spyOn(ConversationService.prototype, 'getConversationId')
+      .mockImplementation(() => conversationId);
+  });
+
+  afterEach(() => {
+    server.close();
+    WS.clean();
+  });
+
+  test('should receive ping and send pong event', async () => {
+    const pong = jest.spyOn(EventFactory.prototype, 'pong');
+    const packetId = {
+      packetId: v4(),
+      interactionId: v4(),
+      utteranceId: v4(),
+      correlationId: v4(),
+    };
+    const pingTimestamp = protoTimestamp();
+    const connection = new ConnectionService({
       name: SCENE,
       config: {
         connection: { gateway: { hostname: HOSTNAME } },
@@ -1050,28 +1065,6 @@ describe('latency', () => {
       generateSessionToken,
       webRtcLoopbackBiDiSession,
     });
-
-    jest.spyOn(Player.prototype, 'setStream').mockImplementation(jest.fn());
-    jest
-      .spyOn(ConversationService.prototype, 'getConversationId')
-      .mockImplementation(() => conversationId);
-  });
-
-  afterEach(() => {
-    server.close();
-    WS.clean();
-    connection.close();
-  });
-
-  test('should receive ping and send pong event', async () => {
-    const pong = jest.spyOn(EventFactory.prototype, 'pong');
-    const packetId = {
-      packetId: v4(),
-      interactionId: v4(),
-      utteranceId: v4(),
-      correlationId: v4(),
-    };
-    const pingTimestamp = protoTimestamp();
 
     await Promise.all([
       connection.open(),
@@ -1096,48 +1089,256 @@ describe('latency', () => {
       },
     });
 
+    connection.close();
+
     expect(pong).toHaveBeenCalledTimes(1);
     expect(pong).toHaveBeenCalledWith(packetId, pingTimestamp);
   });
 
-  test('should send perceived latency event', async () => {
-    connection.conversations.set(conversationId, {
-      service: new ConversationService(connection, {
-        participants: [characters[0].resourceName],
-        conversationId,
-        addCharacters: jest.fn(),
-      }),
-      state: ConversationState.ACTIVE,
-    });
-
-    const perceivedLatency = jest.spyOn(
-      EventFactory.prototype,
-      'perceivedLatency',
-    );
-
-    await Promise.all([
-      connection.open(),
-      setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
-    ]);
-
-    await server.connected;
-
+  test('should send perceived latency event for text with disabled audio', (done) => {
     const textRequest = eventFactory.text(v4(), { conversationId });
     const textResponse = eventFactory.text(v4(), { conversationId });
     textResponse.packetId = {
       ...textRequest.packetId,
       packetId: v4(),
     };
-    textResponse.routing!.source = { type: ActorType.WORLD };
+    textResponse.routing!.source = { type: ActorType.AGENT };
+    textResponse.text!.sourceType = TextEventSourceType.GENERATED;
 
-    await connection.send(() => textRequest);
-
-    server.send({
-      result: textResponse,
+    sendPerceivedLatency({
+      capabilities: {
+        ...capabilitiesProps,
+        audio: false,
+        perceivedLatencyReport: true,
+      },
+      server,
+      packets: [
+        { type: 'request', packet: textRequest },
+        { type: 'response', packet: textResponse },
+      ],
+      expectedType: PerceivedLatencyReportPrecision.NON_SPEECH,
+      totalCalls: 1,
+      hostname: HOSTNAME,
+      done,
     });
+  });
 
-    expect(perceivedLatency).toHaveBeenCalledTimes(1);
-    expect(perceivedLatency).toHaveBeenCalledWith(0, 0);
+  test('should send perceived latency event for text with enabled audio', (done) => {
+    const textRequest = eventFactory.text(v4(), { conversationId });
+    const audioResponse = eventFactory.dataChunk(
+      v4(),
+      DataChunkDataType.AUDIO,
+      { conversationId },
+    );
+    audioResponse.packetId = {
+      ...textRequest.packetId,
+      packetId: v4(),
+    };
+    audioResponse.routing!.source = { type: ActorType.AGENT };
+
+    sendPerceivedLatency({
+      capabilities: {
+        ...capabilitiesProps,
+        perceivedLatencyReport: true,
+      },
+      server,
+      packets: [
+        { type: 'request', packet: textRequest },
+        { type: 'response', packet: audioResponse },
+      ],
+      expectedType: PerceivedLatencyReportPrecision.ESTIMATED,
+      totalCalls: 1,
+      hostname: HOSTNAME,
+      done,
+    });
+  });
+
+  test('should send perceived latency event for audio with enabled audio', (done) => {
+    // We don't need to send player's audio in test, we can just send a packet with speech to text
+    const packetRecognitionResponse = eventFactory.text(v4(), {
+      conversationId,
+    });
+    packetRecognitionResponse.text!.sourceType =
+      TextEventSourceType.SPEECH_TO_TEXT;
+    const audioResponse = eventFactory.dataChunk(
+      v4(),
+      DataChunkDataType.AUDIO,
+      { conversationId },
+    );
+    audioResponse.packetId = {
+      ...packetRecognitionResponse.packetId,
+      packetId: v4(),
+    };
+    audioResponse.routing!.source = { type: ActorType.AGENT };
+
+    sendPerceivedLatency({
+      capabilities: {
+        ...capabilitiesProps,
+        perceivedLatencyReport: true,
+      },
+      server,
+      packets: [
+        { type: 'response', packet: packetRecognitionResponse },
+        { type: 'response', packet: audioResponse },
+      ],
+      expectedType: PerceivedLatencyReportPrecision.ESTIMATED,
+      totalCalls: 2,
+      hostname: HOSTNAME,
+      done,
+    });
+  });
+
+  test('should send perceived latency event for trigger', (done) => {
+    const triggerRequest = eventFactory.trigger(v4(), { conversationId });
+    const packetResponse = {
+      packetId: {
+        ...triggerRequest.packetId,
+        packetId: v4(),
+      },
+      control: {
+        action: ControlEventAction.INTERACTION_END,
+      },
+      routing: {
+        source: {
+          type: ActorType.WORLD,
+        },
+      },
+    };
+
+    sendPerceivedLatency({
+      capabilities: {
+        ...capabilitiesProps,
+        perceivedLatencyReport: true,
+      },
+      server,
+      packets: [
+        { type: 'request', packet: triggerRequest },
+        { type: 'response', packet: packetResponse },
+      ],
+      expectedType: PerceivedLatencyReportPrecision.NON_SPEECH,
+      totalCalls: 1,
+      hostname: HOSTNAME,
+      done,
+    });
+  });
+
+  test('should send perceived latency event for narrated action', (done) => {
+    const actionRequest = eventFactory.narratedAction(v4(), { conversationId });
+    const packetResponse = {
+      packetId: {
+        ...actionRequest.packetId,
+        packetId: v4(),
+      },
+      control: {
+        action: ControlEventAction.INTERACTION_END,
+      },
+      routing: {
+        source: {
+          type: ActorType.WORLD,
+        },
+      },
+    };
+
+    sendPerceivedLatency({
+      capabilities: {
+        ...capabilitiesProps,
+        perceivedLatencyReport: true,
+      },
+      server,
+      packets: [
+        { type: 'request', packet: actionRequest },
+        { type: 'response', packet: packetResponse },
+      ],
+      expectedType: PerceivedLatencyReportPrecision.NON_SPEECH,
+      totalCalls: 1,
+      hostname: HOSTNAME,
+      done,
+    });
+  });
+
+  test('should send perceived latency event for push-to-talk case', (done) => {
+    const interactionId = v4();
+    const routing = {
+      source: {},
+      target: {},
+    };
+    const audioSessionStart = {
+      packetId: {
+        packetId: v4(),
+        conversationId,
+      },
+      control: {
+        action: ControlEventAction.AUDIO_SESSION_START,
+        audioSessionStart: {
+          mode: AudioSessionStartPayloadMicrophoneMode.EXPECT_AUDIO_END,
+        },
+      },
+      routing,
+    };
+    const audioSessionEnd = {
+      packetId: {
+        packetId: v4(),
+        conversationId,
+      },
+      control: {
+        action: ControlEventAction.AUDIO_SESSION_END,
+      },
+      routing,
+    };
+    const packetRecognitionResponse = {
+      packetId: {
+        packetId: v4(),
+        utteranceId: v4(),
+        interactionId,
+        conversationId,
+      },
+      routing: {
+        source: {
+          type: ActorType.PLAYER,
+        },
+        target: {},
+      },
+      text: {
+        text: v4(),
+        sourceType: TextEventSourceType.SPEECH_TO_TEXT,
+        final: true,
+      },
+    };
+    const packetAudioResponse = {
+      packetId: {
+        packetId: v4(),
+        interactionId,
+        conversationId,
+      },
+      dataChunk: {
+        type: DataChunkDataType.AUDIO,
+        chunk: v4() as unknown as Uint8Array,
+      },
+      routing: {
+        source: {
+          type: ActorType.AGENT,
+        },
+        target: {},
+      },
+    };
+
+    sendPerceivedLatency({
+      capabilities: {
+        ...capabilitiesProps,
+        perceivedLatencyReport: true,
+      },
+      server,
+      packets: [
+        { type: 'request', packet: audioSessionStart },
+        { type: 'response', packet: packetRecognitionResponse },
+        { type: 'request', packet: audioSessionEnd },
+        { type: 'response', packet: packetAudioResponse },
+      ],
+      expectedType: PerceivedLatencyReportPrecision.PUSH_TO_TALK,
+      totalCalls: 2,
+      hostname: HOSTNAME,
+      done,
+    });
   });
 });
 
@@ -1253,3 +1454,96 @@ describe('interrupt', () => {
     });
   });
 });
+
+async function sendPerceivedLatency(props: {
+  capabilities: Capabilities;
+  server: WS;
+  packets: { type: string; packet: ProtoPacket }[];
+  expectedType: PerceivedLatencyReportPrecision;
+  totalCalls: number;
+  hostname: string;
+  done: jest.DoneCallback;
+}) {
+  const {
+    capabilities,
+    hostname,
+    packets,
+    expectedType,
+    totalCalls,
+    server,
+    done,
+  } = props;
+  jest
+    .spyOn(WebSocketConnection.prototype, 'write')
+    .mockImplementation(writeMock);
+  jest
+    .spyOn(WebSocketConnection.prototype, 'close')
+    .mockImplementation(() => Promise.resolve());
+  const sent = jest.spyOn(ConnectionService.prototype, 'send');
+
+  let called = 0;
+  const onMessage = jest.fn(async () => {
+    called++;
+
+    if (called === totalCalls) {
+      await connection.close();
+
+      const resultReport = sent.mock.calls[sent.mock.calls.length - 1][0]();
+      const perceivedLatency = resultReport.latencyReport!.perceivedLatency;
+
+      expect(perceivedLatency!.precision).toEqual(expectedType);
+
+      for (const { type, packet } of packets) {
+        if (type === 'response') {
+          expect(resultReport.packetId!.interactionId).toEqual(
+            packet.packetId!.interactionId,
+          );
+        }
+      }
+
+      done();
+    }
+  });
+
+  const connection = new ConnectionService({
+    name: SCENE,
+    config: {
+      connection: { gateway: { hostname } },
+      capabilities,
+    },
+    user,
+    onError,
+    onMessage,
+    onDisconnect,
+    onInterruption,
+    grpcAudioPlayer,
+    generateSessionToken,
+    webRtcLoopbackBiDiSession,
+  });
+
+  connection.conversations.set(conversationId, {
+    service: new ConversationService(connection, {
+      participants: [characters[0].resourceName],
+      conversationId,
+      addCharacters: jest.fn(),
+    }),
+    state: ConversationState.ACTIVE,
+  });
+
+  await Promise.all([
+    connection.open(),
+    setTimeout(() => new Promise(emitSceneStatusEvent(server)), 0),
+  ]);
+
+  await server.connected;
+
+  for (const { packet, type } of packets) {
+    if (type === 'request') {
+      await connection.send(() => packet);
+    } else {
+      server.send({
+        result: packet,
+      });
+    }
+  }
+}
