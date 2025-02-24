@@ -42,6 +42,7 @@ export const SessionControlEventCapabilitiesConfigurationSchema = z.object({
     "session_cancellation": z.boolean().optional(),
     "silence_events": z.boolean().optional(),
     "tts_mp3": z.boolean().optional(),
+    "tts_streaming": z.boolean().optional(),
     "turn_based_stt": z.boolean().optional(),
 });
 export type SessionControlEventCapabilitiesConfiguration = z.infer<typeof SessionControlEventCapabilitiesConfigurationSchema>;
@@ -94,6 +95,7 @@ export const SessionConfigurationPayloadCapabilitiesConfigurationSchema = z.obje
     "session_cancellation": z.boolean().optional(),
     "silence_events": z.boolean().optional(),
     "tts_mp3": z.boolean().optional(),
+    "tts_streaming": z.boolean().optional(),
     "turn_based_stt": z.boolean().optional(),
 });
 export type SessionConfigurationPayloadCapabilitiesConfiguration = z.infer<typeof SessionConfigurationPayloadCapabilitiesConfigurationSchema>;

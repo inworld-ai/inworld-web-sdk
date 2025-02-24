@@ -114,6 +114,7 @@ export const CapabilitiesConfigurationSchema = z.object({
     "session_cancellation": z.boolean().optional(),
     "silence_events": z.boolean().optional(),
     "tts_mp3": z.boolean().optional(),
+    "tts_streaming": z.boolean().optional(),
     "turn_based_stt": z.boolean().optional(),
 });
 export type CapabilitiesConfiguration = z.infer<typeof CapabilitiesConfigurationSchema>;
