@@ -29,6 +29,7 @@ export type CapabilitiesConfiguration = {
   logsInfo?: boolean
   logsDebug?: boolean
   logsInternal?: boolean
+  ttsStreaming?: boolean
 }
 
 export type UserConfigurationUserSettingsPlayerProfilePlayerField = {
