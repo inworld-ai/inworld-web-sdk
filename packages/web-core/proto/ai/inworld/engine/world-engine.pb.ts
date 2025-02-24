@@ -102,6 +102,7 @@ export type CapabilitiesRequest = {
   logsInfo?: boolean
   logsDebug?: boolean
   logsInternal?: boolean
+  ttsStreaming?: boolean
 }
 
 export type UserRequest = {
