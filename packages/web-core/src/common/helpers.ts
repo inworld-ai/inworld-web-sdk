@@ -38,5 +38,5 @@ export const calculateTimeDifference = (from: Date, to: Date) => {
     nanos += 1000000000;
   }
 
-  return { seconds, nanos };
+  return `${(seconds + nanos / 1000000000).toFixed(9)}s`;
 };
