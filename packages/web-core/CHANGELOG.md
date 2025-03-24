@@ -3,6 +3,7 @@
 ### Fixed
 
 - Fix perceived latency sending
+- Fix changing of scene capabilities
 
 ## [2.9.2] - 2025-01-13
 

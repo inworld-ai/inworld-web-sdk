@@ -363,7 +363,7 @@ export class ConnectionService<
 
     const sessionProto = await this.connection.updateSession({
       name: name !== this.getSceneName() ? name : undefined,
-      capabilities: props?.capabilities,
+      capabilities: this.connectionProps.config?.capabilities,
       gameSessionId: props?.gameSessionId,
       sessionContinuation: this.connectionProps.sessionContinuation,
     });
